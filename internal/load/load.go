@@ -19,7 +19,7 @@ type ArgumentList struct {
 	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
-	EventLimit            int    `default:"100" help:"Event limiter - max amount of events per execution"`
+	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
 
 	// not implemented yet

@@ -52,10 +52,12 @@ Running without any flags, will default to run all configs within ./flexConfigs
 ```
 
 ## Standard Configuration
-- Default configuration looks for Flex config files in /flexConfigs
-- Run ./nri-flex -help for all available flags
+- Default configuration looks for Flex config files in /flexConfigs.
+- Run ./nri-flex -help for all available flags.
+- Flex has an Event Limiter built in - the event_limit argument is available and there to ensure you don't spam heaps of events unknowingly, the default is 500 per execution/run, which can be dialled up if required.
+
 ``` 
-Using these two flags you could specific a single Flex Config, or another config directory.
+The below two flags you could specific a single Flex Config, or another config directory.
 
 -config_dir string
         Set directory of config files (default "flexConfigs/")
