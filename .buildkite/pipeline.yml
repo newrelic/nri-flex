@@ -1,6 +1,7 @@
 steps:
   - name: ":docker: Docker Compose pull new"
     command: docker-compose -f docker-compose-bk.yml pull
+  - wait
   - name: ":golang: Testing Build"
     env:
       CGO_ENABLED: 0
