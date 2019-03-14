@@ -122,9 +122,6 @@ flexConfigs/ <- folder
 flexContainerDiscovery/ <- folder
 ```
 
-```
-
-
 ## Development
 ```
 Docker compose & dep required.
