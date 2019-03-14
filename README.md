@@ -9,6 +9,7 @@
   - Provides over [200+ Integrations](#integrations)
   - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in
   - As updates and upgrades are made, all Flex Intergrations reap the benefits.
+  - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API
 
 ## Disclaimer
 New Relic has open-sourced this integration to enable monitoring of various technologies. This integration is provided AS-IS WITHOUT WARRANTY OR SUPPORT, although you can report issues and contribute to this integration via GitHub. Support for this integration is available with an Expert Services subscription.
@@ -71,11 +72,14 @@ With these flags, you could also define multiple instances with different config
 
 - Setup your configuration(s) see inside examples/flexConfigs for examples
 - Flex will run everything by default in the default flexConfigs/ folder (so keep what you want before deploy)
+- Flex provides two options for ingesting your events, via the New Relic Infrastructure Agent, & the New Relic Insights Event API
+
+### New Relic Infrastructure Agent
 - Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
 - Run scripts/install_linux.sh or build the docker image
 - Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)
 
-### Typical file/directory structure layout:
+#### Typical file/directory structure layout:
 ```
 /etc/newrelic-infra/integrations.d/nri-flex-config.yml <- config 
 (/examples/nri-flex-config.yml)
@@ -91,6 +95,35 @@ With these flags, you could also define multiple instances with different config
 /var/db/newrelic-infra/custom-integrations/flexContainerDiscovery/ <- if using container discovery 
 (refer to examples here: /examples/flexContainerDiscovery)
 ```
+
+### New Relic Insights Event API
+
+- Able to execute the binary wherever and however you like
+- The Flex specific config folders will remain the same
+- To use this method, create an Insert API Key from here: https://insights.newrelic.com/accounts/YOUR_ACCOUNT_ID/manage/api_keys
+- Use the below flags to configure
+```
+  -insights_api_key string
+        Set Insights API key - from link above
+  -insights_url string
+        Set Insights URL eg. "https://insights-collector.newrelic.com/v1/accounts/YOUR_ACCOUNT_ID/events"
+  -insights_output bool
+        Output the events generated to standard out true/false
+```
+- Run ./nri-flex -help for all available options
+
+#### Typical file/directory structure layout:
+```
+From any location:
+
+nri-flex <- binary
+# below folders in the same location as the binary unless you've specific a different location
+flexConfigs/ <- folder
+flexContainerDiscovery/ <- folder
+```
+
+```
+
 
 ## Development
 ```

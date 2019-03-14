@@ -11,7 +11,7 @@ global: ### can set global parameters or nested beneath each API set under apis,
 custom_attributes: # applies to all apis
   myCustAttr: myCustVal
 apis: 
-  - event_type: httpSample
+  - event_type: httpSampleABC
     url: https://jsonplaceholder.typicode.com/todos/1
     custom_attributes:
       nestedCustAttr: nestedCustVal # nested custom attributes specific to each api
