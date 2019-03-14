@@ -1,0 +1,11 @@
+bin*
+*.tar
+nri-flex-v*
+nri-flex_v*
+*.old
+vendor*
+nri-flex-mac
+coverage.*
+.DS_Store
+examples_*
+CHANGELOG_OLD.md

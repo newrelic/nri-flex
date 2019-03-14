@@ -1,0 +1,15 @@
+steps:
+  - name: ":docker: Docker Compose pull new"
+    command: docker-compose -f docker-compose-bk.yml pull
+  - name: ":golang: Testing Build"
+    env:
+      CGO_ENABLED: 0
+    plugins:
+      - ecr#v1.2.0:
+          login: true
+      - docker-compose#v2.6.0:
+          run: golang-build
+          config: ./docker-compose-bk.yml
+          env:
+            CGO_ENABLED: 0
+    command: .buildkite/_ci_steps/test.sh

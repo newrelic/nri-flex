@@ -1,0 +1,3 @@
+package outputs
+
+// insights todo

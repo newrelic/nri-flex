@@ -1,0 +1,12 @@
+integration_name: com.kav.nri-flex
+
+instances:
+  - name: nri-flex
+    command: metrics
+    arguments:
+      # container_discovery: true
+      # config_file: "../myConfigFile.yml"
+      # config_dir: "anotherConfigDir/"
+      # event_limit: 100
+    # labels:
+      # owner: cloud

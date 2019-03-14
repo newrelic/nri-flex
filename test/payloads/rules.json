@@ -1,0 +1,47 @@
+{
+    "data": {
+        "groups": [
+            {
+                "rules": [
+                    {
+                        "alerts": [
+                            {
+                                "activeAt": "2018-07-04T20:27:12.60602144+02:00",
+                                "annotations": {
+                                    "summary": "High request latency"
+                                },
+                                "labels": {
+                                    "alertname": "HighRequestLatency",
+                                    "severity": "page"
+                                },
+                                "state": "firing",
+                                "value": 1
+                            }
+                        ],
+                        "annotations": {
+                            "summary": "High request latency"
+                        },
+                        "duration": 600,
+                        "health": "ok",
+                        "labels": {
+                            "severity": "page"
+                        },
+                        "name": "HighRequestLatency",
+                        "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
+                        "type": "alerting"
+                    },
+                    {
+                        "health": "ok",
+                        "name": "job:http_inprogress_requests:sum",
+                        "query": "sum(http_inprogress_requests) by (job)",
+                        "type": "recording"
+                    }
+                ],
+                "file": "/rules.yaml",
+                "interval": 60,
+                "name": "example"
+            }
+        ]
+    },
+    "status": "success"
+}

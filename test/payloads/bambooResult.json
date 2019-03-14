@@ -1,0 +1,51 @@
+{
+    "results": {
+        "size": 1,
+        "expand": "result",
+        "start-index": 0,
+        "max-result": 1,
+        "result": [
+            {
+                "link": {
+                    "href": "http://localhost:8085/rest/api/latest/result/TP0-SUP-4",
+                    "rel": "self"
+                },
+                "plan": {
+                    "shortName": "super",
+                    "shortKey": "SUP",
+                    "type": "chain",
+                    "enabled": true,
+                    "link": {
+                        "href": "http://localhost:8085/rest/api/latest/plan/TP0-SUP",
+                        "rel": "self"
+                    },
+                    "key": "TP0-SUP",
+                    "name": "test project 01 - super",
+                    "planKey": {
+                        "key": "TP0-SUP"
+                    }
+                },
+                "buildResultKey": "TP0-SUP-4",
+                "lifeCycleState": "Finished",
+                "id": 786439,
+                "key": "TP0-SUP-4",
+                "planResultKey": {
+                    "key": "TP0-SUP-4",
+                    "entityKey": {
+                        "key": "TP0-SUP"
+                    },
+                    "resultNumber": 4
+                },
+                "state": "Successful",
+                "buildState": "Successful",
+                "number": 4,
+                "buildNumber": 4
+            }
+        ]
+    },
+    "expand": "results",
+    "link": {
+        "href": "http://localhost:8085/rest/api/latest/result",
+        "rel": "self"
+    }
+}

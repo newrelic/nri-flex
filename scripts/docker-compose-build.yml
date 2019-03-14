@@ -1,0 +1,7 @@
+version: "3"
+services:
+  golang:
+    image: golang:1.11.4-stretch
+    volumes:
+      - ../:/go/src/nri-flex
+    working_dir: /go/src/nri-flex

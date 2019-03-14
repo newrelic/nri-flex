@@ -1,0 +1,14 @@
+{
+    "type": "shamir",
+    "initialized": true,
+    "sealed": false,
+    "t": 1,
+    "n": 1,
+    "progress": 0,
+    "nonce": "",
+    "version": "1.0.2",
+    "migration": false,
+    "cluster_name": "vault-cluster-3abb3c80",
+    "cluster_id": "f0759ac2-22a4-6432-81b1-af3f599d107a",
+    "recovery_seal": false
+  }

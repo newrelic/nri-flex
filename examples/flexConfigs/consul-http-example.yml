@@ -1,0 +1,17 @@
+---
+# consul api documentation https://www.consul.io/api/index.html
+name: consulFlex
+global:
+    base_url: http://127.0.0.1:32776/v1/
+    headers:
+      #X-Consul-Token: myroot
+custom_attributes:
+  myConsulNode: NodeABC
+apis: 
+  - event_type: consulHealth
+    url: health/service/consul # https://www.consul.io/api/health.html
+  - event_type: consulCheckSample
+    url: health/state/any # 
+  - event_type: consulMemberSample
+    url: agent/members # 
+    

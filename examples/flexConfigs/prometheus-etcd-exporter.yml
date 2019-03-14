@@ -1,0 +1,17 @@
+### etcd has native prometheus metrics so we can fetch via its /metrics route
+### see prometheus-redis-exporter.yml for further configuration options
+###
+---
+name: prometheusEtcdFlex
+apis: 
+  - name: prometheusEtcd
+    url: http://localhost:2379/metrics
+    prometheus: 
+      enable: true
+      flattened_event: "prometheusEtcdSample"
+      key_merge: [action]
+      sample_keys:
+        prometheusEtcdServiceSample: grpc_service
+    remove_keys:
+      - go_ # we can remove the internal exporter go metrics like this
+    # snake_to_camel: true

@@ -1,0 +1,69 @@
+{
+    "Id": "4852c6e997a4abbcc3aaea72be3f41a609e56e1f550172acf603ad9d3824f9e9",
+    "Names": [
+        "/k8s_redis2_redis2-54cc8fb556-nwjhb_default_48f4fd61-390c-11e9-82ec-000c29427784_0"
+    ],
+    "Image": "redis@sha256:dd5b84ce536dffdcab79024f4df5485d010affa09e6c399b215e199a0dca38c4",
+    "ImageID": "sha256:0f55cf3661e92cc44014f9d93e6f7cbd2a59b7220a26edcdb0828289cf6a361f",
+    "Command": "docker-entrypoint.sh redis-server",
+    "Created": 1551106059,
+    "Ports": [],
+    "Labels": {
+        "annotation.io.kubernetes.container.hash": "957e475d",
+        "annotation.io.kubernetes.container.restartCount": "0",
+        "annotation.io.kubernetes.container.terminationMessagePath": "/dev/termination-log",
+        "annotation.io.kubernetes.container.terminationMessagePolicy": "File",
+        "annotation.io.kubernetes.pod.terminationGracePeriod": "30",
+        "io.kubernetes.container.logpath": "/var/log/pods/48f4fd61-390c-11e9-82ec-000c29427784/redis2/0.log",
+        "io.kubernetes.container.name": "redis2",
+        "io.kubernetes.docker.type": "container",
+        "io.kubernetes.pod.name": "redis2-54cc8fb556-nwjhb",
+        "io.kubernetes.pod.namespace": "default",
+        "io.kubernetes.pod.uid": "48f4fd61-390c-11e9-82ec-000c29427784",
+        "io.kubernetes.sandbox.id": "d2f9bec6a0880bde12b35033c28533acd1573b9178fbca14758541134ae2f78b"
+    },
+    "State": "running",
+    "Status": "Up 8 hours",
+    "HostConfig": {
+        "NetworkMode": "container:d2f9bec6a0880bde12b35033c28533acd1573b9178fbca14758541134ae2f78b"
+    },
+    "NetworkSettings": {
+        "Networks": {}
+    },
+    "Mounts": [
+        {
+            "Type": "volume",
+            "Name": "33ff827a7f8ae8546ee01a13650ed5e95cf09713cb7b3e3076a9a96fe0f12819",
+            "Source": "",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "",
+            "RW": true,
+            "Propagation": ""
+        },
+        {
+            "Type": "bind",
+            "Source": "/var/lib/kubelet/pods/48f4fd61-390c-11e9-82ec-000c29427784/containers/redis2/dced0e38",
+            "Destination": "/dev/termination-log",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+        },
+        {
+            "Type": "bind",
+            "Source": "/var/lib/kubelet/pods/48f4fd61-390c-11e9-82ec-000c29427784/etc-hosts",
+            "Destination": "/etc/hosts",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+        },
+        {
+            "Type": "bind",
+            "Source": "/var/lib/kubelet/pods/48f4fd61-390c-11e9-82ec-000c29427784/volumes/kubernetes.io~secret/default-token-6thjx",
+            "Destination": "/var/run/secrets/kubernetes.io/serviceaccount",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+        }
+    ]
+}

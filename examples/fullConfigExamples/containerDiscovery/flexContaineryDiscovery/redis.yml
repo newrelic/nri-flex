@@ -1,0 +1,32 @@
+# example label to apply -> flexDiscoveryRedis="t=redis,c=redis,tt=img,tm=contains"
+# if using kubernetes -> flexDiscoveryRedis:"t_redis.c_redis.tt_img.tm_contains"
+---
+name: redisFlex
+apis: 
+  - name: redis
+    commands: 
+      ### alpine linux doesn't close netcat after EOF, so we use -q0 to help
+      - run: (printf 'info\r\n'; sleep 1) | nc -q0 ${auto:host} ${auto:port} # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+      # If you are testing on mac, use the below line without -q flag, as it is not available on mac
+      #- run: (printf 'info\r\n'; sleep 1) | nc ${auto:host} ${auto:port} # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+        split_by: ":"
+    remove_keys: # remove any keys that contain any of the following strings
+      - human
+    snake_to_camel: true 
+    perc_to_decimal: true
+    sub_parse:
+      - type: prefix
+        key: db
+        split_by:
+          - ","
+          - "="
+    custom_attributes:
+      targetHost: ${auto:host}
+      targetPort: ${auto:port}
+    metric_parser:
+      metrics:
+        totalNetInputBytes: RATE
+        rate$: RATE
+      namespace: # you can create a namespace with a custom attribute, or chain together existing attributes, else it will default 
+        custom_attr: "${auto:host}:${auto:port}" 
+      auto_set: true ### switches metric parser to use regex rather then direct match

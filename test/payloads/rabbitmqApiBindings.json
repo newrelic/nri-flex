@@ -1,0 +1,29 @@
+[
+    {
+      "source": "",
+      "vhost": "/",
+      "destination": "amq.gen-TUoz4IpNEyR-sEZqoUW1CQ",
+      "destination_type": "queue",
+      "routing_key": "amq.gen-TUoz4IpNEyR-sEZqoUW1CQ",
+      "arguments": {},
+      "properties_key": "amq.gen-TUoz4IpNEyR-sEZqoUW1CQ"
+    },
+    {
+      "source": "",
+      "vhost": "/",
+      "destination": "testQueue",
+      "destination_type": "queue",
+      "routing_key": "testQueue",
+      "arguments": {},
+      "properties_key": "testQueue"
+    },
+    {
+      "source": "direct",
+      "vhost": "/",
+      "destination": "amq.gen-TUoz4IpNEyR-sEZqoUW1CQ",
+      "destination_type": "queue",
+      "routing_key": "a91e5e12-07ed-4982-8273-45ce6267d143",
+      "arguments": {},
+      "properties_key": "a91e5e12-07ed-4982-8273-45ce6267d143"
+    }
+  ]

@@ -1,0 +1,331 @@
+
+# HELP go_gc_duration_seconds A summary of the GC invocation durations.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 1.7488e-05
+go_gc_duration_seconds{quantile="0.25"} 2.0739e-05
+go_gc_duration_seconds{quantile="0.5"} 8.6961e-05
+go_gc_duration_seconds{quantile="0.75"} 0.000358332
+go_gc_duration_seconds{quantile="1"} 0.000606444
+go_gc_duration_seconds_sum 0.001253561
+go_gc_duration_seconds_count 8
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 7
+# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 3.128376e+06
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 2.6926608e+07
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.444544e+06
+# HELP go_memstats_frees_total Total number of frees.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 37213
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 2.377728e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 3.128376e+06
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 6.2398464e+07
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 3.989504e+06
+# HELP go_memstats_heap_objects Number of allocated objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 4418
+# HELP go_memstats_heap_released_bytes_total Total number of heap bytes released to OS.
+# TYPE go_memstats_heap_released_bytes_total counter
+go_memstats_heap_released_bytes_total 0
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 6.6387968e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 1.5523949892526178e+09
+# HELP go_memstats_lookups_total Total number of pointer lookups.
+# TYPE go_memstats_lookups_total counter
+go_memstats_lookups_total 0
+# HELP go_memstats_mallocs_total Total number of mallocs.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 41631
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 6944
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 16384
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 27792
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 32768
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 4.194304e+06
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 1.306168e+06
+# HELP go_memstats_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 720896
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 720896
+# HELP go_memstats_sys_bytes Number of bytes obtained by system. Sum of all system allocations.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 7.2286456e+07
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 0.19
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 8
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 1.1956224e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.55239479564e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 1.13074176e+08
+# HELP redis_aof_current_rewrite_duration_sec aof_current_rewrite_duration_secmetric
+# TYPE redis_aof_current_rewrite_duration_sec gauge
+redis_aof_current_rewrite_duration_sec{addr="192.168.0.101:6379",alias=""} -1
+# HELP redis_aof_enabled aof_enabledmetric
+# TYPE redis_aof_enabled gauge
+redis_aof_enabled{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_aof_last_bgrewrite_status aof_last_bgrewrite_statusmetric
+# TYPE redis_aof_last_bgrewrite_status gauge
+redis_aof_last_bgrewrite_status{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_aof_last_cow_size_bytes aof_last_cow_size_bytesmetric
+# TYPE redis_aof_last_cow_size_bytes gauge
+redis_aof_last_cow_size_bytes{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_aof_last_rewrite_duration_sec aof_last_rewrite_duration_secmetric
+# TYPE redis_aof_last_rewrite_duration_sec gauge
+redis_aof_last_rewrite_duration_sec{addr="192.168.0.101:6379",alias=""} -1
+# HELP redis_aof_last_write_status aof_last_write_statusmetric
+# TYPE redis_aof_last_write_status gauge
+redis_aof_last_write_status{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_aof_rewrite_in_progress aof_rewrite_in_progressmetric
+# TYPE redis_aof_rewrite_in_progress gauge
+redis_aof_rewrite_in_progress{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_aof_rewrite_scheduled aof_rewrite_scheduledmetric
+# TYPE redis_aof_rewrite_scheduled gauge
+redis_aof_rewrite_scheduled{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_blocked_clients blocked_clientsmetric
+# TYPE redis_blocked_clients gauge
+redis_blocked_clients{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_client_biggest_input_buf client_biggest_input_bufmetric
+# TYPE redis_client_biggest_input_buf gauge
+redis_client_biggest_input_buf{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_client_longest_output_list client_longest_output_listmetric
+# TYPE redis_client_longest_output_list gauge
+redis_client_longest_output_list{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_cluster_enabled cluster_enabledmetric
+# TYPE redis_cluster_enabled gauge
+redis_cluster_enabled{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_commands_duration_seconds_total Total amount of time in seconds spent per command
+# TYPE redis_commands_duration_seconds_total gauge
+redis_commands_duration_seconds_total{addr="192.168.0.101:6379",alias="",cmd="config"} 0.000289
+# HELP redis_commands_processed_total commands_processed_totalmetric
+# TYPE redis_commands_processed_total gauge
+redis_commands_processed_total{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_commands_total Total number of calls per command
+# TYPE redis_commands_total gauge
+redis_commands_total{addr="192.168.0.101:6379",alias="",cmd="config"} 1
+# HELP redis_config_maxclients config_maxclientsmetric
+# TYPE redis_config_maxclients gauge
+redis_config_maxclients{addr="192.168.0.101:6379",alias=""} 10000
+# HELP redis_config_maxmemory config_maxmemorymetric
+# TYPE redis_config_maxmemory gauge
+redis_config_maxmemory{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_connected_clients connected_clientsmetric
+# TYPE redis_connected_clients gauge
+redis_connected_clients{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_connected_slaves connected_slavesmetric
+# TYPE redis_connected_slaves gauge
+redis_connected_slaves{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_connections_received_total connections_received_totalmetric
+# TYPE redis_connections_received_total gauge
+redis_connections_received_total{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_db_avg_ttl_seconds Avg TTL in seconds
+# TYPE redis_db_avg_ttl_seconds gauge
+redis_db_avg_ttl_seconds{addr="192.168.0.101:6379",alias="",db="db0"} 0
+# HELP redis_db_keys Total number of keys by DB
+# TYPE redis_db_keys gauge
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db0"} 1
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db1"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db10"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db11"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db12"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db13"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db14"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db15"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db2"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db3"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db4"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db5"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db6"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db7"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db8"} 0
+redis_db_keys{addr="192.168.0.101:6379",alias="",db="db9"} 0
+# HELP redis_db_keys_expiring Total number of expiring keys by DB
+# TYPE redis_db_keys_expiring gauge
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db0"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db1"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db10"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db11"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db12"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db13"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db14"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db15"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db2"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db3"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db4"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db5"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db6"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db7"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db8"} 0
+redis_db_keys_expiring{addr="192.168.0.101:6379",alias="",db="db9"} 0
+# HELP redis_evicted_keys_total evicted_keys_totalmetric
+# TYPE redis_evicted_keys_total gauge
+redis_evicted_keys_total{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_expired_keys_total expired_keys_totalmetric
+# TYPE redis_expired_keys_total gauge
+redis_expired_keys_total{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_exporter_build_info redis exporter build_info
+# TYPE redis_exporter_build_info gauge
+redis_exporter_build_info{build_date="2019-03-02-19:49:17",commit_sha="9a564252edf9caeba0d3c501bc1b87b506ec701b",golang_version="go1.12",version="v0.30.0"} 1
+# HELP redis_exporter_last_scrape_duration_seconds The last scrape duration.
+# TYPE redis_exporter_last_scrape_duration_seconds gauge
+redis_exporter_last_scrape_duration_seconds 0.007935711
+# HELP redis_exporter_last_scrape_error The last scrape error status.
+# TYPE redis_exporter_last_scrape_error gauge
+redis_exporter_last_scrape_error 0
+# HELP redis_exporter_scrapes_total Current total redis scrapes.
+# TYPE redis_exporter_scrapes_total counter
+redis_exporter_scrapes_total 28
+# HELP redis_instance_info Information about the Redis instance
+# TYPE redis_instance_info gauge
+redis_instance_info{addr="192.168.0.101:6379",alias="",os="Darwin 18.2.0 x86_64",redis_build_id="e0c8d37381c486c6",redis_mode="standalone",redis_version="4.0.9",role="master"} 1
+# HELP redis_instantaneous_input_kbps instantaneous_input_kbpsmetric
+# TYPE redis_instantaneous_input_kbps gauge
+redis_instantaneous_input_kbps{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_instantaneous_ops_per_sec instantaneous_ops_per_secmetric
+# TYPE redis_instantaneous_ops_per_sec gauge
+redis_instantaneous_ops_per_sec{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_instantaneous_output_kbps instantaneous_output_kbpsmetric
+# TYPE redis_instantaneous_output_kbps gauge
+redis_instantaneous_output_kbps{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_keyspace_hits_total keyspace_hits_totalmetric
+# TYPE redis_keyspace_hits_total gauge
+redis_keyspace_hits_total{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_keyspace_misses_total keyspace_misses_totalmetric
+# TYPE redis_keyspace_misses_total gauge
+redis_keyspace_misses_total{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_latest_fork_usec latest_fork_usecmetric
+# TYPE redis_latest_fork_usec gauge
+redis_latest_fork_usec{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_loading_dump_file loading_dump_filemetric
+# TYPE redis_loading_dump_file gauge
+redis_loading_dump_file{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_master_repl_offset master_repl_offsetmetric
+# TYPE redis_master_repl_offset gauge
+redis_master_repl_offset{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_memory_max_bytes memory_max_bytesmetric
+# TYPE redis_memory_max_bytes gauge
+redis_memory_max_bytes{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_memory_used_bytes memory_used_bytesmetric
+# TYPE redis_memory_used_bytes gauge
+redis_memory_used_bytes{addr="192.168.0.101:6379",alias=""} 1.032464e+06
+# HELP redis_memory_used_lua_bytes memory_used_lua_bytesmetric
+# TYPE redis_memory_used_lua_bytes gauge
+redis_memory_used_lua_bytes{addr="192.168.0.101:6379",alias=""} 37888
+# HELP redis_memory_used_peak_bytes memory_used_peak_bytesmetric
+# TYPE redis_memory_used_peak_bytes gauge
+redis_memory_used_peak_bytes{addr="192.168.0.101:6379",alias=""} 1.032464e+06
+# HELP redis_memory_used_rss_bytes memory_used_rss_bytesmetric
+# TYPE redis_memory_used_rss_bytes gauge
+redis_memory_used_rss_bytes{addr="192.168.0.101:6379",alias=""} 2.166784e+06
+# HELP redis_net_input_bytes_total net_input_bytes_totalmetric
+# TYPE redis_net_input_bytes_total gauge
+redis_net_input_bytes_total{addr="192.168.0.101:6379",alias=""} 55
+# HELP redis_net_output_bytes_total net_output_bytes_totalmetric
+# TYPE redis_net_output_bytes_total gauge
+redis_net_output_bytes_total{addr="192.168.0.101:6379",alias=""} 3056
+# HELP redis_process_id process_idmetric
+# TYPE redis_process_id gauge
+redis_process_id{addr="192.168.0.101:6379",alias=""} 72295
+# HELP redis_pubsub_channels pubsub_channelsmetric
+# TYPE redis_pubsub_channels gauge
+redis_pubsub_channels{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_pubsub_patterns pubsub_patternsmetric
+# TYPE redis_pubsub_patterns gauge
+redis_pubsub_patterns{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_rdb_bgsave_in_progress rdb_bgsave_in_progressmetric
+# TYPE redis_rdb_bgsave_in_progress gauge
+redis_rdb_bgsave_in_progress{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_rdb_changes_since_last_save rdb_changes_since_last_savemetric
+# TYPE redis_rdb_changes_since_last_save gauge
+redis_rdb_changes_since_last_save{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_rdb_current_bgsave_duration_sec rdb_current_bgsave_duration_secmetric
+# TYPE redis_rdb_current_bgsave_duration_sec gauge
+redis_rdb_current_bgsave_duration_sec{addr="192.168.0.101:6379",alias=""} -1
+# HELP redis_rdb_last_bgsave_duration_sec rdb_last_bgsave_duration_secmetric
+# TYPE redis_rdb_last_bgsave_duration_sec gauge
+redis_rdb_last_bgsave_duration_sec{addr="192.168.0.101:6379",alias=""} -1
+# HELP redis_rdb_last_bgsave_status rdb_last_bgsave_statusmetric
+# TYPE redis_rdb_last_bgsave_status gauge
+redis_rdb_last_bgsave_status{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_rdb_last_cow_size_bytes rdb_last_cow_size_bytesmetric
+# TYPE redis_rdb_last_cow_size_bytes gauge
+redis_rdb_last_cow_size_bytes{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_rdb_last_save_timestamp_seconds rdb_last_save_timestamp_secondsmetric
+# TYPE redis_rdb_last_save_timestamp_seconds gauge
+redis_rdb_last_save_timestamp_seconds{addr="192.168.0.101:6379",alias=""} 1.552395036e+09
+# HELP redis_rejected_connections_total rejected_connections_totalmetric
+# TYPE redis_rejected_connections_total gauge
+redis_rejected_connections_total{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_replication_backlog_bytes replication_backlog_bytesmetric
+# TYPE redis_replication_backlog_bytes gauge
+redis_replication_backlog_bytes{addr="192.168.0.101:6379",alias=""} 1.048576e+06
+# HELP redis_slowlog_last_id Last id of slowlog
+# TYPE redis_slowlog_last_id gauge
+redis_slowlog_last_id{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_slowlog_length Total slowlog
+# TYPE redis_slowlog_length gauge
+redis_slowlog_length{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_start_time_seconds Start time of the Redis instance since unix epoch in seconds.
+# TYPE redis_start_time_seconds gauge
+redis_start_time_seconds{addr="192.168.0.101:6379",alias=""} 1.552395036e+09
+# HELP redis_total_system_memory_bytes total_system_memory_bytesmetric
+# TYPE redis_total_system_memory_bytes gauge
+redis_total_system_memory_bytes{addr="192.168.0.101:6379",alias=""} 1.7179869184e+10
+# HELP redis_up upmetric
+# TYPE redis_up gauge
+redis_up{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_uptime_in_seconds uptime_in_secondsmetric
+# TYPE redis_uptime_in_seconds gauge
+redis_uptime_in_seconds{addr="192.168.0.101:6379",alias=""} 1
+# HELP redis_used_cpu_sys used_cpu_sysmetric
+# TYPE redis_used_cpu_sys gauge
+redis_used_cpu_sys{addr="192.168.0.101:6379",alias=""} 0.01
+# HELP redis_used_cpu_sys_children used_cpu_sys_childrenmetric
+# TYPE redis_used_cpu_sys_children gauge
+redis_used_cpu_sys_children{addr="192.168.0.101:6379",alias=""} 0
+# HELP redis_used_cpu_user used_cpu_usermetric
+# TYPE redis_used_cpu_user gauge
+redis_used_cpu_user{addr="192.168.0.101:6379",alias=""} 0.01
+# HELP redis_used_cpu_user_children used_cpu_user_childrenmetric
+# TYPE redis_used_cpu_user_children gauge
+redis_used_cpu_user_children{addr="192.168.0.101:6379",alias=""} 0

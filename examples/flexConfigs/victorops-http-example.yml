@@ -1,0 +1,22 @@
+---
+# https://portal.victorops.com/public/api-docs.html#!/Incidents/get_api_public_v1_incidents
+name: victoropsFlex
+global:
+    base_url: https://api.victorops.com/api-public/v1/
+    headers:
+      X-VO-Api-Id: "VictorOpsId"
+      X-VO-Api-Key: "VictorOpsAPIKey"
+custom_attributes:
+  myConsulNode: NodeABC
+apis: 
+  - event_type: victoropsIncidentSample
+    url: incidents
+    strip_keys:
+      - incidents>transitions
+      - incidents>pagedPolicies
+    lazy_flatten:
+      - incidents>pagedUsers
+      - incidents>pagedTeams
+    remove_keys:
+      # - transitionSamples
+      # - pagedPolicieSamples

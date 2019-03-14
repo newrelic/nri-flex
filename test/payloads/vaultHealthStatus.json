@@ -1,0 +1,12 @@
+{
+    "initialized": true,
+    "sealed": false,
+    "standby": false,
+    "performance_standby": false,
+    "replication_performance_mode": "disabled",
+    "replication_dr_mode": "disabled",
+    "server_time_utc": 1550325568,
+    "version": "1.0.2",
+    "cluster_name": "vault-cluster-3abb3c80",
+    "cluster_id": "f0759ac2-22a4-6432-81b1-af3f599d107a"
+  }

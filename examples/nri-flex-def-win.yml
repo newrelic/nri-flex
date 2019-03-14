@@ -1,0 +1,11 @@
+name: com.kav.nri-flex
+description: nri-flex
+protocol_version: 2
+os: windows
+
+commands:
+  metrics:
+    command:
+      - nri-flex
+      - --metrics
+    interval: 15

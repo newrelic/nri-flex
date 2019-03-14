@@ -1,0 +1,14 @@
+### https://docs.opsgenie.com/docs/alert-api
+---
+name: opsgenieFlex
+global:
+    base_url: https://api.opsgenie.com/v2/
+    headers:
+      Authorization: GenieKey YourOpsGenieToken
+apis: 
+  - event_type: opsgenieAlertSample ### https://docs.opsgenie.com/docs/alert-api#section-list-alerts
+    url: alerts?query=status%3Aopen&offset=7&limit=20&sort=createdAt'
+    strip_keys: ### strip out any sub arrays
+      - data>responders ### returns ids not useful
+      - data>tags 
+      - data>teams ### returns ids

@@ -1,0 +1,35 @@
+# This is a configuration example explaining all the possible options on setting up prometheus exporter metrics to be ingested
+# https://prometheus.io/docs/instrumenting/exporters/
+
+# when testing in kubernetes my environment var looked like this on the exporter
+# flexDiscoveryRedisExporter="c=prometheusRedisExporter,t=redis-exporter,tt=cname"
+# so use prometheusRedisExporter.yml as the config, and target a container name, that contains "redis-exporter"
+# we could set this on the flex container itself, with the reverse flag
+# eg. flexDiscoveryRedisExporter="c=prometheusRedisExporter,t=redis-exporter,tt=cname,r=true"
+
+# https://github.com/oliver006/redis_exporter
+---
+name: prometheusRedisFlex
+apis: 
+  - name: prometheusRedis
+    url: http://${auto:host}:${auto:port}/metrics
+    prometheus: 
+      enable: true
+      flattened_event: "prometheusRedisSample" # name of the event_type when metrics are flattened into a single sample
+      # unflatten: true ### <- every prometheus metric will be unflattened into their own sample, other functions will not be available
+      ############           use with caution as this can create a large amount samples
+      ############           it is useful for testing to see the output of metrics you are getting as well
+      key_merge: [cmd] # the same metric may exist multiple times, for different things, if we want to flatten them out we can use this parameter
+      ############        eg. "redis_commands_duration_seconds_total" Metric exists for multiple commands, there is a "cmd" attribute on each metric to distinguish each command
+      ############        so we add "cmd" to the array to flatten it like this eg. "redis_commands_duration_seconds_total.info" = 132 ("info was the command in this case")
+      ###########        db could also be added here, so you could just add to the array eg. key_merge: [cmd,db]
+      sample_keys:
+        prometheusRedisDbSample: db # multiple metrics may exist where they correspond to the same thing like metrics of each particular database
+      ############                     eg. redis_db_keys_expiring and redis_db_keys, both have a "db" key to distinguish each database
+      ############                     this will let us roll up all the metrics that contain the "db" key into a "prometheusRedisDbSample"
+      ############                     we could also use cmd here, if we wanted them in separate samples add for eg. prometheusRedisCmdSample: cmd
+    custom_attributes: # apply any custom attributes as you require
+      serverName: mySuperServer
+    remove_keys:
+      - go_ # we can remove the internal exporter go metrics like this
+    #snake_to_camel: true

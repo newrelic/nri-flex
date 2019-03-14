@@ -1,0 +1,66 @@
+kubectl run -i --rm nri-flex --overrides='
+{
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "nri-flex",
+        "creationTimestamp": null
+    },
+    "spec": {
+        "containers": [
+            {
+                "env": [
+                        {
+                            "name": "flexDiscoveryRedis",
+                            "value": "t=redis,r=true"
+                        }
+                ],
+                "name": "nri-flex",
+                "image": "nri-flex:latest",
+                "args": [
+                    "sh"
+                ],
+                "resources": {},
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext":{
+                    "privileged": true
+                },
+                "stdin": true,
+                "stdinOnce": true,
+                "tty": true,
+                "volumeMounts": [
+                    {
+                        "name": "dockersock",
+                        "mountPath": "/var/run/docker.sock"
+                    },
+                    {
+                        "name": "proc",
+                        "mountPath": "/host/proc"
+                    }
+                ]
+            }
+        ],
+        "volumes": [
+            {
+                "name": "dockersock",
+                "hostPath": {
+                    "path": "/var/run/docker.sock"
+                }
+            },
+            {
+                "name": "proc",
+                "hostPath": {
+                    "path": "/proc"
+                }
+            }
+        ],
+        "restartPolicy": "Never",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "securityContext": {},
+        "schedulerName": "default-scheduler"
+    },
+    "status": {}
+}' --image=nri-flex:latest --restart=Never  -- sh

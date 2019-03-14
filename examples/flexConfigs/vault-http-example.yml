@@ -1,0 +1,26 @@
+---
+# vault api documentation https://www.vaultproject.io/api/system/
+name: vaultFlex
+global:
+    base_url: http://127.0.0.1:32774/v1/
+    headers:
+      X-Vault-Token: myroot
+custom_attributes:
+  myVaultNode: NodeABC
+apis: 
+  - event_type: vaultKeyStatus
+    url: sys/key-status # https://www.vaultproject.io/api/system/health.html
+    prefix: key.
+    merge: vaultStatus
+  - event_type: vaultHealthStatus
+    prefix: health.
+    url: sys/health # https://www.vaultproject.io/api/system/health.html
+    merge: vaultStatus
+  - event_type: vaultSealStatus
+    prefix: seal.
+    url: sys/seal-status # https://www.vaultproject.io/api/system/seal-status.html
+    merge: vaultStatus
+  - event_type: vaultLeaderStatus
+    prefix: ldr.
+    url: sys/leader # https://www.vaultproject.io/api/system/leader.html
+    merge: vaultStatus

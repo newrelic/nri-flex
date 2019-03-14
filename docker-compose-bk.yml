@@ -1,0 +1,19 @@
+version: "3"
+services:
+  golang-build:
+    # image: golang:xxx //does not contain dep so we use our own file
+    image: 643538323903.dkr.ecr.ap-southeast-2.amazonaws.com/golang-build:latest
+    volumes:
+      - .:/go/src/nri-flex
+    working_dir: /go/src/nri-flex
+    depends_on:
+      - postgres-db
+    links:
+      - postgres-db
+  postgres-db:
+    image: postgres:11.2
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: flex
+    ports:
+     - "5432:5432"

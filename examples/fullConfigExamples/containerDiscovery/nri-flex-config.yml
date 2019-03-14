@@ -1,0 +1,9 @@
+integration_name: com.kav.nri-flex
+
+instances:
+  - name: nri-flex
+    command: metrics
+    arguments:
+      container_discovery: true
+    labels:
+      owner: cloud

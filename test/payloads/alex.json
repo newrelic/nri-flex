@@ -1,0 +1,167 @@
+{
+    "cost": 0,
+    "timespan": "2019-02-07T19:37:00Z/2019-02-07T19:38:00Z",
+    "interval": "PT1M",
+    "value": [
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/c2d.commands.egress.abandon.success",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "c2d.commands.egress.abandon.success",
+                "localizedValue": "Commands abandoned"
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/c2d.commands.egress.reject.success",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "c2d.commands.egress.reject.success",
+                "localizedValue": "Commands rejected"
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/d2c.telemetry.egress.dropped",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "d2c.telemetry.egress.dropped",
+                "localizedValue": "Routing: telemetry messages dropped "
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/d2c.telemetry.egress.orphaned",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "d2c.telemetry.egress.orphaned",
+                "localizedValue": "Routing: telemetry messages orphaned "
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/d2c.endpoints.egress.serviceBusTopics",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "d2c.endpoints.egress.serviceBusTopics",
+                "localizedValue": "Routing: messages delivered to Service Bus Topic"
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/d2c.endpoints.latency.serviceBusTopics",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "d2c.endpoints.latency.serviceBusTopics",
+                "localizedValue": "Routing: message latency for Service Bus Topic"
+            },
+            "unit": "MilliSeconds",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z",
+                            "total": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/totalDeviceCount",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "totalDeviceCount",
+                "localizedValue": "Total devices (preview)"
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "/subscriptions/535d8f2e-f08c-4475-8608-3b8136d13cbd/resourceGroups/s00175rgpaasd02/providers/Microsoft.Devices/IotHubs/s00175iothd02/providers/Microsoft.Insights/metrics/connectedDeviceCount",
+            "type": "Microsoft.Insights/metrics",
+            "name": {
+                "value": "connectedDeviceCount",
+                "localizedValue": "Connected devices (preview)"
+            },
+            "unit": "Count",
+            "timeseries": [
+                {
+                    "metadatavalues": [],
+                    "data": [
+                        {
+                            "timeStamp": "2019-02-07T19:37:00Z"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "namespace": "Microsoft.Devices/IotHubs",
+    "resourceregion": "westus"
+}

@@ -1,0 +1,14 @@
+---
+name: prometheusEtcdFlex
+apis: 
+  - name: prometheusEtcd
+    url: http://${auto:host}:${auto:port}/metrics
+    prometheus: 
+      enable: true
+      flattened_event: "prometheusEtcdSample"
+      key_merge: [action]
+      sample_keys:
+        prometheusEtcdServiceSample: grpc_service
+    remove_keys:
+      - go_ # we can remove the internal exporter go metrics like this
+    # snake_to_camel: true
