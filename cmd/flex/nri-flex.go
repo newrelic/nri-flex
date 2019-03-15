@@ -77,4 +77,10 @@ func runIntegration() {
 	for sample, count := range load.EventDistribution {
 		logger.Flex("debug", flexStatusSample.SetMetric(sample+"_count", count, metric.GAUGE), "", false)
 	}
+
+	// SendToInsights
+	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
+		outputs.SendToInsights()
+	}
+
 }

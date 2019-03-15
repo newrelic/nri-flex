@@ -21,6 +21,9 @@ type ArgumentList struct {
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
 	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
+	InsightsURL           string `default:"" help:"Set Insights URL"`
+	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
+	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
 
 	// not implemented yet
 	ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
@@ -53,7 +56,7 @@ var ConfigsProcessed = 0
 
 const (
 	IntegrationName    = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationVersion = "0.3.3-pre"              // IntegrationVersion Version
+	IntegrationVersion = "0.3.4-pre"              // IntegrationVersion Version
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout = 5000                     // 5 seconds
