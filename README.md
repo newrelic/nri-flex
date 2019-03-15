@@ -8,7 +8,7 @@
   - Simplies deployment and configuration as a single Flex integration can be running multiple integrations which would be just config files.
   - Provides over [200+ Integrations](#integrations)
   - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in
-  - As updates and upgrades are made, all Flex Intergrations reap the benefits.
+  - As updates and upgrades are made, all Flex Integrations reap the benefits.
   - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API
 
 ## Disclaimer
