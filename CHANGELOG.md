@@ -1,4 +1,4 @@
-0.3.3-pre
+0.3.4-pre
 ------
 - Add Insights support
 
