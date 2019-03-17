@@ -1,5 +1,9 @@
 FROM newrelic/infrastructure
 
+# define license key as below, or copy a newrelic-infra.yml over
+# refer to here for more info: https://hub.docker.com/r/newrelic/infrastructure/
+ENV NRIA_LICENSE_KEY=1234567890abcdefghijklmnopqrstuvwxyz1234
+
 # add netcat
 RUN apk add --update netcat-openbsd && rm -rf /var/cache/apk/*
 
