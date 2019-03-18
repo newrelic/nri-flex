@@ -12,7 +12,7 @@ kubectl run -i --rm nri-flex --overrides='
                 "env": [
                         {
                             "name": "flexDiscoveryRedis",
-                            "value": "t=redis,r=true"
+                            "value": "c=prometheusRedisExporter,t=redis_exp,r=true"
                         }
                 ],
                 "name": "nri-flex",

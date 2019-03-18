@@ -56,7 +56,7 @@ var ConfigsProcessed = 0
 
 const (
 	IntegrationName    = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationVersion = "0.3.4-pre"              // IntegrationVersion Version
+	IntegrationVersion = "0.3.5-pre"              // IntegrationVersion Version
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout = 5000                     // 5 seconds

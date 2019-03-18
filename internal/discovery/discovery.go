@@ -11,6 +11,7 @@ import (
 	"nri-flex/internal/processor"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -148,10 +149,10 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 						}
 
 						if discoveryConfigs[key]["r"].(string) == "false" {
-							// if we have found our target then substitute host and port details into the targeted yml file
-							if findContainerTarget(&discoveryConfigs, container, key, &foundTargetContainerIds) {
-								addDynamicConfig(&containerYmls, &discoveryConfigs, ymls, container, containerInspect, key, path)
-							}
+							// addDynamic config will by default ensure the configs match each other
+							addDynamicConfig(&containerYmls, &discoveryConfigs, ymls, container, containerInspect, key, path)
+							// if findContainerTarget(&discoveryConfigs, container, key, &foundTargetContainerIds) {
+							// }
 						} else if discoveryConfigs[key]["r"].(string) == "true" { // perform reverse discovery lookup // should probably do some more validation to ensure this is the container itself
 							for _, reverseContainer := range containers {
 								ctx := context.Background()
@@ -175,9 +176,9 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string]map[string]interface{}, ymls *[]load.Config, targetContainer types.Container, targetContainerInspect types.ContainerJSON, key string, path string) {
 	for _, containerYml := range *containerYmls {
 		configName := ""
-		switch (*discoveryConfigs)[key]["c"].(type) {
+		switch cfg := (*discoveryConfigs)[key]["c"].(type) {
 		case string:
-			configName = ((*discoveryConfigs)[key]["c"].(string) + ".yml")
+			configName = cfg + ".yml"
 		default:
 			logger.Flex("debug", fmt.Errorf("container discovery config file error %v", ((*discoveryConfigs)[key]["c"])), "", false)
 		}
@@ -199,7 +200,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 					networkIPAddress = network.IPAddress
 					break
 				}
-				// abilitied to override and select port
+				// ability to override and select port
 				if (*discoveryConfigs)[key]["p"] != nil {
 					discoveryPort = (*discoveryConfigs)[key]["p"].(string)
 				} else {
@@ -230,20 +231,15 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 					discoveryPort = privatePort
 				}
 
+				// attempt low level ip fetch
+				lowLevelIpv4Fetch(&discoveryIPAddress, targetContainerInspect.State.Pid)
+				// attempt hostname fallback
+				execHostnameFallback(&discoveryIPAddress, targetContainer.ID)
+
 				if discoveryIPAddress != "" {
 					// substitute ip into yml
 					ymlString = strings.Replace(ymlString, "${auto:host}", discoveryIPAddress, -1)
 					ymlString = strings.Replace(ymlString, "${auto:ip}", discoveryIPAddress, -1)
-				} else {
-					// fall back if IP is not discovered
-					// attempt to directly fetch IP from container
-					ip, err := execContainerCommand(targetContainer.ID, []string{"hostname", "-i"})
-					if err != nil {
-						logger.Flex("debug", err, "secondary fetch container ip failed", false)
-					}
-					if ip != "" {
-						ymlString = strings.Replace(ymlString, "${auto:host}", strings.TrimSpace(ip), -1)
-					}
 				}
 
 				if discoveryPort != "" {
@@ -285,6 +281,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 					yml, err := processor.ReadYML(ymlString)
 					if err != nil {
 						logger.Flex("debug", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
+						logger.Flex("debug", fmt.Errorf(ymlString), "", false)
 					} else {
 						if yml.CustomAttributes == nil {
 							yml.CustomAttributes = map[string]string{}
@@ -302,7 +299,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 			}
 
 		} else {
-			logger.Flex("debug", fmt.Errorf("container discovery %v did not match %v", targetContainer.ID, containerYml.FileName), "", false)
+			logger.Flex("debug", fmt.Errorf("container discovery %v : containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName), "", false)
 		}
 	}
 }
@@ -328,6 +325,7 @@ func parseFlexDiscoveryLabel(discoveryConfigs *map[string]map[string]interface{}
 }
 
 func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, container types.Container, key string, foundTargetContainerIds *[]string) bool {
+
 	// do not do any dynamic configs for already targeted containers
 	for _, id := range *foundTargetContainerIds {
 		if id == container.ID {
@@ -365,4 +363,59 @@ func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, co
 	}
 
 	return false
+}
+
+func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
+	if *discoveryIPAddress == "" {
+		// targetContainerInspect.State.Pid
+		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
+
+		logger.Flex("debug", fmt.Errorf("attempting low level ip fetch"), "", false)
+
+		// Create a new context and add a timeout to it
+		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
+		defer cancel() // The cancel should be deferred so resources are cleaned up
+
+		// Create the command with our context
+		cmd := exec.CommandContext(ctx, "/bin/sh", "-c", `cat /host/proc/`+fmt.Sprintf("%v", pid)+
+			`/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u`)
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			message := "command failed: " + ""
+			if output != nil {
+				message = message + " " + string(output)
+			}
+			logger.Flex("debug", err, message, false)
+		} else if ctx.Err() == context.DeadlineExceeded {
+			logger.Flex("debug", ctx.Err(), "command timed out", false)
+		} else if ctx.Err() != nil {
+			logger.Flex("debug", err, "command execution failed", false)
+		} else {
+			ipv4 := strings.TrimSpace(string(output))
+			// ensure this is an ipv4 address
+			re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
+			if re.Match([]byte(ipv4)) {
+				logger.Flex("debug", fmt.Errorf("fetched %v", ipv4), "", false)
+				*discoveryIPAddress = ipv4
+			} else {
+				logger.Flex("debug", fmt.Errorf("low level fetch failed %v", ipv4), "", false)
+			}
+		}
+	}
+}
+
+func execHostnameFallback(discoveryIPAddress *string, containerID string) {
+	if *discoveryIPAddress == "" {
+		// fall back if IP is not discovered
+		// attempt to directly fetch IP from container
+		ip, err := execContainerCommand(containerID, []string{"hostname", "-i"})
+		ipv4 := strings.TrimSpace(ip)
+		re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
+		if err != nil {
+			logger.Flex("debug", err, "secondary fetch container ip failed", false)
+		} else if ip != "" && re.Match([]byte(ipv4)) && !strings.Contains(ip, "exec failed") {
+			*discoveryIPAddress = ipv4
+		}
+	}
 }
