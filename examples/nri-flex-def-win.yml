@@ -6,6 +6,6 @@ os: windows
 commands:
   metrics:
     command:
-      - nri-flex
+      - nri-flex.exe
       - --metrics
     interval: 15
