@@ -1,3 +1,6 @@
+### note if local testing, macOS does not have the -q flag for nc (netcat) that other linux systems have, so remove if testing locally
+### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+
 # example label to apply -> flexDiscoveryRedis="t=redis,c=redis,tt=img,tm=contains"
 # if using kubernetes -> flexDiscoveryRedis:"t_redis.c_redis.tt_img.tm_contains"
 ---
@@ -6,7 +9,7 @@ apis:
   - name: redis
     commands: 
       ### alpine linux doesn't close netcat after EOF, so we use -q0 to help
-      - run: (printf 'info\r\n'; sleep 1) | nc -q0 ${auto:host} ${auto:port} # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+      - run: (printf 'info\r\n'; sleep 1) | nc ${auto:host} ${auto:port} # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
       # If you are testing on mac, use the below line without -q flag, as it is not available on mac
       #- run: (printf 'info\r\n'; sleep 1) | nc ${auto:host} ${auto:port} # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
         split_by: ":"
