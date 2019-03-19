@@ -10,7 +10,6 @@ import (
 // ArgumentList Available Arguments
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	Version               bool   `default:"false" help:"Output version"`
 	ForceLog              bool   `default:"false" help:"Deprecated use -verbose instead"`
 	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
 	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
