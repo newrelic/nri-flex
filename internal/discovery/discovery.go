@@ -93,84 +93,199 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 	processor.LoadConfigFiles(&containerYmls, files, path)
 	foundTargetContainerIds := []string{}
 
+	cli, err := setDockerClient()
+	if err != nil {
+		logger.Flex("debug", err, "unable to set docker client", false)
+	} else {
+		// store inspected containers, so we do not re-inspect anything unnecessarily
+		inspectedContainers := []types.ContainerJSON{}
+		logger.Flex("debug", fmt.Errorf("containers %d, containerDiscoveryYmls %d", len(containers), len(containerYmls)), "", false)
+		// find flex container id if not set
+		findFlexContainerID(&containers)
+		// flex envs/labels -> container
+		runReverseLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
+		// container envs/labels -> flex
+		runForwardLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
+	}
+}
+
+// runForwardLookup container envs -> flex
+func runForwardLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
 	discoveryConfigs := map[string]map[string]interface{}{}
+
 	var wg sync.WaitGroup
-	wg.Add(len(containers))
-	for _, container := range containers {
+	wg.Add(len(*containers))
+	for _, container := range *containers {
 		go func(container types.Container) {
 			defer wg.Done()
-			discoveryLoop := map[string]string{}
-			// add container labels to check for disc configs
-			for key, val := range container.Labels {
-				discoveryLoop[key] = val
+
+			// do not target already targeted containers
+			targeted := false
+			for _, foundTargetContainerID := range *foundTargetContainerIds {
+				if foundTargetContainerID == container.ID {
+					targeted = true
+				}
 			}
-			// check env variables for disc configs
-			var containerInspect types.ContainerJSON
-			cli, err := setDockerClient()
-			if err != nil {
-				logger.Flex("debug", err, "unable to set docker client", false)
-			} else {
-				ctx := context.Background()
-				containerInspect, err = cli.ContainerInspect(ctx, container.ID)
-				if err != nil {
-					logger.Flex("debug", nil, "container inspect failed", false)
-				} else if containerInspect.Config != nil {
+
+			// do not do a forward lookup against the flex container
+			if load.ContainerID != container.ID && !targeted {
+
+				discoveryLoop := map[string]string{}
+				// add container labels to check for disc configs
+				for key, val := range container.Labels {
+					discoveryLoop[key] = val
+				}
+
+				// check env variables for disc configs, so use container inspect
+				var containerInspect types.ContainerJSON
+
+				// check if the container has already been inspected
+				for _, inspectedContainer := range *inspectedContainers {
+					if inspectedContainer.ID == container.ID {
+						containerInspect = inspectedContainer
+						break
+					}
+				}
+
+				if containerInspect.Config == nil {
+					ctx := context.Background()
+					var err error
+					containerInspect, err = dockerClient.ContainerInspect(ctx, container.ID)
+					if err != nil {
+						logger.Flex("debug", nil, "container inspect failed", false)
+					} else {
+						*inspectedContainers = append(*inspectedContainers, containerInspect)
+					}
+				}
+
+				if containerInspect.Config != nil {
+					// add container labels to check for disc configs
+					for key, val := range containerInspect.Config.Labels {
+						discoveryLoop[key] = val
+					}
+
+					// add env variables to check for disc configs
 					for _, envVar := range containerInspect.Config.Env {
 						environmentVar := strings.SplitN(envVar, "=", 2)
 						if len(environmentVar) == 2 {
 							discoveryLoop[environmentVar[0]] = environmentVar[1]
 						}
 					}
-				}
-			}
 
-			// create discoveryConfigs - look for flex label and split
-			for key, val := range discoveryLoop {
-				if strings.Contains(key, "flexDiscovery") {
-					discoveryConfigs[key] = map[string]interface{}{}
-					parseFlexDiscoveryLabel(&discoveryConfigs, key, val)
-					// t = target, c = config, r = reverse, tt = target type, tm = target mode, ip = ip mode, p = port
-					// check if we have a target to find, and config to run
-					if discoveryConfigs[key]["t"] != nil {
-						// if config is nil, use the <target> , as the yaml file to look up eg. if target (t) = redis, lookup the config (c) redis.yml
-						if discoveryConfigs[key]["c"] == nil {
-							discoveryConfigs[key]["c"] = discoveryConfigs[key]["t"]
-						}
-						// auto will mean that if set to true, it will loop through all other containers to find a match
-						// if not set / set to false it will target the current container
-						if discoveryConfigs[key]["r"] == nil {
-							discoveryConfigs[key]["r"] = "false"
-						}
-						if discoveryConfigs[key]["tt"] == nil {
-							discoveryConfigs[key]["tt"] = "img" // cname == containerName , img = image
-						}
-						if discoveryConfigs[key]["tm"] == nil {
-							discoveryConfigs[key]["tm"] = "contains"
-						}
-
-						if discoveryConfigs[key]["r"].(string) == "false" {
-							// addDynamic config will by default ensure the configs match each other
-							addDynamicConfig(&containerYmls, &discoveryConfigs, ymls, container, containerInspect, key, path)
-							// if findContainerTarget(&discoveryConfigs, container, key, &foundTargetContainerIds) {
-							// }
-						} else if discoveryConfigs[key]["r"].(string) == "true" { // perform reverse discovery lookup // should probably do some more validation to ensure this is the container itself
-							for _, reverseContainer := range containers {
-								ctx := context.Background()
-								reverseContainerInspect, err := cli.ContainerInspect(ctx, reverseContainer.ID)
-								if err != nil {
-									logger.Flex("debug", nil, "rev container inspect failed", false)
-								} else if findContainerTarget(&discoveryConfigs, reverseContainer, key, &foundTargetContainerIds) {
-									addDynamicConfig(&containerYmls, &discoveryConfigs, ymls, reverseContainer, reverseContainerInspect, key, path)
+					// create discoveryConfigs - look for flex label and split
+					for key, val := range discoveryLoop {
+						if strings.Contains(key, "flexDiscovery") {
+							logger.Flex("debug", fmt.Errorf("fwd lookup for %v", key), "", false)
+							discoveryConfigs[key] = map[string]interface{}{}
+							parseFlexDiscoveryLabel(&discoveryConfigs, key, val)
+							// t = target, c = config, r = reverse, tt = target type, tm = target mode, ip = ip mode, p = port
+							// check if we have a target to find, and config to run
+							if discoveryConfigs[key]["t"] != nil {
+								// if config is nil, use the <target> , as the yaml file to look up eg. if target (t) = redis, lookup the config (c) redis.yml
+								if discoveryConfigs[key]["c"] == nil {
+									discoveryConfigs[key]["c"] = discoveryConfigs[key]["t"]
 								}
+								// auto will mean that if set to true, it will loop through all other containers to find a match
+								// if not set / set to false it will target the current container
+								if discoveryConfigs[key]["r"] == nil {
+									discoveryConfigs[key]["r"] = "false"
+								}
+								if discoveryConfigs[key]["tt"] == nil {
+									discoveryConfigs[key]["tt"] = load.Img // cname == containerName , img = image
+								}
+								if discoveryConfigs[key]["tm"] == nil {
+									discoveryConfigs[key]["tm"] = "contains"
+								}
+
+								// addDynamicConfig will ensure the config file matches, so the above parameters are no longer enforced
+								addDynamicConfig(containerYmls, &discoveryConfigs, ymls, container, containerInspect, key, path)
 							}
 						}
 					}
-
 				}
 			}
 		}(container)
 	}
 	wg.Wait()
+}
+
+// runReverseLookup flex envs -> container
+func runReverseLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
+	var flexContainerInspect types.ContainerJSON
+	ctx := context.Background()
+	discoveryLoop := map[string]string{}
+	discoveryConfigs := map[string]map[string]interface{}{}
+
+	if load.ContainerID != "" {
+		var err error
+		flexContainerInspect, err = dockerClient.ContainerInspect(ctx, load.ContainerID)
+		if err != nil {
+			logger.Flex("debug", nil, "container inspect failed", false)
+		} else if flexContainerInspect.Config != nil {
+			*inspectedContainers = append(*inspectedContainers, flexContainerInspect)
+
+			// add container labels to check for disc configs
+			for key, val := range flexContainerInspect.Config.Labels {
+				discoveryLoop[key] = val
+			}
+
+			// add env variables to check for disc configs
+			for _, envVar := range flexContainerInspect.Config.Env {
+				environmentVar := strings.SplitN(envVar, "=", 2)
+				if len(environmentVar) == 2 {
+					discoveryLoop[environmentVar[0]] = environmentVar[1]
+				}
+			}
+		}
+	}
+
+	// check our discovery loop continue reverse lookup
+	if len(discoveryLoop) > 0 {
+		var wg sync.WaitGroup
+		wg.Add(len(*containers))
+		for _, container := range *containers {
+			go func(container types.Container) {
+				defer wg.Done()
+				// do not target the flex container
+				if container.ID != load.ContainerID {
+					// create discoveryConfigs - look for flex label and split
+					for key, val := range discoveryLoop {
+						if strings.Contains(key, "flexDiscovery") {
+							discoveryConfigs[key] = map[string]interface{}{}
+							parseFlexDiscoveryLabel(&discoveryConfigs, key, val)
+							// t = target, c = config, r = reverse, tt = target type, tm = target mode, ip = ip mode, p = port
+							// check if we have a target to find, and config to run
+							if discoveryConfigs[key]["t"] != nil {
+								// if config is nil, use the <target> , as the yaml file to look up eg. if target (t) = redis, lookup the config (c) redis.yml
+								if discoveryConfigs[key]["c"] == nil {
+									discoveryConfigs[key]["c"] = discoveryConfigs[key]["t"]
+								}
+								if discoveryConfigs[key]["tt"] == nil {
+									discoveryConfigs[key]["tt"] = load.Img // cname == containerName , img = image
+								}
+								if discoveryConfigs[key]["tm"] == nil {
+									discoveryConfigs[key]["tm"] = "contains"
+								}
+							}
+							ctx := context.Background()
+							reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
+							if err != nil {
+								logger.Flex("debug", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
+							} else {
+								if findContainerTarget(&discoveryConfigs, container, key, foundTargetContainerIds) {
+									logger.Flex("debug", fmt.Errorf("rev lookup matched %v: %v - %v", container.ID, key, val), "", false)
+									*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
+									addDynamicConfig(containerYmls, &discoveryConfigs, ymls, container, reverseContainerInspect, key, path)
+								}
+							}
+						}
+					}
+				}
+			}(container)
+		}
+		wg.Wait()
+	}
+
 }
 
 func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string]map[string]interface{}, ymls *[]load.Config, targetContainer types.Container, targetContainerInspect types.ContainerJSON, key string, path string) {
@@ -326,7 +441,7 @@ func parseFlexDiscoveryLabel(discoveryConfigs *map[string]map[string]interface{}
 
 func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, container types.Container, key string, foundTargetContainerIds *[]string) bool {
 
-	// do not do any dynamic configs for already targeted containers
+	// do not add any dynamic configs for already targeted containers
 	for _, id := range *foundTargetContainerIds {
 		if id == container.ID {
 			return false
@@ -352,7 +467,7 @@ func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, co
 					}
 				}
 			}
-		case "img":
+		case load.Img:
 			if formatter.KvFinder((*discoveryConfigs)[key]["tm"].(string), container.Image, (*discoveryConfigs)[key]["t"].(string)) {
 				*(foundTargetContainerIds) = append(*(foundTargetContainerIds), container.ID)
 				return true
@@ -416,6 +531,54 @@ func execHostnameFallback(discoveryIPAddress *string, containerID string) {
 			logger.Flex("debug", err, "secondary fetch container ip failed", false)
 		} else if ip != "" && re.Match([]byte(ipv4)) && !strings.Contains(ip, "exec failed") {
 			*discoveryIPAddress = ipv4
+		}
+	}
+}
+
+func findFlexContainerID(containers *[]types.Container) {
+	// fallback on looking for image name "nri-flex" if flex's container id was not found internally
+	if load.ContainerID == "" {
+		logger.Flex("debug", fmt.Errorf("flex container id has not been found internally"), "", false)
+		logger.Flex("debug", fmt.Errorf("falling back - looking for 'nri-flex' image or container name"), "", false)
+
+		var wg sync.WaitGroup
+		wg.Add(len(*containers))
+		for _, container := range *containers {
+			go func(container types.Container) {
+				defer wg.Done()
+				if strings.Contains(container.Image, load.IntegrationName) && load.ContainerID == "" {
+					load.ContainerID = container.ID
+				}
+
+				// fallback - check standard container names
+				if load.ContainerID == "" {
+					for _, containerName := range container.Names {
+						checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
+						if strings.Contains(checkContainerName, load.IntegrationNameShort) {
+							load.ContainerID = container.ID
+						}
+					}
+				}
+
+				// fallback - check kubernetes container name via label
+				if load.ContainerID == "" {
+					for key, val := range container.Labels {
+						if key == "io.kubernetes.container.name" {
+							if strings.Contains(val, load.IntegrationNameShort) {
+								load.ContainerID = container.ID
+							}
+						}
+					}
+				}
+
+			}(container)
+		}
+		wg.Wait()
+
+		if load.ContainerID == "" {
+			logger.Flex("debug", fmt.Errorf("unable to find flex container id"), "", false)
+		} else {
+			logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
 		}
 	}
 }

@@ -42,6 +42,9 @@ var Entity *integration.Entity
 // Hostname current host
 var Hostname string
 
+// ContainerID current container id
+var ContainerID string
+
 // EventDropCount current number of events dropped due to limiter
 var EventDropCount = 0
 
@@ -55,25 +58,27 @@ var EventDistribution = map[string]int{}
 var ConfigsProcessed = 0
 
 const (
-	IntegrationName    = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationVersion = "0.3.5-pre"              // IntegrationVersion Version
-	DefaultSplitBy     = ":"                      // unused currently
-	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
-	DefaultPingTimeout = 5000                     // 5 seconds
-	DefaultPostgres    = "postgres"
-	DefaultMSSQLServer = "sqlserver"
-	DefaultMySQL       = "mysql"
-	DefaultOracle      = "ora"
-	DefaultJmxPath     = "./nrjmx/"
-	DefaultJmxHost     = "127.0.0.1"
-	DefaultJmxPort     = "9999"
-	DefaultJmxUser     = "admin"
-	DefaultJmxPass     = "admin"
-	DefaultIPMode      = "private"
-	DefaultShell       = "/bin/sh"
-	Public             = "public"
-	Private            = "private"
-	Jmx                = "jmx"
+	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
+	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
+	IntegrationVersion   = "0.3.7-pre"              // IntegrationVersion Version
+	DefaultSplitBy       = ":"                      // unused currently
+	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultPingTimeout   = 5000                     // 5 seconds
+	DefaultPostgres      = "postgres"
+	DefaultMSSQLServer   = "sqlserver"
+	DefaultMySQL         = "mysql"
+	DefaultOracle        = "ora"
+	DefaultJmxPath       = "./nrjmx/"
+	DefaultJmxHost       = "127.0.0.1"
+	DefaultJmxPort       = "9999"
+	DefaultJmxUser       = "admin"
+	DefaultJmxPass       = "admin"
+	DefaultIPMode        = "private"
+	DefaultShell         = "/bin/sh"
+	Public               = "public"
+	Private              = "private"
+	Jmx                  = "jmx"
+	Img                  = "img"
 )
 
 // Config YAML Struct
@@ -166,16 +171,15 @@ type Command struct {
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
+	Output           string            `yaml:"output"`            // jmx, raw, json
 
 	// Parsing Options - Body
-	KeyFilters map[string]string `yaml:"key_filters"` // filter keys out with regex
-	Output     string            `yaml:"output"`      // jmx, raw, json
-	Split      string            `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table
-	SplitBy    string            `yaml:"split_by"`    // character/match to split by
-	RegexMatch bool              `yaml:"regex_match"` // process SplitBy as a regex match
-	GroupBy    string            `yaml:"group_by"`    // group by character
-	RowHeader  int               `yaml:"row_header"`  // set the row header, to be used with SplitBy
-	RowStart   int               `yaml:"row_start"`   // start from this line, to be used with SplitBy
+	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table
+	SplitBy    string `yaml:"split_by"`    // character/match to split by
+	RegexMatch bool   `yaml:"regex_match"` // process SplitBy as a regex match
+	GroupBy    string `yaml:"group_by"`    // group by character
+	RowHeader  int    `yaml:"row_header"`  // set the row header, to be used with SplitBy
+	RowStart   int    `yaml:"row_start"`   // start from this line, to be used with SplitBy
 
 	// Parsing Options - Header
 	SetHeader        []string `yaml:"set_header"`         // manually set header column names (used when split is is set to horizontal)

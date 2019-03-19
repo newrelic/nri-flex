@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"nri-flex/internal/discovery"
 	"nri-flex/internal/load"
@@ -26,6 +27,26 @@ func main() {
 }
 
 func runIntegration() {
+	// set current containerID
+	cpuset, err := ioutil.ReadFile("/proc/1/cpuset")
+	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
+	if err == nil {
+		strCpuset := strings.TrimSpace(string(cpuset))
+		logger.Flex("debug", fmt.Errorf("cpuset: %v", strCpuset), "", false)
+		values := strings.Split(strCpuset, "/")
+		if len(values) > 0 {
+			if len(values[len(values)-1]) == 64 {
+				load.ContainerID = values[len(values)-1]
+				logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
+			}
+		}
+	} else {
+		logger.Flex("debug", err, "potentially not running withing a container", false)
+	}
+
+	// set hostname
+	load.Hostname, _ = os.Hostname()
+
 	// store config ymls
 	var ymls []load.Config
 

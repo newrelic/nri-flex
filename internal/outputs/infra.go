@@ -3,7 +3,6 @@ package outputs
 import (
 	"nri-flex/internal/load"
 	"nri-flex/internal/logger"
-	"os"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 )
@@ -14,7 +13,6 @@ func CreateIntegration() {
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
 	logger.Flex("fatal", err, "", false)
 
-	load.Hostname, _ = os.Hostname()
 	if load.Args.Local {
 		load.Entity = load.Integration.LocalEntity()
 	} else if load.Args.Entity != "" {
