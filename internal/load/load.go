@@ -163,20 +163,24 @@ type Command struct {
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
 	CompressBean     bool              `yaml:"compress_bean"`     // compress bean name //unused
-	KeyFilters       map[string]string `yaml:"key_filters"`       // filter keys out with regex
-	Output           string            `yaml:"output"`            // jmx, raw, json
-	Split            string            `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for outputs that look like a table
-	SplitBy          string            `yaml:"split_by"`          // character to split by
-	SetHeader        []string          `yaml:"set_header"`        // manually set header column names (used when split is is set to horizontal)
-	GroupBy          string            `yaml:"group_by"`          // group by character
-	Regex            bool              `yaml:"regex"`             // process SplitBy as regex
-	RowHeader        int               `yaml:"row_header"`        // set the row header, to be used with SplitBy
-	RowStart         int               `yaml:"row_start"`         // start from this line, to be used with SplitBy
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	// SplitBy      string `yaml:"split_by"`      // performs horizontal split by eg. split_by ":" and splits  "myMetric:myValue"
-	// ColSplitBy   string `yaml:"col_split_by"`  // performs vertical split, if data output is in a table type output, first row is taken as the headers, and following as the samples
+
+	// Parsing Options - Body
+	KeyFilters       map[string]string `yaml:"key_filters"`       // filter keys out with regex
+	Output           string            `yaml:"output"`            // jmx, raw, json
+	Split            string            `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for outputs that look like a table
+	SplitBy          string            `yaml:"split_by"`          // character/match to split by
+	RegexMatch        bool             `yaml:"regex_match"`       // process SplitBy as a regex match
+  GroupBy          string            `yaml:"group_by"`          // group by character
+	RowHeader        int               `yaml:"row_header"`        // set the row header, to be used with SplitBy
+	RowStart         int               `yaml:"row_start"`         // start from this line, to be used with SplitBy
+
+	// Parsing Options - Header
+	SetHeader        []string          `yaml:"set_header"`        // manually set header column names (used when split is is set to horizontal)
+	HeaderSplitBy     string           `yaml:"header_split_by"`   // character/match to split header by
+	HeaderRegexMatch  bool             `yaml:"header_regex_match"`// process HeaderSplitBy as a regex match
 }
 
 // Prometheus struct

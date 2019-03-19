@@ -186,7 +186,7 @@ func TestDf(t *testing.T) {
 						SetHeader: []string{
 							"fs", "512Blocks", "used", "available", "capacity", "iused", "ifree", "iusedPerc", "mountedOn",
 						},
-						Regex:   true,
+						RegexMatch: false,
 						SplitBy: `\s{1,}`,
 						Shell:   "/bin/sh",
 					},
@@ -231,8 +231,10 @@ func TestDf2(t *testing.T) {
 					{
 						Run:     "cat ../../test/payloads/df.out",
 						Split:   "horizontal",
-						Regex:   true,
-						SplitBy: `\s{1,}`,
+						RegexMatch:   true,
+						SplitBy: `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)`,
+						HeaderRegex: false,
+						HeaderSplitBy: `\s{1,}`
 					},
 				},
 			},
@@ -244,9 +246,9 @@ func TestDf2(t *testing.T) {
 			"Mounted":    "/",
 			"Used":       "744562808",
 			"Available":  "224223192",
-			"Capacity":   "77%",
+			"Capacity":   "77",
 			"ifree":      "9223372036851372364",
-			"%iused":     "0%",
+			"%iused":     "0",
 			"Filesystem": "/dev/disk1s1",
 			"512-blocks": "976490568",
 			"iused":      "3403443",

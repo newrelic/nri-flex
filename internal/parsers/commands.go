@@ -121,62 +121,42 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	header := lines[headerLine]
 	var keys []string
 
-	// regex style split
-	if command.Regex {
-		// set header keys
-		if len(command.SetHeader) > 0 {
-			keys = command.SetHeader
-		} else {
-			keys = append(keys, formatter.RegSplit(header, command.SplitBy)...)
-			// for _, hKey := range formatter.RegSplit(header, command.SplitBy) {
-			// 	keys = append(keys, hKey)
-			// }
-		}
-
-		for i, line := range lines {
-			if i != headerLine && i >= startLine {
-				cmdSample := map[string]interface{}{}
-				// values contains the row values split
-				values := formatter.RegSplit(line, command.SplitBy)
-				// loop through header keys to apply values
-				for index, key := range keys {
-					if index+1 <= len(values) { // there can be items that exist past this, added this in because of docker ps example whilst testing
-						cmdSample[key] = values[index]
-					}
-				}
-				// add attributes from previously run commands into this cmdSample
-				for key, val := range *dataSample {
-					cmdSample[key] = val
-				}
-				*dataStore = append(*dataStore, cmdSample)
-			}
-		}
+	// set header keys
+	if len(command.SetHeader) > 0 {
+		keys = command.SetHeader
 	} else {
-		// set header keys
-		if len(command.SetHeader) > 0 {
-			keys = command.SetHeader
+		if command.HeaderRegexMatch {
+			keys = append(keys, formatter.RegMatch(header, command.HeaderSplitBy)...)
 		} else {
-			keys = append(keys, strings.Split(header, command.SplitBy)...)
-			// for _, hKey := range strings.Split(header, command.SplitBy) {
-			// 	keys = append(keys, hKey)
-			// }
+			keys = append(keys, formatter.RegSplit(header, command.HeaderSplitBy)...)
 		}
+	}
 
-		for i, line := range lines {
-			if i != headerLine && i >= startLine {
-				cmdSample := map[string]interface{}{}
-				values := strings.Split(line, command.SplitBy)
-				for index, key := range keys {
-					if index+1 <= len(values) { // there can be items that exist past this, added this in because of docker ps example whilst testing
-						cmdSample[key] = values[index]
-					}
-				}
-				//add attributes from previously run commands into this cmdSample
-				for key, val := range *dataSample {
-					cmdSample[key] = val
-				}
-				*dataStore = append(*dataStore, cmdSample)
+	for i, line := range lines {
+		if i != headerLine && i >= startLine {
+			cmdSample := map[string]interface{}{}
+
+			// values contains the row values split
+			var values []string
+			if command.RegexMatch {
+				values = formatter.RegMatch(line, command.SplitBy)
+			} else {
+				values = formatter.RegSplit(line, command.SplitBy)
 			}
+
+			// loop through header keys to apply values
+			for index, key := range keys {
+				if index+1 <= len(values) { // there can be items that exist past this, added this in because of docker ps example whilst testing
+					cmdSample[key] = values[index]
+				}
+			}
+
+			// add attributes from previously run commands into this cmdSample
+			for key, val := range *dataSample {
+				cmdSample[key] = val
+			}
+			
+			*dataStore = append(*dataStore, cmdSample)
 		}
 	}
 }
