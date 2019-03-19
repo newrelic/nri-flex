@@ -19,9 +19,8 @@ import (
 
 func main() {
 	outputs.CreateIntegration()
-	if load.Args.Version {
-		logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
-	}
+	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
+
 	if load.Args.ForceLog {
 		logger.Flex("fatal", fmt.Errorf("-force_log deprecated use -verbose instead"), "", false)
 	}
