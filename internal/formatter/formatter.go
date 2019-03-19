@@ -48,7 +48,7 @@ func SnakeCaseToCamelCase(key *string) {
 func RegMatch(text string, regexmatch string) []string {
 	reg := regexp.MustCompile(regexmatch)
 	matches := reg.FindStringSubmatch(text)
-	if (matches != nil) {
+	if matches != nil {
 		return matches[1:]
 	}
 	return nil

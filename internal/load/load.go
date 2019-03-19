@@ -168,19 +168,19 @@ type Command struct {
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
 
 	// Parsing Options - Body
-	KeyFilters       map[string]string `yaml:"key_filters"`       // filter keys out with regex
-	Output           string            `yaml:"output"`            // jmx, raw, json
-	Split            string            `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for outputs that look like a table
-	SplitBy          string            `yaml:"split_by"`          // character/match to split by
-	RegexMatch        bool             `yaml:"regex_match"`       // process SplitBy as a regex match
-  GroupBy          string            `yaml:"group_by"`          // group by character
-	RowHeader        int               `yaml:"row_header"`        // set the row header, to be used with SplitBy
-	RowStart         int               `yaml:"row_start"`         // start from this line, to be used with SplitBy
+	KeyFilters map[string]string `yaml:"key_filters"` // filter keys out with regex
+	Output     string            `yaml:"output"`      // jmx, raw, json
+	Split      string            `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table
+	SplitBy    string            `yaml:"split_by"`    // character/match to split by
+	RegexMatch bool              `yaml:"regex_match"` // process SplitBy as a regex match
+	GroupBy    string            `yaml:"group_by"`    // group by character
+	RowHeader  int               `yaml:"row_header"`  // set the row header, to be used with SplitBy
+	RowStart   int               `yaml:"row_start"`   // start from this line, to be used with SplitBy
 
 	// Parsing Options - Header
-	SetHeader        []string          `yaml:"set_header"`        // manually set header column names (used when split is is set to horizontal)
-	HeaderSplitBy     string           `yaml:"header_split_by"`   // character/match to split header by
-	HeaderRegexMatch  bool             `yaml:"header_regex_match"`// process HeaderSplitBy as a regex match
+	SetHeader        []string `yaml:"set_header"`         // manually set header column names (used when split is is set to horizontal)
+	HeaderSplitBy    string   `yaml:"header_split_by"`    // character/match to split header by
+	HeaderRegexMatch bool     `yaml:"header_regex_match"` // process HeaderSplitBy as a regex match
 }
 
 // Prometheus struct

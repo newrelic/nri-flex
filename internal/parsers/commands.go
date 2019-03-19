@@ -155,7 +155,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 			for key, val := range *dataSample {
 				cmdSample[key] = val
 			}
-			
+
 			*dataStore = append(*dataStore, cmdSample)
 		}
 	}
