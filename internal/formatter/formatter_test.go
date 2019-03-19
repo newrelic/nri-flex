@@ -55,6 +55,16 @@ func TestRegSplit(t *testing.T) {
 	}
 }
 
+func TestRegMatch(t *testing.T) {
+	expect := []string{"hello", "there", "batman"}
+	strings := RegMatch("hello  there  batman", `(\w+)\s+(\w+)\s+(\w+)`)
+	for i := range expect {
+		if expect[i] != strings[i] {
+			t.Errorf("does not match %v : %v", expect[i], strings[i])
+		}
+	}
+}
+
 func TestKvFinder(t *testing.T) {
 	found := KvFinder("prefix", "batman", "bat")
 	if !found {

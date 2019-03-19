@@ -45,9 +45,17 @@ func SnakeCaseToCamelCase(key *string) {
 	}
 }
 
-// RegSplit RegexSplit
-func RegSplit(text string, delimeter string) []string {
-	reg := regexp.MustCompile(delimeter)
+func RegMatch(text string, regexmatch string) []string {
+	reg := regexp.MustCompile(regexmatch)
+	matches := reg.FindStringSubmatch(text)
+	if matches != nil {
+		return matches[1:]
+	}
+	return nil
+}
+
+func RegSplit(text string, delimiter string) []string {
+	reg := regexp.MustCompile(delimiter)
 	indexes := reg.FindAllStringIndex(text, -1)
 	laststart := 0
 	result := make([]string, len(indexes)+1)
