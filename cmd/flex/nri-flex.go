@@ -19,8 +19,13 @@ import (
 
 func main() {
 	outputs.CreateIntegration()
+	if load.Args.Version {
+		logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
+	}
+	if load.Args.ForceLog {
+		logger.Flex("fatal", fmt.Errorf("-force_log deprecated use -verbose instead"), "", false)
+	}
 	// todo: port cluster mode here
-	logger.Flex("debug", nil, load.IntegrationName+":"+load.IntegrationVersion, false)
 	runIntegration()
 	err := load.Integration.Publish()
 	logger.Flex("fatal", err, "unable to publish", false)
@@ -32,7 +37,7 @@ func runIntegration() {
 	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
 	if err == nil {
 		strCpuset := strings.TrimSpace(string(cpuset))
-		logger.Flex("debug", fmt.Errorf("cpuset: %v", strCpuset), "", false)
+		logger.Flex("info", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
 		values := strings.Split(strCpuset, "/")
 		if len(values) > 0 {
 			if len(values[len(values)-1]) == 64 {
@@ -41,7 +46,7 @@ func runIntegration() {
 			}
 		}
 	} else {
-		logger.Flex("debug", err, "potentially not running withing a container", false)
+		logger.Flex("debug", err, "potentially not running within a container", false)
 	}
 
 	// set hostname
@@ -80,7 +85,7 @@ func runIntegration() {
 
 			if len(containerDiscoveryFiles) == 0 {
 				containerDiscoveryAvailable = false
-				logger.Flex("debug", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+				logger.Flex("info", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
 			} else if len(containerDiscoveryFiles) > 0 && err == nil {
 				discovery.CreateDynamicContainerConfigs(containers, containerDiscoveryFiles, containerDiscoveryPath, &ymls)
 			}

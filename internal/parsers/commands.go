@@ -12,7 +12,6 @@ import (
 	"nri-flex/internal/logger"
 
 	"github.com/json-iterator/go"
-	"github.com/newrelic/infra-integrations-sdk/log"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -72,7 +71,7 @@ func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
 							processRaw(&dataSample, dataOutput, command.SplitBy)
 						} else if command.Split == "column" || command.Split == "horizontal" {
 							if processedCols {
-								log.Debug("Only allowed horizonal split, once per command set")
+								logger.Flex("debug", fmt.Errorf("Only allowed horizonal split, once per command set %v %v", api.Name, command.Name), "", false)
 							} else {
 								processedCols = true
 								processRawCol(dataStore, &dataSample, dataOutput, command)

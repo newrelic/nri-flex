@@ -48,6 +48,8 @@ func postRequest() {
 			tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 			client := &http.Client{Transport: tr}
 			req, err := http.NewRequest("POST", load.Args.InsightsURL, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
+			logger.Flex("info", nil, fmt.Sprintf("insights: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)), false)
+
 			if err != nil {
 				logger.Flex("debug", err, "unable to create http.Request", false)
 			} else {

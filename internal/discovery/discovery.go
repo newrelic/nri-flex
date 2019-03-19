@@ -485,7 +485,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 		// targetContainerInspect.State.Pid
 		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
 
-		logger.Flex("debug", fmt.Errorf("attempting low level ip fetch"), "", false)
+		logger.Flex("info", nil, "attempting low level ip fetch", false)
 
 		// Create a new context and add a timeout to it
 		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
@@ -511,7 +511,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 			// ensure this is an ipv4 address
 			re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
 			if re.Match([]byte(ipv4)) {
-				logger.Flex("debug", fmt.Errorf("fetched %v", ipv4), "", false)
+				logger.Flex("info", nil, fmt.Sprintf("fetched %v", ipv4), false)
 				*discoveryIPAddress = ipv4
 			} else {
 				logger.Flex("debug", fmt.Errorf("low level fetch failed %v", ipv4), "", false)

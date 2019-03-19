@@ -152,7 +152,7 @@ func dbPingWithTimeout(db *sql.DB, pingError *error) {
 	case <-ctx.Done():
 		*pingError = errors.New("Ping failed: " + ctx.Err().Error())
 	case <-c:
-		logger.Flex("debug", fmt.Errorf("db.Ping finished"), "", false)
+		logger.Flex("info", nil, "db.Ping finished", false)
 	}
 }
 

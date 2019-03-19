@@ -1,3 +1,8 @@
+0.3.8-pre
+------
+- Update logging, 
+- Deprecate "-force_log", use "-verbose" instead
+
 0.3.7-pre
 ------
 - Update & simplify container discovery

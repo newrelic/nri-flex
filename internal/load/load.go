@@ -10,7 +10,8 @@ import (
 // ArgumentList Available Arguments
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	ForceLog              bool   `default:"false" help:"Force log everything to standard out - useful for testing"`
+	Version               bool   `default:"false" help:"Output version"`
+	ForceLog              bool   `default:"false" help:"Deprecated use -verbose instead"`
 	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
 	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
 	Local                 bool   `default:"true" help:"Collect local entity info"`
@@ -60,7 +61,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.3.7-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.3.8-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
