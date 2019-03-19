@@ -1,10 +1,10 @@
 name: winSvc
-apis: 
+apis:
   - name: winSvc
-    commands: 
+    commands:
       - run: wmic service get DisplayName,ExitCode,Name,PathName,ProcessId,ServiceSpecificExitCode,Started,StartMode,StartName,State,Status,WaitHint /format:csv
         split: horizontal
-        regex: true
+        regex_match: false
         split_by: \,
         row_header: 1
     remove_keys:
