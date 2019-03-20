@@ -21,7 +21,7 @@ import (
 
 // ProcessQueries processes database queries
 func ProcessQueries(api load.API, dataStore *[]interface{}) {
-	logger.Flex("debug", fmt.Errorf("running: %v", api.Name), "", false)
+	logger.Flex("debug", fmt.Errorf("running %v queries", api.Database), "", false)
 
 	//sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
@@ -48,51 +48,64 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 		}
 	} else {
 		for _, query := range api.DbQueries {
+			if query.Name == "" {
+				logger.Flex("debug", fmt.Errorf("missing name for: %v", query.Run), "", false)
+				break
+			}
+			if query.Run == "" {
+				logger.Flex("debug", fmt.Errorf("query ('run') parameter not defined"), "", false)
+				break
+			}
+
 			rows, err := db.Query(query.Run)
 			if err != nil {
-				logger.Flex("debug", err, "running query: "+query.Run, false)
-			} else if err == nil && query.Name != "" {
+				logger.Flex("debug", err, "query: "+query.Run, false)
+				errorLogToInsights(err, api.Database, api.Name, query.Name)
+			} else {
+				logger.Flex("info", nil, fmt.Sprintf("running query: %v", query.Run), false)
+
 				cols, err := rows.Columns()
-				logger.Flex("debug", err, "", false)
-
-				values := make([]sql.RawBytes, len(cols))
-				scanArgs := make([]interface{}, len(values))
-				for i := range values {
-					scanArgs[i] = &values[i]
-				}
-
-				// Fetch rows
-				rowNo := 1
-				for rows.Next() {
-
-					rowSet := map[string]interface{}{
-						"queryLabel":    query.Name,
-						"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
-						"event_type":    api.Name,
-					}
-
-					// if event_type is set, use this instead of api.Name
-					if api.EventType != "" {
-						rowSet["event_type"] = api.EventType
-					}
-
-					// applyCustomAttributes(&rowSet, &api.CustomAttributes)
-
-					// get RawBytes
-					err = rows.Scan(scanArgs...)
+				if err != nil {
 					logger.Flex("debug", err, "", false)
+					errorLogToInsights(err, api.Database, api.Name, query.Name)
+				} else {
+					values := make([]sql.RawBytes, len(cols))
+					scanArgs := make([]interface{}, len(values))
+					for i := range values {
+						scanArgs[i] = &values[i]
+					}
 
-					// Loop through each column
-					for i, col := range values {
-						// If value nil == null
-						if col == nil {
-							rowSet[cols[i]] = "NULL"
+					// Fetch rows
+					rowNo := 1
+					for rows.Next() {
+						rowSet := map[string]interface{}{
+							"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
+							"queryLabel":    query.Name,
+							"event_type":    query.Name,
+						}
+						// apply event type override if set (this is useful to set if needing to group multiples under one event type)
+						if query.EventType != "" {
+							rowSet["event_type"] = query.EventType
+						}
+
+						// get RawBytes
+						err = rows.Scan(scanArgs...)
+						if err != nil {
+							logger.Flex("debug", err, "", false)
 						} else {
-							rowSet[cols[i]] = string(col)
+							// Loop through each column
+							for i, col := range values {
+								// If value nil == null
+								if col == nil {
+									rowSet[cols[i]] = "NULL"
+								} else {
+									rowSet[cols[i]] = string(col)
+								}
+							}
+							*dataStore = append(*dataStore, rowSet)
+							rowNo++
 						}
 					}
-					*dataStore = append(*dataStore, rowSet)
-					rowNo++
 				}
 			}
 		}

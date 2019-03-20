@@ -51,10 +51,11 @@ func Flex(logType string, err error, message string, createEvent bool) {
 		}
 	case "debug":
 		if err != nil {
-			log.Debug(err.Error())
+			completeMsg := err.Error()
 			if message != "" {
-				log.Debug(message)
+				completeMsg += " - " + message
 			}
+			log.Debug(completeMsg)
 		}
 	case "info":
 		if err != nil {
