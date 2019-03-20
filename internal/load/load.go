@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.3.9-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.0-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -167,6 +167,7 @@ type API struct {
 // Command Struct
 type Command struct {
 	Name             string            `yaml:"name"`              // required for database use
+	EventType        string            `yaml:"event_type"`        // override eventType (currently used for db only)
 	Shell            string            `yaml:"shell"`             // command shell
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
