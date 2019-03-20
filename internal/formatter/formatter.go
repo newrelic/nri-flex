@@ -6,9 +6,16 @@ import (
 	"strings"
 )
 
-//
-// todo value parser
-//
+// ValueParse Plucks first found value out with regex, if nothing found send back the value
+func ValueParse(v interface{}, regex string) string {
+	value := fmt.Sprintf("%v", v)
+	reg := regexp.MustCompile(regex)
+	matches := reg.FindAllString(value, -1)
+	if len(matches) > 0 {
+		return matches[0] // send first match back
+	}
+	return value
+}
 
 // SplitKey simple key value pair splitter
 func SplitKey(key, splitChar string) (string, string, bool) {

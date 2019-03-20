@@ -1,4 +1,11 @@
 0.3.8-pre
+0.3.9-pre
+------
+- Add Value Parser
+- Add Pluck Numbers
+- Fix event_type for databases
+
+0.3.8-pre
 ------
 - Update logging, 
 - Deprecate "-force_log", use "-verbose" instead

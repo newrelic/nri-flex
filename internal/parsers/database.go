@@ -68,6 +68,12 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 					rowSet := map[string]interface{}{
 						"queryLabel":    query.Name,
 						"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
+						"event_type":    api.Name,
+					}
+
+					// if event_type is set, use this instead of api.Name
+					if api.EventType != "" {
+						rowSet["event_type"] = api.EventType
 					}
 
 					// applyCustomAttributes(&rowSet, &api.CustomAttributes)
