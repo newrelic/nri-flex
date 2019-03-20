@@ -67,8 +67,9 @@ func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
 				if !command.IgnoreOutput {
 					switch commandOutput {
 					case "raw":
+						logger.Flex("info", nil, fmt.Sprintf("running %v", command.Run), false)
 						if command.Split == "" { // default vertical split
-							processRaw(&dataSample, dataOutput, command.SplitBy)
+							processRaw(&dataSample, dataOutput, command.SplitBy, command.LineLimit)
 						} else if command.Split == "column" || command.Split == "horizontal" {
 							if processedCols {
 								logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
@@ -95,9 +96,13 @@ func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
 }
 
 // processRaw processes a raw data output
-func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy string) {
+func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy string, lineLimit int) {
 	// SplitBy key is required else we cannot easily distinguish between keys and values
-	for _, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
+	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
+		if i >= lineLimit && lineLimit != 0 {
+			logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", lineLimit), false)
+			break
+		}
 		key, val, success := formatter.SplitKey(line, splitBy)
 		if success {
 			(*dataSample)[key] = strings.TrimRight(val, "\r\n") //line endings appear so we trim them
@@ -133,6 +138,11 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 	for i, line := range lines {
 		if i != headerLine && i >= startLine {
+			if i >= command.LineLimit && command.LineLimit != 0 {
+				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", command.LineLimit), false)
+				break
+			}
+
 			cmdSample := map[string]interface{}{}
 
 			// values contains the row values split

@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.3.8-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.3.9-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -75,6 +75,7 @@ const (
 	DefaultJmxPass       = "admin"
 	DefaultIPMode        = "private"
 	DefaultShell         = "/bin/sh"
+	DefaultLineLimit     = 255
 	Public               = "public"
 	Private              = "private"
 	Jmx                  = "jmx"
@@ -146,8 +147,10 @@ type API struct {
 	ConvertSpace      string            `yaml:"convert_space"` // convert spaces to another char
 	SnakeToCamel      bool              `yaml:"snake_to_camel"`
 	PercToDecimal     bool              `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
+	PluckNumbers      bool              `yaml:"pluck_numbers"`   // plucks numbers out of the value
 	SubParse          []Parse           `yaml:"sub_parse"`
 	CustomAttributes  map[string]string `yaml:"custom_attributes"` // set additional custom attributes
+	ValueParser       map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
 	MetricParser      MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilters     []string          `yaml:"sample_filters"`    // sample filter key pair values with regex
 	Split             string            `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
@@ -172,6 +175,7 @@ type Command struct {
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
 	Output           string            `yaml:"output"`            // jmx, raw, json
+	LineLimit        int               `yaml:"line_limit"`        // stop processing command output after a certain amount of lines
 
 	// Parsing Options - Body
 	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table

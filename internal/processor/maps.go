@@ -48,6 +48,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			if progress {
 				RunKeyConversion(&key, api, v)
 				RunValConversion(&v, api, &key)
+				RunValueParser(&v, api, &key)
+				RunPluckNumbers(&v, api, &key)
 				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 				RunKeyReplace(api.ReplaceKeys, &keyReplaced, &key)
 				RunKeyRenamer(api.RenameKeys, &keyReplaced, &key)             // use key renamer if key replace hasn't occurred
@@ -510,6 +512,26 @@ func RunValConversion(v *interface{}, api load.API, key *string) {
 		newValue /= 1000 // convert to ms
 		*v = newValue
 		*key += ".ms"
+	}
+}
+
+// RunValueParser use regex to find a key, and pluck out its value by regex
+func RunValueParser(v *interface{}, api load.API, key *string) {
+	for regexKey, regexVal := range api.ValueParser {
+		if formatter.KvFinder("regex", *key, regexKey) {
+			value := fmt.Sprintf("%v", *v)
+			*v = formatter.ValueParse(value, regexVal)
+		}
+	}
+}
+
+// RunPluckNumbers pluck numbers out automatically with ValueParser
+func RunPluckNumbers(v *interface{}, api load.API, key *string) {
+	//"sample_start_time = 1552864614.137869 (Sun, 17 Mar 2019 23:16:54 GMT)"
+	// return 1552864614.137869
+	if api.PluckNumbers {
+		value := fmt.Sprintf("%v", *v)
+		*v = formatter.ValueParse(value, `[+-]?([0-9]*\.?[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?`)
 	}
 }
 
