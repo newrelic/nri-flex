@@ -61,7 +61,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.1-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.2-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -91,6 +91,7 @@ type Config struct {
 	APIs             []API
 	Datastore        map[string][]interface{} `yaml:"datastore"`
 	LookupStore      map[string][]string      `yaml:"lookup_store"`
+	VariableStore    map[string]string        `yaml:"variable_store"`
 	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
 }
 
@@ -137,6 +138,7 @@ type API struct {
 	Headers           map[string]string   `yaml:"headers"`
 	StartKey          []string            `yaml:"start_key"`
 	StoreLookups      map[string]string   `yaml:"store_lookups"`
+	StoreVariables    map[string]string   `yaml:"store_variables"`
 	StripKeys         []string            `yaml:"strip_keys"`
 	LazyFlatten       []string            `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string   `yaml:"sample_keys"`

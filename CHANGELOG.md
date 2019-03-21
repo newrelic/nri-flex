@@ -1,3 +1,7 @@
+0.4.2-pre
+------
+- Add variable store functionality
+
 0.4.1-pre
 ------
 - Improve Prometheus metric parsing
