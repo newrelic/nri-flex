@@ -50,8 +50,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunPluckNumbers(&v, api, &key)
 				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 				RunKeyReplace(api.ReplaceKeys, &keyReplaced, &key)
-				RunKeyRenamer(api.RenameKeys, &keyReplaced, &key)             // use key renamer if key replace hasn't occurred
-				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v) // store lookups
+				RunKeyRenamer(api.RenameKeys, &keyReplaced, &key)                    // use key renamer if key replace hasn't occurred
+				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
+				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
 
 				currentSample[key] = v
 				if key != k {
@@ -214,7 +215,7 @@ func RunKeyRenamer(renameKeys map[string]string, keyReplaced *bool, key *string)
 	}
 }
 
-// StoreLookups if key exists within the lookup store, store it for later use
+// StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
 func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
 		if formatter.KvFinder("regex", *key, lookupFindKey) {
@@ -222,6 +223,18 @@ func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[
 				*lookupStore = map[string][]string{}
 			}
 			(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
+		}
+	}
+}
+
+// VariableLookups if key is found (using regex), store the value in the variableStore, as the defined by the variableStoreKey for later use
+func VariableLookups(variableLookups map[string]string, key *string, variableStore *map[string]string, v *interface{}) {
+	for variableStoreKey, variableFindKey := range variableLookups {
+		if *key == variableFindKey {
+			if (*variableStore) == nil {
+				(*variableStore) = map[string]string{}
+			}
+			(*variableStore)[variableStoreKey] = fmt.Sprintf("%v", *v)
 		}
 	}
 }

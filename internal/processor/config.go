@@ -52,10 +52,43 @@ func ReadYML(yml string) (load.Config, error) {
 func RunConfig(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
 	for i := range yml.APIs {
+		runVariableProcessor(i, &yml)
 		dataSets := fetchData(i, &yml)
 		runDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
 	ProcessSamplesToMerge(&samplesToMerge, &yml)
+}
+
+// runVariableProcessor substitute store variables into specific parts of config files
+func runVariableProcessor(i int, cfg *load.Config) {
+	// don't use variable processor if nothing exists in variable store
+	if len((*cfg).VariableStore) > 0 {
+		// to simplify replacement, convert to string, and convert back later
+		tmpCfgBytes, err := yaml.Marshal(&cfg)
+		if err != nil {
+			logger.Flex("debug", err, "variable processor marshal failed", false)
+		} else {
+			tmpCfgStr := string(tmpCfgBytes)
+			variableReplaces := regexp.MustCompile(`\${var:.*?}`).FindAllString(tmpCfgStr, -1)
+			replaceOccured := false
+			for _, variableReplace := range variableReplaces {
+				variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${var:")[1], "}") // eg. "channel"
+				if cfg.VariableStore[variableKey] != "" {
+					tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, cfg.VariableStore[variableKey], -1)
+					replaceOccured = true
+				}
+			}
+			// if replace occurred convert string to config yaml and reload
+			if replaceOccured {
+				newCfg, err := ReadYML(tmpCfgStr)
+				if err != nil {
+					logger.Flex("debug", err, "variable processor unmarshal failed", false)
+				} else {
+					*cfg = newCfg
+				}
+			}
+		}
+	}
 }
 
 // runLookupProcessor
