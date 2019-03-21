@@ -5,7 +5,7 @@
 name: redisFlex # https://github.com/oliver006/redis_exporter
 apis: 
   - name: redis
-    url: http://${auto:host}:${auto:port}/metrics 
+    url: http://localhost:9121/metrics 
     prometheus: 
       enable: true
       # flattened_event: "redisSample" 

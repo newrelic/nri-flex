@@ -19,7 +19,7 @@ apis:
       #       AND query NOT ILIKE '%pg_%'
       #       AND datname !='postgres';
   # - database: postgres
-  #   db_conn: user=apac host=apac.cbhnplapdmac.ap-southeast-2.rds.amazonaws.com sslmode=disable password=apacapac port=5432 # could be another DB
+  #   db_conn: user=hithere host=abc.abcdef.ap-southeast-2.rds.amazonaws.com sslmode=disable password=byethere port=5432 # could be another DB
   #   queries: 
   #     - name: pgStatDbSample
   #       run: select * FROM pg_stat_database LIMIT 1

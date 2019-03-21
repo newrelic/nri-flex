@@ -1,3 +1,8 @@
+0.4.1-pre
+------
+- Improve Prometheus metric parsing
+- Update SampleFilter functionality
+
 0.4.0-pre
 ------
 - Update database parser

@@ -23,6 +23,7 @@ type ArgumentList struct {
 	Entity                string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
+	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
 
 	// not implemented yet
@@ -60,7 +61,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.0-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.1-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -132,34 +133,34 @@ type API struct {
 	Timeout           int
 	Method            string
 	Payload           string
-	DisableParentAttr bool              `yaml:"disable_parent_attr"`
-	Headers           map[string]string `yaml:"headers"`
-	StartKey          []string          `yaml:"start_key"`
-	StoreLookups      map[string]string `yaml:"store_lookups"`
-	StripKeys         []string          `yaml:"strip_keys"`
-	LazyFlatten       []string          `yaml:"lazy_flatten"`
-	SampleKeys        map[string]string `yaml:"sample_keys"`
-	ReplaceKeys       map[string]string `yaml:"replace_keys"`
-	RenameKeys        map[string]string `yaml:"rename_keys"`
-	RemoveKeys        []string          `yaml:"remove_keys"`
-	KeepKeys          []string          `yaml:"keep_keys"`     // inverse of removing keys
-	ToLower           bool              `yaml:"to_lower"`      // convert all unicode letters mapped to their lower case.
-	ConvertSpace      string            `yaml:"convert_space"` // convert spaces to another char
-	SnakeToCamel      bool              `yaml:"snake_to_camel"`
-	PercToDecimal     bool              `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
-	PluckNumbers      bool              `yaml:"pluck_numbers"`   // plucks numbers out of the value
-	SubParse          []Parse           `yaml:"sub_parse"`
-	CustomAttributes  map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	ValueParser       map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
-	MetricParser      MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
-	SampleFilters     []string          `yaml:"sample_filters"`    // sample filter key pair values with regex
-	Split             string            `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
-	SplitBy           string            `yaml:"split_by"`          // character to split by
-	SetHeader         []string          `yaml:"set_header"`        // manually set header column names
-	Regex             bool              `yaml:"regex"`             // process SplitBy as regex
-	RowHeader         int               `yaml:"row_header"`        // set the row header, to be used with SplitBy
-	RowStart          int               `yaml:"row_start"`         // start from this line, to be used with SplitBy
-	Logging           struct {          // log to insights
+	DisableParentAttr bool                `yaml:"disable_parent_attr"`
+	Headers           map[string]string   `yaml:"headers"`
+	StartKey          []string            `yaml:"start_key"`
+	StoreLookups      map[string]string   `yaml:"store_lookups"`
+	StripKeys         []string            `yaml:"strip_keys"`
+	LazyFlatten       []string            `yaml:"lazy_flatten"`
+	SampleKeys        map[string]string   `yaml:"sample_keys"`
+	ReplaceKeys       map[string]string   `yaml:"replace_keys"`
+	RenameKeys        map[string]string   `yaml:"rename_keys"`
+	RemoveKeys        []string            `yaml:"remove_keys"`
+	KeepKeys          []string            `yaml:"keep_keys"`     // inverse of removing keys
+	ToLower           bool                `yaml:"to_lower"`      // convert all unicode letters mapped to their lower case.
+	ConvertSpace      string              `yaml:"convert_space"` // convert spaces to another char
+	SnakeToCamel      bool                `yaml:"snake_to_camel"`
+	PercToDecimal     bool                `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
+	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
+	SubParse          []Parse             `yaml:"sub_parse"`
+	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
+	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
+	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
+	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
+	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
+	SplitBy           string              `yaml:"split_by"`          // character to split by
+	SetHeader         []string            `yaml:"set_header"`        // manually set header column names
+	Regex             bool                `yaml:"regex"`             // process SplitBy as regex
+	RowHeader         int                 `yaml:"row_header"`        // set the row header, to be used with SplitBy
+	RowStart          int                 `yaml:"row_start"`         // start from this line, to be used with SplitBy
+	Logging           struct {            // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
 }
@@ -202,8 +203,11 @@ type Prometheus struct {
 	KeepHelp         bool              `yaml:"keep_help"`       // not usable when unflatten set to true
 	CustomAttributes map[string]string `yaml:"custom_attributes"`
 	SampleKeys       map[string]string `yaml:"sample_keys"`
-	Histogram        bool              `yaml:"histogram"` // if flattening by default, create a full histogram sample
-	Summary          bool              `yaml:"summary"`   // if flattening by default, create a full summary sample
+	Histogram        bool              `yaml:"histogram"`       // if flattening by default, create a full histogram sample
+	HistogramEvent   string            `yaml:"histogram_event"` // override histogram event type
+	Summary          bool              `yaml:"summary"`         // if flattening by default, create a full summary sample
+	SummaryEvent     string            `yaml:"summaryevent"`    // override summary event type
+	GoMetrics        bool              `yaml:"go_metrics"`      // enable go metrics
 }
 
 // JMX struct

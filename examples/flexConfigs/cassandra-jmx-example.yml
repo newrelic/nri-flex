@@ -50,8 +50,8 @@ apis:
         output: jmx
       - run: org.apache.cassandra.metrics:type=CommitLog,name=*
         output: jmx
-    sample_filters: ### uses regex: we can filter out samples that contain particular values, or keys && filters
-      - bean:::type=Table,keyspace=system_schema ### if key and filter matches within the sample remove it (::: is used for splitting the key value/pair)
-      # - type=Table,keyspace=system_schema ### if value exists within the sample remove it
+    sample_filter: ### uses regex
+      - bean: type=Table,keyspace=system_schema ## remove all bean metrics that have this value
+      # - .*: COUNTER ## remove all counter metrics
     custom_attributes:
       myCustomAttr: theValue ## inject your own additional custom attributes to all samples under this API

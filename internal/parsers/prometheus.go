@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"io"
+	"math"
 	"nri-flex/internal/load"
 	"nri-flex/internal/logger"
 	"strings"
@@ -29,10 +29,13 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 			logger.Flex("debug", err, "prometheus parsing failure", false)
 		}
 	}()
+
 	// store the flattened sample
 	flattenedSample := map[string]interface{}{}
 	if api.Prometheus.FlattenedEvent != "" {
 		flattenedSample["event_type"] = api.Prometheus.FlattenedEvent
+	} else {
+		flattenedSample["event_type"] = api.Name + "Sample"
 	}
 
 	// initialize blank sampleKeys
@@ -55,12 +58,28 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 
 // NewFamily consumes a MetricFamily and transforms it to a map[string]interface{}
 func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api *load.API, flattenedSample *map[string]interface{}, sampleKeys *map[string]map[string]interface{}) {
-	// small helper to advise if a metric has multiple metrics
-	if len(dtoMF.Metric) > 1 {
-		logger.Flex("debug", errors.New(dtoMF.GetName()+" : "+dtoMF.GetType().String()+" contains multiple metrics"), "", false)
-	}
 
 	for _, m := range dtoMF.Metric {
+		// do not show go exporter metrics unless enabled
+		if !api.Prometheus.GoMetrics && strings.Contains(dtoMF.GetName(), "go_") {
+			break
+		}
+
+		// store counter/gauge samples with the same meta together
+		useSecondary := false
+		buildKey := ""
+		if len(m.Label) > 0 && dtoMF.GetType() != dto.MetricType_SUMMARY && dtoMF.GetType() != dto.MetricType_HISTOGRAM {
+			useSecondary = true
+			sample := map[string]interface{}{}
+			for _, label := range m.Label {
+				sample[label.GetName()] = label.GetValue()
+				buildKey += label.GetValue()
+			}
+			if (*sampleKeys)[buildKey] == nil {
+				(*sampleKeys)[buildKey] = sample
+			}
+		}
+
 		metric := map[string]interface{}{}
 		metric["name"] = dtoMF.GetName()
 		metric["help"] = dtoMF.GetHelp()
@@ -71,6 +90,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 		// create a custom sample to store the metrics associated with the particular key
 		customSample := ""
 		baseSample := ""
+
 		for sample, key := range api.Prometheus.SampleKeys {
 			if metric[key] != nil { // found key
 				baseSample = sample
@@ -81,6 +101,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				}
 			}
 		}
+
 		// when using a custom sample, we store into a workingSample as we can't target an address when nested
 		workingSample := map[string]interface{}{}
 		if customSample != "" {
@@ -93,7 +114,6 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 			applyCustomAttributes(&workingSample, &api.Prometheus.CustomAttributes)
 			prometheusMakeLabels(m, &workingSample) // possibility that a colision could occur from other samples
 		}
-		//
 
 		if dtoMF.GetType() == dto.MetricType_SUMMARY {
 			if (*api).Prometheus.Unflatten {
@@ -107,20 +127,21 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				workingSample[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				prometheusMakeQuantiles(m, &workingSample, dtoMF, api.Prometheus.Unflatten)
 				(*sampleKeys)[customSample] = workingSample
-			} else { // default - auto flattening
-				(*flattenedSample)[dtoMF.GetName()+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-				(*flattenedSample)[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-
-				if api.Prometheus.Summary {
-					metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-					metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-					metric["event_type"] = strings.Replace(api.Prometheus.FlattenedEvent, "Sample", "SummarySample", -1)
-					prometheusMakeQuantiles(m, &metric, dtoMF, true)
-					*dataStore = append(*dataStore, metric)
+			} else if api.Prometheus.Summary {
+				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+				defaultEvent := api.Name
+				if api.Prometheus.FlattenedEvent != "" {
+					defaultEvent = api.Prometheus.FlattenedEvent
 				}
-				// makes sample too big
-				// prometheusMakeQuantiles(m, flattenedSample, dtoMF, api.Prometheus.Unflatten)
-				// *dataStore = append(*dataStore, flattenedSample)
+				if strings.Contains(defaultEvent, "Sample") {
+					defaultEvent = strings.Replace(defaultEvent, "Sample", "SummarySample", -1)
+				} else {
+					defaultEvent += "SummarySample"
+				}
+				metric["event_type"] = defaultEvent
+				prometheusMakeQuantiles(m, &metric, dtoMF, true)
+				*dataStore = append(*dataStore, metric)
 			}
 		} else if dtoMF.GetType() == dto.MetricType_HISTOGRAM {
 			if (*api).Prometheus.Unflatten {
@@ -134,27 +155,38 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				workingSample[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
 				(*sampleKeys)[customSample] = workingSample
-			} else { // default - auto flattening
-				(*flattenedSample)[dtoMF.GetName()+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-				(*flattenedSample)[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-				if api.Prometheus.Histogram {
-					metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-					metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-					metric["event_type"] = strings.Replace(api.Prometheus.FlattenedEvent, "Sample", "HistogramSample", -1)
-					prometheusMakeBuckets(m, &metric, dtoMF, true)
-					*dataStore = append(*dataStore, metric)
+			} else if api.Prometheus.Histogram {
+				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+				defaultEvent := api.Name
+				if api.Prometheus.FlattenedEvent != "" {
+					defaultEvent = api.Prometheus.FlattenedEvent
 				}
-				// makes sample too big
-				// prometheusMakeBuckets(m, flattenedSample, dtoMF, api.Prometheus.Unflatten)
-				// *dataStore = append(*dataStore, flattenedSample)
+				if strings.Contains(defaultEvent, "Sample") {
+					defaultEvent = strings.Replace(defaultEvent, "Sample", "HistogramSample", -1)
+				} else {
+					defaultEvent += "HistogramSample"
+				}
+				metric["event_type"] = defaultEvent
+				prometheusMakeBuckets(m, &metric, dtoMF, true)
+				*dataStore = append(*dataStore, metric)
 			}
 		} else { // gauge or counter
 			metric["value"] = fmt.Sprint(getValue(m))
+
 			if (*api).Prometheus.Unflatten {
 				*dataStore = append(*dataStore, metric)
 			} else if customSample != "" {
 				workingSample[dtoMF.GetName()] = fmt.Sprint(getValue(m))
 				(*sampleKeys)[customSample] = workingSample
+			} else if len(m.Label) > 0 && useSecondary {
+				key := dtoMF.GetName()
+				if dtoMF.GetType() == dto.MetricType_GAUGE {
+					key += ".gauge"
+				} else if dtoMF.GetType() == dto.MetricType_COUNTER {
+					key += ".counter"
+				}
+				(*sampleKeys)[buildKey][key] = fmt.Sprint(getValue(m))
 			} else {
 				key := dtoMF.GetName()
 				for _, keyMerge := range api.Prometheus.KeyMerge {
@@ -163,10 +195,15 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 						break
 					}
 				}
+				(*flattenedSample)["name"] = "main"
 				(*flattenedSample)[key] = fmt.Sprint(getValue(m))
 			}
 		}
 	}
+	// load secondary datastore into main datastore
+	// for _, sample := range secondaryDataStore {
+	// 	*dataStore = append(*dataStore, sample)
+	// }
 }
 
 func getValue(m *dto.Metric) float64 {
@@ -190,10 +227,12 @@ func prometheusMakeLabels(m *dto.Metric, metric *map[string]interface{}) {
 
 func prometheusMakeQuantiles(m *dto.Metric, metric *map[string]interface{}, dtoMF *dto.MetricFamily, unflatten bool) {
 	for _, q := range m.GetSummary().Quantile {
-		if unflatten {
-			(*metric)[fmt.Sprintf("%f", q.GetQuantile())] = fmt.Sprint(q.GetValue())
-		} else {
-			(*metric)[(*dtoMF).GetName()+fmt.Sprintf(".%f", q.GetQuantile())] = fmt.Sprint(q.GetValue())
+		if !math.IsNaN(q.GetValue()) {
+			if unflatten {
+				(*metric)[fmt.Sprintf("%f", q.GetQuantile())] = fmt.Sprint(q.GetValue())
+			} else {
+				(*metric)[(*dtoMF).GetName()+fmt.Sprintf(".%f", q.GetQuantile())] = fmt.Sprint(q.GetValue())
+			}
 		}
 	}
 }
