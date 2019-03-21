@@ -29,8 +29,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 					"", false)
 			}
 			break
-		} else {
-			load.EventCount++
 		}
 
 		currentSample := sample.(map[string]interface{})
@@ -61,13 +59,14 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				}
 
 				// check if this contains any key pair values to filter out
-				RunSampleFilter(api.SampleFilters, &createSample, key, v)
+				RunSampleFilter(api.SampleFilter, &createSample, key, v)
 				// if keepkeys used will do inverse
 				RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
 			}
 		}
 
 		if createSample {
+			load.EventCount++
 			load.EventDistribution[eventType]++
 
 			// add custom attribute(s)
@@ -422,48 +421,26 @@ func checkPluralSlice(key string) string {
 }
 
 // RunSampleFilter Filters samples generated
-func RunSampleFilter(sampleFilters []string, createSample *bool, key string, v interface{}) {
-	for _, filter := range sampleFilters {
-		regKey := ""
-		regVal := ""
-
-		filterSplit := strings.Split(filter, ":::")
-		if len(filterSplit) == 1 {
-			regVal = filterSplit[0]
-		}
-		if len(filterSplit) == 2 {
-			regKey = filterSplit[0]
-			regVal = filterSplit[1]
-		}
-
-		regKeyFound := false
-		regValFound := false
-		if regKey != "" {
-			validateKey := regexp.MustCompile(regKey)
-			if validateKey.MatchString(key) {
-				regKeyFound = true
+func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key string, v interface{}) {
+	for _, sampleFilter := range sampleFilters {
+		for regKey, regVal := range sampleFilter {
+			regKeyFound := false
+			regValFound := false
+			if regKey != "" {
+				validateKey := regexp.MustCompile(regKey)
+				if validateKey.MatchString(key) {
+					regKeyFound = true
+				}
 			}
-		}
-		if regVal != "" {
-			validateVal := regexp.MustCompile(regVal)
-			if validateVal.MatchString(fmt.Sprintf("%v", v)) {
-				regValFound = true
+			if regVal != "" {
+				validateVal := regexp.MustCompile(regVal)
+				if validateVal.MatchString(fmt.Sprintf("%v", v)) {
+					regValFound = true
+				}
 			}
-		}
-
-		if regKey != "" && regVal != "" && regKeyFound && regValFound {
-			// validate both
-			*createSample = false
-		} else if regKey != "" && regKeyFound && regVal == "" {
-			// validate regKey
-			*createSample = false
-		} else if regVal != "" && regValFound && regKey == "" {
-			// validate regVal
-			*createSample = false
-		}
-
-		if !*createSample {
-			break
+			if regKeyFound && regValFound {
+				*createSample = false
+			}
 		}
 	}
 }

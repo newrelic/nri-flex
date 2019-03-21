@@ -24,9 +24,8 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 		}
 		request = setRequestOptions(request, *yml, api)
 
-		resp, _, _ := request.End()
+		resp, _, errors := request.End()
 		if resp != nil {
-
 			nextLink := ""
 			if resp.Header["Link"] != nil {
 				headerLinks := strings.Split(resp.Header["Link"][0], ",")
@@ -61,6 +60,9 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 				}
 			}
 		} else {
+			for _, err := range errors {
+				logger.Flex("debug", err, "", false)
+			}
 			*doLoop = false
 		}
 	}

@@ -8,10 +8,7 @@ apis:
     url: http://localhost:2379/metrics
     prometheus: 
       enable: true
-      flattened_event: "prometheusEtcdSample"
-      key_merge: [action]
-      sample_keys:
-        prometheusEtcdServiceSample: grpc_service
-    remove_keys:
-      - go_ # we can remove the internal exporter go metrics like this
     # snake_to_camel: true
+    # sample_filter:
+      # - .*: GAUGE ## remove all gauge metrics
+      # - .*: COUNTER ## remove all counter metrics

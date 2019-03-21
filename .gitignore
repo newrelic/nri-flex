@@ -8,4 +8,6 @@ nri-flex-mac
 coverage.*
 .DS_Store
 examples_*
-CHANGELOG_OLD.md
+CHANGELOG_*
+flex-*
+cmd/flex/flex*

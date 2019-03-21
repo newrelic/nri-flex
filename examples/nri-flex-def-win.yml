@@ -8,4 +8,4 @@ commands:
     command:
       - nri-flex.exe
       - --metrics
-    interval: 15
+    interval: 30
