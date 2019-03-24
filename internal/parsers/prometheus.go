@@ -50,7 +50,7 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 		*dataStore = append(*dataStore, sampleKeys[sample])
 	}
 	// add flattened sample into datastore
-	if len(flattenedSample) > 0 {
+	if len(flattenedSample) > 0 && !api.Prometheus.Unflatten {
 		applyCustomAttributes(&flattenedSample, &api.Prometheus.CustomAttributes)
 		*dataStore = append(*dataStore, flattenedSample)
 	}
@@ -65,21 +65,6 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 			break
 		}
 
-		// store counter/gauge samples with the same meta together
-		useSecondary := false
-		buildKey := ""
-		if len(m.Label) > 0 && dtoMF.GetType() != dto.MetricType_SUMMARY && dtoMF.GetType() != dto.MetricType_HISTOGRAM {
-			useSecondary = true
-			sample := map[string]interface{}{}
-			for _, label := range m.Label {
-				sample[label.GetName()] = label.GetValue()
-				buildKey += label.GetValue()
-			}
-			if (*sampleKeys)[buildKey] == nil {
-				(*sampleKeys)[buildKey] = sample
-			}
-		}
-
 		metric := map[string]interface{}{}
 		metric["name"] = dtoMF.GetName()
 		metric["help"] = dtoMF.GetHelp()
@@ -87,46 +72,12 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 		applyCustomAttributes(&metric, &api.Prometheus.CustomAttributes)
 		prometheusMakeLabels(m, &metric)
 
-		// create a custom sample to store the metrics associated with the particular key
-		customSample := ""
-		baseSample := ""
-
-		for sample, key := range api.Prometheus.SampleKeys {
-			if metric[key] != nil { // found key
-				baseSample = sample
-				if customSample == "" {
-					customSample = baseSample + "." + fmt.Sprintf("%v", metric[key])
-				} else {
-					customSample = customSample + "." + fmt.Sprintf("%v", metric[key])
-				}
-			}
-		}
-
-		// when using a custom sample, we store into a workingSample as we can't target an address when nested
-		workingSample := map[string]interface{}{}
-		if customSample != "" {
-			if (*sampleKeys)[customSample] == nil {
-				(*sampleKeys)[customSample] = map[string]interface{}{}
-			} else {
-				workingSample = (*sampleKeys)[customSample]
-			}
-			workingSample["event_type"] = baseSample
-			applyCustomAttributes(&workingSample, &api.Prometheus.CustomAttributes)
-			prometheusMakeLabels(m, &workingSample) // possibility that a colision could occur from other samples
-		}
-
 		if dtoMF.GetType() == dto.MetricType_SUMMARY {
 			if (*api).Prometheus.Unflatten {
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				prometheusMakeQuantiles(m, &metric, dtoMF, api.Prometheus.Unflatten)
 				*dataStore = append(*dataStore, metric)
-			} else if customSample != "" {
-				workingSample[dtoMF.GetName()] = fmt.Sprint(getValue(m))
-				workingSample[dtoMF.GetName()+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-				workingSample[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-				prometheusMakeQuantiles(m, &workingSample, dtoMF, api.Prometheus.Unflatten)
-				(*sampleKeys)[customSample] = workingSample
 			} else if api.Prometheus.Summary {
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
@@ -143,20 +94,20 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				prometheusMakeQuantiles(m, &metric, dtoMF, true)
 				*dataStore = append(*dataStore, metric)
 			}
+			if len(m.Label) > 0 && !api.Prometheus.Summary && !api.Prometheus.Unflatten {
+				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
+				key := dtoMF.GetName() + ".summary"
+				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				(*sampleKeys)[sampleKey][key+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+			}
 		} else if dtoMF.GetType() == dto.MetricType_HISTOGRAM {
 			if (*api).Prometheus.Unflatten {
-				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
 				*dataStore = append(*dataStore, metric)
-			} else if customSample != "" {
-				workingSample[dtoMF.GetName()] = fmt.Sprint(getValue(m))
-				workingSample[dtoMF.GetName()+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-				workingSample[dtoMF.GetName()+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
-				(*sampleKeys)[customSample] = workingSample
 			} else if api.Prometheus.Histogram {
-				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				defaultEvent := api.Name
 				if api.Prometheus.FlattenedEvent != "" {
@@ -171,22 +122,26 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				prometheusMakeBuckets(m, &metric, dtoMF, true)
 				*dataStore = append(*dataStore, metric)
 			}
+			if len(m.Label) > 0 && !api.Prometheus.Histogram && !api.Prometheus.Unflatten {
+				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
+				key := dtoMF.GetName() + ".histogram"
+				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
+				(*sampleKeys)[sampleKey][key+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+			}
 		} else { // gauge or counter
 			metric["value"] = fmt.Sprint(getValue(m))
 
 			if (*api).Prometheus.Unflatten {
 				*dataStore = append(*dataStore, metric)
-			} else if customSample != "" {
-				workingSample[dtoMF.GetName()] = fmt.Sprint(getValue(m))
-				(*sampleKeys)[customSample] = workingSample
-			} else if len(m.Label) > 0 && useSecondary {
+			} else if len(m.Label) > 0 {
+				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
 				key := dtoMF.GetName()
 				if dtoMF.GetType() == dto.MetricType_GAUGE {
 					key += ".gauge"
 				} else if dtoMF.GetType() == dto.MetricType_COUNTER {
 					key += ".counter"
 				}
-				(*sampleKeys)[buildKey][key] = fmt.Sprint(getValue(m))
+				(*sampleKeys)[sampleKey][key] = fmt.Sprint(getValue(m))
 			} else {
 				key := dtoMF.GetName()
 				for _, keyMerge := range api.Prometheus.KeyMerge {
@@ -200,10 +155,6 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 			}
 		}
 	}
-	// load secondary datastore into main datastore
-	// for _, sample := range secondaryDataStore {
-	// 	*dataStore = append(*dataStore, sample)
-	// }
 }
 
 func getValue(m *dto.Metric) float64 {
@@ -265,6 +216,19 @@ func ParseReader(in io.Reader, ch chan<- *dto.MetricFamily) error {
 		ch <- mf
 	}
 	return nil
+}
+
+func prometheusMakeMergedMeta(sampleKeys *map[string]map[string]interface{}, m *dto.Metric) string {
+	sampleKey := ""
+	sample := map[string]interface{}{}
+	for _, label := range m.Label {
+		sample[label.GetName()] = label.GetValue()
+		sampleKey += label.GetValue()
+	}
+	if (*sampleKeys)[sampleKey] == nil {
+		(*sampleKeys)[sampleKey] = sample
+	}
+	return sampleKey
 }
 
 // applyCustomAttributes applies custom attributes to the provided sample

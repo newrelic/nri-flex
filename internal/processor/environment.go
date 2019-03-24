@@ -13,8 +13,8 @@ func SubEnvVariables(strConf *string) {
 	replaceCount := 0
 	if subCount > 0 {
 		for _, e := range os.Environ() {
-			pair := strings.Split(e, "=")
-			if len(pair) == 2 {
+			pair := strings.SplitN(e, "=", 2)
+			if len(pair) == 2 && pair[0] != "" {
 				if strings.Contains(*strConf, "$$"+pair[0]) {
 					*strConf = strings.Replace(*strConf, "$$"+pair[0], pair[1], -1)
 					replaceCount++

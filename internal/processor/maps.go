@@ -63,6 +63,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunSampleFilter(api.SampleFilter, &createSample, key, v)
 				// if keepkeys used will do inverse
 				RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
+				RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 			}
 		}
 
@@ -163,6 +164,17 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 			*eventType = apiName + "Sample"
 		}
 		delete((*currentSample), "event_type")
+	}
+}
+
+// RunSampleRenamer using regex if sample has a key that matches, make that a different sample (event_type)
+func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string]interface{}, key string, eventType *string) {
+	for regex, newEventType := range renameSamples {
+		if formatter.KvFinder("regex", key, regex) {
+			(*currentSample)["event_type"] = newEventType
+			*eventType = newEventType
+			break
+		}
 	}
 }
 

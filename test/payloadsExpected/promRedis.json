@@ -1,0 +1,212 @@
+[
+    {
+        "build_date": "2019-03-02-19:49:17",
+        "commit_sha": "9a564252edf9caeba0d3c501bc1b87b506ec701b",
+        "golang_version": "go1.12",
+        "redis_exporter_build_info.gauge": 1,
+        "version": "v0.30.0"
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db1",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db14",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db15",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db5",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "os": "Darwin 18.2.0 x86_64",
+        "redis_build_id": "e0c8d37381c486c6",
+        "redis_instance_info.gauge": 1,
+        "redis_mode": "standalone",
+        "redis_version": "4.0.9",
+        "role": "master"
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db0",
+        "redis_db_avg_ttl_seconds.gauge": 0,
+        "redis_db_keys.gauge": 1,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db10",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db13",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db2",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db3",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db9",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db8",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "cmd": "config",
+        "redis_commands_duration_seconds_total.gauge": 0.000289,
+        "redis_commands_total.gauge": 1
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "redis_aof_current_rewrite_duration_sec.gauge": -1,
+        "redis_aof_enabled.gauge": 0,
+        "redis_aof_last_bgrewrite_status.gauge": 1,
+        "redis_aof_last_cow_size_bytes.gauge": 0,
+        "redis_aof_last_rewrite_duration_sec.gauge": -1,
+        "redis_aof_last_write_status.gauge": 1,
+        "redis_aof_rewrite_in_progress.gauge": 0,
+        "redis_aof_rewrite_scheduled.gauge": 0,
+        "redis_blocked_clients.gauge": 0,
+        "redis_client_biggest_input_buf.gauge": 0,
+        "redis_client_longest_output_list.gauge": 0,
+        "redis_cluster_enabled.gauge": 0,
+        "redis_commands_processed_total.gauge": 1,
+        "redis_config_maxclients.gauge": 10000,
+        "redis_config_maxmemory.gauge": 0,
+        "redis_connected_clients.gauge": 1,
+        "redis_connected_slaves.gauge": 0,
+        "redis_connections_received_total.gauge": 1,
+        "redis_evicted_keys_total.gauge": 0,
+        "redis_expired_keys_total.gauge": 0,
+        "redis_instantaneous_input_kbps.gauge": 0,
+        "redis_instantaneous_ops_per_sec.gauge": 0,
+        "redis_instantaneous_output_kbps.gauge": 0,
+        "redis_keyspace_hits_total.gauge": 0,
+        "redis_keyspace_misses_total.gauge": 0,
+        "redis_latest_fork_usec.gauge": 0,
+        "redis_loading_dump_file.gauge": 0,
+        "redis_master_repl_offset.gauge": 0,
+        "redis_memory_max_bytes.gauge": 0,
+        "redis_memory_used_bytes.gauge": 1032464,
+        "redis_memory_used_lua_bytes.gauge": 37888,
+        "redis_memory_used_peak_bytes.gauge": 1032464,
+        "redis_memory_used_rss_bytes.gauge": 2166784,
+        "redis_net_input_bytes_total.gauge": 55,
+        "redis_net_output_bytes_total.gauge": 3056,
+        "redis_process_id.gauge": 72295,
+        "redis_pubsub_channels.gauge": 0,
+        "redis_pubsub_patterns.gauge": 0,
+        "redis_rdb_bgsave_in_progress.gauge": 0,
+        "redis_rdb_changes_since_last_save.gauge": 0,
+        "redis_rdb_current_bgsave_duration_sec.gauge": -1,
+        "redis_rdb_last_bgsave_duration_sec.gauge": -1,
+        "redis_rdb_last_bgsave_status.gauge": 1,
+        "redis_rdb_last_cow_size_bytes.gauge": 0,
+        "redis_rdb_last_save_timestamp_seconds.gauge": 1552395036,
+        "redis_rejected_connections_total.gauge": 0,
+        "redis_replication_backlog_bytes.gauge": 1048576,
+        "redis_slowlog_last_id.gauge": 0,
+        "redis_slowlog_length.gauge": 0,
+        "redis_start_time_seconds.gauge": 1552395036,
+        "redis_total_system_memory_bytes.gauge": 17179869184,
+        "redis_up.gauge": 1,
+        "redis_uptime_in_seconds.gauge": 1,
+        "redis_used_cpu_sys.gauge": 0.01,
+        "redis_used_cpu_sys_children.gauge": 0,
+        "redis_used_cpu_user.gauge": 0.01,
+        "redis_used_cpu_user_children.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db11",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db12",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db4",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db6",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "addr": "192.168.0.101:6379",
+        "alias": "",
+        "db": "db7",
+        "redis_db_keys.gauge": 0,
+        "redis_db_keys_expiring.gauge": 0
+    },
+    {
+        "name": "main",
+        "process_cpu_seconds_total": 0.19,
+        "process_max_fds": 1048576,
+        "process_open_fds": 8,
+        "process_resident_memory_bytes": 11956224,
+        "process_start_time_seconds": 1552394795.64,
+        "process_virtual_memory_bytes": 113074176,
+        "redis_exporter_last_scrape_duration_seconds": 0.007935711,
+        "redis_exporter_last_scrape_error": 0,
+        "redis_exporter_scrapes_total": 28
+    }
+]

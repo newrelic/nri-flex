@@ -11,3 +11,4 @@ examples_*
 CHANGELOG_*
 flex-*
 cmd/flex/flex*
+dump*

@@ -23,10 +23,10 @@ import (
 func ProcessQueries(api load.API, dataStore *[]interface{}) {
 	logger.Flex("debug", fmt.Errorf("running %v queries", api.Database), "", false)
 
-	//sql.Open doesn't open the connection, use a generic Ping() to test the connection
+	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
 
-	// commenting out as db.Ping is not reliable currently
+	// wrapping dbPingWithTimeout out as db.Ping is not reliable currently
 	// https://stackoverflow.com/questions/41618428/golang-ping-succeed-the-second-time-even-if-database-is-down/41619206#41619206
 	var pingError error
 	if db != nil {

@@ -15,13 +15,18 @@ import (
 func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{}) {
 	for *doLoop {
 		request := gorequest.New()
-		request = request.Get(yml.Global.BaseURL + *reqURL)
-		if api.Method == "POST" {
+
+		switch {
+		case api.Method == "POST" && api.Payload != "":
 			request = request.Post(yml.Global.BaseURL + *reqURL)
-			if api.Payload != "" {
-				request = request.Send(api.Payload)
-			}
+			request = request.Send(api.Payload)
+		case api.Method == "PUT" && api.Payload != "":
+			request = request.Put(yml.Global.BaseURL + *reqURL)
+			request = request.Send(api.Payload)
+		default:
+			request = request.Get(yml.Global.BaseURL + *reqURL)
 		}
+
 		request = setRequestOptions(request, *yml, api)
 
 		resp, _, errors := request.End()

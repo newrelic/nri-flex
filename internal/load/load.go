@@ -10,7 +10,6 @@ import (
 // ArgumentList Available Arguments
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	ForceLog              bool   `default:"false" help:"Deprecated use -verbose instead"`
 	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
 	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
 	Local                 bool   `default:"true" help:"Collect local entity info"`
@@ -27,8 +26,8 @@ type ArgumentList struct {
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
 
 	// not implemented yet
-	ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
-	ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
+	// ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
+	// ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -61,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.2-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.3-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -144,6 +143,7 @@ type API struct {
 	SampleKeys        map[string]string   `yaml:"sample_keys"`
 	ReplaceKeys       map[string]string   `yaml:"replace_keys"`
 	RenameKeys        map[string]string   `yaml:"rename_keys"`
+	RenameSamples     map[string]string   `yaml:"rename_samples"` // using regex if sample has a key that matches, make that a different sample
 	RemoveKeys        []string            `yaml:"remove_keys"`
 	KeepKeys          []string            `yaml:"keep_keys"`     // inverse of removing keys
 	ToLower           bool                `yaml:"to_lower"`      // convert all unicode letters mapped to their lower case.

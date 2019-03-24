@@ -2,17 +2,36 @@ package parser
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"nri-flex/internal/load"
+	"nri-flex/internal/logger"
 	"testing"
 )
 
 func TestRunHTTP(t *testing.T) {
+	// create a listener with desired port
+	l, _ := net.Listen("tcp", "127.0.0.1:9123")
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		fileData, _ := ioutil.ReadFile("../../test/payloadsExpected/httpTest.json")
+		_, err := rw.Write(fileData)
+		logger.Flex("debug", err, "failed to write", false)
+	}))
+	// NewUnstartedServer creates a listener. Close listener and replace with the one we created.
+	ts.Listener.Close()
+	ts.Listener = l
+	// Start the server.
+	ts.Start()
+
 	doLoop := true
 	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "httpExample",
 		Global: load.Global{
-			BaseURL: "https://jsonplaceholder.typicode.com/",
+			BaseURL: "http://127.0.0.1:9123",
 			Timeout: 5000,
 			User:    "batman",
 			Pass:    "robin",
@@ -23,7 +42,7 @@ func TestRunHTTP(t *testing.T) {
 		APIs: []load.API{
 			{
 				EventType: "httpExample",
-				URL:       "todos/1",
+				URL:       "/",
 				Timeout:   5100,
 				User:      "batman",
 				Pass:      "robin",
@@ -67,6 +86,7 @@ func TestRunHTTP(t *testing.T) {
 
 	if len(dataStore) != len(expectedSamples) {
 		t.Errorf("received sample count %d does not match expected %d", len(dataStore), len(expectedSamples))
+		t.Errorf("%v", dataStore)
 	}
 
 	for key := range dataStore[0].(map[string]interface{}) {

@@ -121,8 +121,8 @@ func runLookupProcessor(str string, cfg *load.Config, i int) {
 	RunConfig(newConfig)
 }
 
-// YmlFiles Processes yml files
-func YmlFiles(ymls *[]load.Config) {
+// RunConfigFiles Processes yml files
+func RunConfigFiles(ymls *[]load.Config) {
 	var wg sync.WaitGroup
 	wg.Add(len(*ymls))
 	for _, yml := range *ymls {
