@@ -11,21 +11,20 @@ import (
 	"nri-flex/internal/processor"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
-	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/newrelic/infra-integrations-sdk/log"
 )
 
 // Run discover containers
-func Run(containerDiscoveryAvailable *bool, containers *[]types.Container) {
-	cli, err := setDockerClient()
+func Run(cfg *[]load.Config) {
+	FindFlexContainerID()
+	var err error
+	cli, err = setDockerClient()
 	if err != nil {
 		logger.Flex("debug", err, "unable to set docker client", false)
 	} else {
@@ -34,57 +33,37 @@ func Run(containerDiscoveryAvailable *bool, containers *[]types.Container) {
 		if err != nil {
 			logger.Flex("debug", err, "unable to set perform container list", false)
 		} else if len(containerList) > 0 {
-			*containers = containerList
-			*containerDiscoveryAvailable = true
+			// List config files in containerDiscoveryPath directory
+			containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
+			containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
+			logger.Flex("debug", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
 
+			CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, cfg)
+			if len(containerDiscoveryFiles) == 0 {
+				logger.Flex("info", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+			}
 		}
 	}
 }
 
-// setDockerClient - Required as there can be edge cases when the integration API version, may need a matching or lower API version then the hosts docker API version
-func setDockerClient() (*client.Client, error) {
-	var out []byte
-	var cli *client.Client
-	var err error
-
-	if load.Args.DockerAPIVersion != "" {
-		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
+// FindFlexContainerID detects if Flex is running within a container and sets the ID
+func FindFlexContainerID() {
+	// set current containerID
+	cpuset, err := ioutil.ReadFile("/proc/1/cpuset")
+	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
+	if err == nil {
+		strCpuset := strings.TrimSpace(string(cpuset))
+		logger.Flex("info", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
+		values := strings.Split(strCpuset, "/")
+		if len(values) > 0 {
+			if len(values[len(values)-1]) == 64 {
+				load.ContainerID = values[len(values)-1]
+				logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
+			}
+		}
 	} else {
-		log.Debug("GOOS:", runtime.GOOS)
-
-		if err != nil {
-			if runtime.GOOS == "windows" {
-				out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-			} else {
-				out, err = exec.Command(`docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-				if err != nil {
-					out, err = exec.Command(`/host/usr/local/bin/docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-				}
-			}
-		}
-
-		if err != nil {
-			log.Debug("Unable to fetch Docker API version", err)
-			log.Debug("Setting client with NewClientWithOpts()")
-			cli, err = client.NewClientWithOpts()
-		} else {
-			cmdOut := string(out)
-			clientAPIVersion := strings.TrimSpace(strings.Replace(cmdOut, `"`, "", -1))
-			clientVer, _ := strconv.ParseFloat(clientAPIVersion, 64)
-			apiVer, _ := strconv.ParseFloat(api.DefaultVersion, 64)
-
-			if clientVer <= apiVer {
-				log.Debug("Setting client with version:", clientAPIVersion)
-				cli, err = client.NewClientWithOpts(client.WithVersion(clientAPIVersion))
-			} else {
-				log.Debug("Client API Version", clientAPIVersion, "is higher then integration version", api.DefaultVersion)
-				log.Debug("Setting client with NewClientWithOpts()")
-				cli, err = client.NewClientWithOpts()
-			}
-		}
+		logger.Flex("debug", err, "potentially not running within a container", false)
 	}
-
-	return cli, err
 }
 
 // CreateDynamicContainerConfigs Creates dynamic configs for each container
@@ -93,25 +72,19 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 	processor.LoadConfigFiles(&containerYmls, files, path)
 	foundTargetContainerIds := []string{}
 
-	cli, err := setDockerClient()
-	if err != nil {
-		logger.Flex("debug", err, "unable to set docker client", false)
-	} else {
-		// store inspected containers, so we do not re-inspect anything unnecessarily
-		inspectedContainers := []types.ContainerJSON{}
-		logger.Flex("debug", fmt.Errorf("containers %d, containerDiscoveryYmls %d", len(containers), len(containerYmls)), "", false)
-		// find flex container id if not set
-		findFlexContainerID(&containers)
-		// flex envs/labels -> container
-		runReverseLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
-		// container envs/labels -> flex
-		runForwardLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
-	}
+	// store inspected containers, so we do not re-inspect anything unnecessarily
+	inspectedContainers := []types.ContainerJSON{}
+	logger.Flex("debug", fmt.Errorf("containers %d, containerDiscoveryConfigs %d", len(containers), len(containerYmls)), "", false)
+	// find flex container id if not set
+	fallbackFindFlexContainerID(&containers)
+	// flex envs/labels -> container
+	runReverseLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
+	// container envs/labels -> flex
+	runForwardLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
 }
 
 // runForwardLookup container envs -> flex
 func runForwardLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
-	discoveryConfigs := map[string]map[string]interface{}{}
 
 	var wg sync.WaitGroup
 	wg.Add(len(*containers))
@@ -176,29 +149,29 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 					for key, val := range discoveryLoop {
 						if strings.Contains(key, "flexDiscovery") {
 							logger.Flex("debug", fmt.Errorf("fwd lookup for %v", key), "", false)
-							discoveryConfigs[key] = map[string]interface{}{}
-							parseFlexDiscoveryLabel(&discoveryConfigs, key, val)
+							discoveryConfig := map[string]interface{}{}
+							parseFlexDiscoveryLabel(discoveryConfig, key, val)
 							// t = target, c = config, r = reverse, tt = target type, tm = target mode, ip = ip mode, p = port
 							// check if we have a target to find, and config to run
-							if discoveryConfigs[key]["t"] != nil {
+							if discoveryConfig["t"] != nil {
 								// if config is nil, use the <target> , as the yaml file to look up eg. if target (t) = redis, lookup the config (c) redis.yml
-								if discoveryConfigs[key]["c"] == nil {
-									discoveryConfigs[key]["c"] = discoveryConfigs[key]["t"]
+								if discoveryConfig["c"] == nil {
+									discoveryConfig["c"] = discoveryConfig["t"]
 								}
 								// auto will mean that if set to true, it will loop through all other containers to find a match
 								// if not set / set to false it will target the current container
-								if discoveryConfigs[key]["r"] == nil {
-									discoveryConfigs[key]["r"] = "false"
+								if discoveryConfig["r"] == nil {
+									discoveryConfig["r"] = "false"
 								}
-								if discoveryConfigs[key]["tt"] == nil {
-									discoveryConfigs[key]["tt"] = load.Img // cname == containerName , img = image
+								if discoveryConfig["tt"] == nil {
+									discoveryConfig["tt"] = load.Img // cname == containerName , img = image
 								}
-								if discoveryConfigs[key]["tm"] == nil {
-									discoveryConfigs[key]["tm"] = "contains"
+								if discoveryConfig["tm"] == nil {
+									discoveryConfig["tm"] = "contains"
 								}
 
 								// addDynamicConfig will ensure the config file matches, so the above parameters are no longer enforced
-								addDynamicConfig(containerYmls, &discoveryConfigs, ymls, container, containerInspect, key, path)
+								addDynamicConfig(containerYmls, discoveryConfig, ymls, container, containerInspect, key, path)
 							}
 						}
 					}
@@ -214,7 +187,6 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 	var flexContainerInspect types.ContainerJSON
 	ctx := context.Background()
 	discoveryLoop := map[string]string{}
-	discoveryConfigs := map[string]map[string]interface{}{}
 
 	if load.ContainerID != "" {
 		var err error
@@ -251,20 +223,20 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 					// create discoveryConfigs - look for flex label and split
 					for key, val := range discoveryLoop {
 						if strings.Contains(key, "flexDiscovery") {
-							discoveryConfigs[key] = map[string]interface{}{}
-							parseFlexDiscoveryLabel(&discoveryConfigs, key, val)
+							discoveryConfig := map[string]interface{}{}
+							parseFlexDiscoveryLabel(discoveryConfig, key, val)
 							// t = target, c = config, r = reverse, tt = target type, tm = target mode, ip = ip mode, p = port
 							// check if we have a target to find, and config to run
-							if discoveryConfigs[key]["t"] != nil {
+							if discoveryConfig["t"] != nil {
 								// if config is nil, use the <target> , as the yaml file to look up eg. if target (t) = redis, lookup the config (c) redis.yml
-								if discoveryConfigs[key]["c"] == nil {
-									discoveryConfigs[key]["c"] = discoveryConfigs[key]["t"]
+								if discoveryConfig["c"] == nil {
+									discoveryConfig["c"] = discoveryConfig["t"]
 								}
-								if discoveryConfigs[key]["tt"] == nil {
-									discoveryConfigs[key]["tt"] = load.Img // cname == containerName , img = image
+								if discoveryConfig["tt"] == nil {
+									discoveryConfig["tt"] = load.Img // cname == containerName , img = image
 								}
-								if discoveryConfigs[key]["tm"] == nil {
-									discoveryConfigs[key]["tm"] = "contains"
+								if discoveryConfig["tm"] == nil {
+									discoveryConfig["tm"] = "contains"
 								}
 							}
 							ctx := context.Background()
@@ -272,10 +244,10 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 							if err != nil {
 								logger.Flex("debug", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
 							} else {
-								if findContainerTarget(&discoveryConfigs, container, key, foundTargetContainerIds) {
+								if findContainerTarget(discoveryConfig, container, key, foundTargetContainerIds) {
 									logger.Flex("debug", fmt.Errorf("rev lookup matched %v: %v - %v", container.ID, key, val), "", false)
 									*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
-									addDynamicConfig(containerYmls, &discoveryConfigs, ymls, container, reverseContainerInspect, key, path)
+									addDynamicConfig(containerYmls, discoveryConfig, ymls, container, reverseContainerInspect, key, path)
 								}
 							}
 						}
@@ -288,14 +260,14 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 
 }
 
-func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string]map[string]interface{}, ymls *[]load.Config, targetContainer types.Container, targetContainerInspect types.ContainerJSON, key string, path string) {
+func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]interface{}, ymls *[]load.Config, targetContainer types.Container, targetContainerInspect types.ContainerJSON, key string, path string) {
 	for _, containerYml := range *containerYmls {
 		configName := ""
-		switch cfg := (*discoveryConfigs)[key]["c"].(type) {
+		switch cfg := discoveryConfig["c"].(type) {
 		case string:
 			configName = cfg + ".yml"
 		default:
-			logger.Flex("debug", fmt.Errorf("container discovery config file error %v", ((*discoveryConfigs)[key]["c"])), "", false)
+			logger.Flex("debug", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
 		}
 		if containerYml.FileName == configName {
 			logger.Flex("debug", fmt.Errorf("container discovery %v matched %v", targetContainer.ID, containerYml.FileName), "", false)
@@ -316,8 +288,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 					break
 				}
 				// ability to override and select port
-				if (*discoveryConfigs)[key]["p"] != nil {
-					discoveryPort = (*discoveryConfigs)[key]["p"].(string)
+				if discoveryConfig["p"] != nil {
+					discoveryPort = discoveryConfig["p"].(string)
 				} else {
 					// use the first found public port
 					for _, port := range targetContainer.Ports {
@@ -331,9 +303,9 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 				ipMode := load.DefaultIPMode
 				if load.Args.OverrideIPMode != "" && (load.Args.OverrideIPMode == load.Public || load.Args.OverrideIPMode == load.Private) {
 					ipMode = load.Args.OverrideIPMode
-				} else if (*discoveryConfigs)[key]["ip"] != nil {
-					if (*discoveryConfigs)[key]["ip"].(string) == load.Private || (*discoveryConfigs)[key]["ip"].(string) == load.Public {
-						ipMode = (*discoveryConfigs)[key]["ip"].(string)
+				} else if discoveryConfig["ip"] != nil {
+					if discoveryConfig["ip"].(string) == load.Private || discoveryConfig["ip"].(string) == load.Public {
+						ipMode = discoveryConfig["ip"].(string)
 					}
 				}
 
@@ -414,18 +386,18 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfigs *map[string
 			}
 
 		} else {
-			logger.Flex("debug", fmt.Errorf("container discovery %v : containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName), "", false)
+			logger.Flex("debug", fmt.Errorf("container discovery %v: containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName), "", false)
 		}
 	}
 }
 
-func parseFlexDiscoveryLabel(discoveryConfigs *map[string]map[string]interface{}, key string, val string) {
+func parseFlexDiscoveryLabel(discoveryConfig map[string]interface{}, key string, val string) {
 	if strings.Contains(val, "=") { // nicer for other setups
 		labelValues := strings.Split(val, ",")
 		for _, value := range labelValues {
 			configKeyPair := strings.Split(value, "=")
 			if len(configKeyPair) == 2 {
-				(*discoveryConfigs)[key][configKeyPair[0]] = configKeyPair[1]
+				discoveryConfig[configKeyPair[0]] = configKeyPair[1]
 			}
 		}
 	} else if strings.Contains(val, ".") { // needed for kubernetes eg. flexDiscoveryRedis:"t_redis.c_redis.tt_img.tm_contains"
@@ -433,34 +405,34 @@ func parseFlexDiscoveryLabel(discoveryConfigs *map[string]map[string]interface{}
 		for _, value := range labelValues {
 			configKeyPair := strings.Split(value, "_")
 			if len(configKeyPair) == 2 {
-				(*discoveryConfigs)[key][configKeyPair[0]] = configKeyPair[1]
+				discoveryConfig[configKeyPair[0]] = configKeyPair[1]
 			}
 		}
 	}
 }
 
-func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, container types.Container, key string, foundTargetContainerIds *[]string) bool {
-
+func findContainerTarget(discoveryConfig map[string]interface{}, container types.Container, key string, foundTargetContainerIds *[]string) bool {
 	// do not add any dynamic configs for already targeted containers
 	for _, id := range *foundTargetContainerIds {
 		if id == container.ID {
 			return false
 		}
 	}
-	switch (*discoveryConfigs)[key]["tt"].(type) {
+
+	switch discoveryConfig["tt"].(type) {
 	case string:
-		switch (*discoveryConfigs)[key]["tt"].(string) {
+		switch discoveryConfig["tt"].(string) {
 		case "cname":
 			for _, containerName := range container.Names {
 				checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
-				if formatter.KvFinder((*discoveryConfigs)[key]["tm"].(string), checkContainerName, (*discoveryConfigs)[key]["t"].(string)) {
+				if formatter.KvFinder(discoveryConfig["tm"].(string), checkContainerName, discoveryConfig["t"].(string)) {
 					*(foundTargetContainerIds) = append(*(foundTargetContainerIds), container.ID)
 					return true
 				}
 				// kubernetes container name fallback via label
 				for key, val := range container.Labels {
 					if key == "io.kubernetes.container.name" {
-						if formatter.KvFinder((*discoveryConfigs)[key]["tm"].(string), val, (*discoveryConfigs)[key]["t"].(string)) {
+						if formatter.KvFinder(discoveryConfig["tm"].(string), val, discoveryConfig["t"].(string)) {
 							*(foundTargetContainerIds) = append(*(foundTargetContainerIds), container.ID)
 							return true
 						}
@@ -468,7 +440,7 @@ func findContainerTarget(discoveryConfigs *map[string]map[string]interface{}, co
 				}
 			}
 		case load.Img:
-			if formatter.KvFinder((*discoveryConfigs)[key]["tm"].(string), container.Image, (*discoveryConfigs)[key]["t"].(string)) {
+			if formatter.KvFinder(discoveryConfig["tm"].(string), container.Image, discoveryConfig["t"].(string)) {
 				*(foundTargetContainerIds) = append(*(foundTargetContainerIds), container.ID)
 				return true
 			}
@@ -535,7 +507,7 @@ func execHostnameFallback(discoveryIPAddress *string, containerID string) {
 	}
 }
 
-func findFlexContainerID(containers *[]types.Container) {
+func fallbackFindFlexContainerID(containers *[]types.Container) {
 	// fallback on looking for image name "nri-flex" if flex's container id was not found internally
 	if load.ContainerID == "" {
 		logger.Flex("debug", fmt.Errorf("flex container id has not been found internally"), "", false)

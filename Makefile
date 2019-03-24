@@ -23,7 +23,7 @@ setup:
 	@echo ${LINE_BREAK}
 	$(DOCKER_COMPOSE) build
 	dep ensure
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	@if ! [ -x "$(command -v golangci-lint)" ]; then go get -u github.com/golangci/golangci-lint/cmd/golangci-lint; fi
 	@echo ${LINE_BREAK}
 
 run:

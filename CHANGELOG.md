@@ -1,3 +1,11 @@
+0.4.3-pre
+------
+- Update Prometheus parsing 
+- Update tests
+- Refactor
+- Fix concurrency map write issue
+- Add rename_samples functionality
+
 0.4.2-pre
 ------
 - Add variable store functionality

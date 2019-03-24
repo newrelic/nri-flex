@@ -5,6 +5,33 @@ import (
 	"testing"
 )
 
+func TestDrivers(t *testing.T) {
+	drivers := map[string]string{
+		"postgres":  load.DefaultPostgres,
+		"pg":        load.DefaultPostgres,
+		"pq":        load.DefaultPostgres,
+		"mssql":     load.DefaultMSSQLServer,
+		"sqlserver": load.DefaultMSSQLServer,
+		"mysql":     load.DefaultMySQL,
+		"mariadb":   load.DefaultMySQL,
+		"unknown":   "",
+	}
+
+	// test switch
+	for db, driver := range drivers {
+		detectedDriver := setDatabaseDriver(db, "")
+		if detectedDriver != driver {
+			t.Errorf("expected %v got %v", driver, detectedDriver)
+		}
+	}
+
+	// test manual driver
+	detectedDriver := setDatabaseDriver("", "superdb")
+	if detectedDriver != "superdb" {
+		t.Errorf("expected superdb got %v", detectedDriver)
+	}
+}
+
 func TestDatabase(t *testing.T) {
 	load.Refresh()
 	config := load.Config{

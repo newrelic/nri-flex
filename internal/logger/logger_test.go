@@ -33,7 +33,6 @@ func TestLogger(t *testing.T) {
 
 	load.Refresh()
 	load.Entity, _ = i.Entity("TestLogger3", "nri-flex")
-	load.Args.ForceLog = true
 	Flex("info", fmt.Errorf("testing"), "123", true)
 	if len(load.Entity.Metrics) != 1 {
 		t.Errorf("Incorrect number of events created %d", len(load.Entity.Metrics))

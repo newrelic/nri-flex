@@ -5,6 +5,20 @@ import (
 	"testing"
 )
 
+func TestValueParse(t *testing.T) {
+	testVal := "helloThereHowAreYou"
+	testRegex := "There"
+	str := ValueParse(testVal, testRegex)
+	if str != "There" {
+		t.Errorf("want: There got %v", str)
+	}
+
+	testRegex2 := "There2"
+	str2 := ValueParse(testVal, testRegex2)
+	if str2 != "helloThereHowAreYou" {
+		t.Errorf("want: helloThereHowAreYou got %v", str2)
+	}
+}
 func TestSplitKey(t *testing.T) {
 	a, b, split := SplitKey("name=bob", "=")
 	if a != "name" {
@@ -62,6 +76,11 @@ func TestRegMatch(t *testing.T) {
 		if expect[i] != strings[i] {
 			t.Errorf("does not match %v : %v", expect[i], strings[i])
 		}
+	}
+
+	strings = RegMatch("hello  there  batman", `blah`)
+	if strings != nil {
+		t.Errorf("nothing should have matched!")
 	}
 }
 
