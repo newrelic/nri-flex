@@ -6,9 +6,10 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"testing"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 func TestPrometheusRedis(t *testing.T) {

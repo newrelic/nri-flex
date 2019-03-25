@@ -1,8 +1,8 @@
 package processor
 
 import (
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // runDataHandler handles the data received for processing

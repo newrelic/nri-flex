@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"strconv"
 	"time"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 

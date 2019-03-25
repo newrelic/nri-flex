@@ -2,8 +2,9 @@ package logger
 
 import (
 	"fmt"
-	"nri-flex/internal/load"
 	"testing"
+
+	"github.com/newrelic/nri-flex/internal/load"
 
 	"github.com/newrelic/infra-integrations-sdk/integration"
 )

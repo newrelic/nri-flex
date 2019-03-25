@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"nri-flex/internal/load"
 	"testing"
+
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 func TestDrivers(t *testing.T) {
