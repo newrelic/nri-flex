@@ -2,12 +2,13 @@ package processor
 
 import (
 	"fmt"
-	"nri-flex/internal/formatter"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/formatter"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/jeremywohl/flatten"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"

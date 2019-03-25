@@ -1,9 +1,10 @@
 package parser
 
 import (
-	"nri-flex/internal/load"
 	"regexp"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // SetJMXCommand Add parameters to JMX call

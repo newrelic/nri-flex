@@ -3,10 +3,11 @@ package processor
 import (
 	"encoding/json"
 	"io/ioutil"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
-	parser "nri-flex/internal/parsers"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
+	parser "github.com/newrelic/nri-flex/internal/parsers"
 )
 
 // fetchData fetches data and handles paginated responses

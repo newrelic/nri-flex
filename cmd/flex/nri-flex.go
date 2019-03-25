@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"nri-flex/internal/discovery"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
-	"nri-flex/internal/outputs"
-	"nri-flex/internal/processor"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/discovery"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/newrelic/nri-flex/internal/processor"
 )
 
 func main() {

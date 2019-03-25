@@ -3,5 +3,5 @@ services:
   golang:
     image: golang:1.11.4-stretch
     volumes:
-      - ../:/go/src/nri-flex
-    working_dir: /go/src/nri-flex
+      - ../:/go/src/github.com/newrelic/nri-flex
+    working_dir: /go/src/github.com/newrelic/nri-flex

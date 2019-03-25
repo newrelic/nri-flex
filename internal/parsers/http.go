@@ -3,10 +3,11 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"strings"
 	"time"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/parnurzeal/gorequest"
 )
