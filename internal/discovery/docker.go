@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"

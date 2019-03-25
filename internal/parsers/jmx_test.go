@@ -3,8 +3,9 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
-	"nri-flex/internal/load"
 	"testing"
+
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 func TestSetJMXCommand(t *testing.T) {

@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/load"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/log"

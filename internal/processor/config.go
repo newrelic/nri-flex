@@ -3,12 +3,13 @@ package processor
 import (
 	"io/ioutil"
 	"net/url"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	yaml "gopkg.in/yaml.v2"
 )

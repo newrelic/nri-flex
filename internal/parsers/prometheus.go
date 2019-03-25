@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"strings"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"

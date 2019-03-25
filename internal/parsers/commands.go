@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	"nri-flex/internal/formatter"
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
+	"github.com/newrelic/nri-flex/internal/formatter"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/json-iterator/go"
 )

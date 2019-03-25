@@ -1,9 +1,10 @@
 package outputs
 
 import (
-	"nri-flex/internal/load"
-	"nri-flex/internal/logger"
 	"os"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 )
