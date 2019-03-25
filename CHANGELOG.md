@@ -1,3 +1,8 @@
+0.4.4-pre
+------
+- Default HTTP InsecureSkipVerify: true
+- Move Internal packages to full import paths
+
 0.4.3-pre
 ------
 - Update Prometheus parsing 

@@ -51,3 +51,9 @@ linters:
     - scopelint
     - unparam # switch back on later
     - gocritic # switch back on later
+
+issues:
+  exclude-rules:
+    - text: "G402:"
+      linters:
+        - gosec
