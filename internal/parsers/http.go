@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -15,7 +16,7 @@ import (
 // RunHTTP Executes HTTP Requests
 func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{}) {
 	for *doLoop {
-		request := gorequest.New()
+		request := gorequest.New().TLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 		switch {
 		case api.Method == "POST" && api.Payload != "":

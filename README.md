@@ -129,6 +129,8 @@ flexContainerDiscovery/ <- folder
 ```
 Docker compose & dep required.
 
+Ensure your path is like this: ${GOPATH}/src/github.com/newrelic/nri-flex
+
 make setup - download all needed dependencies
 
 go run cmd/flex/nri-flex.go - run locally
