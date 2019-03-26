@@ -1,3 +1,8 @@
+0.4.5-pre
+------
+- Add several TLS options, that can be used Global, or under API (with enable flag)
+- Default HTTP InsecureSkipVerify: false
+
 0.4.4-pre
 ------
 - Default HTTP InsecureSkipVerify: true

@@ -16,7 +16,7 @@ import (
 // RunHTTP Executes HTTP Requests
 func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{}) {
 	for *doLoop {
-		request := gorequest.New().TLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		request := gorequest.New()
 
 		switch {
 		case api.Method == "POST" && api.Payload != "":
@@ -103,6 +103,21 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 	for h, v := range api.Headers {
 		request = request.Set(h, v)
 	}
+
+	request = request.TLSClientConfig(&tls.Config{
+		InsecureSkipVerify: yml.Global.TLSConfig.InsecureSkipVerify,
+		MinVersion:         yml.Global.TLSConfig.MinVersion,
+		MaxVersion:         yml.Global.TLSConfig.MaxVersion,
+	})
+
+	if api.TLSConfig.Enable {
+		request = request.TLSClientConfig(&tls.Config{
+			InsecureSkipVerify: api.TLSConfig.InsecureSkipVerify,
+			MinVersion:         api.TLSConfig.MinVersion,
+			MaxVersion:         api.TLSConfig.MaxVersion,
+		})
+	}
+
 	return request
 }
 
