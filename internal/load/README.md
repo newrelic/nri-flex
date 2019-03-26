@@ -9,7 +9,7 @@
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.3-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.5-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -101,6 +101,7 @@ type API struct {
 	IgnoreLines       []int      // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
 	Proxy             string
+	TLSConfig         TLSConfig `yaml:"tls_config"`
 	Timeout           int
 	Method            string
 	Payload           string
@@ -230,6 +231,7 @@ type Global struct {
 	Timeout    int
 	Headers    map[string]string `yaml:"headers"`
 	Jmx        JMX               `yaml:"jmx"`
+	TLSConfig  TLSConfig         `yaml:"tls_config"`
 }
 ```
 
@@ -321,3 +323,16 @@ type SampleMerge struct {
 ```
 
 SampleMerge merge multiple samples into one (will remove previous samples)
+
+#### type TLSConfig
+
+```go
+type TLSConfig struct {
+	Enable             bool   `yaml:"enable"`
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
+	MinVersion         uint16 `yaml:"min_version"`
+	MaxVersion         uint16 `yaml:"max_version"`
+}
+```
+
+TLSConfig struct
