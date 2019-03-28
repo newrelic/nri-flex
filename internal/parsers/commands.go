@@ -78,7 +78,7 @@ func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
 								processRawCol(dataStore, &dataSample, dataOutput, command)
 							}
 						}
-					case "json":
+					case load.JSONType:
 						*dataStore = append(*dataStore, dataInterface)
 					case load.Jmx:
 						processedJMX = true
@@ -204,7 +204,7 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	var f interface{}
 	err := json.Unmarshal([]byte(dataOutput), &f)
 	if err == nil {
-		return "json", f
+		return load.JSONType, f
 	}
 
 	// default raw
