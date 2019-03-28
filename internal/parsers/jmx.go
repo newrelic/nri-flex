@@ -8,7 +8,7 @@ import (
 )
 
 // SetJMXCommand Add parameters to JMX call
-func SetJMXCommand(runCommand *string, command load.Command, api load.API, config load.Config) {
+func SetJMXCommand(runCommand *string, command load.Command, api load.API, config *load.Config) {
 	*runCommand = `echo "` + *runCommand + `" | java -jar ` + load.DefaultJmxPath + `nrjmx.jar`
 
 	// order command > api > global
@@ -80,7 +80,7 @@ func SetJMXCommand(runCommand *string, command load.Command, api load.API, confi
 }
 
 // ParseJMX Processes JMX Data
-func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample map[string]interface{}) {
+func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{}) {
 	// dataSample contains data from previously run raw commands
 
 	sendSample := true
@@ -121,7 +121,7 @@ func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.
 				jmxSamples[groupKey]["domain"] = domain
 
 				// add raw command data from dataSample
-				for k, v := range dataSample {
+				for k, v := range *dataSample {
 					jmxSamples[groupKey][k] = v
 				}
 			}

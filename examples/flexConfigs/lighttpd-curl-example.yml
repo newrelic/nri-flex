@@ -1,4 +1,4 @@
-name: lighttpd
+name: lighttpdFlex
 apis:
   - name: lighttpdStatus
     commands:

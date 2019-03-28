@@ -17,11 +17,10 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // RunCommands executes the given commands to create one merged sampled
-func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
+func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
-	processedCols := false
-	processedJMX := false
+	processType := ""
 	for _, command := range api.Commands {
 		if command.Run != "" {
 			runCommand := command.Run
@@ -62,50 +61,72 @@ func RunCommands(yml load.Config, api load.API, dataStore *[]interface{}) {
 			} else if ctx.Err() != nil {
 				logger.Flex("debug", err, "command execution failed", false)
 			} else {
-				dataOutput := string(output)
-				commandOutput, dataInterface := detectCommandOutput(dataOutput, command.Output)
-				if !command.IgnoreOutput {
-					switch commandOutput {
-					case "raw":
-						logger.Flex("info", nil, fmt.Sprintf("running %v", command.Run), false)
-						if command.Split == "" { // default vertical split
-							processRaw(&dataSample, dataOutput, command.SplitBy, command.LineLimit)
-						} else if command.Split == "column" || command.Split == "horizontal" {
-							if processedCols {
-								logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
-							} else {
-								processedCols = true
-								processRawCol(dataStore, &dataSample, dataOutput, command)
-							}
+				processOutput(string(output), dataStore, &dataSample, command, api, &processType)
+			}
+		} else if command.Cache != "" {
+			if yml.Datastore[command.Cache] != nil {
+				for _, cache := range yml.Datastore[command.Cache] {
+					switch sample := cache.(type) {
+					case map[string]interface{}:
+						if sample["http"] != nil {
+							logger.Flex("info", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
+							processOutput(sample["http"].(string), dataStore, &dataSample, command, api, &processType)
 						}
-					case load.JSONType:
-						*dataStore = append(*dataStore, dataInterface)
-					case load.Jmx:
-						processedJMX = true
-						ParseJMX(dataInterface, dataStore, command, dataSample)
 					}
 				}
 			}
 		}
 	}
-	// only send dataSample back, not if horizontal split or jmx was processed
+	// only send dataSample back, not if horizontal (columns) split or jmx was processed
 	// this can probably be shuffled elsewhere
-	if len(dataSample) > 0 && !processedCols && !processedJMX {
+	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
 		*dataStore = append(*dataStore, dataSample)
 	}
 }
 
+func processOutput(output string, dataStore *[]interface{}, dataSample *map[string]interface{}, command load.Command, api load.API, processType *string) {
+	dataOutput := output
+	commandOutput, dataInterface := detectCommandOutput(dataOutput, command.Output)
+	if !command.IgnoreOutput {
+		switch commandOutput {
+		case "raw":
+			cmd := command.Run
+			if command.Cache != "" {
+				cmd = "cache - " + command.Cache
+			}
+			logger.Flex("info", nil, fmt.Sprintf("running %v", cmd), false)
+			if command.Split == "" { // default vertical split
+				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
+			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
+				if *processType == load.TypeColumns {
+					logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
+				} else {
+					*processType = "columns"
+					processRawCol(dataStore, dataSample, dataOutput, command)
+				}
+			}
+		case load.TypeJSON:
+			*dataStore = append(*dataStore, dataInterface)
+		case load.Jmx:
+			*processType = "jmx"
+			ParseJMX(dataInterface, dataStore, command, dataSample)
+		}
+	}
+}
+
 // processRaw processes a raw data output
-func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy string, lineLimit int) {
+func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy string, lineStart int, lineEnd int) {
 	// SplitBy key is required else we cannot easily distinguish between keys and values
 	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
-		if i >= lineLimit && lineLimit != 0 {
-			logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", lineLimit), false)
-			break
-		}
-		key, val, success := formatter.SplitKey(line, splitBy)
-		if success {
-			(*dataSample)[key] = strings.TrimRight(val, "\r\n") //line endings appear so we trim them
+		if i >= lineStart {
+			if i >= lineEnd && lineEnd != 0 {
+				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
+				break
+			}
+			key, val, success := formatter.SplitKey(line, splitBy)
+			if success {
+				(*dataSample)[key] = strings.TrimRight(val, "\r\n") //line endings appear so we trim them
+			}
 		}
 	}
 }
@@ -138,8 +159,8 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 	for i, line := range lines {
 		if i != headerLine && i >= startLine {
-			if i >= command.LineLimit && command.LineLimit != 0 {
-				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", command.LineLimit), false)
+			if i >= command.LineEnd && command.LineEnd != 0 {
+				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
 				break
 			}
 
@@ -204,7 +225,7 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	var f interface{}
 	err := json.Unmarshal([]byte(dataOutput), &f)
 	if err == nil {
-		return load.JSONType, f
+		return load.TypeJSON, f
 	}
 
 	// default raw

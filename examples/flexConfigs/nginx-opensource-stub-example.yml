@@ -1,0 +1,32 @@
+name: nginxFlex
+apis:
+  - name: nginxStub
+    url: http://127.0.0.1/nginx_status
+    rename_keys:
+      "Active connections": "net.connectionsActive"
+    pluck_numbers: true
+  - name: nginx
+    merge: NginxSample
+    commands:
+      - cache: http://127.0.0.1/nginx_status
+        split_by: ": "
+        line_end: 1
+  - name: nginx
+    merge: NginxSample
+    commands:
+      - cache: http://127.0.0.1/nginx_status
+        split: horizontal
+        set_header: [net.connectionsAcceptedPerSecond, net.handledPerSecond, net.requestsPerSecond]
+        row_start: 2
+        regex_match: true
+        split_by: (\S+)\s+(\S+)\s+(\S+)
+        line_end: 3
+  - name: nginx
+    merge: NginxSample
+    commands:
+      - cache: http://127.0.0.1/nginx_status
+        split: horizontal
+        set_header: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
+        row_start: 3
+        regex_match: true
+        split_by: 'Reading: (\d+)\s+Writing: (\d+)\s+Waiting: (\d+)'
