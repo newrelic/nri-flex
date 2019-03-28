@@ -57,13 +57,22 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, _ := ioutil.ReadAll(resp.Body)
-				output, _ := detectCommandOutput(string(body), "")
+				strBody := string(body)
+				output, _ := detectCommandOutput(strBody, "")
 				switch output {
-				case load.JSONType:
+				case load.TypeJSON:
 					handleJSON(body, dataStore, &resp, doLoop, reqURL, nextLink)
 				default:
-					// consider adding support for non JSON
 					logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
+					logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
+					if yml.Datastore == nil {
+						yml.Datastore = map[string][]interface{}{}
+					}
+					yml.Datastore[api.URL] = []interface{}{
+						map[string]interface{}{
+							"http": strBody,
+						},
+					}
 				}
 			}
 

@@ -47,7 +47,7 @@ func fetchData(i int, yml *load.Config) []interface{} {
 				dataStore = yml.Datastore[api.Cache]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
-			parser.RunCommands(*yml, api, &dataStore)
+			parser.RunCommands(yml, api, &dataStore)
 		} else if reqURL != "" {
 			parser.RunHTTP(&doLoop, yml, api, &reqURL, &dataStore)
 		} else if api.Database != "" && api.DbConn != "" {
@@ -56,21 +56,23 @@ func fetchData(i int, yml *load.Config) []interface{} {
 	}
 
 	// cache output into datastore for later use
-	if api.URL != "" {
-		if yml.Datastore == nil {
-			yml.Datastore = map[string][]interface{}{}
+	if len(dataStore) > 0 {
+		if api.URL != "" {
+			if yml.Datastore == nil {
+				yml.Datastore = map[string][]interface{}{}
+			}
+			yml.Datastore[api.URL] = dataStore
+		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" && api.Name != "" {
+			if yml.Datastore == nil {
+				yml.Datastore = map[string][]interface{}{}
+			}
+			yml.Datastore[api.Name] = dataStore
+		} else if api.File != "" {
+			if yml.Datastore == nil {
+				yml.Datastore = map[string][]interface{}{}
+			}
+			yml.Datastore[api.File] = dataStore
 		}
-		yml.Datastore[api.URL] = dataStore
-	} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" && api.Name != "" {
-		if yml.Datastore == nil {
-			yml.Datastore = map[string][]interface{}{}
-		}
-		yml.Datastore[api.Name] = dataStore
-	} else if api.File != "" {
-		if yml.Datastore == nil {
-			yml.Datastore = map[string][]interface{}{}
-		}
-		yml.Datastore[api.File] = dataStore
 	}
 
 	return dataStore

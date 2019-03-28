@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.6-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.7-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -80,7 +80,8 @@ const (
 	Private              = "private"
 	Jmx                  = "jmx"
 	Img                  = "img"
-	JSONType             = "json"
+	TypeJSON             = "json"
+	TypeColumns          = "columns"
 )
 
 // Config YAML Struct
@@ -183,6 +184,7 @@ type Command struct {
 	Name             string            `yaml:"name"`              // required for database use
 	EventType        string            `yaml:"event_type"`        // override eventType (currently used for db only)
 	Shell            string            `yaml:"shell"`             // command shell
+	Cache            string            `yaml:"cache"`             // use content from cache instead of a run command
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
 	CompressBean     bool              `yaml:"compress_bean"`     // compress bean name //unused
@@ -190,7 +192,8 @@ type Command struct {
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
 	Output           string            `yaml:"output"`            // jmx, raw, json
-	LineLimit        int               `yaml:"line_limit"`        // stop processing command output after a certain amount of lines
+	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
+	LineStart        int               `yaml:"line_start"`        // start from this line
 
 	// Parsing Options - Body
 	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table

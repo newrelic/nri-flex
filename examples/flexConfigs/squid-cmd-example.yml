@@ -4,7 +4,7 @@ apis:
     commands: 
       - run: squidclient -v mgr:utilization
         split_by: " = "
-        line_limit: 88 # stop processing at this line as we only care about last 5 minute metrics
+        line_end: 88 # stop processing at this line as we only care about last 5 minute metrics
     pluck_numbers: true # find any numbers within a string and pluck them out
     value_parser:
       time: "[0-9]+" # use regex to find any time values, and pluck the first found integer out with the value_parser
