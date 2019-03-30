@@ -10,6 +10,14 @@
   version = "v0.35.1"
 
 [[projects]]
+  digest = "1:5d3e23515e7916c152cc665eda0f7eaf6fdf8fdfe7c3dbac97049bcbd649b33f"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   digest = "1:f9ae348e1f793dcf9ed930ed47136a67343dbd6809c5c91391322267f4476892"
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
@@ -310,6 +318,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/Knetic/govaluate",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api",
     "github.com/docker/docker/api/types",

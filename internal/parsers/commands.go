@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
@@ -27,8 +28,16 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 			if command.Output == load.Jmx {
 				SetJMXCommand(&runCommand, command, api, yml)
 			}
+			commandTimeout := load.DefaultTimeout
+			if api.Timeout > 0 {
+				commandTimeout = time.Duration(api.Timeout) * time.Millisecond
+			}
+			if command.Timeout > 0 {
+				commandTimeout = time.Duration(command.Timeout) * time.Millisecond
+			}
+
 			// Create a new context and add a timeout to it
-			ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 			defer cancel() // The cancel should be deferred so resources are cleaned up
 
 			if api.Shell != "" {

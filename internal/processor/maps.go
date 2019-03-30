@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Knetic/govaluate"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
@@ -69,6 +70,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		}
 
 		if createSample {
+			RunMathCalculations(&api.Math, &currentSample)
+
 			load.EventCount++
 			load.EventDistribution[eventType]++
 
@@ -640,6 +643,31 @@ func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{}) {
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+// RunMathCalculations performs math calculations
+func RunMathCalculations(math *map[string]string, currentSample *map[string]interface{}) {
+	for newMetric, formula := range *math {
+		finalFormula := formula
+		keys := regexp.MustCompile(`\${.*?}`).FindAllString(finalFormula, -1)
+		for _, key := range keys {
+			findKey := strings.TrimSuffix(strings.TrimPrefix(key, "${"), "}")
+			if (*currentSample)[findKey] != nil {
+				finalFormula = strings.Replace(finalFormula, key, fmt.Sprintf("%v", (*currentSample)[findKey]), -1)
+			}
+		}
+		expression, err := govaluate.NewEvaluableExpression(finalFormula)
+		if err != nil {
+			logger.Flex("debug", err, fmt.Sprintf("%v math exp failed %v", newMetric, finalFormula), false)
+		} else {
+			result, err := expression.Evaluate(nil)
+			if err != nil {
+				logger.Flex("debug", err, fmt.Sprintf("%v math evalute failed %v", newMetric, finalFormula), false)
+			} else {
+				(*currentSample)[newMetric] = result
 			}
 		}
 	}

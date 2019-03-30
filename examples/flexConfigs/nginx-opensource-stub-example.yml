@@ -5,6 +5,8 @@ apis:
     rename_keys:
       "Active connections": "net.connectionsActive"
     pluck_numbers: true
+    math:
+      net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond}
   - name: nginx
     merge: NginxSample
     commands:

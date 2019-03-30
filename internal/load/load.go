@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.7-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.4.8-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -163,6 +163,7 @@ type API struct {
 	SnakeToCamel      bool                `yaml:"snake_to_camel"`
 	PercToDecimal     bool                `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
 	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
+	Math              map[string]string   `yaml:"math"`            // perform match across processed metrics
 	SubParse          []Parse             `yaml:"sub_parse"`
 	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
 	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
@@ -194,6 +195,7 @@ type Command struct {
 	Output           string            `yaml:"output"`            // jmx, raw, json
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
+	Timeout          int               `yaml:"timeout"`           // command timeout
 
 	// Parsing Options - Body
 	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table

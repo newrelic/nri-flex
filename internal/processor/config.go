@@ -1,13 +1,17 @@
 package processor
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 
@@ -22,8 +26,12 @@ func LoadConfigFiles(ymls *[]load.Config, files []os.FileInfo, path string) {
 			logger.Flex("debug", err, "unable to readfile", false)
 			continue
 		}
+		if !strings.Contains(f.Name(), "yml") && !strings.Contains(f.Name(), "yaml") {
+			continue
+		}
 		ymlStr := string(b)
 		SubEnvVariables(&ymlStr)
+		SubTimestamps(&ymlStr)
 		yml, err := ReadYML(ymlStr)
 		yml.FileName = f.Name()
 		if err != nil {
@@ -134,4 +142,47 @@ func RunConfigFiles(ymls *[]load.Config) {
 		}(yml)
 	}
 	wg.Wait()
+}
+
+// SubTimestamps substitute timestamps into config
+func SubTimestamps(strConf *string) {
+	current := time.Now()
+	currentNano := current.UnixNano()
+	currentMs := currentNano / 1e+6
+	currentSec := current.Unix()
+	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(currentMs), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(currentNano), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(currentSec), -1)
+
+	timestamps := regexp.MustCompile(`\${timestamp:.*?}`).FindAllString(*strConf, -1)
+	for _, timestamp := range timestamps {
+		newTimestamp := int64(0)
+		matches := formatter.RegMatch(timestamp, `(\${timestamp:)(ms|ns|s)(-|\+)(\d*)`)
+		if len(matches) == 4 {
+			switch matches[1] {
+			case "ms":
+				newTimestamp = currentMs
+			case "ns":
+				newTimestamp = currentNano
+			case "s":
+				newTimestamp = currentSec
+			default:
+				break
+			}
+			value, err := strconv.ParseInt(matches[3], 10, 64)
+			if err != nil {
+				logger.Flex("debug", err, "failed to parse int", false)
+			} else {
+				switch matches[2] {
+				case "+":
+					newTimestamp += value
+				case "-":
+					newTimestamp -= value
+				default:
+					break
+				}
+				*strConf = strings.Replace(*strConf, timestamp, fmt.Sprint(newTimestamp), -1)
+			}
+		}
+	}
 }
