@@ -1,0 +1,22 @@
+name: pingFlex
+apis:
+  - name: ping
+    commands:
+      - name: google
+        run: ping -c 5 google.com
+        split: horizontal
+        split_by: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
+        regex_match: true
+        set_header: [min,avg,max,stddev]
+        custom_attributes:
+          url: google.com
+  - name: ping
+    commands:
+      - name: yahoo
+        run: ping -c 5 yahoo.com
+        split: horizontal
+        split_by: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
+        regex_match: true
+        set_header: [min,avg,max,stddev]
+        custom_attributes:
+          url: yahoo.com

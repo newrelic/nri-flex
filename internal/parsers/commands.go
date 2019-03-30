@@ -105,6 +105,7 @@ func processOutput(output string, dataStore *[]interface{}, dataSample *map[stri
 			}
 			logger.Flex("info", nil, fmt.Sprintf("running %v", cmd), false)
 			if command.Split == "" { // default vertical split
+				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
 			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
 				if *processType == load.TypeColumns {
@@ -149,6 +150,9 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	}
 	if command.RowStart != headerLine && command.RowStart >= 1 {
 		startLine = command.RowStart
+	}
+	if command.LineStart != headerLine && command.LineStart >= 1 {
+		startLine = command.LineStart
 	}
 
 	lines := strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n")
@@ -195,7 +199,10 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 				cmdSample[key] = val
 			}
 
-			*dataStore = append(*dataStore, cmdSample)
+			if len(cmdSample) > 0 {
+				applyCustomAttributes(&cmdSample, &command.CustomAttributes)
+				*dataStore = append(*dataStore, cmdSample)
+			}
 		}
 	}
 }
