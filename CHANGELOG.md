@@ -1,4 +1,11 @@
 0.4.7-pre
+0.4.8-pre
+------
+- Add math functionality
+- Add command timeout configurability
+- Add timestamp functionality
+
+0.4.7-pre
 ------
 - Allow commands to process cached url data
 - Add command cache & line_start option
