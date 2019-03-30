@@ -4,6 +4,8 @@
 - Add math functionality
 - Add command timeout configurability
 - Add timestamp functionality
+- Don't add blank command samples
+- Nested custom attributes for commands
 
 0.4.7-pre
 ------
