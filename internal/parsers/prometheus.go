@@ -104,12 +104,12 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 		} else if dtoMF.GetType() == dto.MetricType_HISTOGRAM {
 			if (*api).Prometheus.Unflatten {
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
-				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+				metric["sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
 				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
 				*dataStore = append(*dataStore, metric)
 			} else if api.Prometheus.Histogram {
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
-				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+				metric["sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
 				defaultEvent := api.Name
 				if api.Prometheus.FlattenedEvent != "" {
 					defaultEvent = api.Prometheus.FlattenedEvent
@@ -126,8 +126,8 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 			if len(m.Label) > 0 && !api.Prometheus.Histogram && !api.Prometheus.Unflatten {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
 				key := dtoMF.GetName() + ".histogram"
-				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
-				(*sampleKeys)[sampleKey][key+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
+				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
+				(*sampleKeys)[sampleKey][key+".sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
 			}
 		} else { // gauge or counter
 			metric["value"] = fmt.Sprint(getValue(m))

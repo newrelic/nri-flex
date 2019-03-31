@@ -4,9 +4,9 @@ instances:
   - name: nri-flex
     command: metrics
     arguments:
-      # container_discovery: true
-      # config_file: "../myConfigFile.yml"
-      # config_dir: "anotherConfigDir/"
-      # event_limit: 100
+      # container_discovery: true ## default false
+      # config_file: "../myConfigFile.yml" ## default ""
+      # config_dir: "anotherConfigDir/" ## default "flexConfigs"
+      # event_limit: 500 ## default 500
     # labels:
       # owner: cloud
