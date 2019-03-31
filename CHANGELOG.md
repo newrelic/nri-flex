@@ -1,4 +1,8 @@
 0.4.7-pre
+0.4.9-pre
+------
+- Fix Prometheus histogram sum & count metrics
+
 0.4.8-pre
 ------
 - Add math functionality
