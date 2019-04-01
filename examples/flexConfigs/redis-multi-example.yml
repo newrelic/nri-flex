@@ -1,11 +1,15 @@
 ### note if local testing, macOS does not have the -q flag for nc (netcat) that other linux systems have, so remove if testing locally
-### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 192.168.0.100 6379
 ---
 name: redisMultiFlex
 apis: 
   - name: redis
     commands: 
-      - run: (printf "info\r\n"; sleep 1) | nc 192.168.0.100 6379 # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+      - run: if (printf "info\r\n"; sleep 1) | nc -q0 192.168.0.100 6379; then echo success; else (printf "info\r\n"; sleep 1) | nc 192.168.0.100 6379; fi  
+      ### if you know whether you have the minus q option or not, then just do
+      ### - run: (printf "info\r\n"; sleep 1) | nc -q0 192.168.0.100 6379
+      ### or without - run: (printf "info\r\n"; sleep 1) | nc 192.168.0.100 6379
+      ### or if you have the redis-cli available - run: "redis-cli -h 192.168.0.100 -p 6379 info" ### (depends on redis-cli)
         split_by: ":"
     remove_keys: # remove any keys that contain any of the following strings
       - human
@@ -22,7 +26,7 @@ apis:
       targetIp: "192.168.0.100"
   - name: redis
     commands: 
-      - run: (printf "info\r\n"; sleep 1) | nc 192.168.0.4 9699 # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+      - run: if (printf "info\r\n"; sleep 1) | nc -q0 192.168.0.4 6379; then echo success; else (printf "info\r\n"; sleep 1) | nc 192.168.0.4 6379; fi  
         split_by: ":"
     remove_keys: # remove any keys that contain any of the following strings
       - human
