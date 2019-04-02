@@ -1,3 +1,9 @@
+0.5.0-pre
+------
+- Add value_transformer
+- Deprecate replace_keys, but keep backwards compatibility temporarily
+- rename_keys now uses regex matching
+
 0.4.9-pre
 ------
 - Fix Prometheus histogram sum & count metrics

@@ -33,7 +33,7 @@
         "icp.replies_sent": 0,
         "icp.reply_median_svc_time": 0,
         "integration_name": "com.kav91.nri-flex",
-        "integration_version": "0.4.9-pre",
+        "integration_version": "0.5.0-pre",
         "median_select_fds": 0,
         "page_faults": 0,
         "sample_end_time": 1552864914,

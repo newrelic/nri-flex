@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.9-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.5.0-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -153,8 +153,8 @@ type API struct {
 	StripKeys         []string            `yaml:"strip_keys"`
 	LazyFlatten       []string            `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string   `yaml:"sample_keys"`
-	ReplaceKeys       map[string]string   `yaml:"replace_keys"`
-	RenameKeys        map[string]string   `yaml:"rename_keys"`
+	ReplaceKeys       map[string]string   `yaml:"replace_keys"`   // uses rename_keys functionality
+	RenameKeys        map[string]string   `yaml:"rename_keys"`    // use regex to find keys, then replace value
 	RenameSamples     map[string]string   `yaml:"rename_samples"` // using regex if sample has a key that matches, make that a different sample
 	RemoveKeys        []string            `yaml:"remove_keys"`
 	KeepKeys          []string            `yaml:"keep_keys"`     // inverse of removing keys
@@ -167,6 +167,7 @@ type API struct {
 	SubParse          []Parse             `yaml:"sub_parse"`
 	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
 	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
+	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
 	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs

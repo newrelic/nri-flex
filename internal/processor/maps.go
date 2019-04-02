@@ -50,9 +50,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunValConversion(&v, api, &key)
 				RunValueParser(&v, api, &key)
 				RunPluckNumbers(&v, api, &key)
-				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
-				RunKeyReplace(api.ReplaceKeys, &keyReplaced, &key)
+				RunSubParse(api.SubParse, &currentSample, key, v)                    // subParse key pairs (see redis example)
+				RunValueTransformer(&v, api, &key)                                   // Needs to be run before KeyRenamer and KeyReplacer
 				RunKeyRenamer(api.RenameKeys, &keyReplaced, &key)                    // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &keyReplaced, &key)                   // kept for backwards compatibility with replace_keys
 				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
 				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
 
@@ -209,24 +210,13 @@ func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSamp
 	}
 }
 
-// RunKeyReplace String replace within a key
-func RunKeyReplace(replaceKeys map[string]string, keyReplaced *bool, key *string) {
-	for replaceKey, replaceVal := range replaceKeys {
-		if formatter.KvFinder("regex", *key, replaceKey) {
-			*key = strings.Replace(*key, replaceKey, replaceVal, -1)
+// RunKeyRenamer find key with regex, and replace the value
+func RunKeyRenamer(renameKeys map[string]string, keyReplaced *bool, key *string) {
+	for renameKey, renameVal := range renameKeys {
+		if formatter.KvFinder("regex", *key, renameKey) {
+			*key = strings.Replace(*key, renameKey, renameVal, -1)
 			*keyReplaced = true
 			break
-		}
-	}
-}
-
-// RunKeyRenamer Rename a key
-func RunKeyRenamer(renameKeys map[string]string, keyReplaced *bool, key *string) {
-	if !*keyReplaced {
-		for renameKey, renameVal := range renameKeys {
-			if strings.Contains(*key, renameKey) {
-				*key = strings.Replace(*key, renameKey, renameVal, -1)
-			}
 		}
 	}
 }
@@ -531,6 +521,18 @@ func RunValueParser(v *interface{}, api load.API, key *string) {
 	}
 }
 
+// RunValueTransformer use regex to find a key, and then transform the value
+// eg. key: world
+// key: hello-${value}  == key: hello-world
+func RunValueTransformer(v *interface{}, api load.API, key *string) {
+	for regexKey, newValue := range api.ValueTransformer {
+		if formatter.KvFinder("regex", *key, regexKey) {
+			currentValue := fmt.Sprintf("%v", *v)
+			*v = strings.Replace(newValue, "${value}", currentValue, -1)
+		}
+	}
+}
+
 // RunPluckNumbers pluck numbers out automatically with ValueParser
 func RunPluckNumbers(v *interface{}, api load.API, key *string) {
 	//"sample_start_time = 1552864614.137869 (Sun, 17 Mar 2019 23:16:54 GMT)"
@@ -558,6 +560,10 @@ func AutoSetMetric(k string, v interface{}, metricSet *metric.Set, metrics map[s
 				} else if metricVal == "DELTA" {
 					foundKey = true
 					logger.Flex("debug", metricSet.SetMetric(k, parsed, metric.DELTA), "", false)
+					break
+				} else if metricVal == "ATTRIBUTE" {
+					foundKey = true
+					logger.Flex("debug", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
 					break
 				}
 			}
