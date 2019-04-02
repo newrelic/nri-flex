@@ -17,8 +17,6 @@ apis:
       - human
     snake_to_camel: true 
     perc_to_decimal: true
-    # replace_keys:
-    #   os: someOtherOs # replaces os > operatingSystem (exact match replace)
     rename_keys:
       Host: opSystem # replaces Host > opSystem (contains match replace within key) # useful for updating multiple keys
     sub_parse:
