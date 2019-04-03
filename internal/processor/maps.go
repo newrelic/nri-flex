@@ -39,21 +39,21 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 		// modify existing sample before final processing
 		createSample := true
+		SkipProcessing := api.SkipProcessing
 		for k, v := range currentSample {
 			key := k
 			progress := true
 			RunKeyRemover(api.RemoveKeys, &key, &progress, &currentSample)
-			keyReplaced := false
 
 			if progress {
-				RunKeyConversion(&key, api, v)
+				RunKeyConversion(&key, api, v, &SkipProcessing)
 				RunValConversion(&v, api, &key)
 				RunValueParser(&v, api, &key)
 				RunPluckNumbers(&v, api, &key)
 				RunSubParse(api.SubParse, &currentSample, key, v)                    // subParse key pairs (see redis example)
 				RunValueTransformer(&v, api, &key)                                   // Needs to be run before KeyRenamer and KeyReplacer
-				RunKeyRenamer(api.RenameKeys, &keyReplaced, &key)                    // use key renamer if key replace hasn't occurred
-				RunKeyRenamer(api.ReplaceKeys, &keyReplaced, &key)                   // kept for backwards compatibility with replace_keys
+				RunKeyRenamer(api.RenameKeys, &key)                                  // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &key)                                 // kept for backwards compatibility with replace_keys
 				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
 				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
 
@@ -85,7 +85,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			for k, v := range api.CustomAttributes {
 				currentSample[k] = v
 			}
-
 			// inject some additional attributes if set
 			if config.Global.BaseURL != "" {
 				currentSample["baseUrl"] = config.Global.BaseURL
@@ -140,6 +139,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 			//add sample metrics
 			for k, v := range currentSample {
+				// add prefixing, prefixing for merged samples done elsewhere
+				if api.Prefix != "" && api.Merge == "" {
+					k = api.Prefix + k
+				}
 				// key filter could be put here
 				AutoSetMetric(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
 			}
@@ -211,11 +214,10 @@ func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSamp
 }
 
 // RunKeyRenamer find key with regex, and replace the value
-func RunKeyRenamer(renameKeys map[string]string, keyReplaced *bool, key *string) {
+func RunKeyRenamer(renameKeys map[string]string, key *string) {
 	for renameKey, renameVal := range renameKeys {
 		if formatter.KvFinder("regex", *key, renameKey) {
 			*key = strings.Replace(*key, renameKey, renameVal, -1)
-			*keyReplaced = true
 			break
 		}
 	}
@@ -268,9 +270,6 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 	case []interface{}:
 		dataSamples := []interface{}{}
 		dataSamples = append(dataSamples, unknown...)
-		// for _, loopVal := range unknown.([]interface{}) {
-		// 	dataSamples = append(dataSamples, loopVal)
-		// }
 
 		// Check if Prometheus Style Metrics else process as normal (FlexSamples)
 		if checkPrometheus(dataSamples) {
@@ -483,7 +482,7 @@ func RunSubParse(subParse []load.Parse, currentSample *map[string]interface{}, k
 }
 
 // RunKeyConversion handles to lower and snake to camel case for keys
-func RunKeyConversion(key *string, api load.API, v interface{}) {
+func RunKeyConversion(key *string, api load.API, v interface{}, SkipProcessing *[]string) {
 	if api.ToLower {
 		*key = strings.ToLower(*key)
 	}

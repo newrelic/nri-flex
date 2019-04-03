@@ -60,7 +60,7 @@ var ConfigsProcessed = 0
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
 	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.5.0-pre"              // IntegrationVersion Version
+	IntegrationVersion   = "0.5.1-pre"              // IntegrationVersion Version
 	DefaultSplitBy       = ":"                      // unused currently
 	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultPingTimeout   = 5000                     // 5 seconds
@@ -157,9 +157,10 @@ type API struct {
 	RenameKeys        map[string]string   `yaml:"rename_keys"`    // use regex to find keys, then replace value
 	RenameSamples     map[string]string   `yaml:"rename_samples"` // using regex if sample has a key that matches, make that a different sample
 	RemoveKeys        []string            `yaml:"remove_keys"`
-	KeepKeys          []string            `yaml:"keep_keys"`     // inverse of removing keys
-	ToLower           bool                `yaml:"to_lower"`      // convert all unicode letters mapped to their lower case.
-	ConvertSpace      string              `yaml:"convert_space"` // convert spaces to another char
+	KeepKeys          []string            `yaml:"keep_keys"`       // inverse of removing keys
+	SkipProcessing    []string            `yaml:"skip_processing"` // skip processing particular keys using an array of regex strings
+	ToLower           bool                `yaml:"to_lower"`        // convert all unicode letters mapped to their lower case.
+	ConvertSpace      string              `yaml:"convert_space"`   // convert spaces to another char
 	SnakeToCamel      bool                `yaml:"snake_to_camel"`
 	PercToDecimal     bool                `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
 	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
