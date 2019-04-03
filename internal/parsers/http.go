@@ -148,9 +148,21 @@ func handleJSON(body []byte, dataStore *[]interface{}, resp *gorequest.Response,
 		switch f := f.(type) {
 		case []interface{}:
 			for _, sample := range f {
-				theSample := sample.(map[string]interface{})
-				theSample["api.StatusCode"] = (*resp).StatusCode
-				*dataStore = append(*dataStore, theSample)
+
+				switch sample := sample.(type) {
+				case map[string]interface{}:
+					theSample := sample
+					theSample["api.StatusCode"] = (*resp).StatusCode
+					*dataStore = append(*dataStore, theSample)
+				case string:
+					strSample := map[string]interface{}{
+						"output": sample,
+					}
+					*dataStore = append(*dataStore, strSample)
+				default:
+					logger.Flex("debug", fmt.Errorf("not sure how to handle this %v", sample), "", false)
+				}
+
 			}
 
 		case map[string]interface{}:

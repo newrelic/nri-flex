@@ -1,3 +1,8 @@
+0.5.1-pre
+------
+- Additional JSON Handling
+- Key prefix functionality for any samples
+
 0.5.0-pre
 ------
 - Add value_transformer
