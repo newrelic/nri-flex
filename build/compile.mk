@@ -4,6 +4,7 @@
 
 compile: deps compile-only
 compile-all: compile-linux compile-darwin compile-windows
+build-all: compile-linux compile-darwin compile-windows
 
 compile-only: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
@@ -14,6 +15,7 @@ compile-only: deps-only
 		$(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
 
+build-linux: compile-linux
 compile-linux: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/linux
@@ -24,6 +26,7 @@ compile-linux: deps-only
 		GOOS=linux $(GO) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+build-darwin: compile-darwin
 compile-darwin: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-darwin   ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/darwin
@@ -34,6 +37,7 @@ compile-darwin: deps-only
 		GOOS=darwin $(GO) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+build-windows: compile-windows
 compile-windows: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows  ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/windows

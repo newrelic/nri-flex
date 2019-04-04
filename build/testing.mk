@@ -17,7 +17,7 @@ test-unit:
 	@$(GO) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
 test-integration:
-	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integrtation tests..."
+	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO) test -tags integration -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/integration.tmp $(GO_PKGS)
 
