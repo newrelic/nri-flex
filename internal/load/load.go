@@ -20,6 +20,8 @@ type ArgumentList struct {
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
 	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
+	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
 	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
@@ -39,6 +41,9 @@ var Integration *integration.Integration
 // Entity Infrastructure SDK Entity
 var Entity *integration.Entity
 
+// MetricsPayload for MetricAPI
+var MetricsPayload []Metrics
+
 // Hostname current host
 var Hostname string
 
@@ -56,6 +61,10 @@ var EventDistribution = map[string]int{}
 
 // ConfigsProcessed number of configs processed
 var ConfigsProcessed = 0
+
+var CounterMetrics = 0
+var GaugeMetrics = 0
+var SummaryMetrics = 0
 
 const (
 	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
@@ -94,6 +103,7 @@ type Config struct {
 	LookupStore      map[string][]string      `yaml:"lookup_store"`
 	VariableStore    map[string]string        `yaml:"variable_store"`
 	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI        bool                     `yaml:"metric_api"`        // use the metric api
 }
 
 // Global struct
@@ -123,6 +133,8 @@ type SampleMerge struct {
 
 // API YAML Struct
 type API struct {
+	// MetricAPI         bool       `yaml:"metric_api"`     // use the metric api
+	// MetricAPIURL      string     `yaml:"metric_api_url"` // set the metric api url
 	EventType         string     `yaml:"event_type"` // override eventType
 	Merge             string     `yaml:"merge"`      // merge into another eventType
 	Prefix            string     `yaml:"prefix"`     // prefix attribute keys
@@ -252,9 +264,18 @@ type Parse struct {
 
 // MetricParser Struct
 type MetricParser struct {
-	Namespace Namespace         `yaml:"namespace"`
-	Metrics   map[string]string `yaml:"metrics"`  // inputBytesPerSecond: RATE
-	AutoSet   bool              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Namespace Namespace                         `yaml:"namespace"`
+	Metrics   map[string]string                 `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	AutoSet   bool                              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Counts    map[string]int64                  `yaml:"counts"`
+	Summaries map[string]map[string]interface{} `yaml:"summaries"`
+}
+
+// Summary struct
+type Summary struct {
+	Metric string `yaml:"metric"` // the target metric
+	Type   string `yaml:"type"`   // count/sum/min/max
+	Value  int64  `yaml:"value"`  // numeric value
 }
 
 // Namespace Struct
@@ -262,6 +283,26 @@ type Namespace struct {
 	// if neither of the below are set and the MetricParser is used, the namespace will default to the "Name" attribute
 	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
 	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
+}
+
+// Metrics struct
+type Metrics struct {
+	TimestampMs      int64                    `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
+	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
+	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
+	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
+	// Metrics          []Metric               `json:"metrics"`
+}
+
+// Metric struct
+type Metric struct {
+	Name  string  `json:"name"`
+	Type  string  `json:"type"`
+	Value float64 `json:"value"`
+	// ValueSummary float64                `json:"value"`
+	TimestampMs int64                  `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
+	IntervalMs  int64                  `json:"interval.ms,omitempty"`  // required for count & summary
+	Attributes  map[string]interface{} `json:"attributes,omitempty"`
 }
 
 // Refresh Helper function used for testing

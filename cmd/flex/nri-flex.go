@@ -54,4 +54,7 @@ func runIntegration() {
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		outputs.SendToInsights()
 	}
+	if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") {
+		outputs.SendToMetricAPI()
+	}
 }
