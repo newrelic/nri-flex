@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
@@ -23,7 +25,7 @@ type Family struct {
 }
 
 // Prometheus from http io
-func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
+func Prometheus(input io.Reader, dataStore *[]interface{}, cfg *load.Config, api *load.API) {
 	mfChan := make(chan *dto.MetricFamily, 1024)
 	go func() {
 		if err := ParseReader(input, mfChan); err != nil {
@@ -31,6 +33,121 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 		}
 	}()
 
+	if (*cfg).MetricAPI {
+		prometheusMetricAPI(api, &mfChan)
+	} else {
+		prometheusStandard(api, &mfChan, dataStore)
+	}
+}
+
+func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily) {
+	for mf := range *mfChan {
+		for _, m := range mf.Metric {
+
+			attributes := map[string]interface{}{"help": mf.GetHelp()}
+			applyCustomAttributes(&attributes, &api.Prometheus.CustomAttributes)
+			prometheusMakeLabels(m, &attributes)
+
+			if mf.GetType() == dto.MetricType_SUMMARY {
+				attributes["prometheusType"] = "summary"
+				summaryMetrics := []map[string]interface{}{}
+				for _, q := range m.GetSummary().Quantile {
+					if !math.IsNaN(q.GetValue()) {
+						quantileMetric := map[string]interface{}{
+							"name":  mf.GetName() + "_quantile",
+							"type":  "gauge",
+							"value": q.GetValue(),
+							"attributes": map[string]interface{}{
+								"quantile": q.GetQuantile(),
+							},
+						}
+						summaryMetrics = append(summaryMetrics, quantileMetric)
+					}
+				}
+				summaryMetrics = append(summaryMetrics, map[string]interface{}{
+					"name":  mf.GetName() + "_count",
+					"type":  "gauge",
+					"value": m.GetSummary().GetSampleCount(),
+				})
+				summaryMetrics = append(summaryMetrics, map[string]interface{}{
+					"name":  mf.GetName() + "_sum",
+					"type":  "gauge",
+					"value": m.GetSummary().GetSampleSum(),
+				})
+				Metrics := load.Metrics{
+					TimestampMs:      time.Now().UnixNano() / 1e+6,
+					CommonAttributes: attributes,
+					Metrics:          summaryMetrics,
+				}
+				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+			} else if mf.GetType() == dto.MetricType_HISTOGRAM {
+				attributes["prometheusType"] = "histogram"
+				histogramMetrics := []map[string]interface{}{}
+				for _, b := range m.GetHistogram().Bucket {
+					bucketAttributes := map[string]interface{}{}
+					bucketVal := fmt.Sprint(b.GetUpperBound())
+					bucketParsedVal, err := strconv.ParseFloat(bucketVal, 64)
+					if err != nil || bucketVal == "+Inf" {
+						bucketAttributes["le"] = bucketVal
+					} else {
+						bucketAttributes["le"] = bucketParsedVal
+					}
+					bucketMetric := map[string]interface{}{
+						"name":       mf.GetName() + "_bucket",
+						"type":       "gauge",
+						"value":      b.GetCumulativeCount(),
+						"attributes": bucketAttributes,
+					}
+					histogramMetrics = append(histogramMetrics, bucketMetric)
+				}
+				histogramMetrics = append(histogramMetrics, map[string]interface{}{
+					"name":  mf.GetName() + "_count",
+					"type":  "gauge",
+					"value": m.GetHistogram().GetSampleCount(),
+				})
+				histogramMetrics = append(histogramMetrics, map[string]interface{}{
+					"name":  mf.GetName() + "_sum",
+					"type":  "gauge",
+					"value": m.GetHistogram().GetSampleSum(),
+				})
+				Metrics := load.Metrics{
+					TimestampMs:      time.Now().UnixNano() / 1e+6,
+					CommonAttributes: attributes,
+					Metrics:          histogramMetrics,
+				}
+				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+			} else if mf.GetType() == dto.MetricType_GAUGE {
+				attributes["prometheusType"] = "gauge"
+				Metrics := load.Metrics{
+					TimestampMs:      time.Now().UnixNano() / 1e+6,
+					CommonAttributes: attributes,
+					Metrics: []map[string]interface{}{
+						map[string]interface{}{
+							"name":  mf.GetName(),
+							"type":  "gauge",
+							"value": getValue(m),
+						}},
+				}
+				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+			} else if mf.GetType() == dto.MetricType_COUNTER {
+				attributes["prometheusType"] = "counter"
+				Metrics := load.Metrics{
+					TimestampMs:      time.Now().UnixNano() / 1e+6,
+					CommonAttributes: attributes,
+					Metrics: []map[string]interface{}{
+						map[string]interface{}{
+							"name":  mf.GetName(),
+							"type":  "gauge",
+							"value": getValue(m),
+						}},
+				}
+				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+			}
+		}
+	}
+}
+
+func prometheusStandard(api *load.API, mfChan *chan *dto.MetricFamily, dataStore *[]interface{}) {
 	// store the flattened sample
 	flattenedSample := map[string]interface{}{}
 	if api.Prometheus.FlattenedEvent != "" {
@@ -43,7 +160,7 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 	sampleKeys := map[string]map[string]interface{}{}
 
 	// add standard metric families into datastore
-	for mf := range mfChan {
+	for mf := range *mfChan {
 		prometheusNewFamily(mf, dataStore, api, &flattenedSample, &sampleKeys)
 	}
 	// anything sampled add into datastore
