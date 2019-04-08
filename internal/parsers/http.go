@@ -50,7 +50,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 
 			switch {
 			case api.Prometheus.Enable:
-				Prometheus(resp.Body, dataStore, &api)
+				Prometheus(resp.Body, dataStore, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
 				handleJSON(body, dataStore, &resp, doLoop, reqURL, nextLink)

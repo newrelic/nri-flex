@@ -2,7 +2,6 @@ package outputs
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
@@ -15,7 +14,6 @@ func SendToMetricAPI() {
 		key = load.Args.MetricAPIKey
 	}
 	jsonData, err := json.Marshal(load.MetricsPayload)
-	fmt.Println(string(jsonData))
 	if err != nil {
 		logger.Flex("debug", err, "failed to marshal", false)
 	} else {
