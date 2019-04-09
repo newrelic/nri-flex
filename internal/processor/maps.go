@@ -655,6 +655,15 @@ func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{}) {
 					}
 				}
 			}
+		} else {
+			tmp := map[string]interface{}{"flat": (*ds)[flattenKey]}
+			flat, err := flatten.Flatten(tmp, "", flatten.DotStyle)
+			if err == nil {
+				delete((*ds), flattenKey)
+				(*ds)[flattenKey] = flat
+			} else {
+				logger.Flex("debug", err, "unable to lazy_flatten", false)
+			}
 		}
 	}
 }

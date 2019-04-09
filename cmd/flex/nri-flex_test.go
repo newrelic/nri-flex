@@ -43,7 +43,7 @@ func TestConfigDir(t *testing.T) {
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
-			`"integration_version":"0.5.2-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+			`"integration_version":"0.5.3-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
 
@@ -56,6 +56,6 @@ func TestConfigFile(t *testing.T) {
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
-			`"integration_version":"0.5.2-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+			`"integration_version":"0.5.3-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
