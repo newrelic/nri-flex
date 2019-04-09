@@ -26,6 +26,7 @@ New Relic has open-sourced this integration to enable monitoring of various tech
 - [Standard Config Layout](#standard-configuration)
 - [Installation](#installation)
 - [Development](#development)
+- [Releasing](#releasing)
 - [Contributing](#contributing)
 
 ## Further Documentation
@@ -233,6 +234,17 @@ make docker-test-infra
 # this is run by default.
 make documentation
 ```
+
+## Releasing
+
+The build process sets the package version based on the latest git tag. After
+all changes have been made for the lastest release, make a new tag with NO
+commits after, and then `make package-all` to create the artifacts.
+
+This process should be automated someday.
+
+Finally, upload the artifacts on Github to the tag release.
+
 
 ## Contributing
 - Submit a pull request for review.
