@@ -15,6 +15,10 @@ import (
 )
 
 func main() {
+	load.FlexStatusCounter.M["EventCount"] = 0
+	load.FlexStatusCounter.M["EventDropCount"] = 0
+	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
+
 	outputs.CreateIntegration()
 	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
 

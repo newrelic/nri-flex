@@ -10,10 +10,7 @@ import (
 // CreateStatusSample creates flexStatusSample
 func CreateStatusSample() {
 	flexStatusSample := load.Entity.NewMetricSet("flexStatusSample")
-	logger.Flex("debug", flexStatusSample.SetMetric("eventCount", load.EventCount, metric.GAUGE), "", false)
-	logger.Flex("debug", flexStatusSample.SetMetric("eventDropCount", load.EventDropCount, metric.GAUGE), "", false)
-	logger.Flex("debug", flexStatusSample.SetMetric("configsProcessed", load.ConfigsProcessed, metric.GAUGE), "", false)
-	for sample, count := range load.EventDistribution {
-		logger.Flex("debug", flexStatusSample.SetMetric(sample+"_count", count, metric.GAUGE), "", false)
+	for counter, value := range load.FlexStatusCounter.M {
+		logger.Flex("debug", flexStatusSample.SetMetric("flex."+counter, value, metric.GAUGE), "", false)
 	}
 }
