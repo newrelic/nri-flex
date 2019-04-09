@@ -8,7 +8,7 @@ lint: deps
 	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(GOLINTER)..."
 	@$(GOLINTER) run ./...
 
-test: test-deps test-only
+test: test-only
 test-only: test-unit test-integration
 
 test-unit:
@@ -28,3 +28,8 @@ cover-report:
 	@cat $(COVERAGE_DIR)/*.tmp | grep -v 'mode: $(COVERMODE)' >> $(COVERAGE_DIR)/coverage.out || true
 	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
 	@echo "=== $(PROJECT_NAME) === [ cover-report     ]:     $(COVERAGE_DIR)coverage.html"
+
+cover-view: cover-report
+	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out
+
+
