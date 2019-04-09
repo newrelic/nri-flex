@@ -15,8 +15,6 @@ import (
 func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testing.T) {
 	if len(entityMetrics) != len(expectedSamples) {
 		t.Errorf("Missing samples, got: %v, want: %v.", (entityMetrics), (expectedSamples))
-
-		// t.Errorf("Missing samples, got: %v, want: %v.", len(entityMetrics), len(expectedSamples))
 	}
 	for _, expectedSample := range expectedSamples {
 		matchedSample := false
@@ -43,9 +41,9 @@ func TestConfigDir(t *testing.T) {
 	load.Args.ConfigDir = "../../test/configs/"
 	runIntegration()
 	expectedSamples := []string{
-		`{"commandJsonOutSample_count":1,"configsProcessed":1,"eventCount":1,"eventDropCount":0,"event_type":"flexStatusSample"}`,
+		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
-			`"integration_version":"0.5.1-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+			`"integration_version":"0.5.2-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
 
@@ -56,8 +54,8 @@ func TestConfigFile(t *testing.T) {
 	load.Args.ConfigFile = "../../test/configs/json-read-cmd-example.yml"
 	runIntegration()
 	expectedSamples := []string{
-		`{"commandJsonOutSample_count":2,"configsProcessed":1,"eventCount":1,"eventDropCount":0,"event_type":"flexStatusSample"}`,
+		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
-			`"integration_version":"0.5.1-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+			`"integration_version":"0.5.2-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
