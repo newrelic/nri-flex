@@ -8,7 +8,7 @@
 #### func  ParseJMX
 
 ```go
-func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample map[string]interface{})
+func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{})
 ```
 ParseJMX Processes JMX Data
 
@@ -37,7 +37,7 @@ Prometheus from http io
 #### func  RunCommands
 
 ```go
-func RunCommands(yml load.Config, api load.API, dataStore *[]interface{})
+func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{})
 ```
 RunCommands executes the given commands to create one merged sampled
 
@@ -51,7 +51,7 @@ RunHTTP Executes HTTP Requests
 #### func  SetJMXCommand
 
 ```go
-func SetJMXCommand(runCommand *string, command load.Command, api load.API, config load.Config)
+func SetJMXCommand(runCommand *string, command load.Command, api load.API, config *load.Config)
 ```
 SetJMXCommand Add parameters to JMX call
 

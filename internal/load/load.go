@@ -63,31 +63,32 @@ var FlexStatusCounter = struct {
 	M map[string]int
 }{M: make(map[string]int)}
 
+var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
+var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
+var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
+
 const (
-	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.5.2-pre"              // IntegrationVersion Version
-	DefaultSplitBy       = ":"                      // unused currently
-	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
-	DefaultPingTimeout   = 5000                     // 5 seconds
-	DefaultPostgres      = "postgres"
-	DefaultMSSQLServer   = "sqlserver"
-	DefaultMySQL         = "mysql"
-	DefaultOracle        = "ora"
-	DefaultJmxPath       = "./nrjmx/"
-	DefaultJmxHost       = "127.0.0.1"
-	DefaultJmxPort       = "9999"
-	DefaultJmxUser       = "admin"
-	DefaultJmxPass       = "admin"
-	DefaultIPMode        = "private"
-	DefaultShell         = "/bin/sh"
-	DefaultLineLimit     = 255
-	Public               = "public"
-	Private              = "private"
-	Jmx                  = "jmx"
-	Img                  = "img"
-	TypeJSON             = "json"
-	TypeColumns          = "columns"
+	DefaultSplitBy     = ":"                      // unused currently
+	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultPingTimeout = 5000                     // 5 seconds
+	DefaultPostgres    = "postgres"
+	DefaultMSSQLServer = "sqlserver"
+	DefaultMySQL       = "mysql"
+	DefaultOracle      = "ora"
+	DefaultJmxPath     = "./nrjmx/"
+	DefaultJmxHost     = "127.0.0.1"
+	DefaultJmxPort     = "9999"
+	DefaultJmxUser     = "admin"
+	DefaultJmxPass     = "admin"
+	DefaultIPMode      = "private"
+	DefaultShell       = "/bin/sh"
+	DefaultLineLimit   = 255
+	Public             = "public"
+	Private            = "private"
+	Jmx                = "jmx"
+	Img                = "img"
+	TypeJSON           = "json"
+	TypeColumns        = "columns"
 )
 
 // Config YAML Struct

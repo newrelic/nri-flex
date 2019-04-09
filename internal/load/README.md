@@ -7,35 +7,29 @@
 
 ```go
 const (
-	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.4.5-pre"              // IntegrationVersion Version
-	DefaultSplitBy       = ":"                      // unused currently
-	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
-	DefaultPingTimeout   = 5000                     // 5 seconds
-	DefaultPostgres      = "postgres"
-	DefaultMSSQLServer   = "sqlserver"
-	DefaultMySQL         = "mysql"
-	DefaultOracle        = "ora"
-	DefaultJmxPath       = "./nrjmx/"
-	DefaultJmxHost       = "127.0.0.1"
-	DefaultJmxPort       = "9999"
-	DefaultJmxUser       = "admin"
-	DefaultJmxPass       = "admin"
-	DefaultIPMode        = "private"
-	DefaultShell         = "/bin/sh"
-	DefaultLineLimit     = 255
-	Public               = "public"
-	Private              = "private"
-	Jmx                  = "jmx"
-	Img                  = "img"
+	DefaultSplitBy     = ":"                      // unused currently
+	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultPingTimeout = 5000                     // 5 seconds
+	DefaultPostgres    = "postgres"
+	DefaultMSSQLServer = "sqlserver"
+	DefaultMySQL       = "mysql"
+	DefaultOracle      = "ora"
+	DefaultJmxPath     = "./nrjmx/"
+	DefaultJmxHost     = "127.0.0.1"
+	DefaultJmxPort     = "9999"
+	DefaultJmxUser     = "admin"
+	DefaultJmxPass     = "admin"
+	DefaultIPMode      = "private"
+	DefaultShell       = "/bin/sh"
+	DefaultLineLimit   = 255
+	Public             = "public"
+	Private            = "private"
+	Jmx                = "jmx"
+	Img                = "img"
+	TypeJSON           = "json"
+	TypeColumns        = "columns"
 )
 ```
-
-```go
-var ConfigsProcessed = 0
-```
-ConfigsProcessed number of configs processed
 
 ```go
 var ContainerID string
@@ -48,19 +42,11 @@ var Entity *integration.Entity
 Entity Infrastructure SDK Entity
 
 ```go
-var EventCount = 0
+var FlexStatusCounter = struct {
+	sync.RWMutex
+	M map[string]int
+}{M: make(map[string]int)}
 ```
-EventCount number of events processed
-
-```go
-var EventDistribution = map[string]int{}
-```
-EventDistribution number of events distributed per sample
-
-```go
-var EventDropCount = 0
-```
-EventDropCount current number of events dropped due to limiter
 
 ```go
 var Hostname string
@@ -71,6 +57,21 @@ Hostname current host
 var Integration *integration.Integration
 ```
 Integration Infrastructure SDK Integration
+
+```go
+var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
+
+```
+
+```go
+var IntegrationNameShort = "nri-flex" // IntegrationNameShort Short Name
+
+```
+
+```go
+var IntegrationVersion = "Unknown-SNAPSHOT" // IntegrationVersion Version
+
+```
 
 #### func  Refresh
 
@@ -89,6 +90,7 @@ type API struct {
 	Name              string     `yaml:"name"`
 	File              string     `yaml:"file"`
 	URL               string     `yaml:"url"`
+	EscapeURL         bool       `yaml:"escape_url"`
 	Prometheus        Prometheus `yaml:"prometheus"`
 	Cache             string     `yaml:"cache"` // read data from datastore
 	Database          string     `yaml:"database"`
@@ -113,19 +115,22 @@ type API struct {
 	StripKeys         []string            `yaml:"strip_keys"`
 	LazyFlatten       []string            `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string   `yaml:"sample_keys"`
-	ReplaceKeys       map[string]string   `yaml:"replace_keys"`
-	RenameKeys        map[string]string   `yaml:"rename_keys"`
+	ReplaceKeys       map[string]string   `yaml:"replace_keys"`   // uses rename_keys functionality
+	RenameKeys        map[string]string   `yaml:"rename_keys"`    // use regex to find keys, then replace value
 	RenameSamples     map[string]string   `yaml:"rename_samples"` // using regex if sample has a key that matches, make that a different sample
 	RemoveKeys        []string            `yaml:"remove_keys"`
-	KeepKeys          []string            `yaml:"keep_keys"`     // inverse of removing keys
-	ToLower           bool                `yaml:"to_lower"`      // convert all unicode letters mapped to their lower case.
-	ConvertSpace      string              `yaml:"convert_space"` // convert spaces to another char
+	KeepKeys          []string            `yaml:"keep_keys"`       // inverse of removing keys
+	SkipProcessing    []string            `yaml:"skip_processing"` // skip processing particular keys using an array of regex strings
+	ToLower           bool                `yaml:"to_lower"`        // convert all unicode letters mapped to their lower case.
+	ConvertSpace      string              `yaml:"convert_space"`   // convert spaces to another char
 	SnakeToCamel      bool                `yaml:"snake_to_camel"`
 	PercToDecimal     bool                `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
 	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
+	Math              map[string]string   `yaml:"math"`            // perform match across processed metrics
 	SubParse          []Parse             `yaml:"sub_parse"`
 	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
 	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
+	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
 	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
@@ -178,6 +183,7 @@ type Command struct {
 	Name             string            `yaml:"name"`              // required for database use
 	EventType        string            `yaml:"event_type"`        // override eventType (currently used for db only)
 	Shell            string            `yaml:"shell"`             // command shell
+	Cache            string            `yaml:"cache"`             // use content from cache instead of a run command
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
 	CompressBean     bool              `yaml:"compress_bean"`     // compress bean name //unused
@@ -185,7 +191,9 @@ type Command struct {
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
 	Output           string            `yaml:"output"`            // jmx, raw, json
-	LineLimit        int               `yaml:"line_limit"`        // stop processing command output after a certain amount of lines
+	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
+	LineStart        int               `yaml:"line_start"`        // start from this line
+	Timeout          int               `yaml:"timeout"`           // command timeout
 
 	// Parsing Options - Body
 	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table

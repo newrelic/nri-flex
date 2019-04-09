@@ -1,2 +1,2 @@
-# flex
+# nri-flex
 --

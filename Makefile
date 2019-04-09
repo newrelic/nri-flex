@@ -1,5 +1,5 @@
 PROJECT_NAME := $(shell basename $(shell pwd))
-PROJECT_VER  := $(shell git describe --tags --always --dirty)
+PROJECT_VER  := $(shell git describe --tags --always --dirty | sed -e '/^v/s/^v\(.*\)$$/\1/g') # Strip leading 'v' if found
 GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
@@ -28,7 +28,8 @@ GO_FILES := $(shell find $(COMMANDS) $(PACKAGES) -type f -name "*.go")
 # Determine binary names by stripping out the dir names
 BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
-LDFLAGS='-X main.Version=$(PROJECT_VER)'
+# LDFLAGS='-X main.Version=$(PROJECT_VER)'
+LDFLAGS='-X github.com/newrelic/nri-flex/internal/load.IntegrationVersion=$(PROJECT_VER)'
 
 all: build
 
@@ -51,4 +52,4 @@ include build/util.mk
 include build/document.mk
 include build/docker.mk
 
-.PHONY: all build build-ci
+.PHONY: all build build-ci package

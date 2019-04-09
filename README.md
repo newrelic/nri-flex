@@ -126,32 +126,112 @@ flexContainerDiscovery/ <- folder
 ```
 
 ## Development
+
+### Requirements
+
+* Make
+* Go 1.10 or later
+* [dep](https://github.com/golang/dep) - Dependency management tool
+* Docker Compose (Integration tests)
+
+### Setup
+
+*Note:* This assumes that you have a functional Go environment.
+
 ```
-Docker compose & dep required.
+go get github.com/newrelic/nri-flex
 
-Ensure your path is like this: ${GOPATH}/src/github.com/newrelic/nri-flex
+cd ${GOPATH}/src/github.com/newrelic/nri-flex
 
-make setup - download all needed dependencies
+# Ensure a clean start
+make clean
 
-go run cmd/flex/nri-flex.go - run locally
+# Download all required libraries
+make dep
+```
 
-make test - run all tests + linter
-make view - view test coverage report
-make lint - run only linter
+### Build
 
-make clean-docker - clean/remove any docker containers that have been created
+```
+# Default command runs clean, linter, unit test, and compiles for the local OS
+make
 
-make build - build for current OS
-make build-linux - build for linux
-make build-darwin - build for MacOS / Darwin
-make build-windows - build for Windows
-make build-all - build for all above OS's
+# run all tests + linter
+make test
 
-make package-linux - create a linux release package
-make package-windows - create a windows release package
-make package-darwin - create a mac release package
-make package-all - creates linux, windows & mac release packages
+# run integration tests
+make test-integration
 
+# run unit tests
+make test-unit
+
+# run only linter
+make lint
+
+# Create a coverage report
+make cover
+
+# Launch the coverage report into a web browser
+make cover-view
+```
+
+### Cross-Compiling
+
+```
+# Build binary for current OS
+make build
+
+# Build binaries for all supported OSes
+make build-all
+
+# Build binaries for a specific OS
+make build-darwin
+make build-linux
+make build-windows
+```
+
+### Packaging
+
+To build tar.gz files for distribution:
+
+```
+# Create a package for the current OS
+make package
+
+# Create packages for all supported OSes
+make package-all
+
+# Create packages for a specific OS
+make package-darwin
+make package-linux
+make package-windows
+```
+
+### Docker Related
+
+```
+# clean/remove any docker containers that have been created
+make docker-clean
+
+# Build a new docker image
+make docker-image
+
+# Run via docker-compose
+make docker-run
+
+# Testing within docker
+make docker-test
+
+# Testing with the Infrastructure Agent within Docker
+make docker-test-infra
+```
+
+### Other Utility Commands
+
+```
+# Use godocdown to create Markdown documentation for all commands and packages
+# this is run by default.
+make documentation
 ```
 
 ## Contributing

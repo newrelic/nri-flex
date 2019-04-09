@@ -86,7 +86,7 @@ RunKeepKeys remove all other keys and keep these
 #### func  RunKeyConversion
 
 ```go
-func RunKeyConversion(key *string, api load.API, v interface{})
+func RunKeyConversion(key *string, api load.API, v interface{}, SkipProcessing *[]string)
 ```
 RunKeyConversion handles to lower and snake to camel case for keys
 
@@ -100,16 +100,9 @@ RunKeyRemover Remove unwanted keys
 #### func  RunKeyRenamer
 
 ```go
-func RunKeyRenamer(renameKeys map[string]string, keyReplaced *bool, key *string)
+func RunKeyRenamer(renameKeys map[string]string, key *string)
 ```
-RunKeyRenamer Rename a key
-
-#### func  RunKeyReplace
-
-```go
-func RunKeyReplace(replaceKeys map[string]string, keyReplaced *bool, key *string)
-```
-RunKeyReplace String replace within a key
+RunKeyRenamer find key with regex, and replace the value
 
 #### func  RunLazyFlatten
 
@@ -117,6 +110,13 @@ RunKeyReplace String replace within a key
 func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{})
 ```
 RunLazyFlatten lazy flattens the payload
+
+#### func  RunMathCalculations
+
+```go
+func RunMathCalculations(math *map[string]string, currentSample *map[string]interface{})
+```
+RunMathCalculations performs math calculations
 
 #### func  RunPluckNumbers
 
@@ -162,6 +162,14 @@ func RunValueParser(v *interface{}, api load.API, key *string)
 ```
 RunValueParser use regex to find a key, and pluck out its value by regex
 
+#### func  RunValueTransformer
+
+```go
+func RunValueTransformer(v *interface{}, api load.API, key *string)
+```
+RunValueTransformer use regex to find a key, and then transform the value eg.
+key: world key: hello-${value} == key: hello-world
+
 #### func  SetEventType
 
 ```go
@@ -190,6 +198,13 @@ StripKeys strip defined keys out
 func SubEnvVariables(strConf *string)
 ```
 SubEnvVariables substitutes environment variables into config
+
+#### func  SubTimestamps
+
+```go
+func SubTimestamps(strConf *string)
+```
+SubTimestamps substitute timestamps into config
 
 #### func  VariableLookups
 
