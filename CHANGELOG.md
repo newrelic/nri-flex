@@ -1,3 +1,7 @@
+0.5.3-pre
+------
+- Allow lazy_flatten to work top/parent level
+
 0.5.2-pre
 ------
 - Update Flex Event Counter to use sync and avoid concurrent map writes
