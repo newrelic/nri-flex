@@ -1,72 +1,11 @@
-package load
+# load
+--
+    import "github.com/newrelic/nri-flex/internal/load"
 
-import (
-	"sync"
-	"time"
 
-	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
-	"github.com/newrelic/infra-integrations-sdk/integration"
-)
+## Usage
 
-// ArgumentList Available Arguments
-type ArgumentList struct {
-	sdkArgs.DefaultArgumentList
-	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
-	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
-	Local                 bool   `default:"true" help:"Collect local entity info"`
-	ConfigFile            string `default:"" help:"Set a specific config file - not usable for container discovery"`
-	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
-	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
-	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
-	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
-	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
-	Entity                string `default:"" help:"Manually set a remote entity name"`
-	InsightsURL           string `default:"" help:"Set Insights URL"`
-	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
-	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
-
-	// not implemented yet
-	// ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
-	// ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
-}
-
-// Args Infrastructure SDK Arguments List
-var Args ArgumentList
-
-// Integration Infrastructure SDK Integration
-var Integration *integration.Integration
-
-// Entity Infrastructure SDK Entity
-var Entity *integration.Entity
-
-// Hostname current host
-var Hostname string
-
-// ContainerID current container id
-var ContainerID string
-
-// // EventDropCount current number of events dropped due to limiter
-// var EventDropCount = 0
-
-// // EventCount number of events processed
-// var EventCount = 0
-
-// // EventDistribution number of events distributed per sample
-// var EventDistribution = map[string]int{}
-
-// // ConfigsProcessed number of configs processed
-// var ConfigsProcessed = 0
-
-var FlexStatusCounter = struct {
-	sync.RWMutex
-	M map[string]int
-}{M: make(map[string]int)}
-
-var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
-var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
-var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
-
+```go
 const (
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
@@ -90,45 +29,60 @@ const (
 	TypeJSON           = "json"
 	TypeColumns        = "columns"
 )
+```
 
-// Config YAML Struct
-type Config struct {
-	FileName         string // this will be set when files are read
-	Name             string
-	Global           Global
-	APIs             []API
-	Datastore        map[string][]interface{} `yaml:"datastore"`
-	LookupStore      map[string][]string      `yaml:"lookup_store"`
-	VariableStore    map[string]string        `yaml:"variable_store"`
-	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
-}
+```go
+var ContainerID string
+```
+ContainerID current container id
 
-// Global struct
-type Global struct {
-	BaseURL    string `yaml:"base_url"`
-	User, Pass string
-	Proxy      string
-	Timeout    int
-	Headers    map[string]string `yaml:"headers"`
-	Jmx        JMX               `yaml:"jmx"`
-	TLSConfig  TLSConfig         `yaml:"tls_config"`
-}
+```go
+var Entity *integration.Entity
+```
+Entity Infrastructure SDK Entity
 
-// TLSConfig struct
-type TLSConfig struct {
-	Enable             bool   `yaml:"enable"`
-	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
-	MinVersion         uint16 `yaml:"min_version"`
-	MaxVersion         uint16 `yaml:"max_version"`
-}
+```go
+var FlexStatusCounter = struct {
+	sync.RWMutex
+	M map[string]int
+}{M: make(map[string]int)}
+```
 
-// SampleMerge merge multiple samples into one (will remove previous samples)
-type SampleMerge struct {
-	EventType string   `yaml:"event_type"` // new event_type name for the sample
-	Samples   []string `yaml:"samples"`    // list of samples to be merged
-}
+```go
+var Hostname string
+```
+Hostname current host
 
-// API YAML Struct
+```go
+var Integration *integration.Integration
+```
+Integration Infrastructure SDK Integration
+
+```go
+var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
+
+```
+
+```go
+var IntegrationNameShort = "nri-flex" // IntegrationNameShort Short Name
+
+```
+
+```go
+var IntegrationVersion = "Unknown-SNAPSHOT" // IntegrationVersion Version
+
+```
+
+#### func  Refresh
+
+```go
+func Refresh()
+```
+Refresh Helper function used for testing
+
+#### type API
+
+```go
 type API struct {
 	EventType         string     `yaml:"event_type"` // override eventType
 	Merge             string     `yaml:"merge"`      // merge into another eventType
@@ -185,12 +139,46 @@ type API struct {
 	Regex             bool                `yaml:"regex"`             // process SplitBy as regex
 	RowHeader         int                 `yaml:"row_header"`        // set the row header, to be used with SplitBy
 	RowStart          int                 `yaml:"row_start"`         // start from this line, to be used with SplitBy
-	Logging           struct {            // log to insights
+	Logging           struct {
 		Open bool `yaml:"open"` // log open related errors
 	}
 }
+```
 
-// Command Struct
+API YAML Struct
+
+#### type ArgumentList
+
+```go
+type ArgumentList struct {
+	sdkArgs.DefaultArgumentList
+	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
+	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
+	Local                 bool   `default:"true" help:"Collect local entity info"`
+	ConfigFile            string `default:"" help:"Set a specific config file - not usable for container discovery"`
+	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
+	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
+	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
+	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
+	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	Entity                string `default:"" help:"Manually set a remote entity name"`
+	InsightsURL           string `default:"" help:"Set Insights URL"`
+	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
+	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
+	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+}
+```
+
+ArgumentList Available Arguments
+
+```go
+var Args ArgumentList
+```
+Args Infrastructure SDK Arguments List
+
+#### type Command
+
+```go
 type Command struct {
 	Name             string            `yaml:"name"`              // required for database use
 	EventType        string            `yaml:"event_type"`        // override eventType (currently used for db only)
@@ -220,8 +208,100 @@ type Command struct {
 	HeaderSplitBy    string   `yaml:"header_split_by"`    // character/match to split header by
 	HeaderRegexMatch bool     `yaml:"header_regex_match"` // process HeaderSplitBy as a regex match
 }
+```
 
-// Prometheus struct
+Command Struct
+
+#### type Config
+
+```go
+type Config struct {
+	FileName         string // this will be set when files are read
+	Name             string
+	Global           Global
+	APIs             []API
+	Datastore        map[string][]interface{} `yaml:"datastore"`
+	LookupStore      map[string][]string      `yaml:"lookup_store"`
+	VariableStore    map[string]string        `yaml:"variable_store"`
+	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+}
+```
+
+Config YAML Struct
+
+#### type Global
+
+```go
+type Global struct {
+	BaseURL    string `yaml:"base_url"`
+	User, Pass string
+	Proxy      string
+	Timeout    int
+	Headers    map[string]string `yaml:"headers"`
+	Jmx        JMX               `yaml:"jmx"`
+	TLSConfig  TLSConfig         `yaml:"tls_config"`
+}
+```
+
+Global struct
+
+#### type JMX
+
+```go
+type JMX struct {
+	Domain         string `yaml:"domain"`
+	User           string `yaml:"user"`
+	Pass           string `yaml:"pass"`
+	Host           string `yaml:"host"`
+	Port           string `yaml:"port"`
+	KeyStore       string `yaml:"key_store"`
+	KeyStorePass   string `yaml:"key_store_pass"`
+	TrustStore     string `yaml:"trust_store"`
+	TrustStorePass string `yaml:"trust_store_pass"`
+}
+```
+
+JMX struct
+
+#### type MetricParser
+
+```go
+type MetricParser struct {
+	Namespace Namespace         `yaml:"namespace"`
+	Metrics   map[string]string `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	AutoSet   bool              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+}
+```
+
+MetricParser Struct
+
+#### type Namespace
+
+```go
+type Namespace struct {
+	// if neither of the below are set and the MetricParser is used, the namespace will default to the "Name" attribute
+	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
+	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
+}
+```
+
+Namespace Struct
+
+#### type Parse
+
+```go
+type Parse struct {
+	Type    string   `yaml:"type"` // perform a contains, match, hasPrefix or regex for specified key
+	Key     string   `yaml:"key"`
+	SplitBy []string `yaml:"split_by"`
+}
+```
+
+Parse struct
+
+#### type Prometheus
+
+```go
 type Prometheus struct {
 	Enable           bool              `yaml:"enable"`
 	Unflatten        bool              `yaml:"unflatten"`       // unflattens all counters and gauges into separate metric samples retaining all their metadata // make this map[string]string
@@ -237,49 +317,30 @@ type Prometheus struct {
 	SummaryEvent     string            `yaml:"summaryevent"`    // override summary event type
 	GoMetrics        bool              `yaml:"go_metrics"`      // enable go metrics
 }
+```
 
-// JMX struct
-type JMX struct {
-	Domain         string `yaml:"domain"`
-	User           string `yaml:"user"`
-	Pass           string `yaml:"pass"`
-	Host           string `yaml:"host"`
-	Port           string `yaml:"port"`
-	KeyStore       string `yaml:"key_store"`
-	KeyStorePass   string `yaml:"key_store_pass"`
-	TrustStore     string `yaml:"trust_store"`
-	TrustStorePass string `yaml:"trust_store_pass"`
-}
+Prometheus struct
 
-// Parse struct
-type Parse struct {
-	Type    string   `yaml:"type"` // perform a contains, match, hasPrefix or regex for specified key
-	Key     string   `yaml:"key"`
-	SplitBy []string `yaml:"split_by"`
-}
+#### type SampleMerge
 
-// MetricParser Struct
-type MetricParser struct {
-	Namespace Namespace         `yaml:"namespace"`
-	Metrics   map[string]string `yaml:"metrics"`  // inputBytesPerSecond: RATE
-	AutoSet   bool              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+```go
+type SampleMerge struct {
+	EventType string   `yaml:"event_type"` // new event_type name for the sample
+	Samples   []string `yaml:"samples"`    // list of samples to be merged
 }
+```
 
-// Namespace Struct
-type Namespace struct {
-	// if neither of the below are set and the MetricParser is used, the namespace will default to the "Name" attribute
-	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
-	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
-}
+SampleMerge merge multiple samples into one (will remove previous samples)
 
-// Refresh Helper function used for testing
-func Refresh() {
-	FlexStatusCounter.M = make(map[string]int)
-	FlexStatusCounter.M["EventCount"] = 0
-	FlexStatusCounter.M["EventDropCount"] = 0
-	FlexStatusCounter.M["ConfigsProcessed"] = 0
-	Args.ConfigDir = ""
-	Args.ConfigFile = ""
-	Args.ContainerDiscovery = false
-	Args.ContainerDiscoveryDir = ""
+#### type TLSConfig
+
+```go
+type TLSConfig struct {
+	Enable             bool   `yaml:"enable"`
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
+	MinVersion         uint16 `yaml:"min_version"`
+	MaxVersion         uint16 `yaml:"max_version"`
 }
+```
+
+TLSConfig struct
