@@ -42,8 +42,13 @@ func TestConfigDir(t *testing.T) {
 	runIntegration()
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
+<<<<<<< HEAD:cmd/nri-flex/nri-flex_test.go
+		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
+			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+=======
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
 			`"integration_version":"0.5.3-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+>>>>>>> master:cmd/flex/nri-flex_test.go
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
 
@@ -55,7 +60,12 @@ func TestConfigFile(t *testing.T) {
 	runIntegration()
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
+<<<<<<< HEAD:cmd/nri-flex/nri-flex_test.go
+		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
+			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+=======
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.kav91.nri-flex",` +
 			`"integration_version":"0.5.3-pre","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+>>>>>>> master:cmd/flex/nri-flex_test.go
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }

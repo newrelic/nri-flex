@@ -29,14 +29,12 @@ func setDockerClient() (*client.Client, error) {
 	} else {
 		logger.Flex("info", nil, fmt.Sprintf("GOOS: %v", runtime.GOOS), false)
 
-		if err != nil {
-			if runtime.GOOS == "windows" {
-				out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-			} else {
-				out, err = exec.Command(`docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-				if err != nil {
-					out, err = exec.Command(`/host/usr/local/bin/docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-				}
+		if runtime.GOOS == "windows" {
+			out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
+		} else {
+			out, err = exec.Command(`docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
+			if err != nil {
+				out, err = exec.Command(`/host/usr/local/bin/docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
 			}
 		}
 

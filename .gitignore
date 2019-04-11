@@ -5,7 +5,7 @@ nri-flex_v*
 *.old
 vendor*
 nri-flex-mac
-coverage.*
+coverage*
 .DS_Store
 examples_*
 CHANGELOG_*
