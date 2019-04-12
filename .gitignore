@@ -5,10 +5,11 @@ nri-flex_v*
 *.old
 vendor*
 nri-flex-mac
-coverage.*
+coverage*
 .DS_Store
 examples_*
 CHANGELOG_*
 flex-*
 cmd/flex/flex*
+cmd/nri-flex/flex*
 dump*

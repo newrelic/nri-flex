@@ -1,3 +1,12 @@
+0.5.3-pre
+------
+- Allow lazy_flatten to work top/parent level
+
+0.5.2-pre
+------
+- Update Flex Event Counter to use sync and avoid concurrent map writes
+- Rewrite Lookup Processor - more robust, supports multiple lookups and can be used in any part of a config not just url
+
 0.5.1-pre
 ------
 - Additional JSON Handling

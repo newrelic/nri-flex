@@ -1,3 +1,5 @@
+// +build integration
+
 package parser
 
 import (
@@ -93,9 +95,9 @@ func TestDatabase(t *testing.T) {
 
 	if len(dataStore) != 4 {
 		t.Errorf("expected 4 samples, got %d", len(dataStore))
-	}
-
-	if dataStore[0].(map[string]interface{})["queryLabel"] != "pgStatActivitySample" {
-		t.Errorf("incorrect label %v", dataStore[0].(map[string]interface{})["queryLabel"])
+	} else {
+		if dataStore[0].(map[string]interface{})["queryLabel"] != "pgStatActivitySample" {
+			t.Errorf("incorrect label %v", dataStore[0].(map[string]interface{})["queryLabel"])
+		}
 	}
 }

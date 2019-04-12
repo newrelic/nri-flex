@@ -1,6 +1,7 @@
 package load
 
 import (
+	"sync"
 	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
@@ -50,47 +51,53 @@ var Hostname string
 // ContainerID current container id
 var ContainerID string
 
-// EventDropCount current number of events dropped due to limiter
-var EventDropCount = 0
+// // EventDropCount current number of events dropped due to limiter
+// var EventDropCount = 0
 
-// EventCount number of events processed
-var EventCount = 0
+// // EventCount number of events processed
+// var EventCount = 0
 
-// EventDistribution number of events distributed per sample
-var EventDistribution = map[string]int{}
+// // EventDistribution number of events distributed per sample
+// var EventDistribution = map[string]int{}
 
-// ConfigsProcessed number of configs processed
-var ConfigsProcessed = 0
+// // ConfigsProcessed number of configs processed
+// var ConfigsProcessed = 0
+
+var FlexStatusCounter = struct {
+	sync.RWMutex
+	M map[string]int
+}{M: make(map[string]int)}
+
+var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
+var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
+var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
 
 var CounterMetrics = 0
 var GaugeMetrics = 0
 var SummaryMetrics = 0
 
 const (
-	IntegrationName      = "com.kav91.nri-flex"     // IntegrationName Name
-	IntegrationNameShort = "nri-flex"               // IntegrationNameShort Short Name
-	IntegrationVersion   = "0.5.1-pre"              // IntegrationVersion Version
-	DefaultSplitBy       = ":"                      // unused currently
-	DefaultTimeout       = 10000 * time.Millisecond // 10 seconds, used for raw commands
-	DefaultPingTimeout   = 5000                     // 5 seconds
-	DefaultPostgres      = "postgres"
-	DefaultMSSQLServer   = "sqlserver"
-	DefaultMySQL         = "mysql"
-	DefaultOracle        = "ora"
-	DefaultJmxPath       = "./nrjmx/"
-	DefaultJmxHost       = "127.0.0.1"
-	DefaultJmxPort       = "9999"
-	DefaultJmxUser       = "admin"
-	DefaultJmxPass       = "admin"
-	DefaultIPMode        = "private"
-	DefaultShell         = "/bin/sh"
-	DefaultLineLimit     = 255
-	Public               = "public"
-	Private              = "private"
-	Jmx                  = "jmx"
-	Img                  = "img"
-	TypeJSON             = "json"
-	TypeColumns          = "columns"
+	DefaultSplitBy     = ":"                      // unused currently
+	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultPingTimeout = 5000                     // 5 seconds
+	DefaultPostgres    = "postgres"
+	DefaultMSSQLServer = "sqlserver"
+	DefaultMySQL       = "mysql"
+	DefaultOracle      = "ora"
+	DefaultJmxPath     = "./nrjmx/"
+	DefaultJmxHost     = "127.0.0.1"
+	DefaultJmxPort     = "9999"
+	DefaultJmxUser     = "admin"
+	DefaultJmxPass     = "admin"
+	DefaultIPMode      = "private"
+	DefaultShell       = "/bin/sh"
+	DefaultLineLimit   = 255
+	Public             = "public"
+	Private            = "private"
+	Jmx                = "jmx"
+	Img                = "img"
+	TypeJSON           = "json"
+	TypeColumns        = "columns"
 )
 
 // Config YAML Struct
@@ -141,6 +148,7 @@ type API struct {
 	Name              string     `yaml:"name"`
 	File              string     `yaml:"file"`
 	URL               string     `yaml:"url"`
+	EscapeURL         bool       `yaml:"escape_url"`
 	Prometheus        Prometheus `yaml:"prometheus"`
 	Cache             string     `yaml:"cache"` // read data from datastore
 	Database          string     `yaml:"database"`
@@ -307,9 +315,10 @@ type Metric struct {
 
 // Refresh Helper function used for testing
 func Refresh() {
-	EventCount = 0
-	EventDropCount = 0
-	ConfigsProcessed = 0
+	FlexStatusCounter.M = make(map[string]int)
+	FlexStatusCounter.M["EventCount"] = 0
+	FlexStatusCounter.M["EventDropCount"] = 0
+	FlexStatusCounter.M["ConfigsProcessed"] = 0
 	Args.ConfigDir = ""
 	Args.ConfigFile = ""
 	Args.ContainerDiscovery = false

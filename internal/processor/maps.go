@@ -22,11 +22,13 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
-
 		// event limiter
-		if (load.EventCount > load.Args.EventLimit) && load.Args.EventLimit != 0 {
-			load.EventDropCount++
-			if load.EventDropCount == 1 { // don't output the message more then once
+		if (load.FlexStatusCounter.M["EventCount"] > load.Args.EventLimit) && load.Args.EventLimit != 0 {
+			load.FlexStatusCounter.Lock()
+			load.FlexStatusCounter.M["EventDropCount"]++
+			load.FlexStatusCounter.Unlock()
+
+			if load.FlexStatusCounter.M["EventDropCount"] == 1 { // don't output the message more then once
 				logger.Flex("debug",
 					fmt.Errorf("event Limit %d has been reached, please increase if required", load.Args.EventLimit),
 					"", false)
@@ -41,7 +43,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		// modify existing sample before final processing
 		createSample := true
 		SkipProcessing := api.SkipProcessing
-		for k, v := range currentSample {
+		for k, v := range currentSample { // k == original key
 			key := k
 			progress := true
 			RunKeyRemover(api.RemoveKeys, &key, &progress, &currentSample)
@@ -51,12 +53,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunValConversion(&v, api, &key)
 				RunValueParser(&v, api, &key)
 				RunPluckNumbers(&v, api, &key)
-				RunSubParse(api.SubParse, &currentSample, key, v)                    // subParse key pairs (see redis example)
-				RunValueTransformer(&v, api, &key)                                   // Needs to be run before KeyRenamer and KeyReplacer
-				RunKeyRenamer(api.RenameKeys, &key)                                  // use key renamer if key replace hasn't occurred
-				RunKeyRenamer(api.ReplaceKeys, &key)                                 // kept for backwards compatibility with replace_keys
-				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
-				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
+				RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
+				RunKeyRenamer(api.RenameKeys, &key)               // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &key)              // kept for backwards compatibility with replace_keys
 
 				currentSample[key] = v
 				if key != k {
@@ -73,6 +73,11 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 		if createSample {
 			RunMathCalculations(&api.Math, &currentSample)
+
+			load.FlexStatusCounter.Lock()
+			load.FlexStatusCounter.M["EventCount"]++
+			load.FlexStatusCounter.M[eventType]++
+			load.FlexStatusCounter.Unlock()
 
 			// add custom attribute(s)
 			// global
@@ -91,10 +96,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			if config.MetricAPI {
 				AutoSetMetricAPI(&currentSample, &api)
 			} else {
-				load.EventCount++
-				load.EventDistribution[eventType]++
-
 				var metricSet *metric.Set
+				// metricSet2 := configureNewMetricSet(&currentSample, api)
 				// if metric parser is used, we need to namespace metrics for rate and delta support
 				if len(api.MetricParser.Metrics) > 0 {
 					useDefaultNamespace := false
@@ -146,12 +149,16 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 					if api.Prefix != "" && api.Merge == "" {
 						k = api.Prefix + k
 					}
+
+					StoreLookups(api.StoreLookups, &k, &config.LookupStore, &v)        // store lookups
+					VariableLookups(api.StoreVariables, &k, &config.VariableStore, &v) // store variable
+
 					// key filter could be put here
 					AutoSetMetricInfra(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
 				}
 			}
-		}
 
+		}
 	}
 }
 
@@ -230,7 +237,7 @@ func RunKeyRenamer(renameKeys map[string]string, key *string) {
 // StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
 func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
-		if formatter.KvFinder("regex", *key, lookupFindKey) {
+		if *key == lookupFindKey {
 			if *lookupStore == nil {
 				*lookupStore = map[string][]string{}
 			}
@@ -748,6 +755,15 @@ func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{}) {
 						}
 					}
 				}
+			}
+		} else {
+			tmp := map[string]interface{}{"flat": (*ds)[flattenKey]}
+			flat, err := flatten.Flatten(tmp, "", flatten.DotStyle)
+			if err == nil {
+				delete((*ds), flattenKey)
+				(*ds)[flattenKey] = flat
+			} else {
+				logger.Flex("debug", err, "unable to lazy_flatten", false)
 			}
 		}
 	}
