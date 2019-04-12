@@ -3,7 +3,6 @@ package processor
 import (
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -101,33 +100,60 @@ func runVariableProcessor(i int, cfg *load.Config) {
 }
 
 // runLookupProcessor
-func runLookupProcessor(str string, cfg *load.Config, i int) {
-	lookupReplaces := regexp.MustCompile(`\${lookup:.*?}`).FindAllString(str, -1)
+func runLookupProcessor(cfg *load.Config, i int) bool {
+	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[i])
 
-	newConfig := load.Config{
-		Name:   cfg.Name,
-		Global: cfg.Global,
-	}
+	if err != nil {
+		logger.Flex("debug", err, "lookup processor marshal failed", false)
+	} else {
+		tmpCfgStr := string(tmpCfgBytes)
 
-	for _, lookupReplace := range lookupReplaces {
-		// eg. lookupReplace == ${lookup:channels}
-		lookupKey := strings.TrimSuffix(strings.Split(lookupReplace, "${lookup:")[1], "}") // eg. "channels"
-		if cfg.LookupStore[lookupKey] != nil {
-			for _, storedKey := range cfg.LookupStore[lookupKey] { // eg. list of channels
-				// add into newConfig>API, and execute processConfig again
-				newURL := strings.Replace(str, lookupReplace, url.QueryEscape(storedKey), -1)
-				newAPI := load.API{
-					Name:      cfg.APIs[i].EventType,
-					URL:       newURL,
-					EventType: cfg.APIs[i].EventType,
+		// if no lookups, do not continue running the processor
+		if !strings.Contains(tmpCfgStr, "${lookup:") {
+			return true
+		}
+
+		lookupConfig := load.Config{
+			Name:             cfg.Name,
+			Global:           cfg.Global,
+			FileName:         cfg.FileName,
+			Datastore:        cfg.Datastore,
+			LookupStore:      cfg.LookupStore,
+			VariableStore:    cfg.VariableStore,
+			CustomAttributes: cfg.CustomAttributes,
+		}
+
+		replaceOccured := false
+		newAPIs := []string{}
+		lookupIndex := 0
+		for lookup, lookupKeys := range cfg.LookupStore {
+			for z, key := range lookupKeys {
+				if lookupIndex == 0 {
+					newAPIs = append(newAPIs, tmpCfgStr)
 				}
-				newConfig.APIs = append(newConfig.APIs, newAPI)
+				newAPIs[z] = strings.Replace(newAPIs[z], ("${lookup:" + lookup + "}"), key, -1)
+				replaceOccured = true
 			}
+			lookupIndex++
+		}
+
+		if replaceOccured {
+			for _, newAPI := range newAPIs {
+				API := load.API{}
+				err := yaml.Unmarshal([]byte(newAPI), &API)
+				if err != nil {
+					logger.Flex("debug", err, "failed to unmarshal lookup config", false)
+				} else {
+					lookupConfig.APIs = append(lookupConfig.APIs, API)
+				}
+
+			}
+			RunConfig(lookupConfig)
+			return false
 		}
 	}
 
-	// re issue process config with newly built config
-	RunConfig(newConfig)
+	return true
 }
 
 // RunConfigFiles Processes yml files
@@ -138,7 +164,9 @@ func RunConfigFiles(ymls *[]load.Config) {
 		go func(yml load.Config) {
 			defer wg.Done()
 			RunConfig(yml)
-			load.ConfigsProcessed++
+			load.FlexStatusCounter.Lock()
+			load.FlexStatusCounter.M["ConfigsProcessed"]++
+			load.FlexStatusCounter.Unlock()
 		}(yml)
 	}
 	wg.Wait()

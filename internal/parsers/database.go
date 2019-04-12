@@ -140,8 +140,11 @@ func setDatabaseDriver(database, driver string) string {
 // errorLogToInsights log errors to insights, useful to debug
 func errorLogToInsights(err error, database, name, queryLabel string) {
 	errorMetricSet := load.Entity.NewMetricSet(database + "Error")
-	load.EventDistribution[database+"Error"]++
-	load.EventCount++
+
+	load.FlexStatusCounter.Lock()
+	load.FlexStatusCounter.M["EventCount"]++
+	load.FlexStatusCounter.M[database+"Error"]++
+	load.FlexStatusCounter.Unlock()
 
 	logger.Flex("debug", errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE), "", false)
 	if name != "" {

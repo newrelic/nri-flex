@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"strings"
 	"time"
 
@@ -17,6 +18,16 @@ import (
 func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{}) {
 	for *doLoop {
 		request := gorequest.New()
+
+		if api.EscapeURL {
+			*reqURL = url.QueryEscape(*reqURL)
+		}
+
+		// weird edge case, happens with rabbitmq
+		if strings.HasSuffix(*reqURL, "//") {
+			*reqURL = strings.TrimSuffix(*reqURL, "//")
+			*reqURL += "/%2f"
+		}
 
 		switch {
 		case api.Method == "POST" && api.Payload != "":

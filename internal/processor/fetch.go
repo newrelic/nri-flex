@@ -12,20 +12,15 @@ import (
 
 // fetchData fetches data and handles paginated responses
 func fetchData(i int, yml *load.Config) []interface{} {
-	continueProcessing := true
 
 	api := yml.APIs[i]
 	file := yml.APIs[i].File
 	reqURL := api.URL
 
-	if strings.Contains(reqURL, "${lookup:") {
-		runLookupProcessor(reqURL, yml, i)
-		// stop processing normally, and restart from fetchData with newly loaded urls to fetch
-		continueProcessing = false
-	}
-
 	dataStore := []interface{}{}
 	doLoop := true
+
+	continueProcessing := runLookupProcessor(yml, i)
 
 	if continueProcessing {
 		if file != "" {

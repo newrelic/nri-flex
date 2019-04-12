@@ -26,6 +26,7 @@ New Relic has open-sourced this integration to enable monitoring of various tech
 - [Standard Config Layout](#standard-configuration)
 - [Installation](#installation)
 - [Development](#development)
+- [Releasing](#releasing)
 - [Contributing](#contributing)
 
 ## Further Documentation
@@ -126,33 +127,124 @@ flexContainerDiscovery/ <- folder
 ```
 
 ## Development
-```
-Docker compose & dep required.
 
-Ensure your path is like this: ${GOPATH}/src/github.com/newrelic/nri-flex
+### Requirements
 
-make setup - download all needed dependencies
+* Make
+* Go 1.10 or later
+* [dep](https://github.com/golang/dep) - Dependency management tool
+* Docker Compose (Integration tests)
 
-go run cmd/flex/nri-flex.go - run locally
+### Setup
 
-make test - run all tests + linter
-make view - view test coverage report
-make lint - run only linter
-
-make clean-docker - clean/remove any docker containers that have been created
-
-make build - build for current OS
-make build-linux - build for linux
-make build-darwin - build for MacOS / Darwin
-make build-windows - build for Windows
-make build-all - build for all above OS's
-
-make package-linux - create a linux release package
-make package-windows - create a windows release package
-make package-darwin - create a mac release package
-make package-all - creates linux, windows & mac release packages
+*Note:* This assumes that you have a functional Go environment.
 
 ```
+go get github.com/newrelic/nri-flex
+
+cd ${GOPATH}/src/github.com/newrelic/nri-flex
+
+# Ensure a clean start
+make clean
+
+# Download all required libraries
+make dep
+```
+
+### Build
+
+```
+# Default command runs clean, linter, unit test, and compiles for the local OS
+make
+
+# run all tests + linter
+make test
+
+# run integration tests
+make test-integration
+
+# run unit tests
+make test-unit
+
+# run only linter
+make lint
+
+# Create a coverage report
+make cover
+
+# Launch the coverage report into a web browser
+make cover-view
+```
+
+### Cross-Compiling
+
+```
+# Build binary for current OS
+make build
+
+# Build binaries for all supported OSes
+make build-all
+
+# Build binaries for a specific OS
+make build-darwin
+make build-linux
+make build-windows
+```
+
+### Packaging
+
+To build tar.gz files for distribution:
+
+```
+# Create a package for the current OS
+make package
+
+# Create packages for all supported OSes
+make package-all
+
+# Create packages for a specific OS
+make package-darwin
+make package-linux
+make package-windows
+```
+
+### Docker Related
+
+```
+# clean/remove any docker containers that have been created
+make docker-clean
+
+# Build a new docker image
+make docker-image
+
+# Run via docker-compose
+make docker-run
+
+# Testing within docker
+make docker-test
+
+# Testing with the Infrastructure Agent within Docker
+make docker-test-infra
+```
+
+### Other Utility Commands
+
+```
+# Use godocdown to create Markdown documentation for all commands and packages
+# this is run by default.
+make documentation
+```
+
+## Releasing
+
+The build process sets the package version based on the latest git tag. After
+all changes have been made for the lastest release, make a new tag with NO
+commits after, and then `make package-all` to create the artifacts.
+
+This process should be automated someday.
+
+Finally, upload the artifacts on Github to the tag release.
+
 
 ## Contributing
 - Submit a pull request for review.
