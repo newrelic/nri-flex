@@ -18,7 +18,7 @@ fi
 
 echo "Copying Files"
 cp ./nri-flex-config.yml /etc/newrelic-infra/integrations.d/
-cp ./nri-flex-def-linux.yml /var/db/newrelic-infra/custom-integrations/
+cp ./nri-flex-definition.yml /var/db/newrelic-infra/custom-integrations/
 cp ./nri-flex /var/db/newrelic-infra/custom-integrations/
 
 echo "Creating Directory Structure"
