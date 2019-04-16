@@ -10,7 +10,7 @@ goto do_Install
     if %errorLevel% == 0 (
         echo Success: Administrative permissions confirmed.
         copy nri-flex.exe "C:\Program Files\New Relic\newrelic-infra\custom-integrations\"
-        copy nri-flex-def-win.yml "C:\Program Files\New Relic\newrelic-infra\custom-integrations\"
+        copy nri-flex-def-windows.yml "C:\Program Files\New Relic\newrelic-infra\custom-integrations\"
         copy nri-flex-config.yml "C:\Program Files\New Relic\newrelic-infra\integrations.d\"
 
         mkdir "C:\Program Files\New Relic\newrelic-infra\custom-integrations\flexConfigs"
