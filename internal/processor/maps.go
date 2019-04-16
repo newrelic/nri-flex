@@ -22,18 +22,19 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
 		// event limiter
+		load.FlexStatusCounter.Lock()
 		if (load.FlexStatusCounter.M["EventCount"] > load.Args.EventLimit) && load.Args.EventLimit != 0 {
-			load.FlexStatusCounter.Lock()
 			load.FlexStatusCounter.M["EventDropCount"]++
-			load.FlexStatusCounter.Unlock()
 
 			if load.FlexStatusCounter.M["EventDropCount"] == 1 { // don't output the message more then once
 				logger.Flex("debug",
 					fmt.Errorf("event Limit %d has been reached, please increase if required", load.Args.EventLimit),
 					"", false)
 			}
+			load.FlexStatusCounter.Unlock()
 			break
 		}
+		load.FlexStatusCounter.Unlock()
 
 		currentSample := sample.(map[string]interface{})
 		eventType := "UnknownSample" // set an UnknownSample event name
