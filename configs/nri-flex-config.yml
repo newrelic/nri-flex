@@ -5,8 +5,12 @@ instances:
     command: metrics
     arguments:
       # container_discovery: true ## default false
-      # config_file: "../myConfigFile.yml" ## default ""
-      # config_dir: "anotherConfigDir/" ## default "flexConfigs"
+      # container_discovery_dir: "anotherDir" default "flexContainerDiscovery" 
+      # config_file: "../myConfigFile.yml" ## default "" - run only a single specific config file
+      # config_dir: "anotherConfigDir/" ## default "flexConfigs/"
       # event_limit: 500 ## default 500
+      # insights_api_key: abc
+      # insights_url: https://insights...
+      # insights_output: output the payload to stdout
     # labels:
       # owner: cloud
