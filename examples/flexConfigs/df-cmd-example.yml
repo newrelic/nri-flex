@@ -5,5 +5,5 @@ apis:
       - run: df -i
         split: horizontal
         set_header: [fs,512Blocks,used,available,capacity,iused,ifree,iusedPerc,mountedOn]
-        regex_match: false
-        split_by: \s{1,} ## split by white space (this regex will split where there is more than 1 white space)
+        regex_match: true
+        split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
