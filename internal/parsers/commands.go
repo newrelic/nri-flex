@@ -70,7 +70,11 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 			} else if ctx.Err() != nil {
 				logger.Flex("debug", err, "command execution failed", false)
 			} else {
-				processOutput(string(output), dataStore, &dataSample, command, api, &processType)
+				if command.SplitOutput != "" {
+					splitOutput(string(output), dataStore, command)
+				} else {
+					processOutput(string(output), dataStore, &dataSample, command, api, &processType)
+				}
 			}
 		} else if command.Cache != "" {
 			if yml.Datastore[command.Cache] != nil {
@@ -90,6 +94,55 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 	// this can probably be shuffled elsewhere
 	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
 		*dataStore = append(*dataStore, dataSample)
+	}
+}
+
+func splitOutput(output string, dataStore *[]interface{}, command load.Command) {
+	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
+	outputBlocks := [][]string{}
+	startSplit := -1
+	endSplit := 0
+	for i, line := range lines {
+		if formatter.KvFinder("regex", line, command.SplitOutput) {
+			if startSplit == -1 {
+				startSplit = i
+			} else {
+				endSplit = i
+				outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
+				startSplit = i
+			}
+		}
+		//create the last block
+		if i+1 == len(lines) {
+			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
+		}
+	}
+	processBlocks(outputBlocks, dataStore, command)
+}
+
+func processBlocks(blocks [][]string, dataStore *[]interface{}, command load.Command) {
+	for _, block := range blocks {
+		sample := map[string]interface{}{}
+		regmatchCount := 0
+		for _, regmatch := range command.RegexMatches {
+			for _, line := range block {
+				matches := formatter.RegMatch(line, regmatch.Expression)
+				if len(matches) > 0 {
+					for i, match := range matches {
+						if len(regmatch.Keys) > 0 {
+							key := regmatch.Keys[i]
+							if len(regmatch.KeysMulti) > 0 {
+								key = regmatch.KeysMulti[regmatchCount] + key
+							}
+							sample[key] = match
+						}
+					}
+					regmatchCount++
+				}
+			}
+			regmatchCount = 0
+		}
+		*dataStore = append(*dataStore, sample)
 	}
 }
 
