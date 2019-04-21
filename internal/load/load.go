@@ -208,17 +208,27 @@ type Command struct {
 	Timeout          int               `yaml:"timeout"`           // command timeout
 
 	// Parsing Options - Body
-	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table
-	SplitBy    string `yaml:"split_by"`    // character/match to split by
-	RegexMatch bool   `yaml:"regex_match"` // process SplitBy as a regex match
-	GroupBy    string `yaml:"group_by"`    // group by character
-	RowHeader  int    `yaml:"row_header"`  // set the row header, to be used with SplitBy
-	RowStart   int    `yaml:"row_start"`   // start from this line, to be used with SplitBy
+	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
+	SplitBy     string `yaml:"split_by"`     // character/match to split by
+	SplitOutput string `yaml:"split_output"` // split output by found regex
+	RegexMatch  bool   `yaml:"regex_match"`  // process SplitBy as a regex match
+	GroupBy     string `yaml:"group_by"`     // group by character
+	RowHeader   int    `yaml:"row_header"`   // set the row header, to be used with SplitBy
+	RowStart    int    `yaml:"row_start"`    // start from this line, to be used with SplitBy
 
 	// Parsing Options - Header
 	SetHeader        []string `yaml:"set_header"`         // manually set header column names (used when split is is set to horizontal)
 	HeaderSplitBy    string   `yaml:"header_split_by"`    // character/match to split header by
 	HeaderRegexMatch bool     `yaml:"header_regex_match"` // process HeaderSplitBy as a regex match
+
+	// RegexMatches
+	RegexMatches []RegMatch `yaml:"regex_matches"`
+}
+
+type RegMatch struct {
+	Expression string   `yaml:"expression"`
+	Keys       []string `yaml:"keys"`
+	KeysMulti  []string `yaml:"keys_multi"`
 }
 
 // Prometheus struct

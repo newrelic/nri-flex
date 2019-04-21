@@ -1,3 +1,11 @@
+0.5.5-pre
+------
+- Add regex multi matching and splitting functionality
+
+0.5.4-pre
+------
+- Move status counter lock to avoid concurrent map write issue
+
 0.5.3-pre
 ------
 - Allow lazy_flatten to work top/parent level

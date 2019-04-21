@@ -1,0 +1,30 @@
+
+192.168.32.1:/exports/nfs/newrelic/one mounted on /mnt/newrelic/one:
+
+           ops/s       rpc bklog
+         101.507           0.000
+
+read:              ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   0.482           2.304           2.038        0 (0.0%)           0.202           0.393
+write:             ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   5.976          33.733           5.645        0 (0.0%)           0.535           5.222
+
+192.168.32.1:/exports/nfs/newrelic/two mounted on /mnt/newrelic/two:
+
+           ops/s       rpc bklog
+         121.507           0.000
+
+read:              ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   0.482           2.304           6.038        0 (0.0%)           0.302           0.493
+write:             ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   6.976          33.533           5.645        0 (0.0%)           0.535           5.332
+
+192.168.32.2:/exports/nfs/newrelic/three mounted on /mnt/newrelic/three:
+
+           ops/s       rpc bklog
+         121.507           0.000
+
+read:              ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   0.482           2.304           6.038        0 (3.1%)           0.302           0.493
+write:             ops/s            kB/s           kB/op         retrans    avg RTT (ms)    avg exe (ms)
+                   6.976          33.533           5.645        0 (3.2%)           0.535           5.332
