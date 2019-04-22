@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"context"
@@ -141,10 +141,8 @@ func setDatabaseDriver(database, driver string) string {
 func errorLogToInsights(err error, database, name, queryLabel string) {
 	errorMetricSet := load.Entity.NewMetricSet(database + "Error")
 
-	load.FlexStatusCounter.Lock()
-	load.FlexStatusCounter.M["EventCount"]++
-	load.FlexStatusCounter.M[database+"Error"]++
-	load.FlexStatusCounter.Unlock()
+	load.StatusCounterIncrement("EventCount")
+	load.StatusCounterIncrement(database + "Error")
 
 	logger.Flex("debug", errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE), "", false)
 	if name != "" {

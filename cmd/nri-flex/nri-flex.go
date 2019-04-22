@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/newrelic/nri-flex/internal/processor"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	load.FlexStatusCounter.M["EventDropCount"] = 0
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
 
-	outputs.CreateIntegration()
+	outputs.InfraIntegration()
 	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
 
 	// todo: port cluster mode here
@@ -27,6 +27,7 @@ func main() {
 	logger.Flex("fatal", load.Integration.Publish(), "unable to publish", false)
 }
 
+// runIntegration runs nri-flex
 func runIntegration() {
 	// store config ymls
 	var configs []load.Config
@@ -52,9 +53,9 @@ func runIntegration() {
 		}
 	}
 
-	processor.LoadConfigFiles(&configs, files, path)
-	processor.RunConfigFiles(&configs)
-	outputs.CreateStatusSample()
+	config.LoadFiles(&configs, files, path)
+	config.RunFiles(&configs)
+	outputs.StatusSample()
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		outputs.SendToInsights()
 	}

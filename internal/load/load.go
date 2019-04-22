@@ -23,10 +23,10 @@ type ArgumentList struct {
 	Entity                string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
 
 	// not implemented yet
+	// InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	// ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
 	// ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
 }
@@ -46,18 +46,7 @@ var Hostname string
 // ContainerID current container id
 var ContainerID string
 
-// // EventDropCount current number of events dropped due to limiter
-// var EventDropCount = 0
-
-// // EventCount number of events processed
-// var EventCount = 0
-
-// // EventDistribution number of events distributed per sample
-// var EventDistribution = map[string]int{}
-
-// // ConfigsProcessed number of configs processed
-// var ConfigsProcessed = 0
-
+// FlexStatusCounter count internal metrics
 var FlexStatusCounter = struct {
 	sync.RWMutex
 	M map[string]int
@@ -130,23 +119,29 @@ type SampleMerge struct {
 
 // API YAML Struct
 type API struct {
-	EventType         string     `yaml:"event_type"` // override eventType
-	Merge             string     `yaml:"merge"`      // merge into another eventType
-	Prefix            string     `yaml:"prefix"`     // prefix attribute keys
-	Name              string     `yaml:"name"`
-	File              string     `yaml:"file"`
-	URL               string     `yaml:"url"`
-	EscapeURL         bool       `yaml:"escape_url"`
-	Prometheus        Prometheus `yaml:"prometheus"`
-	Cache             string     `yaml:"cache"` // read data from datastore
-	Database          string     `yaml:"database"`
-	DbDriver          string     `yaml:"db_driver"`
-	DbConn            string     `yaml:"db_conn"`
-	Shell             string     `yaml:"shell"`
-	Commands          []Command  `yaml:"commands"`
-	DbQueries         []Command  `yaml:"db_queries"`
-	Jmx               JMX        `yaml:"jmx"`
-	IgnoreLines       []int      // not implemented - idea is to ignore particular lines starting from 0 of the command output
+	Name              string            `yaml:"name"`
+	EventType         string            `yaml:"event_type"`     // override eventType
+	Entity            string            `yaml:"entity"`         // define a custom entity name
+	EntityType        string            `yaml:"entity_type"`    // define a custom entity type (namespace)
+	Inventory         map[string]string `yaml:"inventory"`      // set as inventory
+	InventoryOnly     bool              `yaml:"inventory_only"` // only generate inventory data
+	Events            map[string]string `yaml:"events"`         // set as events
+	EventsOnly        bool              `yaml:"events_only"`    // only generate events
+	Merge             string            `yaml:"merge"`          // merge into another eventType
+	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
+	File              string            `yaml:"file"`
+	URL               string            `yaml:"url"`
+	EscapeURL         bool              `yaml:"escape_url"`
+	Prometheus        Prometheus        `yaml:"prometheus"`
+	Cache             string            `yaml:"cache"` // read data from datastore
+	Database          string            `yaml:"database"`
+	DbDriver          string            `yaml:"db_driver"`
+	DbConn            string            `yaml:"db_conn"`
+	Shell             string            `yaml:"shell"`
+	Commands          []Command         `yaml:"commands"`
+	DbQueries         []Command         `yaml:"db_queries"`
+	Jmx               JMX               `yaml:"jmx"`
+	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
 	Proxy             string
 	TLSConfig         TLSConfig `yaml:"tls_config"`
@@ -292,4 +287,11 @@ func Refresh() {
 	Args.ConfigFile = ""
 	Args.ContainerDiscovery = false
 	Args.ContainerDiscoveryDir = ""
+}
+
+// StatusCounterIncrement increment the status counter for a particular key
+func StatusCounterIncrement(key string) {
+	FlexStatusCounter.Lock()
+	FlexStatusCounter.M[key]++
+	FlexStatusCounter.Unlock()
 }

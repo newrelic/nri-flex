@@ -19,7 +19,8 @@ import (
 
 var cli *client.Client
 
-// setDockerClient - Required as there can be edge cases when the integration API version, may need a matching or lower API version then the hosts docker API version
+// setDockerClient Sets the docker client
+// There can be edge cases when the integration API version may need a matching or lower API version then the hosts docker API version
 func setDockerClient() (*client.Client, error) {
 	var out []byte
 	var err error

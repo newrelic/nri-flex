@@ -12,29 +12,32 @@ import (
 	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
 )
 
 // SendToInsights - Send processed events to insights
 func SendToInsights() {
-	modifyEventType()
-	postRequest()
-	// empty the infrastructure entity metrics by default
-	if !load.Args.InsightsOutput {
-		load.Entity.Metrics = []*metric.Set{}
+	for _, entity := range load.Integration.Entities {
+		modifyEventType(entity)
+		postRequest(entity)
+		// empty the infrastructure entity metrics by default
+		if !load.Args.InsightsOutput {
+			entity.Metrics = []*metric.Set{}
+		}
 	}
 }
 
 // modifyEventType insights uses eventType key in camel case whereas infrastructure uses event_type
-func modifyEventType() {
-	for _, event := range load.Entity.Metrics {
+func modifyEventType(entity *integration.Entity) {
+	for _, event := range entity.Metrics {
 		event.Metrics["eventType"] = event.Metrics["event_type"].(string)
 		delete(event.Metrics, "event_type")
 	}
 }
 
 // postRequest wraps request and attaches needed headers and zlib compression
-func postRequest() {
-	jsonData, err := json.Marshal(load.Entity.Metrics)
+func postRequest(entity *integration.Entity) {
+	jsonData, err := json.Marshal(entity.Metrics)
 	if err != nil {
 		logger.Flex("debug", err, "failed to marshal", false)
 	} else {

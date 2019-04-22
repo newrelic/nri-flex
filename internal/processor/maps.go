@@ -5,14 +5,16 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
-	"github.com/Knetic/govaluate"
+	"github.com/newrelic/infra-integrations-sdk/data/event"
+
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 
-	"github.com/jeremywohl/flatten"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/infra-integrations-sdk/log"
 )
 
@@ -25,7 +27,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		load.FlexStatusCounter.Lock()
 		if (load.FlexStatusCounter.M["EventCount"] > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.FlexStatusCounter.M["EventDropCount"]++
-
 			if load.FlexStatusCounter.M["EventDropCount"] == 1 { // don't output the message more then once
 				logger.Flex("debug",
 					fmt.Errorf("event Limit %d has been reached, please increase if required", load.Args.EventLimit),
@@ -74,10 +75,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		if createSample {
 			RunMathCalculations(&api.Math, &currentSample)
 
-			load.FlexStatusCounter.Lock()
-			load.FlexStatusCounter.M["EventCount"]++
-			load.FlexStatusCounter.M[eventType]++
-			load.FlexStatusCounter.Unlock()
+			load.StatusCounterIncrement("EventCount")
+			load.StatusCounterIncrement(eventType)
 
 			// add custom attribute(s)
 			// global
@@ -93,19 +92,19 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				currentSample["baseUrl"] = config.Global.BaseURL
 			}
 
+			workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
+
 			var metricSet *metric.Set
-			// metricSet2 := configureNewMetricSet(&currentSample, api)
 			// if metric parser is used, we need to namespace metrics for rate and delta support
 			if len(api.MetricParser.Metrics) > 0 {
 				useDefaultNamespace := false
 				if api.MetricParser.Namespace.CustomAttr != "" {
-					metricSet = load.Entity.NewMetricSet(eventType, metric.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
+					metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
 				} else if len(api.MetricParser.Namespace.ExistingAttr) == 1 {
 					nsKey := api.MetricParser.Namespace.ExistingAttr[0]
-					nsVal := currentSample[nsKey]
-					switch nsVal := nsVal.(type) {
+					switch nsVal := currentSample[nsKey].(type) {
 					case string:
-						metricSet = load.Entity.NewMetricSet(eventType, metric.Attr(nsKey, nsVal))
+						metricSet = workingEntity.NewMetricSet(eventType, metric.Attr(nsKey, nsVal))
 						delete(currentSample, nsKey) // can delete from sample as already set via namespace key
 					default:
 						useDefaultNamespace = true
@@ -122,7 +121,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 						}
 					}
 					if finalValue != "" {
-						metricSet = load.Entity.NewMetricSet(eventType, metric.Attr("namespace", finalValue))
+						metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", finalValue))
 					} else {
 						useDefaultNamespace = true
 					}
@@ -130,10 +129,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 				if useDefaultNamespace {
 					logger.Flex("debug", fmt.Errorf("defaulting a namespace for:%v", api.Name), "", false)
-					metricSet = load.Entity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
+					metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
 				}
 			} else {
-				metricSet = load.Entity.NewMetricSet(eventType)
+				metricSet = workingEntity.NewMetricSet(eventType)
 			}
 
 			// set default attribute(s)
@@ -150,12 +149,78 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				StoreLookups(api.StoreLookups, &k, &config.LookupStore, &v)        // store lookups
 				VariableLookups(api.StoreVariables, &k, &config.VariableStore, &v) // store variable
 
-				// key filter could be put here
-				AutoSetMetric(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
+				if api.InventoryOnly {
+					setInventory(workingEntity, api.Inventory, k, v)
+				} else if api.EventsOnly {
+					setEvents(workingEntity, api.Events, k, v)
+				} else {
+					// these can be set async
+					var wg sync.WaitGroup
+					wg.Add(3)
+					go func() {
+						defer wg.Done()
+						setInventory(workingEntity, api.Inventory, k, v)
+					}()
+					go func() {
+						defer wg.Done()
+						setEvents(workingEntity, api.Events, k, v)
+					}()
+					go func() {
+						defer wg.Done()
+						AutoSetMetric(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
+					}()
+					wg.Wait()
+				}
 			}
 		}
 
 	}
+}
+
+// setInventory sets infrastructure inventory metrics
+func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
+	if inventory[k] != "" {
+		if inventory[k] == "value" {
+			entity.SetInventoryItem(k, "value", v)
+		} else {
+			entity.SetInventoryItem(inventory[k], k, v)
+		}
+	}
+}
+
+// setInventory sets infrastructure inventory metrics
+func setEvents(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
+	if inventory[k] != "" {
+		value := fmt.Sprintf("%v", v)
+		if inventory[k] != "default" {
+			err := entity.AddEvent(&event.Event{
+				Summary:  value,
+				Category: inventory[k],
+			})
+			logger.Flex("debug", err, "", false)
+		} else {
+			err := entity.AddEvent(&event.Event{
+				Summary:  value,
+				Category: k,
+			})
+			logger.Flex("debug", err, "", false)
+		}
+	}
+}
+
+// setEntity sets the entity to be used for the configured API
+// defaults the type aka namespace to instance
+func setEntity(entity string, customNamespace string) *integration.Entity {
+	if entity != "" {
+		if customNamespace == "" {
+			customNamespace = "instance"
+		}
+		workingEntity, err := load.Integration.Entity(entity, customNamespace)
+		if err == nil {
+			return workingEntity
+		}
+	}
+	return load.Entity
 }
 
 // SetEventType sets the metricSet's eventType
@@ -189,67 +254,6 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 			(*currentSample)["event_type"] = newEventType
 			*eventType = newEventType
 			break
-		}
-	}
-}
-
-// RunKeepKeys remove all other keys and keep these
-func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}, k *string) {
-	if len(keepKeys) > 0 {
-		foundKey := false
-		for _, keepKey := range keepKeys {
-			if formatter.KvFinder("regex", *key, keepKey) {
-				foundKey = true
-				break
-			}
-		}
-		if !foundKey {
-			delete(*currentSample, *k)
-		}
-	}
-}
-
-// RunKeyRemover Remove unwanted keys
-func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{}) {
-	for _, removeKey := range removeKeys {
-		if formatter.KvFinder("regex", *key, removeKey) {
-			*progress = false
-			delete(*currentSample, *key)
-			break
-		}
-	}
-}
-
-// RunKeyRenamer find key with regex, and replace the value
-func RunKeyRenamer(renameKeys map[string]string, key *string) {
-	for renameKey, renameVal := range renameKeys {
-		if formatter.KvFinder("regex", *key, renameKey) {
-			*key = strings.Replace(*key, renameKey, renameVal, -1)
-			break
-		}
-	}
-}
-
-// StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
-	for lookupStoreKey, lookupFindKey := range storeLookups {
-		if *key == lookupFindKey {
-			if *lookupStore == nil {
-				*lookupStore = map[string][]string{}
-			}
-			(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
-		}
-	}
-}
-
-// VariableLookups if key is found (using regex), store the value in the variableStore, as the defined by the variableStoreKey for later use
-func VariableLookups(variableLookups map[string]string, key *string, variableStore *map[string]string, v *interface{}) {
-	for variableStoreKey, variableFindKey := range variableLookups {
-		if *key == variableFindKey {
-			if (*variableStore) == nil {
-				(*variableStore) = map[string]string{}
-			}
-			(*variableStore)[variableStoreKey] = fmt.Sprintf("%v", *v)
 		}
 	}
 }
@@ -350,19 +354,29 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 
 	finalMergedSamples := []interface{}{}
 	for sampleSet := range finalSampleSets {
-		for _, sample := range finalSampleSets[sampleSet].([]interface{}) {
-			switch sample := sample.(type) {
-			case map[string]interface{}:
-				newSample := sample
-				newSample["event_type"] = sampleSet
-				for attribute := range finalAttributes {
-					newSample[attribute] = finalAttributes[attribute]
+		switch ss := finalSampleSets[sampleSet].(type) {
+		case []interface{}:
+			for _, sample := range ss {
+				switch sample := sample.(type) {
+				case map[string]interface{}:
+					newSample := sample
+					newSample["event_type"] = sampleSet
+					for attribute := range finalAttributes {
+						newSample[attribute] = finalAttributes[attribute]
+					}
+					finalMergedSamples = append(finalMergedSamples, newSample)
+				default:
+					log.Debug("not sure what to do with this?")
+					log.Debug(fmt.Sprintf("%v", sample))
 				}
-				finalMergedSamples = append(finalMergedSamples, newSample)
-			default:
-				log.Debug("not sure what to do with this?")
-				log.Debug(fmt.Sprintf("%v", sample))
 			}
+		case map[string]interface{}:
+			newSample := ss
+			newSample["event_type"] = sampleSet
+			for attribute := range finalAttributes {
+				newSample[attribute] = finalAttributes[attribute]
+			}
+			finalMergedSamples = append(finalMergedSamples, newSample)
 		}
 	}
 
@@ -470,85 +484,6 @@ func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key 
 	}
 }
 
-// RunSubParse splits nested values out from one line eg. db0:keys=1,expires=0,avg_ttl=0
-func RunSubParse(subParse []load.Parse, currentSample *map[string]interface{}, key string, v interface{}) {
-	for _, parse := range subParse {
-		if len(parse.SplitBy) == 2 {
-			process := formatter.KvFinder(parse.Type, key, parse.Key)
-			if process {
-				values := strings.Split(fmt.Sprintf("%v", v), parse.SplitBy[0])
-				for _, val := range values {
-					nestedVal := strings.Split(val, parse.SplitBy[1])
-					if len(nestedVal) == 2 {
-						(*currentSample)[key+"."+nestedVal[0]] = nestedVal[1]
-					}
-				}
-			}
-		}
-	}
-}
-
-// RunKeyConversion handles to lower and snake to camel case for keys
-func RunKeyConversion(key *string, api load.API, v interface{}, SkipProcessing *[]string) {
-	if api.ToLower {
-		*key = strings.ToLower(*key)
-	}
-	if api.ConvertSpace != "" {
-		*key = strings.Replace(*key, " ", api.ConvertSpace, -1)
-	}
-	if api.SnakeToCamel {
-		formatter.SnakeCaseToCamelCase(key)
-	}
-}
-
-// RunValConversion performs percentage to decimal & nano second to millisecond
-func RunValConversion(v *interface{}, api load.API, key *string) {
-	if api.PercToDecimal {
-		formatter.PercToDecimal(v)
-	}
-
-	value := fmt.Sprintf("%v", *v)
-	if strings.Contains(value, "µs") {
-		valueSplit := strings.Split(value, "µs")
-		newValue, _ := strconv.ParseFloat(valueSplit[0], 64)
-		newValue /= 1000 // convert to ms
-		*v = newValue
-		*key += ".ms"
-	}
-}
-
-// RunValueParser use regex to find a key, and pluck out its value by regex
-func RunValueParser(v *interface{}, api load.API, key *string) {
-	for regexKey, regexVal := range api.ValueParser {
-		if formatter.KvFinder("regex", *key, regexKey) {
-			value := fmt.Sprintf("%v", *v)
-			*v = formatter.ValueParse(value, regexVal)
-		}
-	}
-}
-
-// RunValueTransformer use regex to find a key, and then transform the value
-// eg. key: world
-// key: hello-${value}  == key: hello-world
-func RunValueTransformer(v *interface{}, api load.API, key *string) {
-	for regexKey, newValue := range api.ValueTransformer {
-		if formatter.KvFinder("regex", *key, regexKey) {
-			currentValue := fmt.Sprintf("%v", *v)
-			*v = strings.Replace(newValue, "${value}", currentValue, -1)
-		}
-	}
-}
-
-// RunPluckNumbers pluck numbers out automatically with ValueParser
-func RunPluckNumbers(v *interface{}, api load.API, key *string) {
-	//"sample_start_time = 1552864614.137869 (Sun, 17 Mar 2019 23:16:54 GMT)"
-	// return 1552864614.137869
-	if api.PluckNumbers {
-		value := fmt.Sprintf("%v", *v)
-		*v = formatter.ValueParse(value, `[+-]?([0-9]*\.?[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?`)
-	}
-}
-
 // AutoSetMetric parse to number
 func AutoSetMetric(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool) {
 	value := fmt.Sprintf("%v", v)
@@ -576,120 +511,6 @@ func AutoSetMetric(k string, v interface{}, metricSet *metric.Set, metrics map[s
 		}
 		if !foundKey {
 			logger.Flex("debug", metricSet.SetMetric(k, parsed, metric.GAUGE), "", false)
-		}
-	}
-}
-
-// FindStartKey start at a different section of a payload
-func FindStartKey(startKeys []string, mainDataset *map[string]interface{}) {
-	for _, startKey := range startKeys {
-		if (*mainDataset)[startKey] != nil {
-			switch mainDs := (*mainDataset)[startKey].(type) {
-			case map[string]interface{}:
-				*mainDataset = mainDs
-			case []interface{}:
-				*mainDataset = map[string]interface{}{startKey: mainDs}
-			}
-		}
-	}
-}
-
-// StripKeys strip defined keys out
-func StripKeys(stripKeys []string, ds *map[string]interface{}) {
-	for _, stripKey := range stripKeys {
-		delete(*ds, stripKey)
-		if strings.Contains(stripKey, ">") {
-			stripSplit := strings.Split(stripKey, ">")
-			if len(stripSplit) == 2 {
-				if (*ds)[stripSplit[0]] != nil {
-					switch (*ds)[stripSplit[0]].(type) {
-					case map[string]interface{}:
-						delete((*ds)[stripSplit[0]].(map[string]interface{}), stripSplit[1])
-					case []interface{}:
-						for i := range (*ds)[stripSplit[0]].([]interface{}) {
-							switch (*ds)[stripSplit[0]].([]interface{})[i].(type) {
-							case map[string]interface{}:
-								// fmt.Println(ds[stripSplit[0]].([]interface{})[i].(map[string]interface{})[stripSplit[1]])
-								delete((*ds)[stripSplit[0]].([]interface{})[i].(map[string]interface{}), stripSplit[1])
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-// RunLazyFlatten lazy flattens the payload
-func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{}) {
-	// perform lazy flatten
-	for _, flattenKey := range lazyFlatten {
-		if strings.Contains(flattenKey, ">") {
-			flatSplit := strings.Split(flattenKey, ">")
-			if len(flatSplit) == 2 {
-				if (*ds)[flatSplit[0]] != nil {
-					switch (*ds)[flatSplit[0]].(type) {
-					case map[string]interface{}:
-						flat, err := flatten.Flatten((*ds)[flatSplit[0]].(map[string]interface{}), "", flatten.DotStyle)
-						if err == nil {
-							delete((*ds)[flatSplit[0]].(map[string]interface{}), flatSplit[1])
-							(*ds)[flatSplit[0]].(map[string]interface{})[flatSplit[1]] = flat
-						}
-					case []interface{}:
-						for i := range (*ds)[flatSplit[0]].([]interface{}) {
-							switch (*ds)[flatSplit[0]].([]interface{})[i].(type) {
-							case map[string]interface{}:
-								// we need to flatten top level, then loop through and find the new keys and add back into the sample
-								flat, err := flatten.Flatten((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), "", flatten.DotStyle)
-								if err == nil {
-									// delete old data
-									delete((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), flatSplit[1])
-									// add back into the datasample
-									for k, v := range flat {
-										if strings.Contains(k, flatSplit[1]) {
-											(*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{})[k] = v
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			tmp := map[string]interface{}{"flat": (*ds)[flattenKey]}
-			flat, err := flatten.Flatten(tmp, "", flatten.DotStyle)
-			if err == nil {
-				delete((*ds), flattenKey)
-				(*ds)[flattenKey] = flat
-			} else {
-				logger.Flex("debug", err, "unable to lazy_flatten", false)
-			}
-		}
-	}
-}
-
-// RunMathCalculations performs math calculations
-func RunMathCalculations(math *map[string]string, currentSample *map[string]interface{}) {
-	for newMetric, formula := range *math {
-		finalFormula := formula
-		keys := regexp.MustCompile(`\${.*?}`).FindAllString(finalFormula, -1)
-		for _, key := range keys {
-			findKey := strings.TrimSuffix(strings.TrimPrefix(key, "${"), "}")
-			if (*currentSample)[findKey] != nil {
-				finalFormula = strings.Replace(finalFormula, key, fmt.Sprintf("%v", (*currentSample)[findKey]), -1)
-			}
-		}
-		expression, err := govaluate.NewEvaluableExpression(finalFormula)
-		if err != nil {
-			logger.Flex("debug", err, fmt.Sprintf("%v math exp failed %v", newMetric, finalFormula), false)
-		} else {
-			result, err := expression.Evaluate(nil)
-			if err != nil {
-				logger.Flex("debug", err, fmt.Sprintf("%v math evalute failed %v", newMetric, finalFormula), false)
-			} else {
-				(*currentSample)[newMetric] = result
-			}
 		}
 	}
 }

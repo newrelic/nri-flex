@@ -1,6 +1,6 @@
 // +build integration
 
-package parser
+package inputs
 
 import (
 	"testing"
