@@ -181,9 +181,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
 		if inventory[k] == "value" {
-			entity.SetInventoryItem(k, "value", v)
+			logger.Flex("debug", entity.SetInventoryItem(k, "value", v), "", false)
 		} else {
-			entity.SetInventoryItem(inventory[k], k, v)
+			logger.Flex("debug", entity.SetInventoryItem(inventory[k], k, v), "", false)
 		}
 	}
 }

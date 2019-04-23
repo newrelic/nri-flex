@@ -103,7 +103,7 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 								if err == nil {
 									// delete old data
 									delete((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), flatSplit[1])
-									// depending if nested it may not be targetted correctly so auto set something in remove_keys - hacky workaround
+									// depending if nested it may not be targeted correctly so auto set something in remove_keys - hacky workaround
 									cfg.APIs[api].RemoveKeys = append(cfg.APIs[api].RemoveKeys, flatSplit[1]+"Samples")
 
 									// add back into the datasample
