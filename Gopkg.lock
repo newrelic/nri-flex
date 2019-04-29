@@ -26,6 +26,19 @@
   version = "v0.4.12"
 
 [[projects]]
+  digest = "1:fc53fe55ee530de09a7593d102a4aae9df3fa085abeb9fbd41becc6d56e335f2"
+  name = "github.com/aws/aws-lambda-go"
+  packages = [
+    "lambda",
+    "lambda/handlertrace",
+    "lambda/messages",
+    "lambdacontext",
+  ]
+  pruneopts = "UT"
+  revision = "08d251dc58f204411d79012fd6f1beefb7107fea"
+  version = "v1.10.0"
+
+[[projects]]
   branch = "master"
   digest = "1:cf0505eb7d4704d5ab445353dc64122acf56d13937e20dac5570b995cb21232c"
   name = "github.com/denisenkom/go-mssqldb"
@@ -319,6 +332,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Knetic/govaluate",
+    "github.com/aws/aws-lambda-go/lambda",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api",
     "github.com/docker/docker/api/types",
@@ -328,6 +342,7 @@
     "github.com/json-iterator/go",
     "github.com/lib/pq",
     "github.com/newrelic/infra-integrations-sdk/args",
+    "github.com/newrelic/infra-integrations-sdk/data/event",
     "github.com/newrelic/infra-integrations-sdk/data/metric",
     "github.com/newrelic/infra-integrations-sdk/integration",
     "github.com/newrelic/infra-integrations-sdk/log",

@@ -20,10 +20,16 @@ func main() {
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
 
 	outputs.InfraIntegration()
+	outputs.LambdaCheck()
 	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
 
 	// todo: port cluster mode here
 	runIntegration()
+
+	if outputs.LambdaEnabled {
+		outputs.LambdaFinish()
+	}
+
 	logger.Flex("fatal", load.Integration.Publish(), "unable to publish", false)
 }
 
