@@ -11,6 +11,6 @@ import (
 func StatusSample() {
 	flexStatusSample := load.Entity.NewMetricSet("flexStatusSample")
 	for counter, value := range load.FlexStatusCounter.M {
-		logger.Flex("debug", flexStatusSample.SetMetric("flex."+counter, value, metric.GAUGE), "", false)
+		logger.Flex("error", flexStatusSample.SetMetric("flex."+counter, value, metric.GAUGE), "", false)
 	}
 }

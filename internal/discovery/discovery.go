@@ -27,21 +27,21 @@ func Run(cfg *[]load.Config) {
 	var err error
 	cli, err = setDockerClient()
 	if err != nil {
-		logger.Flex("debug", err, "unable to set docker client", false)
+		logger.Flex("error", err, "unable to set docker client", false)
 	} else {
 		ctx := context.Background()
 		containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 		if err != nil {
-			logger.Flex("debug", err, "unable to set perform container list", false)
+			logger.Flex("error", err, "unable to set perform container list", false)
 		} else if len(containerList) > 0 {
 			// List config files in containerDiscoveryPath directory
 			containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
 			containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
-			logger.Flex("debug", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
+			logger.Flex("error", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
 
 			CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, cfg)
 			if len(containerDiscoveryFiles) == 0 {
-				logger.Flex("info", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+				logger.Flex("debug", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
 			}
 		}
 	}
@@ -63,7 +63,7 @@ func FindFlexContainerID(read string) {
 			}
 		}
 	} else {
-		logger.Flex("debug", err, "potentially not running within a container", false)
+		logger.Flex("debug", nil, "potentially not running within a container", false)
 	}
 }
 
@@ -245,7 +245,7 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 							ctx := context.Background()
 							reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
 							if err != nil {
-								logger.Flex("debug", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
+								logger.Flex("error", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
 							} else {
 								if findContainerTarget(discoveryConfig, container, key, foundTargetContainerIds) {
 									logger.Flex("debug", fmt.Errorf("rev lookup matched %v: %v - %v", container.ID, key, val), "", false)
@@ -270,13 +270,13 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 		case string:
 			configName = cfg + ".yml"
 		default:
-			logger.Flex("debug", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
+			logger.Flex("error", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
 		}
 		if containerYml.FileName == configName {
 			logger.Flex("debug", fmt.Errorf("container discovery %v matched %v", targetContainer.ID, containerYml.FileName), "", false)
 			b, err := ioutil.ReadFile(path + containerYml.FileName)
 			if err != nil {
-				logger.Flex("debug", err, "unable to read flex config: "+path+containerYml.FileName, false)
+				logger.Flex("error", err, "unable to read flex config: "+path+containerYml.FileName, false)
 			} else {
 				ymlString := string(b)
 				discoveryIPAddress := "" // we require IP at least
@@ -370,8 +370,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 				} else {
 					yml, err := config.ReadYML(ymlString)
 					if err != nil {
-						logger.Flex("debug", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
-						logger.Flex("debug", fmt.Errorf(ymlString), "", false)
+						logger.Flex("error", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
+						logger.Flex("error", fmt.Errorf(ymlString), "", false)
 					} else {
 						if yml.CustomAttributes == nil {
 							yml.CustomAttributes = map[string]string{}
@@ -476,9 +476,9 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 			if output != nil {
 				message = message + " " + string(output)
 			}
-			logger.Flex("debug", err, message, false)
+			logger.Flex("error", err, message, false)
 		} else if ctx.Err() == context.DeadlineExceeded {
-			logger.Flex("debug", ctx.Err(), "command timed out", false)
+			logger.Flex("error", ctx.Err(), "command timed out", false)
 		} else if ctx.Err() != nil {
 			logger.Flex("debug", err, "command execution failed", false)
 		} else {
@@ -486,7 +486,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 			// ensure this is an ipv4 address
 			re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
 			if re.Match([]byte(ipv4)) {
-				logger.Flex("info", nil, fmt.Sprintf("fetched %v", ipv4), false)
+				logger.Flex("debug", nil, fmt.Sprintf("fetched %v", ipv4), false)
 				*discoveryIPAddress = ipv4
 			} else {
 				logger.Flex("debug", fmt.Errorf("low level fetch failed %v", ipv4), "", false)

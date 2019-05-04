@@ -39,15 +39,15 @@ func modifyEventType(entity *integration.Entity) {
 func postRequest(entity *integration.Entity) {
 	jsonData, err := json.Marshal(entity.Metrics)
 	if err != nil {
-		logger.Flex("debug", err, "failed to marshal", false)
+		logger.Flex("errpr", err, "failed to marshal", false)
 	} else {
 		var zlibCompressedPayload bytes.Buffer
 		w := zlib.NewWriter(&zlibCompressedPayload)
 		_, err := w.Write(jsonData)
-		logger.Flex("debug", err, "unable to write zlib compressed form", false)
-		logger.Flex("debug", w.Close(), "unable to close zlib writer", false)
+		logger.Flex("error", err, "unable to write zlib compressed form", false)
+		logger.Flex("error", w.Close(), "unable to close zlib writer", false)
 		if err != nil {
-			logger.Flex("debug", fmt.Errorf("failed to compress payload"), "", false)
+			logger.Flex("error", fmt.Errorf("failed to compress payload"), "", false)
 		} else {
 			tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 			client := &http.Client{Transport: tr}
@@ -55,13 +55,13 @@ func postRequest(entity *integration.Entity) {
 			logger.Flex("info", nil, fmt.Sprintf("insights: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)), false)
 
 			if err != nil {
-				logger.Flex("debug", err, "unable to create http.Request", false)
+				logger.Flex("error", err, "unable to create http.Request", false)
 			} else {
 				req.Header.Set("Content-Encoding", "deflate")
 				req.Header.Set("Content-Type", "application/json")
 				req.Header.Set("X-Insert-Key", load.Args.InsightsAPIKey)
 				_, err := client.Do(req)
-				logger.Flex("debug", err, "unable to send", false)
+				logger.Flex("error", err, "unable to send", false)
 			}
 		}
 	}

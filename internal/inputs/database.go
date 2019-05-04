@@ -36,13 +36,13 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 
 	if err != nil || pingError != nil {
 		if err != nil {
-			logger.Flex("debug", err, "", false)
+			logger.Flex("error", err, "", false)
 			if api.Logging.Open {
 				errorLogToInsights(err, api.Database, api.Name, "")
 			}
 		}
 		if pingError != nil {
-			logger.Flex("debug", pingError, "ping error", false)
+			logger.Flex("error", pingError, "ping error", false)
 			if api.Logging.Open {
 				errorLogToInsights(pingError, api.Database, api.Name, "")
 			}
@@ -50,24 +50,24 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 	} else {
 		for _, query := range api.DbQueries {
 			if query.Name == "" {
-				logger.Flex("debug", fmt.Errorf("missing name for: %v", query.Run), "", false)
+				logger.Flex("error", fmt.Errorf("missing name for: %v", query.Run), "", false)
 				break
 			}
 			if query.Run == "" {
-				logger.Flex("debug", fmt.Errorf("query ('run') parameter not defined"), "", false)
+				logger.Flex("error", fmt.Errorf("query ('run') parameter not defined"), "", false)
 				break
 			}
 
 			rows, err := db.Query(query.Run)
 			if err != nil {
-				logger.Flex("debug", err, "query: "+query.Run, false)
+				logger.Flex("error", err, "query: "+query.Run, false)
 				errorLogToInsights(err, api.Database, api.Name, query.Name)
 			} else {
-				logger.Flex("info", nil, fmt.Sprintf("running query: %v", query.Run), false)
+				logger.Flex("debug", nil, fmt.Sprintf("running query: %v", query.Run), false)
 
 				cols, err := rows.Columns()
 				if err != nil {
-					logger.Flex("debug", err, "", false)
+					logger.Flex("error", err, "", false)
 					errorLogToInsights(err, api.Database, api.Name, query.Name)
 				} else {
 					values := make([]sql.RawBytes, len(cols))
@@ -92,7 +92,7 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 						// get RawBytes
 						err = rows.Scan(scanArgs...)
 						if err != nil {
-							logger.Flex("debug", err, "", false)
+							logger.Flex("error", err, "", false)
 						} else {
 							// Loop through each column
 							for i, col := range values {

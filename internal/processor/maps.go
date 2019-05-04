@@ -28,7 +28,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		if (load.FlexStatusCounter.M["EventCount"] > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.FlexStatusCounter.M["EventDropCount"]++
 			if load.FlexStatusCounter.M["EventDropCount"] == 1 { // don't output the message more then once
-				logger.Flex("debug",
+				logger.Flex("error",
 					fmt.Errorf("event Limit %d has been reached, please increase if required", load.Args.EventLimit),
 					"", false)
 			}
@@ -136,8 +136,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			}
 
 			// set default attribute(s)
-			logger.Flex("debug", metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
-			logger.Flex("debug", metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE), "", false)
+			logger.Flex("error", metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
+			logger.Flex("error", metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE), "", false)
 
 			//add sample metrics
 			for k, v := range currentSample {
@@ -181,9 +181,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
 		if inventory[k] == "value" {
-			logger.Flex("debug", entity.SetInventoryItem(k, "value", v), "", false)
+			logger.Flex("error", entity.SetInventoryItem(k, "value", v), "", false)
 		} else {
-			logger.Flex("debug", entity.SetInventoryItem(inventory[k], k, v), "", false)
+			logger.Flex("error", entity.SetInventoryItem(inventory[k], k, v), "", false)
 		}
 	}
 }
@@ -489,28 +489,28 @@ func AutoSetMetric(k string, v interface{}, metricSet *metric.Set, metrics map[s
 	value := fmt.Sprintf("%v", v)
 	parsed, err := strconv.ParseFloat(value, 64)
 	if err != nil || strings.EqualFold(value, "infinity") {
-		logger.Flex("debug", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
+		logger.Flex("error", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
 			if (k == metricKey) || (autoSet && formatter.KvFinder("regex", k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
-					logger.Flex("debug", metricSet.SetMetric(k, parsed, metric.RATE), "", false)
+					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.RATE), "", false)
 					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
-					logger.Flex("debug", metricSet.SetMetric(k, parsed, metric.DELTA), "", false)
+					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.DELTA), "", false)
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
-					logger.Flex("debug", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
+					logger.Flex("error", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
 					break
 				}
 			}
 		}
 		if !foundKey {
-			logger.Flex("debug", metricSet.SetMetric(k, parsed, metric.GAUGE), "", false)
+			logger.Flex("error", metricSet.SetMetric(k, parsed, metric.GAUGE), "", false)
 		}
 	}
 }

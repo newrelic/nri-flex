@@ -125,7 +125,7 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 				delete((*ds), flattenKey)
 				(*ds)[flattenKey] = flat
 			} else {
-				logger.Flex("debug", err, "unable to lazy_flatten", false)
+				logger.Flex("error", err, "unable to lazy_flatten", false)
 			}
 		}
 	}
@@ -144,11 +144,11 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		}
 		expression, err := govaluate.NewEvaluableExpression(finalFormula)
 		if err != nil {
-			logger.Flex("debug", err, fmt.Sprintf("%v math exp failed %v", newMetric, finalFormula), false)
+			logger.Flex("error", err, fmt.Sprintf("%v math exp failed %v", newMetric, finalFormula), false)
 		} else {
 			result, err := expression.Evaluate(nil)
 			if err != nil {
-				logger.Flex("debug", err, fmt.Sprintf("%v math evalute failed %v", newMetric, finalFormula), false)
+				logger.Flex("error", err, fmt.Sprintf("%v math evalute failed %v", newMetric, finalFormula), false)
 			} else {
 				(*currentSample)[newMetric] = result
 			}

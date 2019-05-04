@@ -67,7 +67,7 @@ func SubTimestamps(strConf *string) {
 			}
 			value, err := strconv.ParseInt(matches[3], 10, 64)
 			if err != nil {
-				logger.Flex("debug", err, "failed to parse int", false)
+				logger.Flex("error", err, "failed to parse int", false)
 			} else {
 				switch matches[2] {
 				case "+":

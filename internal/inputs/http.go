@@ -28,6 +28,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 			*reqURL = strings.TrimSuffix(*reqURL, "//")
 			*reqURL += "/%2f"
 		}
+		*reqURL = strings.TrimPrefix(*reqURL, " ")
 
 		switch {
 		case api.Method == "POST" && api.Payload != "":

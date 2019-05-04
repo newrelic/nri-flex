@@ -40,7 +40,7 @@ func setDockerClient() (*client.Client, error) {
 		}
 
 		if err != nil {
-			logger.Flex("debug", err, "unable to fetch Docker API version - setting client with NewClientWithOpts()", false)
+			logger.Flex("error", err, "unable to fetch Docker API version - setting client with NewClientWithOpts()", false)
 			cli, err = client.NewClientWithOpts()
 		} else {
 			cmdOut := string(out)

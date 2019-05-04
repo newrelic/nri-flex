@@ -27,7 +27,7 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 	mfChan := make(chan *dto.MetricFamily, 1024)
 	go func() {
 		if err := ParseReader(input, mfChan); err != nil {
-			logger.Flex("debug", err, "prometheus parsing failure", false)
+			logger.Flex("error", err, "prometheus parsing failure", false)
 		}
 	}()
 

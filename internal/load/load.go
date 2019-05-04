@@ -6,6 +6,7 @@ import (
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	logrus "github.com/sirupsen/logrus"
 )
 
 // ArgumentList Available Arguments
@@ -45,6 +46,9 @@ var Hostname string
 
 // ContainerID current container id
 var ContainerID string
+
+// Logrus create instance of the logger
+var Logrus = logrus.New()
 
 // FlexStatusCounter count internal metrics
 var FlexStatusCounter = struct {

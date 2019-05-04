@@ -32,11 +32,11 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 		config, err := ReadYML(ymlStr)
 		config.FileName = f.Name()
 		if err != nil {
-			logger.Flex("debug", err, "unable to read yml", false)
+			logger.Flex("error", err, "unable to read yml", false)
 			continue
 		}
 		if config.Name == "" {
-			logger.Flex("debug", err, fmt.Sprintf("config file %v requires a name", f.Name()), false)
+			logger.Flex("error", fmt.Errorf("config file %v requires a name", f.Name()), "", false)
 			continue
 		}
 		*configs = append(*configs, config)
@@ -69,6 +69,7 @@ func RunFiles(configs *[]load.Config) {
 	var wg sync.WaitGroup
 	wg.Add(len(*configs))
 	for _, cfg := range *configs {
+		logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
 		go func(cfg load.Config) {
 			defer wg.Done()
 			Run(cfg)
@@ -85,7 +86,7 @@ func RunVariableProcessor(i int, cfg *load.Config) {
 		// to simplify replacement, convert to string, and convert back later
 		tmpCfgBytes, err := yaml.Marshal(&cfg)
 		if err != nil {
-			logger.Flex("debug", err, "variable processor marshal failed", false)
+			logger.Flex("error", err, "variable processor marshal failed", false)
 		} else {
 			tmpCfgStr := string(tmpCfgBytes)
 			variableReplaces := regexp.MustCompile(`\${var:.*?}`).FindAllString(tmpCfgStr, -1)
@@ -101,7 +102,7 @@ func RunVariableProcessor(i int, cfg *load.Config) {
 			if replaceOccured {
 				newCfg, err := ReadYML(tmpCfgStr)
 				if err != nil {
-					logger.Flex("debug", err, "variable processor unmarshal failed", false)
+					logger.Flex("error", err, "variable processor unmarshal failed", false)
 				} else {
 					*cfg = newCfg
 				}

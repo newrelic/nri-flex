@@ -28,13 +28,13 @@ func FetchData(i int, yml *load.Config) []interface{} {
 		if file != "" {
 			fileData, err := ioutil.ReadFile(file)
 			if err != nil {
-				logger.Flex("debug", err, "unable to read file: "+file, false)
+				logger.Flex("error", err, "unable to read file: "+file, false)
 			} else {
 				newBody := strings.Replace(string(fileData), " ", "", -1)
 				var f interface{}
 				err := json.Unmarshal([]byte(newBody), &f)
 				if err != nil {
-					logger.Flex("debug", err, "failed to unmarshal", false)
+					logger.Flex("error", err, "failed to unmarshal", false)
 				} else {
 					dataStore = append(dataStore, f)
 				}
@@ -80,7 +80,7 @@ func FetchLookups(cfg *load.Config, i int) bool {
 	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[i])
 
 	if err != nil {
-		logger.Flex("debug", err, "lookup processor marshal failed", false)
+		logger.Flex("error", err, "lookup processor marshal failed", false)
 	} else {
 		tmpCfgStr := string(tmpCfgBytes)
 
@@ -118,7 +118,7 @@ func FetchLookups(cfg *load.Config, i int) bool {
 				API := load.API{}
 				err := yaml.Unmarshal([]byte(newAPI), &API)
 				if err != nil {
-					logger.Flex("debug", err, "failed to unmarshal lookup config", false)
+					logger.Flex("error", err, "failed to unmarshal lookup config", false)
 				} else {
 					lookupConfig.APIs = append(lookupConfig.APIs, API)
 				}

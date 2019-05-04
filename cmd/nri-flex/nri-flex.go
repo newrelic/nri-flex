@@ -12,9 +12,11 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	load.Logrus.Out = os.Stdout
 	load.FlexStatusCounter.M["EventCount"] = 0
 	load.FlexStatusCounter.M["EventDropCount"] = 0
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
@@ -35,6 +37,10 @@ func main() {
 
 // runIntegration runs nri-flex
 func runIntegration() {
+	if load.Args.Verbose {
+		load.Logrus.SetLevel(logrus.TraceLevel)
+	}
+
 	// store config ymls
 	var configs []load.Config
 
@@ -62,7 +68,7 @@ func runIntegration() {
 	config.LoadFiles(&configs, files, path)
 	config.RunFiles(&configs)
 	outputs.StatusSample()
-	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
-		outputs.SendToInsights()
-	}
+	// if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
+	// 	outputs.SendToInsights()
+	// }
 }

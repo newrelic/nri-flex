@@ -82,7 +82,7 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
-							logger.Flex("info", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
+							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
 							processOutput(sample["http"].(string), dataStore, &dataSample, command, api, &processType)
 						}
 					}
@@ -156,7 +156,7 @@ func processOutput(output string, dataStore *[]interface{}, dataSample *map[stri
 			if command.Cache != "" {
 				cmd = "cache - " + command.Cache
 			}
-			logger.Flex("info", nil, fmt.Sprintf("running %v", cmd), false)
+			logger.Flex("debug", nil, fmt.Sprintf("running %v", cmd), false)
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
@@ -183,7 +183,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
+				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -226,7 +226,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if i != headerLine && i >= startLine {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
+				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
 				break
 			}
 
