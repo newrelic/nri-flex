@@ -122,7 +122,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily) {
 					TimestampMs:      time.Now().UnixNano() / 1e+6,
 					CommonAttributes: attributes,
 					Metrics: []map[string]interface{}{
-						map[string]interface{}{
+						{
 							"name":  mf.GetName(),
 							"type":  "gauge",
 							"value": getValue(m),
@@ -135,7 +135,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily) {
 					TimestampMs:      time.Now().UnixNano() / 1e+6,
 					CommonAttributes: attributes,
 					Metrics: []map[string]interface{}{
-						map[string]interface{}{
+						{
 							"name":  mf.GetName(),
 							"type":  "gauge",
 							"value": getValue(m),
