@@ -28,7 +28,7 @@ func setDockerClient() (*client.Client, error) {
 	if load.Args.DockerAPIVersion != "" {
 		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
 	} else {
-		logger.Flex("info", nil, fmt.Sprintf("GOOS: %v", runtime.GOOS), false)
+		logger.Flex("debug", nil, fmt.Sprintf("GOOS: %v", runtime.GOOS), false)
 
 		if runtime.GOOS == "windows" {
 			out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
@@ -49,11 +49,11 @@ func setDockerClient() (*client.Client, error) {
 			apiVer, _ := strconv.ParseFloat(api.DefaultVersion, 64)
 
 			if clientVer <= apiVer {
-				logger.Flex("info", nil, fmt.Sprintf("Setting client with version:%v", clientAPIVersion), false)
+				logger.Flex("debug", nil, fmt.Sprintf("Setting client with version:%v", clientAPIVersion), false)
 				cli, err = client.NewClientWithOpts(client.WithVersion(clientAPIVersion))
 			} else {
-				logger.Flex("info", nil, fmt.Sprintf("Client API Version %v is higher then integration version %v", clientAPIVersion, api.DefaultVersion), false)
-				logger.Flex("info", nil, "Setting client with NewClientWithOpts()", false)
+				logger.Flex("debug", nil, fmt.Sprintf("Client API Version %v is higher then integration version %v", clientAPIVersion, api.DefaultVersion), false)
+				logger.Flex("debug", nil, "Setting client with NewClientWithOpts()", false)
 				cli, err = client.NewClientWithOpts()
 			}
 		}

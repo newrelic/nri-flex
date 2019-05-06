@@ -54,7 +54,7 @@ func FindFlexContainerID(read string) {
 	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
 	if err == nil {
 		strCpuset := strings.TrimSpace(string(cpuset))
-		logger.Flex("info", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
+		logger.Flex("debug", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
 		values := strings.Split(strCpuset, "/")
 		if len(values) > 0 {
 			if len(values[len(values)-1]) == 64 {
@@ -460,7 +460,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 		// targetContainerInspect.State.Pid
 		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
 
-		logger.Flex("info", nil, "attempting low level ip fetch", false)
+		logger.Flex("debug", nil, "attempting low level ip fetch", false)
 
 		// Create a new context and add a timeout to it
 		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)

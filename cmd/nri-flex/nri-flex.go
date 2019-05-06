@@ -23,8 +23,6 @@ func main() {
 
 	outputs.InfraIntegration()
 	outputs.LambdaCheck()
-	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
-
 	// todo: port cluster mode here
 	runIntegration()
 
@@ -40,6 +38,7 @@ func runIntegration() {
 	if load.Args.Verbose {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
+	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
 
 	// store config ymls
 	var configs []load.Config

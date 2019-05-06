@@ -52,7 +52,7 @@ func postRequest(entity *integration.Entity) {
 			tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 			client := &http.Client{Transport: tr}
 			req, err := http.NewRequest("POST", load.Args.InsightsURL, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
-			logger.Flex("info", nil, fmt.Sprintf("insights: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)), false)
+			logger.Flex("debug", nil, fmt.Sprintf("insights: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)), false)
 
 			if err != nil {
 				logger.Flex("error", err, "unable to create http.Request", false)
