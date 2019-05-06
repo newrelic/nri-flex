@@ -13,7 +13,7 @@ import (
 // LambdaEnabled flag that lambda is enabled
 var LambdaEnabled bool
 
-// LambdaEnabled flag that lambda executed successfully
+// LambdaSuccess flag that lambda executed successfully
 var LambdaSuccess bool
 
 // LambdaCheck check if Flex is running within a Lambda
