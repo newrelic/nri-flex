@@ -85,12 +85,8 @@ func StripKeys(ds *map[string]interface{}, stripKeys []string) {
 // FindStartKey start at a different section of a payload
 func FindStartKey(mainDataset *map[string]interface{}, startKeys []string) {
 	for _, startKey := range startKeys {
-		// fmt.Println(i, startKey)
-		// fmt.Println()
-
 		startSplit := strings.Split(startKey, ">")
 		if len(startSplit) == 2 {
-			// fmt.Println(startSplit)
 			if (*mainDataset)[startSplit[0]] != nil {
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
@@ -118,11 +114,7 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string) {
 					*mainDataset = mainDs
 				case []interface{}:
 					*mainDataset = map[string]interface{}{startKey: mainDs}
-					// x, _ := json.Marshal(*mainDataset)
-					// fmt.Println(string(x))
 				}
-			} else {
-				// fmt.Println("didn't find it:", startKey)
 			}
 		}
 	}

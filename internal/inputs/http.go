@@ -28,21 +28,21 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 			*reqURL = strings.TrimSuffix(*reqURL, "//")
 			*reqURL += "/%2f"
 		}
-		*reqURL = strings.TrimPrefix(*reqURL, " ")
 
+		*reqURL = yml.Global.BaseURL + *reqURL
 		switch {
 		case api.Method == "POST" && api.Payload != "":
-			request = request.Post(yml.Global.BaseURL + *reqURL)
+			request = request.Post(*reqURL)
 			request = request.Send(api.Payload)
 		case api.Method == "PUT" && api.Payload != "":
-			request = request.Put(yml.Global.BaseURL + *reqURL)
+			request = request.Put(*reqURL)
 			request = request.Send(api.Payload)
 		default:
-			request = request.Get(yml.Global.BaseURL + *reqURL)
+			request = request.Get(*reqURL)
 		}
 
 		request = setRequestOptions(request, *yml, api)
-
+		logger.Flex("debug", nil, fmt.Sprintf("sending %v request to %v", request.Method, *reqURL), false)
 		resp, _, errors := request.End()
 		if resp != nil {
 			nextLink := ""
@@ -52,6 +52,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 					if strings.Contains(link, "next") {
 						theLink := strings.Split(link, ";")
 						nextLink = strings.Replace((strings.Replace(theLink[0], "<", "", -1)), ">", "", -1)
+						nextLink = strings.TrimPrefix(nextLink, " ")
 					}
 				}
 			}
@@ -155,7 +156,7 @@ func handleJSON(body []byte, dataStore *[]interface{}, resp *gorequest.Response,
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
-		logger.Flex("debug", err, "", false)
+		logger.Flex("error", err, "", false)
 	} else {
 		switch f := f.(type) {
 		case []interface{}:
@@ -181,7 +182,6 @@ func handleJSON(body []byte, dataStore *[]interface{}, resp *gorequest.Response,
 			theSample := f
 			theSample["api.StatusCode"] = (*resp).StatusCode
 			*dataStore = append(*dataStore, theSample)
-			// requestedPage = f.(map[string]interface{})
 			if theSample["error"] != nil {
 				logger.Flex("debug", nil, "Request failed "+fmt.Sprintf("%v", theSample["error"]), false)
 			}
