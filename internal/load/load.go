@@ -63,6 +63,7 @@ var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
 const (
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
 	DefaultPingTimeout = 5000                     // 5 seconds
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
@@ -206,6 +207,8 @@ type Command struct {
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout
+	Dial             string            `yaml:"dial"`              // eg. google.com:80
+	Network          string            `yaml:"network"`           // default tcp
 
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table

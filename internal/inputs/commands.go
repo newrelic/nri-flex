@@ -23,7 +23,7 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 	dataSample := map[string]interface{}{}
 	processType := ""
 	for _, command := range api.Commands {
-		if command.Run != "" {
+		if command.Run != "" && command.Dial == "" {
 			runCommand := command.Run
 			if command.Output == load.Jmx {
 				SetJMXCommand(&runCommand, command, api, yml)
@@ -88,6 +88,8 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 					}
 				}
 			}
+		} else if command.Dial != "" {
+			NetDialWithTimeout(command, dataStore, &dataSample, api, &processType)
 		}
 	}
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed
