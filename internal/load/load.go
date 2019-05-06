@@ -178,6 +178,7 @@ type API struct {
 	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
+	SplitObjects      bool                `yaml:"split_objects"`     // convert object with nested objects to array
 	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy           string              `yaml:"split_by"`          // character to split by
 	SetHeader         []string            `yaml:"set_header"`        // manually set header column names

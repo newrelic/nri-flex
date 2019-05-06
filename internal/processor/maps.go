@@ -276,7 +276,7 @@ func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.C
 }
 
 // FlattenData flatten an interface
-func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string) map[string]interface{} {
+func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string, api *load.API) map[string]interface{} {
 	switch unknown := unknown.(type) {
 	case []interface{}:
 		dataSamples := []interface{}{}
@@ -290,34 +290,46 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 			data[key+"FlexSamples"] = dataSamples
 		}
 	case map[string]interface{}:
-		for loopKey := range unknown {
-			finalKey := loopKey
-			if key != "" {
-				finalKey = key + "." + loopKey
-			}
-
-			// Check sample keys and convert to samples using ">" as the sample key splitter if defined
-			// Knowing the sampleKey itself isn't really needed as these get turned into samples
-			for _, sampleVal := range sampleKeys {
-				keys := strings.Split(sampleVal, ">")
-				flexSamples := []interface{}{}
-				// if the one of the keys == the loopKey we know to create samples
-				if len(keys) > 0 && keys[0] == loopKey {
-					switch unknown[loopKey].(type) {
-					case map[string]interface{}:
-						dataSamples := unknown[loopKey].(map[string]interface{})
-						for dataSampleKey, dataSample := range dataSamples {
-							newSample := dataSample.(map[string]interface{})
-							newSample[keys[1]] = dataSampleKey
-							flexSamples = append(flexSamples, FlattenData(newSample, map[string]interface{}{}, "", sampleKeys))
-						}
-						unknown[loopKey] = flexSamples
-					}
-
+		if api.SplitObjects {
+			dataSamples := []interface{}{}
+			for loopKey := range unknown {
+				switch data := unknown[loopKey].(type) {
+				case map[string]interface{}:
+					data["split.id"] = loopKey
+					dataSamples = append(dataSamples, data)
 				}
 			}
+			(*api).SplitObjects = false
+			FlattenData(dataSamples, data, key, sampleKeys, api)
+		} else {
+			for loopKey := range unknown {
+				finalKey := loopKey
+				if key != "" {
+					finalKey = key + "." + loopKey
+				}
 
-			FlattenData(unknown[loopKey], data, finalKey, sampleKeys)
+				// Check sample keys and convert to samples using ">" as the sample key splitter if defined
+				// Knowing the sampleKey itself isn't really needed as these get turned into samples
+				for _, sampleVal := range sampleKeys {
+					keys := strings.Split(sampleVal, ">")
+					flexSamples := []interface{}{}
+					// if the one of the keys == the loopKey we know to create samples
+					if len(keys) > 0 && keys[0] == loopKey {
+						switch unknown[loopKey].(type) {
+						case map[string]interface{}:
+							dataSamples := unknown[loopKey].(map[string]interface{})
+							for dataSampleKey, dataSample := range dataSamples {
+								newSample := dataSample.(map[string]interface{})
+								newSample[keys[1]] = dataSampleKey
+								flexSamples = append(flexSamples, FlattenData(newSample, map[string]interface{}{}, "", sampleKeys, api))
+							}
+							unknown[loopKey] = flexSamples
+						}
+					}
+				}
+
+				FlattenData(unknown[loopKey], data, finalKey, sampleKeys, api)
+			}
 		}
 	default:
 		data[key] = unknown
@@ -327,7 +339,7 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 		// separately flatten the flex samples, adding them back into the slice with a new key
 		// & removing the old from data thus a replace
 		if strings.Contains(dataKey, "FlexSamples") {
-			strippedDataKey, newSamples := processFlexSamples(dataKey, data[dataKey].([]interface{}), sampleKeys)
+			strippedDataKey, newSamples := processFlexSamples(dataKey, data[dataKey].([]interface{}), sampleKeys, api)
 			data[strippedDataKey] = newSamples
 			delete(data, dataKey)
 		}
@@ -421,21 +433,21 @@ func checkPrometheus(dataSamples []interface{}) bool {
 }
 
 // processFlexSamples Processes Flex detected samples
-func processFlexSamples(dataKey string, dataSamples []interface{}, sampleKeys map[string]string) (string, []interface{}) {
+func processFlexSamples(dataKey string, dataSamples []interface{}, sampleKeys map[string]string, api *load.API) (string, []interface{}) {
 	newSamples := []interface{}{}
 	for _, sample := range dataSamples {
-		sampleFlatten := FlattenData(sample, map[string]interface{}{}, "", sampleKeys)
+		sampleFlatten := FlattenData(sample, map[string]interface{}{}, "", sampleKeys, api)
 		if sampleFlatten["valuesPrometheusSamples"] != nil {
 			for _, prometheusSample := range sampleFlatten["valuesPrometheusSamples"].([]interface{}) {
 				// this could be optimized
-				newSample := FlattenData(sample, map[string]interface{}{}, "", sampleKeys)
+				newSample := FlattenData(sample, map[string]interface{}{}, "", sampleKeys, api)
 				newSample["timestamp"] = int(prometheusSample.([]interface{})[0].(float64))
 				newSample["value"] = prometheusSample.([]interface{})[1]
 				delete(newSample, "valuesPrometheusSamples")
 				newSamples = append(newSamples, newSample)
 			}
 		} else if sampleFlatten["valuePrometheusSamples"] != nil {
-			newSample := FlattenData(sample, map[string]interface{}{}, "", sampleKeys)
+			newSample := FlattenData(sample, map[string]interface{}{}, "", sampleKeys, api)
 			newSample["timestamp"] = int(sampleFlatten["valuePrometheusSamples"].([]interface{})[0].(float64))
 			newSample["value"] = sampleFlatten["valuePrometheusSamples"].([]interface{})[1]
 			delete(newSample, "valuePrometheusSamples")
