@@ -83,16 +83,17 @@ func TestRunHTTP(t *testing.T) {
 			"api.StatusCode": 200,
 		},
 	}
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(load.Store.Data) != len(expectedSamples) {
-		t.Errorf("received sample count %d does not match expected %d", len(load.Store.Data), len(expectedSamples))
-		t.Errorf("%v", load.Store.Data)
+	if len(dataStore) != len(expectedSamples) {
+		t.Errorf("received sample count %d does not match expected %d", len(dataStore), len(expectedSamples))
+		t.Errorf("%v", dataStore)
 	}
 
-	for key := range load.Store.Data[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", expectedSamples[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], expectedSamples[0].(map[string]interface{})[key]))
+	for key := range dataStore[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", expectedSamples[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], expectedSamples[0].(map[string]interface{})[key]))
 		}
 	}
 }

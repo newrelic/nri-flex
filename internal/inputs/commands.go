@@ -18,7 +18,7 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // RunCommands executes the given commands to create one merged sampled
-func RunCommands(yml *load.Config, apiNo int) {
+func RunCommands(yml *load.Config, apiNo int, dataStore *[]interface{}) {
 	api := yml.APIs[apiNo]
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
@@ -27,7 +27,7 @@ func RunCommands(yml *load.Config, apiNo int) {
 		if command.Run != "" && command.Dial == "" {
 			runCommand := command.Run
 			if command.Output == load.Jmx {
-				SetJMXCommand(&runCommand, command, api, yml)
+				SetJMXCommand(dataStore, &runCommand, command, api, yml)
 			}
 			commandTimeout := load.DefaultTimeout
 			if api.Timeout > 0 {
@@ -72,9 +72,9 @@ func RunCommands(yml *load.Config, apiNo int) {
 				logger.Flex("debug", err, "command execution failed", false)
 			} else {
 				if command.SplitOutput != "" {
-					splitOutput(string(output), command)
+					splitOutput(dataStore, string(output), command)
 				} else {
-					processOutput(string(output), &dataSample, command, api, &processType)
+					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 				}
 			}
 		} else if command.Cache != "" {
@@ -84,24 +84,24 @@ func RunCommands(yml *load.Config, apiNo int) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
 							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
-							processOutput(sample["http"].(string), &dataSample, command, api, &processType)
+							processOutput(dataStore, sample["http"].(string), &dataSample, command, api, &processType)
 						}
 					}
 				}
 			}
 		} else if command.Dial != "" {
-			NetDialWithTimeout(command, &dataSample, api, &processType)
+			NetDialWithTimeout(dataStore, command, &dataSample, api, &processType)
 		}
 	}
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed
 	// this can probably be shuffled elsewhere
 	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
-		load.StoreAppend(dataSample)
-		// *dataStore = append(*dataStore, dataSample)
+		// load.StoreAppend(dataSample)
+		*dataStore = append(*dataStore, dataSample)
 	}
 }
 
-func splitOutput(output string, command load.Command) {
+func splitOutput(dataStore *[]interface{}, output string, command load.Command) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 	outputBlocks := [][]string{}
 	startSplit := -1
@@ -121,10 +121,10 @@ func splitOutput(output string, command load.Command) {
 			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 		}
 	}
-	processBlocks(outputBlocks, command)
+	processBlocks(dataStore, outputBlocks, command)
 }
 
-func processBlocks(blocks [][]string, command load.Command) {
+func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Command) {
 	for _, block := range blocks {
 		sample := map[string]interface{}{}
 		regmatchCount := 0
@@ -146,12 +146,12 @@ func processBlocks(blocks [][]string, command load.Command) {
 			}
 			regmatchCount = 0
 		}
-		load.StoreAppend(sample)
-		// *dataStore = append(*dataStore, sample)
+		// load.StoreAppend(sample)
+		*dataStore = append(*dataStore, sample)
 	}
 }
 
-func processOutput(output string, dataSample *map[string]interface{}, command load.Command, api load.API, processType *string) {
+func processOutput(dataStore *[]interface{}, output string, dataSample *map[string]interface{}, command load.Command, api load.API, processType *string) {
 	dataOutput := output
 	commandOutput, dataInterface := detectCommandOutput(dataOutput, command.Output)
 	if !command.IgnoreOutput {
@@ -170,15 +170,15 @@ func processOutput(output string, dataSample *map[string]interface{}, command lo
 					logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
 				} else {
 					*processType = "columns"
-					processRawCol(dataSample, dataOutput, command)
+					processRawCol(dataStore, dataSample, dataOutput, command)
 				}
 			}
 		case load.TypeJSON:
-			load.StoreAppend(dataInterface)
-			// *dataStore = append(*dataStore, dataInterface)
+			// load.StoreAppend(dataInterface)
+			*dataStore = append(*dataStore, dataInterface)
 		case load.Jmx:
 			*processType = "jmx"
-			ParseJMX(dataInterface, command, dataSample)
+			ParseJMX(dataStore, dataInterface, command, dataSample)
 		}
 	}
 }
@@ -200,7 +200,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 	}
 }
 
-func processRawCol(dataSample *map[string]interface{}, dataOutput string, command load.Command) {
+func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{}, dataOutput string, command load.Command) {
 	headerLine := 0
 	startLine := 1
 
@@ -260,8 +260,8 @@ func processRawCol(dataSample *map[string]interface{}, dataOutput string, comman
 
 			if len(cmdSample) > 0 {
 				applyCustomAttributes(&cmdSample, &command.CustomAttributes)
-				load.StoreAppend(cmdSample)
-				// *dataStore = append(*dataStore, cmdSample)
+				// load.StoreAppend(cmdSample)
+				*dataStore = append(*dataStore, cmdSample)
 			}
 		}
 	}

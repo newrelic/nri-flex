@@ -161,11 +161,12 @@ func TestRedis(t *testing.T) {
 		},
 	}
 
-	RunCommands(&config, 0)
+	dataStore := []interface{}{}
+	RunCommands(&config, 0, &dataStore)
 
-	for key := range load.Store.Data[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range dataStore[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 
@@ -209,11 +210,12 @@ func TestDf(t *testing.T) {
 		},
 	}
 
-	RunCommands(&config, 0)
+	dataStore := []interface{}{}
+	RunCommands(&config, 0, &dataStore)
 
-	for key := range load.Store.Data[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range dataStore[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 
@@ -254,11 +256,12 @@ func TestDf2(t *testing.T) {
 		},
 	}
 
-	RunCommands(&config, 0)
+	dataStore := []interface{}{}
+	RunCommands(&config, 0, &dataStore)
 
-	for key := range load.Store.Data[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range dataStore[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 }

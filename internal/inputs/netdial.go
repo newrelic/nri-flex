@@ -14,7 +14,7 @@ import (
 )
 
 // NetDialWithTimeout performs network dial without timeout
-func NetDialWithTimeout(command load.Command, dataSample *map[string]interface{}, api load.API, processType *string) {
+func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{}, api load.API, processType *string) {
 	ctx := context.Background()
 	// Create a channel for signal handling
 	c := make(chan struct{})
@@ -63,9 +63,10 @@ func NetDialWithTimeout(command load.Command, dataSample *map[string]interface{}
 	select {
 	case <-ctx.Done():
 		if command.Run == "" {
-			load.StoreAppend(map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": ctx.Err().Error()})
+			*dataStore = append(*dataStore, map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": ctx.Err().Error()})
+			// load.StoreAppend(map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": ctx.Err().Error()})
 		} else if command.Run != "" && data != "" {
-			processOutput(data, dataSample, command, api, processType)
+			processOutput(dataStore, data, dataSample, command, api, processType)
 		}
 		if data == "" {
 			logger.Flex("error", errors.New("dial: "+ctx.Err().Error()), "", false)
@@ -74,12 +75,14 @@ func NetDialWithTimeout(command load.Command, dataSample *map[string]interface{}
 		}
 	case <-c:
 		if command.Run == "" && dialError == nil {
-			load.StoreAppend(map[string]interface{}{"portStatus": "open", "addr": command.Dial, "netw": netw})
+			*dataStore = append(*dataStore, map[string]interface{}{"portStatus": "open", "addr": command.Dial, "netw": netw})
+			// load.StoreAppend(map[string]interface{}{"portStatus": "open", "addr": command.Dial, "netw": netw})
 		} else if command.Run == "" && dialError != nil {
-			load.StoreAppend(map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": dialError.Error()})
+			*dataStore = append(*dataStore, map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": dialError.Error()})
+			// load.StoreAppend(map[string]interface{}{"portStatus": "closed", "addr": command.Dial, "netw": netw, "err": dialError.Error()})
 		} else if command.Run != "" && dialError == nil && data != "" {
-			processOutput(data, dataSample, command, api, processType)
+			processOutput(dataStore, data, dataSample, command, api, processType)
 		}
-		logger.Flex("debug", nil, "dial finished", false)
+		logger.Flex("debug", nil, fmt.Sprintf("finished dial %v : %v", command.Dial, netw), false)
 	}
 }

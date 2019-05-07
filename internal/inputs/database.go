@@ -21,7 +21,7 @@ import (
 )
 
 // ProcessQueries processes database queries
-func ProcessQueries(api load.API) {
+func ProcessQueries(dataStore *[]interface{}, api load.API) {
 	logger.Flex("debug", fmt.Errorf("running %v queries", api.Database), "", false)
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
@@ -103,7 +103,8 @@ func ProcessQueries(api load.API) {
 									rowSet[cols[i]] = string(col)
 								}
 							}
-							load.StoreAppend(rowSet)
+							*dataStore = append(*dataStore, rowSet)
+							// load.StoreAppend(rowSet)
 							rowNo++
 						}
 					}

@@ -20,6 +20,7 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 	reqURL := api.URL
 
 	doLoop := true
+	dataStore := []interface{}{}
 
 	continueProcessing := FetchLookups(yml, apiNo)
 
@@ -35,45 +36,44 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 				if err != nil {
 					logger.Flex("error", err, "failed to unmarshal", false)
 				} else {
-					load.StoreAppend(f)
-					// dataStore = append(dataStore, f)
+					dataStore = append(dataStore, f)
 				}
 			}
 		} else if api.Cache != "" {
 			if yml.Datastore[api.Cache] != nil {
-				load.StoreAppend(yml.Datastore[api.Cache])
-				// dataStore = yml.Datastore[api.Cache]
+				// load.StoreAppend(yml.Datastore[api.Cache])
+				dataStore = yml.Datastore[api.Cache]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
-			inputs.RunCommands(yml, apiNo)
+			inputs.RunCommands(yml, apiNo, &dataStore)
 		} else if reqURL != "" {
-			inputs.RunHTTP(&doLoop, yml, api, &reqURL)
+			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
 		} else if api.Database != "" && api.DbConn != "" {
-			inputs.ProcessQueries(api)
+			inputs.ProcessQueries(&dataStore, api)
 		}
 	}
 
 	// cache output into datastore for later use
-	if len(load.Store.Data) > 0 {
+	if len(dataStore) > 0 {
 		if api.URL != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.URL] = load.Store.Data
+			yml.Datastore[api.URL] = dataStore
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" && api.Name != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.Name] = load.Store.Data
+			yml.Datastore[api.Name] = dataStore
 		} else if api.File != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.File] = load.Store.Data
+			yml.Datastore[api.File] = dataStore
 		}
 	}
 
-	return load.Store.Data
+	return dataStore
 }
 
 // FetchLookups x

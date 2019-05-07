@@ -15,7 +15,7 @@ import (
 )
 
 // RunHTTP Executes HTTP Requests
-func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
+func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
 	for *doLoop {
 		request := gorequest.New()
 
@@ -63,10 +63,10 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
 
 			switch {
 			case api.Prometheus.Enable:
-				Prometheus(resp.Body, &api)
+				Prometheus(dataStore, resp.Body, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
-				handleJSON(body, &resp, doLoop, reqURL, nextLink)
+				handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, _ := ioutil.ReadAll(resp.Body)
@@ -74,7 +74,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
 				output, _ := detectCommandOutput(strBody, "")
 				switch output {
 				case load.TypeJSON:
-					handleJSON(body, &resp, doLoop, reqURL, nextLink)
+					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 				default:
 					logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
 					logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
@@ -152,7 +152,7 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 }
 
 // handleJSON Process JSON Payload
-func handleJSON(body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string) {
+func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string) {
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
@@ -166,12 +166,14 @@ func handleJSON(body []byte, resp *gorequest.Response, doLoop *bool, url *string
 				case map[string]interface{}:
 					httpSample := sample
 					httpSample["api.StatusCode"] = (*resp).StatusCode
-					load.StoreAppend(httpSample)
+					*dataStore = append(*dataStore, httpSample)
+					// load.StoreAppend(httpSample)
 				case string:
 					strSample := map[string]interface{}{
 						"output": sample,
 					}
-					load.StoreAppend(strSample)
+					// load.StoreAppend(strSample)
+					*dataStore = append(*dataStore, strSample)
 				default:
 					logger.Flex("debug", fmt.Errorf("not sure how to handle this %v", sample), "", false)
 				}
@@ -180,7 +182,8 @@ func handleJSON(body []byte, resp *gorequest.Response, doLoop *bool, url *string
 		case map[string]interface{}:
 			theSample := f
 			theSample["api.StatusCode"] = (*resp).StatusCode
-			load.StoreAppend(theSample)
+			// load.StoreAppend(theSample)
+			*dataStore = append(*dataStore, theSample)
 
 			if theSample["error"] != nil {
 				logger.Flex("debug", nil, "Request failed "+fmt.Sprintf("%v", theSample["error"]), false)

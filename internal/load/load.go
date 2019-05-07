@@ -25,6 +25,8 @@ type ArgumentList struct {
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 
 	// not implemented yet
 	// InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
@@ -49,12 +51,6 @@ var ContainerID string
 
 // Logrus create instance of the logger
 var Logrus = logrus.New()
-
-// FlexStatusCounter count internal metrics
-var FlexStatusCounter = struct {
-	sync.RWMutex
-	M map[string]int
-}{M: make(map[string]int)}
 
 var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
 var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
@@ -85,6 +81,70 @@ const (
 	TypeColumns        = "columns"
 )
 
+// FlexStatusCounter count internal metrics
+var FlexStatusCounter = struct {
+	sync.RWMutex
+	M map[string]int
+}{M: make(map[string]int)}
+
+// StatusCounterIncrement increment the status counter for a particular key
+func StatusCounterIncrement(key string) {
+	FlexStatusCounter.Lock()
+	FlexStatusCounter.M[key]++
+	FlexStatusCounter.Unlock()
+}
+
+// Store to store data and lock and unlock when needed
+var Store = struct {
+	sync.RWMutex
+	Data [][]interface{}
+}{}
+
+// StoreAppend Append data to store
+func StoreAppend(apiNo int, data interface{}) {
+	Store.Lock()
+	Store.Data[apiNo] = append(Store.Data[apiNo], data)
+	Store.Unlock()
+}
+
+// StoreEmpty empties stored data
+func StoreEmpty() {
+	Store.Lock()
+	// Store.Data = []interface{}{}
+	Store.Unlock()
+}
+
+// MetricsPayload for MetricAPI
+var MetricsPayload []Metrics
+
+// MetricsStore to store data and lock and unlock when needed
+var MetricsStore = struct {
+	sync.RWMutex
+	Data []Metrics
+}{}
+
+// MetricsStoreAppend Append data to store
+func MetricsStoreAppend(metrics Metrics) {
+	MetricsStore.Lock()
+	MetricsStore.Data = append(MetricsStore.Data, metrics)
+	MetricsStore.Unlock()
+}
+
+// MetricsStoreEmpty empties stored data
+func MetricsStoreEmpty() {
+	MetricsStore.Lock()
+	// MetricsStore.Data = []interface{}{}
+	MetricsStore.Unlock()
+}
+
+// Metrics struct
+type Metrics struct {
+	TimestampMs      int64                    `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
+	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
+	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
+	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
+}
+
 // Config YAML Struct
 type Config struct {
 	FileName         string // this will be set when files are read
@@ -96,6 +156,7 @@ type Config struct {
 	LookupFile       string                   `yaml:"lookup_file"`
 	VariableStore    map[string]string        `yaml:"variable_store"`
 	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI        bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
 }
 
 // Global struct
@@ -275,9 +336,11 @@ type Parse struct {
 
 // MetricParser Struct
 type MetricParser struct {
-	Namespace Namespace         `yaml:"namespace"`
-	Metrics   map[string]string `yaml:"metrics"`  // inputBytesPerSecond: RATE
-	AutoSet   bool              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Namespace Namespace                         `yaml:"namespace"`
+	Metrics   map[string]string                 `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	AutoSet   bool                              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Counts    map[string]int64                  `yaml:"counts"`
+	Summaries map[string]map[string]interface{} `yaml:"summaries"`
 }
 
 // Namespace Struct
@@ -298,31 +361,4 @@ func Refresh() {
 	Args.ContainerDiscovery = false
 	Args.ContainerDiscoveryDir = ""
 	StoreEmpty()
-}
-
-// StatusCounterIncrement increment the status counter for a particular key
-func StatusCounterIncrement(key string) {
-	FlexStatusCounter.Lock()
-	FlexStatusCounter.M[key]++
-	FlexStatusCounter.Unlock()
-}
-
-// Store to store data and lock and unlock when needed
-var Store = struct {
-	sync.RWMutex
-	Data []interface{}
-}{}
-
-// StoreAppend Append data to store
-func StoreAppend(data interface{}) {
-	Store.Lock()
-	Store.Data = append(Store.Data, data)
-	Store.Unlock()
-}
-
-// StoreEmpty empties stored data
-func StoreEmpty() {
-	Store.Lock()
-	Store.Data = []interface{}{}
-	Store.Unlock()
 }

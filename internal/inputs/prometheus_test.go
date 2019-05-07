@@ -50,17 +50,18 @@ func TestPrometheusRedis(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(expectedDatastore) != len(load.Store.Data) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
-		t.Errorf("%v", (load.Store.Data))
+	if len(expectedDatastore) != len(dataStore) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
+		t.Errorf("%v", (dataStore))
 	}
 
 	for _, sample := range expectedDatastore {
 		switch sample := sample.(type) {
 		case map[string]interface{}:
-			for _, rSample := range load.Store.Data {
+			for _, rSample := range dataStore {
 				switch recSample := rSample.(type) {
 				case map[string]interface{}:
 
@@ -116,17 +117,18 @@ func TestPrometheusNginx(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(expectedDatastore) != len(load.Store.Data) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
-		t.Errorf("%v", (load.Store.Data))
+	if len(expectedDatastore) != len(dataStore) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
+		t.Errorf("%v", (dataStore))
 	}
 
 	for _, sample := range expectedDatastore {
 		switch sample := sample.(type) {
 		case map[string]interface{}:
-			for _, rSample := range load.Store.Data {
+			for _, rSample := range dataStore {
 				switch recSample := rSample.(type) {
 				case map[string]interface{}:
 					if fmt.Sprintf("%v", recSample["name"]) == "main" && fmt.Sprintf("%v", sample["name"]) == "main" {
@@ -175,17 +177,18 @@ func TestPrometheusNginx2(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(expectedDatastore) != len(load.Store.Data) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
-		t.Errorf("%v", (load.Store.Data))
+	if len(expectedDatastore) != len(dataStore) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
+		t.Errorf("%v", (dataStore))
 	}
 
 	for _, sample := range expectedDatastore {
 		switch sample := sample.(type) {
 		case map[string]interface{}:
-			for _, rSample := range load.Store.Data {
+			for _, rSample := range dataStore {
 				switch recSample := rSample.(type) {
 				case map[string]interface{}:
 
@@ -233,10 +236,11 @@ func TestPrometheusNginx3(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(expectedDatastore) != len(load.Store.Data) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
-		t.Errorf("%v", (load.Store.Data))
+	if len(expectedDatastore) != len(dataStore) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
+		t.Errorf("%v", (dataStore))
 	}
 }
