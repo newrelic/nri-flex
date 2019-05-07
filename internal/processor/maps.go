@@ -94,87 +94,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			if config.MetricAPI {
 				AutoSetMetricAPI(&currentSample, &api)
 			} else {
-				load.StatusCounterIncrement("EventCount")
-				load.StatusCounterIncrement(eventType)
-
-				var metricSet *metric.Set
-				// if metric parser is used, we need to namespace metrics for rate and delta support
-				if len(api.MetricParser.Metrics) > 0 {
-					useDefaultNamespace := false
-					if api.MetricParser.Namespace.CustomAttr != "" {
-						metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
-					} else if len(api.MetricParser.Namespace.ExistingAttr) == 1 {
-						nsKey := api.MetricParser.Namespace.ExistingAttr[0]
-						switch nsVal := currentSample[nsKey].(type) {
-						case string:
-							metricSet = workingEntity.NewMetricSet(eventType, metric.Attr(nsKey, nsVal))
-							delete(currentSample, nsKey) // can delete from sample as already set via namespace key
-						default:
-							useDefaultNamespace = true
-						}
-					} else if len(api.MetricParser.Namespace.ExistingAttr) > 1 {
-						finalValue := ""
-						for i, k := range api.MetricParser.Namespace.ExistingAttr {
-							if currentSample[k] != nil {
-								if i == 0 {
-									finalValue = fmt.Sprintf("%v", currentSample[k])
-								} else {
-									finalValue = finalValue + "-" + fmt.Sprintf("%v", currentSample[k])
-								}
-							}
-						}
-						if finalValue != "" {
-							metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", finalValue))
-						} else {
-							useDefaultNamespace = true
-						}
-					}
-
-					if useDefaultNamespace {
-						logger.Flex("debug", fmt.Errorf("defaulting a namespace for:%v", api.Name), "", false)
-						metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
-					}
-				} else {
-					metricSet = workingEntity.NewMetricSet(eventType)
-				}
-
-				// set default attribute(s)
-				logger.Flex("error", metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
-				logger.Flex("error", metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE), "", false)
-
-				//add sample metrics
-				for k, v := range currentSample {
-					// add prefixing, prefixing for merged samples done elsewhere
-					if api.Prefix != "" && api.Merge == "" {
-						k = api.Prefix + k
-					}
-
-					StoreLookups(api.StoreLookups, &k, &config.LookupStore, &v)        // store lookups
-					VariableLookups(api.StoreVariables, &k, &config.VariableStore, &v) // store variable
-
-					if api.InventoryOnly {
-						setInventory(workingEntity, api.Inventory, k, v)
-					} else if api.EventsOnly {
-						setEvents(workingEntity, api.Events, k, v)
-					} else {
-						// these can be set async
-						var wg sync.WaitGroup
-						wg.Add(3)
-						go func() {
-							defer wg.Done()
-							setInventory(workingEntity, api.Inventory, k, v)
-						}()
-						go func() {
-							defer wg.Done()
-							setEvents(workingEntity, api.Events, k, v)
-						}()
-						go func() {
-							defer wg.Done()
-							AutoSetMetricInfra(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
-						}()
-						wg.Wait()
-					}
-				}
+				AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
 			}
 		}
 
@@ -595,6 +515,91 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 	}
 
 	load.MetricsPayload = append(load.MetricsPayload, MetricsPayload)
+}
+
+// AutoSetStandard x
+func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, workingEntity *integration.Entity, eventType string, config *load.Config) {
+	load.StatusCounterIncrement("EventCount")
+	load.StatusCounterIncrement(eventType)
+
+	var metricSet *metric.Set
+	// if metric parser is used, we need to namespace metrics for rate and delta support
+	if len(api.MetricParser.Metrics) > 0 {
+		useDefaultNamespace := false
+		if api.MetricParser.Namespace.CustomAttr != "" {
+			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
+		} else if len(api.MetricParser.Namespace.ExistingAttr) == 1 {
+			nsKey := api.MetricParser.Namespace.ExistingAttr[0]
+			switch nsVal := (*currentSample)[nsKey].(type) {
+			case string:
+				metricSet = workingEntity.NewMetricSet(eventType, metric.Attr(nsKey, nsVal))
+				delete((*currentSample), nsKey) // can delete from sample as already set via namespace key
+			default:
+				useDefaultNamespace = true
+			}
+		} else if len(api.MetricParser.Namespace.ExistingAttr) > 1 {
+			finalValue := ""
+			for i, k := range api.MetricParser.Namespace.ExistingAttr {
+				if (*currentSample)[k] != nil {
+					if i == 0 {
+						finalValue = fmt.Sprintf("%v", (*currentSample)[k])
+					} else {
+						finalValue = finalValue + "-" + fmt.Sprintf("%v", (*currentSample)[k])
+					}
+				}
+			}
+			if finalValue != "" {
+				metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", finalValue))
+			} else {
+				useDefaultNamespace = true
+			}
+		}
+
+		if useDefaultNamespace {
+			logger.Flex("debug", fmt.Errorf("defaulting a namespace for:%v", api.Name), "", false)
+			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
+		}
+	} else {
+		metricSet = workingEntity.NewMetricSet(eventType)
+	}
+
+	// set default attribute(s)
+	logger.Flex("error", metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
+	logger.Flex("error", metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE), "", false)
+
+	//add sample metrics
+	for k, v := range *currentSample {
+		// add prefixing, prefixing for merged samples done elsewhere
+		if api.Prefix != "" && api.Merge == "" {
+			k = api.Prefix + k
+		}
+
+		StoreLookups(api.StoreLookups, &k, &config.LookupStore, &v)        // store lookups
+		VariableLookups(api.StoreVariables, &k, &config.VariableStore, &v) // store variable
+
+		if api.InventoryOnly {
+			setInventory(workingEntity, api.Inventory, k, v)
+		} else if api.EventsOnly {
+			setEvents(workingEntity, api.Events, k, v)
+		} else {
+			// these can be set async
+			var wg sync.WaitGroup
+			wg.Add(3)
+			go func() {
+				defer wg.Done()
+				setInventory(workingEntity, api.Inventory, k, v)
+			}()
+			go func() {
+				defer wg.Done()
+				setEvents(workingEntity, api.Events, k, v)
+			}()
+			go func() {
+				defer wg.Done()
+				AutoSetMetricInfra(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
+			}()
+			wg.Wait()
+		}
+	}
 }
 
 // AutoSetMetricInfra parse to number
