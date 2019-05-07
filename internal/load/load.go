@@ -108,11 +108,11 @@ func StoreAppend(apiNo int, data interface{}) {
 }
 
 // StoreEmpty empties stored data
-func StoreEmpty() {
-	Store.Lock()
-	// Store.Data = []interface{}{}
-	Store.Unlock()
-}
+// func StoreEmpty() {
+// 	Store.Lock()
+// 	// Store.Data = []interface{}{}
+// 	Store.Unlock()
+// }
 
 // MetricsPayload for MetricAPI
 var MetricsPayload []Metrics
@@ -130,12 +130,12 @@ func MetricsStoreAppend(metrics Metrics) {
 	MetricsStore.Unlock()
 }
 
-// MetricsStoreEmpty empties stored data
-func MetricsStoreEmpty() {
-	MetricsStore.Lock()
-	// MetricsStore.Data = []interface{}{}
-	MetricsStore.Unlock()
-}
+// // MetricsStoreEmpty empties stored data
+// func MetricsStoreEmpty() {
+// 	MetricsStore.Lock()
+// 	// MetricsStore.Data = []interface{}{}
+// 	MetricsStore.Unlock()
+// }
 
 // Metrics struct
 type Metrics struct {
@@ -360,5 +360,4 @@ func Refresh() {
 	Args.ConfigFile = ""
 	Args.ContainerDiscovery = false
 	Args.ContainerDiscoveryDir = ""
-	StoreEmpty()
 }
