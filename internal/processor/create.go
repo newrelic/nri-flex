@@ -238,7 +238,7 @@ func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key 
 	}
 }
 
-// AutoSetMetricAPI x
+// AutoSetMetricAPI automatically set metrics for use with the metric api
 func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 	// set current time
 	currentTime := time.Now().UnixNano() / 1e+6
