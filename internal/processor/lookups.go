@@ -6,9 +6,6 @@ import "fmt"
 func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
 		if *key == lookupFindKey {
-			if *lookupStore == nil {
-				*lookupStore = map[string][]string{}
-			}
 			(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
 		}
 	}
@@ -18,9 +15,6 @@ func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[
 func VariableLookups(variableLookups map[string]string, key *string, variableStore *map[string]string, v *interface{}) {
 	for variableStoreKey, variableFindKey := range variableLookups {
 		if *key == variableFindKey {
-			if (*variableStore) == nil {
-				(*variableStore) = map[string]string{}
-			}
 			(*variableStore)[variableStoreKey] = fmt.Sprintf("%v", *v)
 		}
 	}
