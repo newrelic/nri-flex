@@ -64,13 +64,12 @@ func ReadYML(yml string) (load.Config, error) {
 func Run(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
 	logger.Flex("debug", nil, fmt.Sprintf("processing %d apis in %v", len(yml.APIs), yml.Name), false)
+
+	// intentionally handled synchronously
 	for i := range yml.APIs {
 		RunVariableProcessor(i, &yml)
 		dataSets := FetchData(i, &yml)
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
-
-		// FetchData(i, &yml)
-		// processor.RunDataHandler(load.Store.Data, &samplesToMerge, i, &yml)
 	}
 
 	logger.Flex("debug", nil, fmt.Sprintf("finished processing %d apis in %v", len(yml.APIs), yml.Name), false)

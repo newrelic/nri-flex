@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
 func FetchData(apiNo int, yml *load.Config) []interface{} {
+	logger.Flex("debug", nil, fmt.Sprintf("fetching data for %v", yml.Name), false)
 
 	api := yml.APIs[apiNo]
 	file := yml.APIs[apiNo].File
