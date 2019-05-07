@@ -39,7 +39,14 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 			logger.Flex("error", fmt.Errorf("config file %v requires a name", f.Name()), "", false)
 			continue
 		}
-		*configs = append(*configs, config)
+
+		// if lookup files exist we need to potentially create multiple config files
+		if config.LookupFile != "" {
+			SubLookupFileData(configs, config)
+		} else {
+			*configs = append(*configs, config)
+		}
+
 	}
 }
 

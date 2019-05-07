@@ -1,7 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,7 +13,60 @@ import (
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
+	yaml "gopkg.in/yaml.v2"
 )
+
+// SubLookupFileData substitutes data from lookup files into config
+func SubLookupFileData(configs *[]load.Config, config load.Config) {
+	logger.Flex("debug", nil, "running lookup files", false)
+
+	tmpCfgBytes, err := yaml.Marshal(&config)
+	if err != nil {
+		logger.Flex("error", err, "sub lookup file data marshal failed", false)
+	} else {
+
+		b, err := ioutil.ReadFile(config.LookupFile)
+		if err != nil {
+			logger.Flex("error", err, "unable to readfile", false)
+			return
+		}
+
+		jsonOut := []interface{}{}
+		jsonErr := json.Unmarshal(b, &jsonOut)
+		if jsonErr != nil {
+			logger.Flex("error", jsonErr, config.LookupFile, false)
+			return
+		}
+
+		// create a new config file per
+		for _, item := range jsonOut {
+			switch obj := item.(type) {
+			case map[string]interface{}:
+				tmpCfgStr := string(tmpCfgBytes)
+				variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(tmpCfgStr, -1)
+				replaceOccured := false
+				for _, variableReplace := range variableReplaces {
+					variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
+					if obj[variableKey] != nil {
+						tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, fmt.Sprintf("%v", obj[variableKey]), -1)
+						replaceOccured = true
+					}
+				}
+				// if replace occurred convert string to config yaml and reload
+				if replaceOccured {
+					newCfg, err := ReadYML(tmpCfgStr)
+					if err != nil {
+						logger.Flex("error", err, fmt.Sprintf("new lookup file unmarshal failed %v", config.LookupFile), false)
+					} else {
+						*configs = append(*configs, newCfg)
+					}
+				}
+			default:
+				logger.Flex("debug", nil, "lookup file needs to contain an array of objects", false)
+			}
+		}
+	}
+}
 
 // SubEnvVariables substitutes environment variables into config
 // Use a double dollar sign eg. $$MY_ENV_VAR to subsitute that environment variable into the config file

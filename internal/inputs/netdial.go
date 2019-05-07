@@ -20,9 +20,13 @@ func NetDialWithTimeout(command load.Command, dataSample *map[string]interface{}
 	c := make(chan struct{})
 	// Define a cancellation after default dial timeout in the context
 	timeout := load.DefaultDialTimeout // ms
+	if api.Timeout > 0 {
+		timeout = api.Timeout
+	}
 	if command.Timeout > 0 {
 		timeout = command.Timeout
 	}
+
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 

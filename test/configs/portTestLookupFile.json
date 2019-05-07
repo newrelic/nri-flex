@@ -1,0 +1,17 @@
+[
+    {
+        "name":"google.com",
+        "addr":"google.com:80",
+        "abc":"def"
+    },
+    {
+        "name":"yahoo",
+        "addr":"yahoo.com:80",
+        "def":"abc"
+    },
+    {
+        "name":"redis",
+        "addr":"localhost:6379",
+        "def":"abc"
+    }
+]

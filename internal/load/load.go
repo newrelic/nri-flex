@@ -93,6 +93,7 @@ type Config struct {
 	APIs             []API
 	Datastore        map[string][]interface{} `yaml:"datastore"`
 	LookupStore      map[string][]string      `yaml:"lookup_store"`
+	LookupFile       string                   `yaml:"lookup_file"`
 	VariableStore    map[string]string        `yaml:"variable_store"`
 	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
 }
