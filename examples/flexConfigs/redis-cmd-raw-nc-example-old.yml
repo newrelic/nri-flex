@@ -1,0 +1,33 @@
+### note if local testing, macOS does not have the -q flag for nc (netcat) that other linux systems have, so remove if testing locally
+### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+---
+name: redisFlex
+apis: 
+  - name: redis
+    commands: 
+      - run: if (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379; then echo success; else (printf "info\r\n"; sleep 1) | nc 127.0.0.1 6379; fi
+      ### if you know whether you have the minus q option or not, then just do
+      ### - run: (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+      ### or without - run: (printf "info\r\n"; sleep 1) | nc 127.0.0.1 6379
+      ### or if you have the redis-cli available - run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+        split_by: ":"
+    remove_keys: # remove any keys that contain any of the following strings
+      - human
+    snake_to_camel: true 
+    perc_to_decimal: true
+    sub_parse:
+      - type: prefix
+        key: db
+        split_by:
+          - ","
+          - "="
+    metric_parser:
+      metrics:
+        totalNetInputBytes: RATE
+        rate$: RATE
+      namespace: # you can create a namespace with a custom attribute, or chain together existing attributes, else it will default 
+        # custom_attr: "mySpecialRedisServer" 
+        existing_attr:
+          - redisVersion
+          - tcpPort
+      auto_set: true ### switches metric parser to use regex rather then direct match
