@@ -23,7 +23,8 @@ type Family struct {
 }
 
 // Prometheus from http io
-func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
+func Prometheus(input io.Reader, api *load.API) {
+	logger.Flex("debug", nil, fmt.Sprintf("processing prometheus response %v", api.Name), false)
 	mfChan := make(chan *dto.MetricFamily, 1024)
 	go func() {
 		if err := ParseReader(input, mfChan); err != nil {
@@ -44,21 +45,21 @@ func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API) {
 
 	// add standard metric families into datastore
 	for mf := range mfChan {
-		prometheusNewFamily(mf, dataStore, api, &flattenedSample, &sampleKeys)
+		prometheusNewFamily(mf, api, &flattenedSample, &sampleKeys)
 	}
 	// anything sampled add into datastore
 	for sample := range sampleKeys {
-		*dataStore = append(*dataStore, sampleKeys[sample])
+		load.StoreAppend(sampleKeys[sample])
 	}
 	// add flattened sample into datastore
 	if len(flattenedSample) > 0 && !api.Prometheus.Unflatten {
 		applyCustomAttributes(&flattenedSample, &api.Prometheus.CustomAttributes)
-		*dataStore = append(*dataStore, flattenedSample)
+		load.StoreAppend(flattenedSample)
 	}
 }
 
 // NewFamily consumes a MetricFamily and transforms it to a map[string]interface{}
-func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api *load.API, flattenedSample *map[string]interface{}, sampleKeys *map[string]map[string]interface{}) {
+func prometheusNewFamily(dtoMF *dto.MetricFamily, api *load.API, flattenedSample *map[string]interface{}, sampleKeys *map[string]map[string]interface{}) {
 
 	for _, m := range dtoMF.Metric {
 		// do not show go exporter metrics unless enabled
@@ -78,7 +79,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 				prometheusMakeQuantiles(m, &metric, dtoMF, api.Prometheus.Unflatten)
-				*dataStore = append(*dataStore, metric)
+				load.StoreAppend(metric)
 			} else if api.Prometheus.Summary {
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
@@ -93,7 +94,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				}
 				metric["event_type"] = defaultEvent
 				prometheusMakeQuantiles(m, &metric, dtoMF, true)
-				*dataStore = append(*dataStore, metric)
+				load.StoreAppend(metric)
 			}
 			if len(m.Label) > 0 && !api.Prometheus.Summary && !api.Prometheus.Unflatten {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
@@ -106,7 +107,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
 				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
-				*dataStore = append(*dataStore, metric)
+				load.StoreAppend(metric)
 			} else if api.Prometheus.Histogram {
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
@@ -121,7 +122,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				}
 				metric["event_type"] = defaultEvent
 				prometheusMakeBuckets(m, &metric, dtoMF, true)
-				*dataStore = append(*dataStore, metric)
+				load.StoreAppend(metric)
 			}
 			if len(m.Label) > 0 && !api.Prometheus.Histogram && !api.Prometheus.Unflatten {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
@@ -133,7 +134,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 			metric["value"] = fmt.Sprint(getValue(m))
 
 			if (*api).Prometheus.Unflatten {
-				*dataStore = append(*dataStore, metric)
+				load.StoreAppend(metric)
 			} else if len(m.Label) > 0 {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
 				key := dtoMF.GetName()

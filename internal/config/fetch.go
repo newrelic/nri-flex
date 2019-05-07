@@ -13,16 +13,15 @@ import (
 
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
-func FetchData(i int, yml *load.Config) []interface{} {
+func FetchData(apiNo int, yml *load.Config) []interface{} {
 
-	api := yml.APIs[i]
-	file := yml.APIs[i].File
+	api := yml.APIs[apiNo]
+	file := yml.APIs[apiNo].File
 	reqURL := api.URL
 
-	dataStore := []interface{}{}
 	doLoop := true
 
-	continueProcessing := FetchLookups(yml, i)
+	continueProcessing := FetchLookups(yml, apiNo)
 
 	if continueProcessing {
 		if file != "" {
@@ -36,46 +35,48 @@ func FetchData(i int, yml *load.Config) []interface{} {
 				if err != nil {
 					logger.Flex("error", err, "failed to unmarshal", false)
 				} else {
-					dataStore = append(dataStore, f)
+					load.StoreAppend(f)
+					// dataStore = append(dataStore, f)
 				}
 			}
 		} else if api.Cache != "" {
 			if yml.Datastore[api.Cache] != nil {
-				dataStore = yml.Datastore[api.Cache]
+				load.StoreAppend(yml.Datastore[api.Cache])
+				// dataStore = yml.Datastore[api.Cache]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
-			inputs.RunCommands(yml, api, &dataStore)
+			inputs.RunCommands(yml, apiNo)
 		} else if reqURL != "" {
-			inputs.RunHTTP(&doLoop, yml, api, &reqURL, &dataStore)
+			inputs.RunHTTP(&doLoop, yml, api, &reqURL)
 		} else if api.Database != "" && api.DbConn != "" {
-			inputs.ProcessQueries(api, &dataStore)
+			inputs.ProcessQueries(api)
 		}
 	}
 
 	// cache output into datastore for later use
-	if len(dataStore) > 0 {
+	if len(load.Store.Data) > 0 {
 		if api.URL != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.URL] = dataStore
+			yml.Datastore[api.URL] = load.Store.Data
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" && api.Name != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.Name] = dataStore
+			yml.Datastore[api.Name] = load.Store.Data
 		} else if api.File != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.File] = dataStore
+			yml.Datastore[api.File] = load.Store.Data
 		}
 	}
 
-	return dataStore
+	return load.Store.Data
 }
 
-// FetchLookups
+// FetchLookups x
 func FetchLookups(cfg *load.Config, i int) bool {
 	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[i])
 

@@ -129,7 +129,6 @@ func TestParseJMX(t *testing.T) {
 	prevSample := map[string]interface{}{
 		"hi": "hello",
 	}
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "jmxFlex",
 		APIs: []load.API{
@@ -270,17 +269,17 @@ func TestParseJMX(t *testing.T) {
 		},
 	}
 
-	ParseJMX(dataInterface, &dataStore, config.APIs[0].Commands[0], &prevSample)
+	ParseJMX(dataInterface, config.APIs[0].Commands[0], &prevSample)
 
-	if len(expectedDatastore) != len(dataStore) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
+	if len(expectedDatastore) != len(load.Store.Data) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
 	}
 
 	for i, sample := range expectedDatastore {
 		switch sample := sample.(type) {
 		case map[string]interface{}:
 			for key := range sample {
-				switch recSample := dataStore[i].(type) {
+				switch recSample := load.Store.Data[i].(type) {
 				case map[string]interface{}:
 					if sample["bean"] == recSample["bean"] {
 						if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
@@ -294,12 +293,13 @@ func TestParseJMX(t *testing.T) {
 }
 
 func TestParseJMXwithCompressBean(t *testing.T) {
+	load.Refresh()
+	// create a listener with desired port
 	b, _ := ioutil.ReadFile("../../test/payloads/tomcatJMX.out")
 	_, dataInterface := detectCommandOutput(string(b), "jmx")
 	prevSample := map[string]interface{}{
 		"hi": "hello",
 	}
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "jmxFlex",
 		APIs: []load.API{
@@ -383,23 +383,23 @@ func TestParseJMXwithCompressBean(t *testing.T) {
 		},
 	}
 
-	ParseJMX(dataInterface, &dataStore, config.APIs[0].Commands[0], &prevSample)
+	ParseJMX(dataInterface, config.APIs[0].Commands[0], &prevSample)
 
-	if len(expectedDatastore) != len(dataStore) {
-		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
-		t.Errorf("%v", (dataStore))
+	if len(expectedDatastore) != len(load.Store.Data) {
+		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(load.Store.Data))
+		t.Errorf("%v", (load.Store.Data))
 
 	}
 
-	if len(dataStore[0].(map[string]interface{})) != 102 {
-		t.Errorf("Incorrect number of metrics generated expected: %d, got: %d", 102, len(dataStore[0].(map[string]interface{})))
+	if len(load.Store.Data[0].(map[string]interface{})) != 102 {
+		t.Errorf("Incorrect number of metrics generated expected: %d, got: %d", 102, len(load.Store.Data[0].(map[string]interface{})))
 	}
 
 	for i, sample := range expectedDatastore {
 		switch sample := sample.(type) {
 		case map[string]interface{}:
 			for key := range sample {
-				switch recSample := dataStore[i].(type) {
+				switch recSample := load.Store.Data[i].(type) {
 				case map[string]interface{}:
 					if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
 						t.Errorf("%v want %v, got %v", key, sample[key], recSample[key])

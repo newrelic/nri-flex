@@ -58,31 +58,36 @@ func Run(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
 	for i := range yml.APIs {
 		RunVariableProcessor(i, &yml)
-		dataSets := FetchData(i, &yml)
-		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
+		FetchData(i, &yml)
+		// dataSets := FetchData(i, &yml)
+		processor.RunDataHandler(load.Store.Data, &samplesToMerge, i, &yml)
+		// processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
 	processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
 }
 
 // RunFiles Processes yml files
 func RunFiles(configs *[]load.Config) {
+	logger.Flex("debug", nil, fmt.Sprintf("starting to process %d configs", len(*configs)), false)
 	var wg sync.WaitGroup
 	wg.Add(len(*configs))
 	for _, cfg := range *configs {
-		logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
 		go func(cfg load.Config) {
 			defer wg.Done()
+			logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
 			Run(cfg)
 			load.StatusCounterIncrement("ConfigsProcessed")
 		}(cfg)
 	}
 	wg.Wait()
+	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", len(*configs)), false)
 }
 
 // RunVariableProcessor substitute store variables into specific parts of config files
 func RunVariableProcessor(i int, cfg *load.Config) {
 	// don't use variable processor if nothing exists in variable store
 	if len((*cfg).VariableStore) > 0 {
+		logger.Flex("debug", nil, fmt.Sprintf("running variable processor %d items in store", len((*cfg).VariableStore)), false)
 		// to simplify replacement, convert to string, and convert back later
 		tmpCfgBytes, err := yaml.Marshal(&cfg)
 		if err != nil {

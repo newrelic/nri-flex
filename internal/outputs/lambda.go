@@ -46,17 +46,16 @@ func LambdaFinish() {
 
 // HandleRequest Handles lambda request
 func HandleRequest(ctx context.Context, event map[string]interface{}) (string, error) {
-	awsSource := ""
-	if event["source"] != nil {
-		switch source := event["source"].(type) {
-		case []interface{}:
-			if len(source) == 1 {
-				awsSource = source[0].(string)
-			}
+	awsPayload := map[string]interface{}{}
+	if event != nil {
+		if event["source"] != nil {
+			awsPayload["source"] = event["source"].(string)
 		}
 	}
-	if awsSource != "" {
-		logger.Flex("debug", nil, fmt.Sprintf("aws source detected %v", awsSource), false)
+
+	if awsPayload["source"] != nil {
+		logger.Flex("info", nil, fmt.Sprintf("aws source detected %v", awsPayload["source"]), false)
 	}
+
 	return fmt.Sprintf("Flex Finished - success: %t!", LambdaSuccess), nil
 }

@@ -143,6 +143,7 @@ type API struct {
 	DbDriver          string            `yaml:"db_driver"`
 	DbConn            string            `yaml:"db_conn"`
 	Shell             string            `yaml:"shell"`
+	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
 	DbQueries         []Command         `yaml:"db_queries"`
 	Jmx               JMX               `yaml:"jmx"`
@@ -295,6 +296,7 @@ func Refresh() {
 	Args.ConfigFile = ""
 	Args.ContainerDiscovery = false
 	Args.ContainerDiscoveryDir = ""
+	StoreEmpty()
 }
 
 // StatusCounterIncrement increment the status counter for a particular key
@@ -302,4 +304,24 @@ func StatusCounterIncrement(key string) {
 	FlexStatusCounter.Lock()
 	FlexStatusCounter.M[key]++
 	FlexStatusCounter.Unlock()
+}
+
+// Store to store data and lock and unlock when needed
+var Store = struct {
+	sync.RWMutex
+	Data []interface{}
+}{}
+
+// StoreAppend Append data to store
+func StoreAppend(data interface{}) {
+	Store.Lock()
+	Store.Data = append(Store.Data, data)
+	Store.Unlock()
+}
+
+// StoreEmpty empties stored data
+func StoreEmpty() {
+	Store.Lock()
+	Store.Data = []interface{}{}
+	Store.Unlock()
 }

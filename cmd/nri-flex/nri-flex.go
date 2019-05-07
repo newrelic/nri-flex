@@ -23,7 +23,6 @@ func main() {
 
 	outputs.InfraIntegration()
 	outputs.LambdaCheck()
-	// todo: port cluster mode here
 	runIntegration()
 
 	if outputs.LambdaEnabled {

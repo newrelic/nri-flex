@@ -16,6 +16,8 @@ import (
 )
 
 // SendToInsights - Send processed events to insights
+// loop through integration entities as there could be multiple that have been set
+// when posted they are batched by entity
 func SendToInsights() {
 	for _, entity := range load.Integration.Entities {
 		modifyEventType(entity)
@@ -39,7 +41,7 @@ func modifyEventType(entity *integration.Entity) {
 func postRequest(entity *integration.Entity) {
 	jsonData, err := json.Marshal(entity.Metrics)
 	if err != nil {
-		logger.Flex("errpr", err, "failed to marshal", false)
+		logger.Flex("error", err, "failed to marshal", false)
 	} else {
 		var zlibCompressedPayload bytes.Buffer
 		w := zlib.NewWriter(&zlibCompressedPayload)
@@ -61,7 +63,7 @@ func postRequest(entity *integration.Entity) {
 				req.Header.Set("Content-Type", "application/json")
 				req.Header.Set("X-Insert-Key", load.Args.InsightsAPIKey)
 				_, err := client.Do(req)
-				logger.Flex("error", err, "unable to send", false)
+				logger.Flex("error", err, "send failure", false)
 			}
 		}
 	}

@@ -88,16 +88,15 @@ func TestDatabase(t *testing.T) {
 		},
 	}
 
-	dataStore := []interface{}{}
-	ProcessQueries(config.APIs[0], &dataStore)
-	ProcessQueries(config.APIs[1], &dataStore)
-	ProcessQueries(config.APIs[2], &dataStore)
+	ProcessQueries(config.APIs[0])
+	ProcessQueries(config.APIs[1])
+	ProcessQueries(config.APIs[2])
 
-	if len(dataStore) != 4 {
-		t.Errorf("expected 4 samples, got %d", len(dataStore))
+	if len(load.Store.Data) != 4 {
+		t.Errorf("expected 4 samples, got %d", len(load.Store.Data))
 	} else {
-		if dataStore[0].(map[string]interface{})["queryLabel"] != "pgStatActivitySample" {
-			t.Errorf("incorrect label %v", dataStore[0].(map[string]interface{})["queryLabel"])
+		if load.Store.Data[0].(map[string]interface{})["queryLabel"] != "pgStatActivitySample" {
+			t.Errorf("incorrect label %v", load.Store.Data[0].(map[string]interface{})["queryLabel"])
 		}
 	}
 }

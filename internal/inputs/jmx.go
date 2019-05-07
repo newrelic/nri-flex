@@ -80,7 +80,7 @@ func SetJMXCommand(runCommand *string, command load.Command, api load.API, confi
 }
 
 // ParseJMX Processes JMX Data
-func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{}) {
+func ParseJMX(dataInterface interface{}, command load.Command, dataSample *map[string]interface{}) {
 	// dataSample contains data from previously run raw commands
 
 	sendSample := true
@@ -92,7 +92,7 @@ func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.
 			newJMXSample[compressedBean] = val
 			delete(data, key)
 		}
-		*dataStore = append(*dataStore, newJMXSample)
+		load.StoreAppend(newJMXSample)
 	} else {
 		jmxSamples := map[string]map[string]interface{}{}
 		for k, v := range data {
@@ -142,7 +142,7 @@ func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.
 
 		for _, jmxSample := range jmxSamples {
 			if sendSample {
-				*dataStore = append(*dataStore, jmxSample)
+				load.StoreAppend(jmxSample)
 			}
 		}
 	}

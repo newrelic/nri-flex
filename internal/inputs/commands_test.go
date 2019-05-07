@@ -8,6 +8,7 @@ import (
 )
 
 func TestRedis(t *testing.T) {
+	load.Refresh()
 	dataStoreExpected := []interface{}{
 		map[string]interface{}{
 			"redis_git_dirty":            0,
@@ -160,12 +161,11 @@ func TestRedis(t *testing.T) {
 		},
 	}
 
-	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&config, 0)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range load.Store.Data[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 
@@ -209,12 +209,11 @@ func TestDf(t *testing.T) {
 		},
 	}
 
-	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&config, 0)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range load.Store.Data[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 
@@ -255,12 +254,11 @@ func TestDf2(t *testing.T) {
 		},
 	}
 
-	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&config, 0)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
+	for key := range load.Store.Data[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
 	}
 }

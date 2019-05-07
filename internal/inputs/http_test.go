@@ -13,6 +13,7 @@ import (
 )
 
 func TestRunHTTP(t *testing.T) {
+	load.Refresh()
 	// create a listener with desired port
 	l, _ := net.Listen("tcp", "127.0.0.1:9123")
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -28,7 +29,6 @@ func TestRunHTTP(t *testing.T) {
 	ts.Start()
 
 	doLoop := true
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "httpExample",
 		Global: load.Global{
@@ -83,16 +83,16 @@ func TestRunHTTP(t *testing.T) {
 			"api.StatusCode": 200,
 		},
 	}
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
-	if len(dataStore) != len(expectedSamples) {
-		t.Errorf("received sample count %d does not match expected %d", len(dataStore), len(expectedSamples))
-		t.Errorf("%v", dataStore)
+	if len(load.Store.Data) != len(expectedSamples) {
+		t.Errorf("received sample count %d does not match expected %d", len(load.Store.Data), len(expectedSamples))
+		t.Errorf("%v", load.Store.Data)
 	}
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", expectedSamples[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], expectedSamples[0].(map[string]interface{})[key]))
+	for key := range load.Store.Data[0].(map[string]interface{}) {
+		if fmt.Sprintf("%v", load.Store.Data[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", expectedSamples[0].(map[string]interface{})[key]) {
+			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, load.Store.Data[0].(map[string]interface{})[key], expectedSamples[0].(map[string]interface{})[key]))
 		}
 	}
 }
