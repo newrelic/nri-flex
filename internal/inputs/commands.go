@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"context"
@@ -18,15 +18,17 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // RunCommands executes the given commands to create one merged sampled
-func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
+func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
+	api := yml.APIs[apiNo]
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
 	processType := ""
 	for _, command := range api.Commands {
-		if command.Run != "" {
+		if command.Run != "" && command.Dial == "" {
 			runCommand := command.Run
 			if command.Output == load.Jmx {
-				SetJMXCommand(&runCommand, command, api, yml)
+				SetJMXCommand(dataStore, &runCommand, command, api, yml)
 			}
 			commandTimeout := load.DefaultTimeout
 			if api.Timeout > 0 {
@@ -71,9 +73,9 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 				logger.Flex("debug", err, "command execution failed", false)
 			} else {
 				if command.SplitOutput != "" {
-					splitOutput(string(output), dataStore, command)
+					splitOutput(dataStore, string(output), command)
 				} else {
-					processOutput(string(output), dataStore, &dataSample, command, api, &processType)
+					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 				}
 			}
 		} else if command.Cache != "" {
@@ -82,22 +84,25 @@ func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{}) {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
-							logger.Flex("info", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
-							processOutput(sample["http"].(string), dataStore, &dataSample, command, api, &processType)
+							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
+							processOutput(dataStore, sample["http"].(string), &dataSample, command, api, &processType)
 						}
 					}
 				}
 			}
+		} else if command.Dial != "" {
+			NetDialWithTimeout(dataStore, command, &dataSample, api, &processType)
 		}
 	}
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed
 	// this can probably be shuffled elsewhere
 	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
+		// load.StoreAppend(dataSample)
 		*dataStore = append(*dataStore, dataSample)
 	}
 }
 
-func splitOutput(output string, dataStore *[]interface{}, command load.Command) {
+func splitOutput(dataStore *[]interface{}, output string, command load.Command) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 	outputBlocks := [][]string{}
 	startSplit := -1
@@ -117,10 +122,10 @@ func splitOutput(output string, dataStore *[]interface{}, command load.Command) 
 			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 		}
 	}
-	processBlocks(outputBlocks, dataStore, command)
+	processBlocks(dataStore, outputBlocks, command)
 }
 
-func processBlocks(blocks [][]string, dataStore *[]interface{}, command load.Command) {
+func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Command) {
 	for _, block := range blocks {
 		sample := map[string]interface{}{}
 		regmatchCount := 0
@@ -142,11 +147,12 @@ func processBlocks(blocks [][]string, dataStore *[]interface{}, command load.Com
 			}
 			regmatchCount = 0
 		}
+		// load.StoreAppend(sample)
 		*dataStore = append(*dataStore, sample)
 	}
 }
 
-func processOutput(output string, dataStore *[]interface{}, dataSample *map[string]interface{}, command load.Command, api load.API, processType *string) {
+func processOutput(dataStore *[]interface{}, output string, dataSample *map[string]interface{}, command load.Command, api load.API, processType *string) {
 	dataOutput := output
 	commandOutput, dataInterface := detectCommandOutput(dataOutput, command.Output)
 	if !command.IgnoreOutput {
@@ -156,7 +162,7 @@ func processOutput(output string, dataStore *[]interface{}, dataSample *map[stri
 			if command.Cache != "" {
 				cmd = "cache - " + command.Cache
 			}
-			logger.Flex("info", nil, fmt.Sprintf("running %v", cmd), false)
+			logger.Flex("debug", nil, fmt.Sprintf("running %v", cmd), false)
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
@@ -169,10 +175,11 @@ func processOutput(output string, dataStore *[]interface{}, dataSample *map[stri
 				}
 			}
 		case load.TypeJSON:
+			// load.StoreAppend(dataInterface)
 			*dataStore = append(*dataStore, dataInterface)
 		case load.Jmx:
 			*processType = "jmx"
-			ParseJMX(dataInterface, dataStore, command, dataSample)
+			ParseJMX(dataStore, dataInterface, command, dataSample)
 		}
 	}
 }
@@ -183,7 +190,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
+				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -226,7 +233,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if i != headerLine && i >= startLine {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				logger.Flex("info", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
+				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
 				break
 			}
 
@@ -254,6 +261,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 			if len(cmdSample) > 0 {
 				applyCustomAttributes(&cmdSample, &command.CustomAttributes)
+				// load.StoreAppend(cmdSample)
 				*dataStore = append(*dataStore, cmdSample)
 			}
 		}

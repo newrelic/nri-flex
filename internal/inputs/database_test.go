@@ -1,6 +1,6 @@
 // +build integration
 
-package parser
+package inputs
 
 import (
 	"testing"
@@ -89,9 +89,9 @@ func TestDatabase(t *testing.T) {
 	}
 
 	dataStore := []interface{}{}
-	ProcessQueries(config.APIs[0], &dataStore)
-	ProcessQueries(config.APIs[1], &dataStore)
-	ProcessQueries(config.APIs[2], &dataStore)
+	ProcessQueries(&dataStore, &config, 0)
+	ProcessQueries(&dataStore, &config, 1)
+	ProcessQueries(&dataStore, &config, 2)
 
 	if len(dataStore) != 4 {
 		t.Errorf("expected 4 samples, got %d", len(dataStore))

@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 )
 
 func TestRedis(t *testing.T) {
+	load.Refresh()
 	dataStoreExpected := []interface{}{
 		map[string]interface{}{
 			"redis_git_dirty":            0,
@@ -161,7 +162,7 @@ func TestRedis(t *testing.T) {
 	}
 
 	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&dataStore, &config, 0)
 
 	for key := range dataStore[0].(map[string]interface{}) {
 		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
@@ -210,7 +211,7 @@ func TestDf(t *testing.T) {
 	}
 
 	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&dataStore, &config, 0)
 
 	for key := range dataStore[0].(map[string]interface{}) {
 		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
@@ -256,7 +257,7 @@ func TestDf2(t *testing.T) {
 	}
 
 	dataStore := []interface{}{}
-	RunCommands(&config, config.APIs[0], &dataStore)
+	RunCommands(&dataStore, &config, 0)
 
 	for key := range dataStore[0].(map[string]interface{}) {
 		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {

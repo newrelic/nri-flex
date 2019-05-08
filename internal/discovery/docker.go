@@ -19,7 +19,8 @@ import (
 
 var cli *client.Client
 
-// setDockerClient - Required as there can be edge cases when the integration API version, may need a matching or lower API version then the hosts docker API version
+// setDockerClient Sets the docker client
+// There can be edge cases when the integration API version may need a matching or lower API version then the hosts docker API version
 func setDockerClient() (*client.Client, error) {
 	var out []byte
 	var err error
@@ -27,8 +28,6 @@ func setDockerClient() (*client.Client, error) {
 	if load.Args.DockerAPIVersion != "" {
 		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
 	} else {
-		logger.Flex("info", nil, fmt.Sprintf("GOOS: %v", runtime.GOOS), false)
-
 		if runtime.GOOS == "windows" {
 			out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
 		} else {
@@ -39,7 +38,7 @@ func setDockerClient() (*client.Client, error) {
 		}
 
 		if err != nil {
-			logger.Flex("debug", err, "unable to fetch Docker API version - setting client with NewClientWithOpts()", false)
+			logger.Flex("error", err, "unable to fetch Docker API version - setting client with NewClientWithOpts()", false)
 			cli, err = client.NewClientWithOpts()
 		} else {
 			cmdOut := string(out)
@@ -48,11 +47,11 @@ func setDockerClient() (*client.Client, error) {
 			apiVer, _ := strconv.ParseFloat(api.DefaultVersion, 64)
 
 			if clientVer <= apiVer {
-				logger.Flex("info", nil, fmt.Sprintf("Setting client with version:%v", clientAPIVersion), false)
+				logger.Flex("debug", nil, fmt.Sprintf("Setting client with version:%v", clientAPIVersion), false)
 				cli, err = client.NewClientWithOpts(client.WithVersion(clientAPIVersion))
 			} else {
-				logger.Flex("info", nil, fmt.Sprintf("Client API Version %v is higher then integration version %v", clientAPIVersion, api.DefaultVersion), false)
-				logger.Flex("info", nil, "Setting client with NewClientWithOpts()", false)
+				logger.Flex("debug", nil, fmt.Sprintf("Client API Version %v is higher then integration version %v", clientAPIVersion, api.DefaultVersion), false)
+				logger.Flex("debug", nil, "Setting client with NewClientWithOpts()", false)
 				cli, err = client.NewClientWithOpts()
 			}
 		}

@@ -1,0 +1,8 @@
+[
+    {
+        "addr": "fake12311290.com:9989",
+        "err": "dial tcp: lookup fake12311290.com: no such host",
+        "netw": "tcp",
+        "portStatus": "closed"
+    }
+]

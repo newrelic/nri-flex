@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"crypto/tls"
@@ -15,7 +15,8 @@ import (
 )
 
 // RunHTTP Executes HTTP Requests
-func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{}) {
+func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running http requests", yml.Name), false)
 	for *doLoop {
 		request := gorequest.New()
 
@@ -29,19 +30,20 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 			*reqURL += "/%2f"
 		}
 
+		*reqURL = yml.Global.BaseURL + *reqURL
 		switch {
 		case api.Method == "POST" && api.Payload != "":
-			request = request.Post(yml.Global.BaseURL + *reqURL)
+			request = request.Post(*reqURL)
 			request = request.Send(api.Payload)
 		case api.Method == "PUT" && api.Payload != "":
-			request = request.Put(yml.Global.BaseURL + *reqURL)
+			request = request.Put(*reqURL)
 			request = request.Send(api.Payload)
 		default:
-			request = request.Get(yml.Global.BaseURL + *reqURL)
+			request = request.Get(*reqURL)
 		}
 
 		request = setRequestOptions(request, *yml, api)
-
+		logger.Flex("debug", nil, fmt.Sprintf("sending %v request to %v", request.Method, *reqURL), false)
 		resp, _, errors := request.End()
 		if resp != nil {
 			nextLink := ""
@@ -51,6 +53,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 					if strings.Contains(link, "next") {
 						theLink := strings.Split(link, ";")
 						nextLink = strings.Replace((strings.Replace(theLink[0], "<", "", -1)), ">", "", -1)
+						nextLink = strings.TrimPrefix(nextLink, " ")
 					}
 				}
 			}
@@ -61,10 +64,10 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 
 			switch {
 			case api.Prometheus.Enable:
-				Prometheus(resp.Body, dataStore, yml, &api)
+				Prometheus(dataStore, resp.Body, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
-				handleJSON(body, dataStore, &resp, doLoop, reqURL, nextLink)
+				handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, _ := ioutil.ReadAll(resp.Body)
@@ -72,7 +75,7 @@ func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataS
 				output, _ := detectCommandOutput(strBody, "")
 				switch output {
 				case load.TypeJSON:
-					handleJSON(body, dataStore, &resp, doLoop, reqURL, nextLink)
+					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 				default:
 					logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
 					logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
@@ -150,11 +153,11 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 }
 
 // handleJSON Process JSON Payload
-func handleJSON(body []byte, dataStore *[]interface{}, resp *gorequest.Response, doLoop *bool, url *string, nextLink string) {
+func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string) {
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
-		logger.Flex("debug", err, "", false)
+		logger.Flex("error", err, "", false)
 	} else {
 		switch f := f.(type) {
 		case []interface{}:
@@ -162,25 +165,27 @@ func handleJSON(body []byte, dataStore *[]interface{}, resp *gorequest.Response,
 
 				switch sample := sample.(type) {
 				case map[string]interface{}:
-					theSample := sample
-					theSample["api.StatusCode"] = (*resp).StatusCode
-					*dataStore = append(*dataStore, theSample)
+					httpSample := sample
+					httpSample["api.StatusCode"] = (*resp).StatusCode
+					*dataStore = append(*dataStore, httpSample)
+					// load.StoreAppend(httpSample)
 				case string:
 					strSample := map[string]interface{}{
 						"output": sample,
 					}
+					// load.StoreAppend(strSample)
 					*dataStore = append(*dataStore, strSample)
 				default:
 					logger.Flex("debug", fmt.Errorf("not sure how to handle this %v", sample), "", false)
 				}
-
 			}
 
 		case map[string]interface{}:
 			theSample := f
 			theSample["api.StatusCode"] = (*resp).StatusCode
+			// load.StoreAppend(theSample)
 			*dataStore = append(*dataStore, theSample)
-			// requestedPage = f.(map[string]interface{})
+
 			if theSample["error"] != nil {
 				logger.Flex("debug", nil, "Request failed "+fmt.Sprintf("%v", theSample["error"]), false)
 			}

@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"context"
@@ -21,8 +21,9 @@ import (
 )
 
 // ProcessQueries processes database queries
-func ProcessQueries(api load.API, dataStore *[]interface{}) {
-	logger.Flex("debug", fmt.Errorf("running %v queries", api.Database), "", false)
+func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+	api := yml.APIs[apiNo]
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running db queries %v", yml.Name, api.Database), false)
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
@@ -36,13 +37,13 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 
 	if err != nil || pingError != nil {
 		if err != nil {
-			logger.Flex("debug", err, "", false)
+			logger.Flex("error", err, "", false)
 			if api.Logging.Open {
 				errorLogToInsights(err, api.Database, api.Name, "")
 			}
 		}
 		if pingError != nil {
-			logger.Flex("debug", pingError, "ping error", false)
+			logger.Flex("error", pingError, "ping error", false)
 			if api.Logging.Open {
 				errorLogToInsights(pingError, api.Database, api.Name, "")
 			}
@@ -50,24 +51,24 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 	} else {
 		for _, query := range api.DbQueries {
 			if query.Name == "" {
-				logger.Flex("debug", fmt.Errorf("missing name for: %v", query.Run), "", false)
+				logger.Flex("error", fmt.Errorf("missing name for: %v", query.Run), "", false)
 				break
 			}
 			if query.Run == "" {
-				logger.Flex("debug", fmt.Errorf("query ('run') parameter not defined"), "", false)
+				logger.Flex("error", fmt.Errorf("query ('run') parameter not defined"), "", false)
 				break
 			}
 
 			rows, err := db.Query(query.Run)
 			if err != nil {
-				logger.Flex("debug", err, "query: "+query.Run, false)
+				logger.Flex("error", err, "query: "+query.Run, false)
 				errorLogToInsights(err, api.Database, api.Name, query.Name)
 			} else {
-				logger.Flex("info", nil, fmt.Sprintf("running query: %v", query.Run), false)
+				logger.Flex("debug", nil, fmt.Sprintf("running query: %v", query.Run), false)
 
 				cols, err := rows.Columns()
 				if err != nil {
-					logger.Flex("debug", err, "", false)
+					logger.Flex("error", err, "", false)
 					errorLogToInsights(err, api.Database, api.Name, query.Name)
 				} else {
 					values := make([]sql.RawBytes, len(cols))
@@ -92,7 +93,7 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 						// get RawBytes
 						err = rows.Scan(scanArgs...)
 						if err != nil {
-							logger.Flex("debug", err, "", false)
+							logger.Flex("error", err, "", false)
 						} else {
 							// Loop through each column
 							for i, col := range values {
@@ -104,6 +105,7 @@ func ProcessQueries(api load.API, dataStore *[]interface{}) {
 								}
 							}
 							*dataStore = append(*dataStore, rowSet)
+							// load.StoreAppend(rowSet)
 							rowNo++
 						}
 					}
@@ -141,10 +143,8 @@ func setDatabaseDriver(database, driver string) string {
 func errorLogToInsights(err error, database, name, queryLabel string) {
 	errorMetricSet := load.Entity.NewMetricSet(database + "Error")
 
-	load.FlexStatusCounter.Lock()
-	load.FlexStatusCounter.M["EventCount"]++
-	load.FlexStatusCounter.M[database+"Error"]++
-	load.FlexStatusCounter.Unlock()
+	load.StatusCounterIncrement("EventCount")
+	load.StatusCounterIncrement(database + "Error")
 
 	logger.Flex("debug", errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE), "", false)
 	if name != "" {
@@ -175,7 +175,7 @@ func dbPingWithTimeout(db *sql.DB, pingError *error) {
 	case <-ctx.Done():
 		*pingError = errors.New("Ping failed: " + ctx.Err().Error())
 	case <-c:
-		logger.Flex("info", nil, "db.Ping finished", false)
+		logger.Flex("debug", nil, "db.Ping finished", false)
 	}
 }
 

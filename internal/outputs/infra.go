@@ -9,8 +9,8 @@ import (
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 )
 
-// CreateIntegration Creates Infrastructure SDK Integration
-func CreateIntegration() {
+// InfraIntegration Creates Infrastructure SDK Integration
+func InfraIntegration() {
 	load.Hostname, _ = os.Hostname() // set hostname
 
 	var err error
@@ -20,12 +20,12 @@ func CreateIntegration() {
 	if load.Args.Local {
 		load.Entity = load.Integration.LocalEntity()
 	} else {
-		CreateRemoteEntity()
+		InfraRemoteEntity()
 	}
 }
 
-// CreateRemoteEntity Creates Infrastructure Remote Entity
-func CreateRemoteEntity() {
+// InfraRemoteEntity Creates Infrastructure Remote Entity
+func InfraRemoteEntity() {
 	var err error
 	setEntity := load.Hostname // default hostname
 	if load.Args.Entity != "" {
