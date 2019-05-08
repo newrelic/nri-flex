@@ -19,11 +19,11 @@ apis:
 #     {
 #         "name":"yahoo",
 #         "addr":"yahoo.com:80",
-#         "def":"abc"
+#         "abc":"zyx"
 #     },
 #     {
 #         "name":"redis",
 #         "addr":"localhost:6379",
-#         "def":"abc"
+#         "abc":"efg"
 #     }
 # ]
