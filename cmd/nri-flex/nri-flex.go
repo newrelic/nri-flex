@@ -34,7 +34,7 @@ func main() {
 
 // runIntegration runs nri-flex
 func runIntegration() {
-	if load.Args.Verbose {
+	if load.Args.Verbose || os.Getenv("VERBOSE") == "true" {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
 	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
