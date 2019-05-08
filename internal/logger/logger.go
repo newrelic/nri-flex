@@ -4,39 +4,38 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/infra-integrations-sdk/log"
 )
 
 // Flex generic log handler to support force logging and creating additional events for insights debugging
 func Flex(logType string, err error, message string, createEvent bool) {
-	log.SetupLogging(load.Args.Verbose)
-
 	if createEvent || load.Args.ForceLogEvent {
 		flexEvent := "flexDebug"
 		if logType == "fatal" {
 			flexEvent = "flexFatal"
 		} else if logType == "info" {
 			flexEvent = "flexInfo"
+		} else if logType == "error" {
+			flexEvent = "flexError"
 		}
 		metricSet := load.Entity.NewMetricSet(flexEvent)
 		msErr := metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE)
 		if msErr != nil {
-			log.Debug(msErr.Error())
+			load.Logrus.Debug(msErr)
 		}
 		msErr = metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE)
 		if msErr != nil {
-			log.Debug(msErr.Error())
+			load.Logrus.Debug(msErr)
 		}
 		if err != nil {
 			msErr := metricSet.SetMetric("error", err.Error(), metric.ATTRIBUTE)
 			if msErr != nil {
-				log.Debug(msErr.Error())
+				load.Logrus.Debug(msErr)
 			}
 		}
 		if message != "" {
 			msErr := metricSet.SetMetric("message", message, metric.ATTRIBUTE)
 			if msErr != nil {
-				log.Debug(msErr.Error())
+				load.Logrus.Debug(msErr)
 			}
 		}
 	}
@@ -45,9 +44,17 @@ func Flex(logType string, err error, message string, createEvent bool) {
 	case "fatal":
 		if err != nil {
 			if message != "" {
-				log.Debug(message)
+				load.Logrus.Debug(message)
 			}
-			log.Fatal(err)
+			load.Logrus.Fatal(err)
+		}
+	case "error":
+		if err != nil {
+			completeMsg := err.Error()
+			if message != "" {
+				completeMsg += " - " + message
+			}
+			load.Logrus.Error(completeMsg)
 		}
 	case "debug":
 		if err != nil {
@@ -55,14 +62,16 @@ func Flex(logType string, err error, message string, createEvent bool) {
 			if message != "" {
 				completeMsg += " - " + message
 			}
-			log.Debug(completeMsg)
+			load.Logrus.Debug(completeMsg)
+		} else {
+			load.Logrus.Debug(message)
 		}
 	case "info":
 		if err != nil {
-			log.Info(err.Error())
+			load.Logrus.Info(err)
 		}
 		if message != "" {
-			log.Debug(message)
+			load.Logrus.Info(message)
 		}
 	}
 }

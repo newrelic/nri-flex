@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 )
 
 func TestRunHTTP(t *testing.T) {
+	load.Refresh()
 	// create a listener with desired port
 	l, _ := net.Listen("tcp", "127.0.0.1:9123")
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -28,7 +29,6 @@ func TestRunHTTP(t *testing.T) {
 	ts.Start()
 
 	doLoop := true
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "httpExample",
 		Global: load.Global{
@@ -83,7 +83,8 @@ func TestRunHTTP(t *testing.T) {
 			"api.StatusCode": 200,
 		},
 	}
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
 	if len(dataStore) != len(expectedSamples) {
 		t.Errorf("received sample count %d does not match expected %d", len(dataStore), len(expectedSamples))

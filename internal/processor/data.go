@@ -1,37 +1,40 @@
 package processor
 
 import (
+	"fmt"
+
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 )
 
-// runDataHandler handles the data received for processing
-func runDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, yml *load.Config) {
+// RunDataHandler handles the data received for processing
+func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+	logger.Flex("debug", nil, fmt.Sprintf("running data handler for %v", cfg.Name), false)
 	for _, dataSet := range dataSets {
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
 			ds := dataSet
-			processDataSet(&ds, samplesToMerge, i, yml)
+			processDataSet(&ds, samplesToMerge, i, cfg)
 		case []interface{}:
 			nextDataSets := dataSet
-			runDataHandler(nextDataSets, samplesToMerge, i, yml)
+			RunDataHandler(nextDataSets, samplesToMerge, i, cfg)
 		default:
-			logger.Flex("debug", nil, "not sure what to do with "+yml.Name, false)
+			logger.Flex("debug", nil, "not sure what to do with "+cfg.Name, false)
 		}
 	}
 }
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
-func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, yml *load.Config) {
+func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
 	ds := (*dataSet)
 
-	FindStartKey(yml.APIs[i].StartKey, &ds)      // start at a later part in the received data
-	StripKeys(yml.APIs[i].StripKeys, &ds)        // remove before flattening
-	RunLazyFlatten(yml.APIs[i].LazyFlatten, &ds) // perform lazy flatten if needed
-	flattenedData := FlattenData(ds, map[string]interface{}{}, "", yml.APIs[i].SampleKeys)
+	FindStartKey(&ds, cfg.APIs[i].StartKey) // start at a later part in the received data
+	StripKeys(&ds, cfg.APIs[i].StripKeys)   // remove before flattening
+	RunLazyFlatten(&ds, cfg, i)             // perform lazy flatten if needed
+	flattenedData := FlattenData(ds, map[string]interface{}{}, "", cfg.APIs[i].SampleKeys, &cfg.APIs[i])
 
 	// also strip from flattened data
-	for _, stripKey := range yml.APIs[i].StripKeys {
+	for _, stripKey := range cfg.APIs[i].StripKeys {
 		delete(flattenedData, stripKey)
 		delete(flattenedData, stripKey+"Samples")
 	}
@@ -40,14 +43,14 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 	mergedSample := false
 
 	if len(mergedData) == 1 {
-		if yml.APIs[i].Merge != "" {
+		if cfg.APIs[i].Merge != "" {
 			mergedData[0].(map[string]interface{})["_sampleNo"] = i
-			(*samplesToMerge)[yml.APIs[i].Merge] = append((*samplesToMerge)[yml.APIs[i].Merge], mergedData[0])
+			(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergedData[0])
 			mergedSample = true
 		}
 	}
 
 	if !mergedSample {
-		CreateMetricSets(mergedData, yml, i)
+		CreateMetricSets(mergedData, cfg, i)
 	}
 }

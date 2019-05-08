@@ -52,6 +52,7 @@ func SnakeCaseToCamelCase(key *string) {
 	}
 }
 
+// RegMatch Perform regex matching
 func RegMatch(text string, regexmatch string) []string {
 	reg := regexp.MustCompile(regexmatch)
 	matches := reg.FindStringSubmatch(text)
@@ -61,6 +62,7 @@ func RegMatch(text string, regexmatch string) []string {
 	return nil
 }
 
+// RegSplit Split by Regex
 func RegSplit(text string, delimiter string) []string {
 	reg := regexp.MustCompile(delimiter)
 	indexes := reg.FindAllStringIndex(text, -1)
@@ -90,26 +92,3 @@ func KvFinder(mode string, k1 string, k2 string) bool {
 		return false
 	}
 }
-
-// no longer used needed
-// ConvertTabToSpace useful for some raw commands
-// func ConvertTabToSpace(input string) string {
-// 	var result []string
-
-// 	if strings.Contains(input, "\t") {
-// 		for _, i := range input {
-// 			switch {
-// 			// all these considered as space, including tab \t
-// 			// '\t', '\n', '\v', '\f', '\r',' ', 0x85, 0xA0
-// 			case unicode.IsSpace(i):
-// 				result = append(result, " ") // replace tab with space
-// 			case !unicode.IsSpace(i):
-// 				result = append(result, string(i))
-// 			}
-// 		}
-// 	} else {
-// 		return input
-// 	}
-
-// 	return strings.Join(result, "")
-// }

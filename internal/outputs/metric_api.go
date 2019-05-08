@@ -14,11 +14,13 @@ func SendToMetricAPI() {
 	if load.Args.MetricAPIKey != "" {
 		key = load.Args.MetricAPIKey
 	}
-	jsonData, err := json.Marshal(load.MetricsPayload)
-	fmt.Println(string(jsonData))
+	jsonData, err := json.Marshal(load.MetricsPayload) // may need to implement some sort of chunking or batching
 	if err != nil {
-		logger.Flex("debug", err, "failed to marshal", false)
+		logger.Flex("error", err, "failed to marshal", false)
 	} else {
 		postRequest(load.Args.MetricAPIUrl, key, jsonData)
+		if load.Args.InsightsOutput {
+			fmt.Println(string(jsonData))
+		}
 	}
 }

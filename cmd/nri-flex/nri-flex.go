@@ -5,29 +5,41 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
+	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/newrelic/nri-flex/internal/processor"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	load.Logrus.Out = os.Stdout
 	load.FlexStatusCounter.M["EventCount"] = 0
 	load.FlexStatusCounter.M["EventDropCount"] = 0
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
 
-	outputs.CreateIntegration()
-	logger.Flex("info", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
-
-	// todo: port cluster mode here
+	outputs.InfraIntegration()
+	outputs.LambdaCheck()
 	runIntegration()
+
+	if outputs.LambdaEnabled {
+		outputs.LambdaFinish()
+	}
+
 	logger.Flex("fatal", load.Integration.Publish(), "unable to publish", false)
 }
 
+// runIntegration runs nri-flex
 func runIntegration() {
+	if load.Args.Verbose || os.Getenv("VERBOSE") == "true" {
+		load.Logrus.SetLevel(logrus.TraceLevel)
+	}
+	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v %v:%v", load.IntegrationName, load.IntegrationVersion, runtime.GOOS, runtime.GOARCH), false)
+
 	// store config ymls
 	var configs []load.Config
 
@@ -52,13 +64,14 @@ func runIntegration() {
 		}
 	}
 
-	processor.LoadConfigFiles(&configs, files, path)
-	processor.RunConfigFiles(&configs)
-	outputs.CreateStatusSample()
+	config.LoadFiles(&configs, files, path)
+	config.RunFiles(&configs)
+	outputs.StatusSample()
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		outputs.SendToInsights()
-	}
-	if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") {
+	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsPayload) > 0 {
 		outputs.SendToMetricAPI()
+	} else if len(load.MetricsPayload) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
+		logger.Flex("debug", nil, "metric_api is being used, but metric url and/or key has not been set", false)
 	}
 }

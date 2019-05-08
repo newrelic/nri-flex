@@ -6,6 +6,7 @@ import (
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	logrus "github.com/sirupsen/logrus"
 )
 
 // ArgumentList Available Arguments
@@ -21,14 +22,14 @@ type ArgumentList struct {
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
 	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
-	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
-	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 
 	// not implemented yet
+	// InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	// ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
 	// ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
 }
@@ -42,43 +43,23 @@ var Integration *integration.Integration
 // Entity Infrastructure SDK Entity
 var Entity *integration.Entity
 
-// MetricsPayload for MetricAPI
-var MetricsPayload []Metrics
-
 // Hostname current host
 var Hostname string
 
 // ContainerID current container id
 var ContainerID string
 
-// // EventDropCount current number of events dropped due to limiter
-// var EventDropCount = 0
-
-// // EventCount number of events processed
-// var EventCount = 0
-
-// // EventDistribution number of events distributed per sample
-// var EventDistribution = map[string]int{}
-
-// // ConfigsProcessed number of configs processed
-// var ConfigsProcessed = 0
-
-var FlexStatusCounter = struct {
-	sync.RWMutex
-	M map[string]int
-}{M: make(map[string]int)}
+// Logrus create instance of the logger
+var Logrus = logrus.New()
 
 var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
 var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
 var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
 
-var CounterMetrics = 0
-var GaugeMetrics = 0
-var SummaryMetrics = 0
-
 const (
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
 	DefaultPingTimeout = 5000                     // 5 seconds
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
@@ -100,6 +81,70 @@ const (
 	TypeColumns        = "columns"
 )
 
+// FlexStatusCounter count internal metrics
+var FlexStatusCounter = struct {
+	sync.RWMutex
+	M map[string]int
+}{M: make(map[string]int)}
+
+// StatusCounterIncrement increment the status counter for a particular key
+func StatusCounterIncrement(key string) {
+	FlexStatusCounter.Lock()
+	FlexStatusCounter.M[key]++
+	FlexStatusCounter.Unlock()
+}
+
+// Store to store data and lock and unlock when needed
+var Store = struct {
+	sync.RWMutex
+	Data [][]interface{}
+}{}
+
+// StoreAppend Append data to store
+func StoreAppend(apiNo int, data interface{}) {
+	Store.Lock()
+	Store.Data[apiNo] = append(Store.Data[apiNo], data)
+	Store.Unlock()
+}
+
+// StoreEmpty empties stored data
+// func StoreEmpty() {
+// 	Store.Lock()
+// 	// Store.Data = []interface{}{}
+// 	Store.Unlock()
+// }
+
+// MetricsPayload for MetricAPI
+var MetricsPayload []Metrics
+
+// MetricsStore to store data and lock and unlock when needed
+var MetricsStore = struct {
+	sync.RWMutex
+	Data []Metrics
+}{}
+
+// MetricsStoreAppend Append data to store
+func MetricsStoreAppend(metrics Metrics) {
+	MetricsStore.Lock()
+	MetricsStore.Data = append(MetricsStore.Data, metrics)
+	MetricsStore.Unlock()
+}
+
+// // MetricsStoreEmpty empties stored data
+// func MetricsStoreEmpty() {
+// 	MetricsStore.Lock()
+// 	// MetricsStore.Data = []interface{}{}
+// 	MetricsStore.Unlock()
+// }
+
+// Metrics struct
+type Metrics struct {
+	TimestampMs      int64                    `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
+	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
+	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
+	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
+}
+
 // Config YAML Struct
 type Config struct {
 	FileName         string // this will be set when files are read
@@ -108,9 +153,10 @@ type Config struct {
 	APIs             []API
 	Datastore        map[string][]interface{} `yaml:"datastore"`
 	LookupStore      map[string][]string      `yaml:"lookup_store"`
+	LookupFile       string                   `yaml:"lookup_file"`
 	VariableStore    map[string]string        `yaml:"variable_store"`
 	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
-	MetricAPI        bool                     `yaml:"metric_api"`        // use the metric api
+	MetricAPI        bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
 }
 
 // Global struct
@@ -140,25 +186,30 @@ type SampleMerge struct {
 
 // API YAML Struct
 type API struct {
-	// MetricAPI         bool       `yaml:"metric_api"`     // use the metric api
-	// MetricAPIURL      string     `yaml:"metric_api_url"` // set the metric api url
-	EventType         string     `yaml:"event_type"` // override eventType
-	Merge             string     `yaml:"merge"`      // merge into another eventType
-	Prefix            string     `yaml:"prefix"`     // prefix attribute keys
-	Name              string     `yaml:"name"`
-	File              string     `yaml:"file"`
-	URL               string     `yaml:"url"`
-	EscapeURL         bool       `yaml:"escape_url"`
-	Prometheus        Prometheus `yaml:"prometheus"`
-	Cache             string     `yaml:"cache"` // read data from datastore
-	Database          string     `yaml:"database"`
-	DbDriver          string     `yaml:"db_driver"`
-	DbConn            string     `yaml:"db_conn"`
-	Shell             string     `yaml:"shell"`
-	Commands          []Command  `yaml:"commands"`
-	DbQueries         []Command  `yaml:"db_queries"`
-	Jmx               JMX        `yaml:"jmx"`
-	IgnoreLines       []int      // not implemented - idea is to ignore particular lines starting from 0 of the command output
+	Name              string            `yaml:"name"`
+	EventType         string            `yaml:"event_type"`     // override eventType
+	Entity            string            `yaml:"entity"`         // define a custom entity name
+	EntityType        string            `yaml:"entity_type"`    // define a custom entity type (namespace)
+	Inventory         map[string]string `yaml:"inventory"`      // set as inventory
+	InventoryOnly     bool              `yaml:"inventory_only"` // only generate inventory data
+	Events            map[string]string `yaml:"events"`         // set as events
+	EventsOnly        bool              `yaml:"events_only"`    // only generate events
+	Merge             string            `yaml:"merge"`          // merge into another eventType
+	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
+	File              string            `yaml:"file"`
+	URL               string            `yaml:"url"`
+	EscapeURL         bool              `yaml:"escape_url"`
+	Prometheus        Prometheus        `yaml:"prometheus"`
+	Cache             string            `yaml:"cache"` // read data from datastore
+	Database          string            `yaml:"database"`
+	DbDriver          string            `yaml:"db_driver"`
+	DbConn            string            `yaml:"db_conn"`
+	Shell             string            `yaml:"shell"`
+	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
+	Commands          []Command         `yaml:"commands"`
+	DbQueries         []Command         `yaml:"db_queries"`
+	Jmx               JMX               `yaml:"jmx"`
+	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
 	Proxy             string
 	TLSConfig         TLSConfig `yaml:"tls_config"`
@@ -191,6 +242,7 @@ type API struct {
 	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
+	SplitObjects      bool                `yaml:"split_objects"`     // convert object with nested objects to array
 	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy           string              `yaml:"split_by"`          // character to split by
 	SetHeader         []string            `yaml:"set_header"`        // manually set header column names
@@ -218,6 +270,8 @@ type Command struct {
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout
+	Dial             string            `yaml:"dial"`              // eg. google.com:80
+	Network          string            `yaml:"network"`           // default tcp
 
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
@@ -289,38 +343,11 @@ type MetricParser struct {
 	Summaries map[string]map[string]interface{} `yaml:"summaries"`
 }
 
-// Summary struct
-type Summary struct {
-	Metric string `yaml:"metric"` // the target metric
-	Type   string `yaml:"type"`   // count/sum/min/max
-	Value  int64  `yaml:"value"`  // numeric value
-}
-
 // Namespace Struct
 type Namespace struct {
 	// if neither of the below are set and the MetricParser is used, the namespace will default to the "Name" attribute
 	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
 	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
-}
-
-// Metrics struct
-type Metrics struct {
-	TimestampMs      int64                    `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
-	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
-	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
-	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
-	// Metrics          []Metric               `json:"metrics"`
-}
-
-// Metric struct
-type Metric struct {
-	Name  string  `json:"name"`
-	Type  string  `json:"type"`
-	Value float64 `json:"value"`
-	// ValueSummary float64                `json:"value"`
-	TimestampMs int64                  `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
-	IntervalMs  int64                  `json:"interval.ms,omitempty"`  // required for count & summary
-	Attributes  map[string]interface{} `json:"attributes,omitempty"`
 }
 
 // Refresh Helper function used for testing

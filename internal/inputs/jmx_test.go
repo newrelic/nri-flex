@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"fmt"
@@ -112,7 +112,8 @@ func TestSetJMXCommand(t *testing.T) {
 
 	for _, config := range configs {
 		runCommand := config.APIs[0].Commands[0].Run
-		SetJMXCommand(&runCommand, config.APIs[0].Commands[0], config.APIs[0], &config)
+		dataStore := []interface{}{}
+		SetJMXCommand(&dataStore, &runCommand, config.APIs[0].Commands[0], config.APIs[0], &config)
 		expectedString := `echo "Catalina:type=ThreadPool,name=*" | java -jar ./nrjmx/nrjmx.jar` +
 			` -hostname 127.0.0.1 -port 9001 -username batman -password robin ` +
 			`-keyStore abc -keyStorePassword def -trustStore abc -trustStorePassword def`
@@ -129,7 +130,6 @@ func TestParseJMX(t *testing.T) {
 	prevSample := map[string]interface{}{
 		"hi": "hello",
 	}
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "jmxFlex",
 		APIs: []load.API{
@@ -270,7 +270,8 @@ func TestParseJMX(t *testing.T) {
 		},
 	}
 
-	ParseJMX(dataInterface, &dataStore, config.APIs[0].Commands[0], &prevSample)
+	dataStore := []interface{}{}
+	ParseJMX(&dataStore, dataInterface, config.APIs[0].Commands[0], &prevSample)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
@@ -294,12 +295,13 @@ func TestParseJMX(t *testing.T) {
 }
 
 func TestParseJMXwithCompressBean(t *testing.T) {
+	load.Refresh()
+	// create a listener with desired port
 	b, _ := ioutil.ReadFile("../../test/payloads/tomcatJMX.out")
 	_, dataInterface := detectCommandOutput(string(b), "jmx")
 	prevSample := map[string]interface{}{
 		"hi": "hello",
 	}
-	dataStore := []interface{}{}
 	config := load.Config{
 		Name: "jmxFlex",
 		APIs: []load.API{
@@ -383,7 +385,8 @@ func TestParseJMXwithCompressBean(t *testing.T) {
 		},
 	}
 
-	ParseJMX(dataInterface, &dataStore, config.APIs[0].Commands[0], &prevSample)
+	dataStore := []interface{}{}
+	ParseJMX(&dataStore, dataInterface, config.APIs[0].Commands[0], &prevSample)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))

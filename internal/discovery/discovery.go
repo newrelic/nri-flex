@@ -12,10 +12,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
-	"github.com/newrelic/nri-flex/internal/processor"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -23,38 +23,38 @@ import (
 
 // Run discover containers
 func Run(cfg *[]load.Config) {
-	FindFlexContainerID()
+	FindFlexContainerID("/proc/1/cpuset")
 	var err error
 	cli, err = setDockerClient()
 	if err != nil {
-		logger.Flex("debug", err, "unable to set docker client", false)
+		logger.Flex("error", err, "unable to set docker client", false)
 	} else {
 		ctx := context.Background()
 		containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 		if err != nil {
-			logger.Flex("debug", err, "unable to set perform container list", false)
+			logger.Flex("error", err, "unable to set perform container list", false)
 		} else if len(containerList) > 0 {
 			// List config files in containerDiscoveryPath directory
 			containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
 			containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
-			logger.Flex("debug", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
+			logger.Flex("error", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
 
 			CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, cfg)
 			if len(containerDiscoveryFiles) == 0 {
-				logger.Flex("info", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+				logger.Flex("debug", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
 			}
 		}
 	}
 }
 
 // FindFlexContainerID detects if Flex is running within a container and sets the ID
-func FindFlexContainerID() {
+func FindFlexContainerID(read string) {
 	// set current containerID
-	cpuset, err := ioutil.ReadFile("/proc/1/cpuset")
+	cpuset, err := ioutil.ReadFile(read) // read = "/proc/1/cpuset"
 	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
 	if err == nil {
 		strCpuset := strings.TrimSpace(string(cpuset))
-		logger.Flex("info", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
+		logger.Flex("debug", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
 		values := strings.Split(strCpuset, "/")
 		if len(values) > 0 {
 			if len(values[len(values)-1]) == 64 {
@@ -63,21 +63,23 @@ func FindFlexContainerID() {
 			}
 		}
 	} else {
-		logger.Flex("debug", err, "potentially not running within a container", false)
+		logger.Flex("debug", nil, "potentially not running within a container", false)
 	}
 }
 
 // CreateDynamicContainerConfigs Creates dynamic configs for each container
 func CreateDynamicContainerConfigs(containers []types.Container, files []os.FileInfo, path string, ymls *[]load.Config) {
 	var containerYmls []load.Config
-	processor.LoadConfigFiles(&containerYmls, files, path)
+	config.LoadFiles(&containerYmls, files, path)
 	foundTargetContainerIds := []string{}
 
 	// store inspected containers, so we do not re-inspect anything unnecessarily
 	inspectedContainers := []types.ContainerJSON{}
 	logger.Flex("debug", fmt.Errorf("containers %d, containerDiscoveryConfigs %d", len(containers), len(containerYmls)), "", false)
 	// find flex container id if not set
-	fallbackFindFlexContainerID(&containers)
+	if load.ContainerID == "" {
+		fallbackFindFlexContainerID(&containers)
+	}
 	// flex envs/labels -> container
 	runReverseLookup(cli, &containers, &inspectedContainers, &foundTargetContainerIds, &containerYmls, ymls, path)
 	// container envs/labels -> flex
@@ -243,7 +245,7 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 							ctx := context.Background()
 							reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
 							if err != nil {
-								logger.Flex("debug", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
+								logger.Flex("error", fmt.Errorf("rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val), "", false)
 							} else {
 								if findContainerTarget(discoveryConfig, container, key, foundTargetContainerIds) {
 									logger.Flex("debug", fmt.Errorf("rev lookup matched %v: %v - %v", container.ID, key, val), "", false)
@@ -268,13 +270,13 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 		case string:
 			configName = cfg + ".yml"
 		default:
-			logger.Flex("debug", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
+			logger.Flex("error", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
 		}
 		if containerYml.FileName == configName {
 			logger.Flex("debug", fmt.Errorf("container discovery %v matched %v", targetContainer.ID, containerYml.FileName), "", false)
 			b, err := ioutil.ReadFile(path + containerYml.FileName)
 			if err != nil {
-				logger.Flex("debug", err, "unable to read flex config: "+path+containerYml.FileName, false)
+				logger.Flex("error", err, "unable to read flex config: "+path+containerYml.FileName, false)
 			} else {
 				ymlString := string(b)
 				discoveryIPAddress := "" // we require IP at least
@@ -366,10 +368,10 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					logger.Flex("debug", nil, "couldn't build dynamic cfg for: "+targetContainer.Image+" - "+targetContainer.ID, false)
 					logger.Flex("debug", nil, "missing variable unable to create dynamic cfg ip:<"+discoveryIPAddress+">-port:<"+discoveryPort+">", false)
 				} else {
-					yml, err := processor.ReadYML(ymlString)
+					yml, err := config.ReadYML(ymlString)
 					if err != nil {
-						logger.Flex("debug", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
-						logger.Flex("debug", fmt.Errorf(ymlString), "", false)
+						logger.Flex("error", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
+						logger.Flex("error", fmt.Errorf(ymlString), "", false)
 					} else {
 						if yml.CustomAttributes == nil {
 							yml.CustomAttributes = map[string]string{}
@@ -458,7 +460,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 		// targetContainerInspect.State.Pid
 		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
 
-		logger.Flex("info", nil, "attempting low level ip fetch", false)
+		logger.Flex("debug", nil, "attempting low level ip fetch", false)
 
 		// Create a new context and add a timeout to it
 		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
@@ -474,9 +476,9 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 			if output != nil {
 				message = message + " " + string(output)
 			}
-			logger.Flex("debug", err, message, false)
+			logger.Flex("error", err, message, false)
 		} else if ctx.Err() == context.DeadlineExceeded {
-			logger.Flex("debug", ctx.Err(), "command timed out", false)
+			logger.Flex("error", ctx.Err(), "command timed out", false)
 		} else if ctx.Err() != nil {
 			logger.Flex("debug", err, "command execution failed", false)
 		} else {
@@ -484,7 +486,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 			// ensure this is an ipv4 address
 			re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
 			if re.Match([]byte(ipv4)) {
-				logger.Flex("info", nil, fmt.Sprintf("fetched %v", ipv4), false)
+				logger.Flex("debug", nil, fmt.Sprintf("fetched %v", ipv4), false)
 				*discoveryIPAddress = ipv4
 			} else {
 				logger.Flex("debug", fmt.Errorf("low level fetch failed %v", ipv4), "", false)
@@ -510,48 +512,46 @@ func execHostnameFallback(discoveryIPAddress *string, containerID string) {
 
 func fallbackFindFlexContainerID(containers *[]types.Container) {
 	// fallback on looking for image name "nri-flex" if flex's container id was not found internally
-	if load.ContainerID == "" {
-		logger.Flex("debug", fmt.Errorf("flex container id has not been found internally"), "", false)
-		logger.Flex("debug", fmt.Errorf("falling back - looking for 'nri-flex' image or container name"), "", false)
+	logger.Flex("debug", fmt.Errorf("flex container id has not been found internally"), "", false)
+	logger.Flex("debug", fmt.Errorf("falling back - looking for 'nri-flex' image or container name"), "", false)
 
-		var wg sync.WaitGroup
-		wg.Add(len(*containers))
-		for _, container := range *containers {
-			go func(container types.Container) {
-				defer wg.Done()
-				if strings.Contains(container.Image, load.IntegrationName) && load.ContainerID == "" {
-					load.ContainerID = container.ID
+	var wg sync.WaitGroup
+	wg.Add(len(*containers))
+	for _, container := range *containers {
+		go func(container types.Container) {
+			defer wg.Done()
+			if strings.Contains(container.Image, load.IntegrationName) && load.ContainerID == "" {
+				load.ContainerID = container.ID
+			}
+
+			// fallback - check standard container names
+			if load.ContainerID == "" {
+				for _, containerName := range container.Names {
+					checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
+					if strings.Contains(checkContainerName, load.IntegrationNameShort) {
+						load.ContainerID = container.ID
+					}
 				}
+			}
 
-				// fallback - check standard container names
-				if load.ContainerID == "" {
-					for _, containerName := range container.Names {
-						checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
-						if strings.Contains(checkContainerName, load.IntegrationNameShort) {
+			// fallback - check kubernetes container name via label
+			if load.ContainerID == "" {
+				for key, val := range container.Labels {
+					if key == "io.kubernetes.container.name" {
+						if strings.Contains(val, load.IntegrationNameShort) {
 							load.ContainerID = container.ID
 						}
 					}
 				}
+			}
 
-				// fallback - check kubernetes container name via label
-				if load.ContainerID == "" {
-					for key, val := range container.Labels {
-						if key == "io.kubernetes.container.name" {
-							if strings.Contains(val, load.IntegrationNameShort) {
-								load.ContainerID = container.ID
-							}
-						}
-					}
-				}
+		}(container)
+	}
+	wg.Wait()
 
-			}(container)
-		}
-		wg.Wait()
-
-		if load.ContainerID == "" {
-			logger.Flex("debug", fmt.Errorf("unable to find flex container id"), "", false)
-		} else {
-			logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
-		}
+	if load.ContainerID == "" {
+		logger.Flex("debug", fmt.Errorf("unable to find flex container id"), "", false)
+	} else {
+		logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
 	}
 }

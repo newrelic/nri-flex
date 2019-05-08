@@ -1,4 +1,4 @@
-package parser
+package inputs
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestPrometheusRedis(t *testing.T) {
-	dataStore := []interface{}{}
+	load.Refresh()
 
 	// create a listener with desired port
 	l, _ := net.Listen("tcp", "127.0.0.1:9122")
@@ -50,7 +50,8 @@ func TestPrometheusRedis(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
@@ -86,7 +87,7 @@ func TestPrometheusRedis(t *testing.T) {
 }
 
 func TestPrometheusNginx(t *testing.T) {
-	dataStore := []interface{}{}
+	load.Refresh()
 
 	// Start a local HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -116,7 +117,8 @@ func TestPrometheusNginx(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
@@ -143,7 +145,7 @@ func TestPrometheusNginx(t *testing.T) {
 }
 
 func TestPrometheusNginx2(t *testing.T) {
-	dataStore := []interface{}{}
+	load.Refresh()
 
 	// Start a local HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -175,7 +177,8 @@ func TestPrometheusNginx2(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))
@@ -203,8 +206,7 @@ func TestPrometheusNginx2(t *testing.T) {
 }
 
 func TestPrometheusNginx3(t *testing.T) {
-	dataStore := []interface{}{}
-
+	load.Refresh()
 	// Start a local HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Header().Set("Content-Type", "text/plain; version=0.0.4")
@@ -234,7 +236,8 @@ func TestPrometheusNginx3(t *testing.T) {
 	expectedDatastore := jsonOut.([]interface{})
 
 	doLoop := true
-	RunHTTP(&doLoop, &config, config.APIs[0], &config.APIs[0].URL, &dataStore)
+	dataStore := []interface{}{}
+	RunHTTP(&dataStore, &doLoop, &config, config.APIs[0], &config.APIs[0].URL)
 
 	if len(expectedDatastore) != len(dataStore) {
 		t.Errorf("Incorrect number of samples generated expected: %d, got: %d", len(expectedDatastore), len(dataStore))

@@ -1,3 +1,15 @@
+0.6.0-pre
+------
+- Add net dial functionality
+- Add lookup file functionality
+- Add ability to run Flex as a Lambda
+- Add metric api functionality
+- Add NR Infra events & inventory support, and granular entity control
+- Add split_objects functionality
+- Switch to logrus package
+- Improve logging
+- Refactor various areas
+
 0.5.5-pre
 ------
 - Add regex multi matching and splitting functionality

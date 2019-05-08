@@ -1,3 +1,4 @@
+---
 name: redisFlex
 apis: 
   - name: redis
@@ -5,22 +6,16 @@ apis:
       - dial: 127.0.0.1:6379
         run: "info\r\n"
         split_by: ":"
-      - run: echo "zHost:$(hostname)"
-        split_by: ":"
     remove_keys: # remove any keys that contain any of the following strings
       - human
     snake_to_camel: true 
     perc_to_decimal: true
-    rename_keys:
-      Host: opSystem # replaces Host > opSystem (contains match replace within key) # useful for updating multiple keys
     sub_parse:
       - type: prefix
         key: db
         split_by:
           - ","
           - "="
-    custom_attributes:
-      myCustomAttr: theValue
     metric_parser:
       metrics:
         totalNetInputBytes: RATE
