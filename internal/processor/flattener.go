@@ -6,6 +6,7 @@ import (
 
 	"github.com/newrelic/infra-integrations-sdk/log"
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // FlattenData flatten an interface
@@ -23,16 +24,18 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 			data[key+"FlexSamples"] = dataSamples
 		}
 	case map[string]interface{}:
+		// only allow this to be used once
 		if api.SplitObjects {
 			dataSamples := []interface{}{}
 			for loopKey := range unknown {
 				switch data := unknown[loopKey].(type) {
 				case map[string]interface{}:
+					logger.Flex("debug", nil, fmt.Sprintf("splitting object %v", loopKey), false)
 					data["split.id"] = loopKey
 					dataSamples = append(dataSamples, data)
 				}
 			}
-			(*api).SplitObjects = false
+			(*api).SplitObjects = false // only allow this to be run once
 			FlattenData(dataSamples, data, key, sampleKeys, api)
 		} else {
 			for loopKey := range unknown {

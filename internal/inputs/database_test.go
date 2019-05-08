@@ -89,9 +89,9 @@ func TestDatabase(t *testing.T) {
 	}
 
 	dataStore := []interface{}{}
-	ProcessQueries(&dataStore, config.APIs[0])
-	ProcessQueries(&dataStore, config.APIs[1])
-	ProcessQueries(&dataStore, config.APIs[2])
+	ProcessQueries(&dataStore, &config, 0)
+	ProcessQueries(&dataStore, &config, 1)
+	ProcessQueries(&dataStore, &config, 2)
 
 	if len(dataStore) != 4 {
 		t.Errorf("expected 4 samples, got %d", len(dataStore))

@@ -16,6 +16,7 @@ import (
 
 // RunHTTP Executes HTTP Requests
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running http requests", yml.Name), false)
 	for *doLoop {
 		request := gorequest.New()
 

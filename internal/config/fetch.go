@@ -47,11 +47,11 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 				dataStore = yml.Datastore[api.Cache]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
-			inputs.RunCommands(yml, apiNo, &dataStore)
+			inputs.RunCommands(&dataStore, yml, apiNo)
 		} else if reqURL != "" {
 			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
 		} else if api.Database != "" && api.DbConn != "" {
-			inputs.ProcessQueries(&dataStore, api)
+			inputs.ProcessQueries(&dataStore, yml, apiNo)
 		}
 	}
 

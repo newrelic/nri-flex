@@ -21,8 +21,9 @@ import (
 )
 
 // ProcessQueries processes database queries
-func ProcessQueries(dataStore *[]interface{}, api load.API) {
-	logger.Flex("debug", fmt.Errorf("running %v queries", api.Database), "", false)
+func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+	api := yml.APIs[apiNo]
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running db queries %v", yml.Name, api.Database), false)
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)

@@ -18,7 +18,8 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // RunCommands executes the given commands to create one merged sampled
-func RunCommands(yml *load.Config, apiNo int, dataStore *[]interface{}) {
+func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
 	api := yml.APIs[apiNo]
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
