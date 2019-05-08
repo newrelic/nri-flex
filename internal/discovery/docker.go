@@ -28,8 +28,6 @@ func setDockerClient() (*client.Client, error) {
 	if load.Args.DockerAPIVersion != "" {
 		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
 	} else {
-		logger.Flex("debug", nil, fmt.Sprintf("GOOS: %v", runtime.GOOS), false)
-
 		if runtime.GOOS == "windows" {
 			out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
 		} else {

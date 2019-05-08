@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/config"
@@ -37,7 +38,7 @@ func runIntegration() {
 	if load.Args.Verbose || os.Getenv("VERBOSE") == "true" {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
-	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v", load.IntegrationName, load.IntegrationVersion), false)
+	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v %v:%v", load.IntegrationName, load.IntegrationVersion, runtime.GOOS, runtime.GOARCH), false)
 
 	// store config ymls
 	var configs []load.Config
