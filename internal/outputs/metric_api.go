@@ -14,7 +14,7 @@ func SendToMetricAPI() {
 	if load.Args.MetricAPIKey != "" {
 		key = load.Args.MetricAPIKey
 	}
-	jsonData, err := json.Marshal(load.MetricsPayload) // may need to implement some sort of chunking or batching
+	jsonData, err := json.Marshal(load.MetricsStore.Data) // may need to implement some sort of chunking or batching
 	if err != nil {
 		logger.Flex("error", err, "failed to marshal", false)
 	} else {

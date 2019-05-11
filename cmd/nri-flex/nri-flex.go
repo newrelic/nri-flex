@@ -69,9 +69,9 @@ func runIntegration() {
 	outputs.StatusSample()
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		outputs.SendToInsights()
-	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsPayload) > 0 {
+	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		outputs.SendToMetricAPI()
-	} else if len(load.MetricsPayload) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
+	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
 		logger.Flex("debug", nil, "metric_api is being used, but metric url and/or key has not been set", false)
 	}
 }
