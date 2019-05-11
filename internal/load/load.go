@@ -94,30 +94,7 @@ func StatusCounterIncrement(key string) {
 	FlexStatusCounter.Unlock()
 }
 
-// Store to store data and lock and unlock when needed
-var Store = struct {
-	sync.RWMutex
-	Data [][]interface{}
-}{}
-
-// StoreAppend Append data to store
-func StoreAppend(apiNo int, data interface{}) {
-	Store.Lock()
-	Store.Data[apiNo] = append(Store.Data[apiNo], data)
-	Store.Unlock()
-}
-
-// StoreEmpty empties stored data
-// func StoreEmpty() {
-// 	Store.Lock()
-// 	// Store.Data = []interface{}{}
-// 	Store.Unlock()
-// }
-
-// MetricsPayload for MetricAPI
-var MetricsPayload []Metrics
-
-// MetricsStore to store data and lock and unlock when needed
+// MetricsStore for Dimensional Metrics to store data and lock and unlock when needed
 var MetricsStore = struct {
 	sync.RWMutex
 	Data []Metrics
@@ -130,12 +107,12 @@ func MetricsStoreAppend(metrics Metrics) {
 	MetricsStore.Unlock()
 }
 
-// // MetricsStoreEmpty empties stored data
-// func MetricsStoreEmpty() {
-// 	MetricsStore.Lock()
-// 	// MetricsStore.Data = []interface{}{}
-// 	MetricsStore.Unlock()
-// }
+// MetricsStoreEmpty empties stored data
+func MetricsStoreEmpty() {
+	MetricsStore.Lock()
+	MetricsStore.Data = []Metrics{}
+	MetricsStore.Unlock()
+}
 
 // Metrics struct
 type Metrics struct {

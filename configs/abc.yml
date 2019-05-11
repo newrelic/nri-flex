@@ -1,9 +1,0 @@
-name: portTestFlex
-apis: 
-  - timeout: 1000
-    commands:
-    - dial: "google.com:80"
-    - dial: "yahoo.com:9988"
-    # - dial: "localhost:6379" ### you can also send messages and split the output
-      # run: "info\r\n" 
-      # split_by: ":"

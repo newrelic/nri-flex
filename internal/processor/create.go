@@ -310,7 +310,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 		}
 	}
 
-	// add summary metrics into final metrics for metricsPayload
+	// add summary metrics into final metrics for MetricsStore
 	for summaryName, metrics := range SummaryMetrics {
 		value := fmt.Sprintf("%v", (*api).MetricParser.Summaries[summaryName]["interval"])
 		intervalParsed, err := strconv.ParseFloat(value, 64)
@@ -332,7 +332,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 		Metrics:          Metrics,
 	}
 
-	load.MetricsPayload = append(load.MetricsPayload, MetricsPayload)
+	load.MetricsStoreAppend(MetricsPayload)
 }
 
 // AutoSetStandard x

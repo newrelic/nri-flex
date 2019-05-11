@@ -212,7 +212,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily, cfgName 
 					CommonAttributes: attributes,
 					Metrics:          summaryMetrics,
 				}
-				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+				load.MetricsStoreAppend(Metrics)
 			} else if mf.GetType() == dto.MetricType_HISTOGRAM {
 				attributes["prometheusType"] = "histogram"
 				histogramMetrics := []map[string]interface{}{}
@@ -248,7 +248,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily, cfgName 
 					CommonAttributes: attributes,
 					Metrics:          histogramMetrics,
 				}
-				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+				load.MetricsStoreAppend(Metrics)
 			} else if mf.GetType() == dto.MetricType_GAUGE {
 				attributes["prometheusType"] = "gauge"
 				Metrics := load.Metrics{
@@ -261,7 +261,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily, cfgName 
 							"value": getValue(m),
 						}},
 				}
-				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+				load.MetricsStoreAppend(Metrics)
 			} else if mf.GetType() == dto.MetricType_COUNTER {
 				attributes["prometheusType"] = "counter"
 				Metrics := load.Metrics{
@@ -274,7 +274,7 @@ func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily, cfgName 
 							"value": getValue(m),
 						}},
 				}
-				load.MetricsPayload = append(load.MetricsPayload, Metrics)
+				load.MetricsStoreAppend(Metrics)
 			}
 		}
 	}
