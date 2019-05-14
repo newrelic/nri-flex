@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/newrelic/infra-integrations-sdk/log"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 )
@@ -15,27 +14,11 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 	case []interface{}:
 		dataSamples := []interface{}{}
 		dataSamples = append(dataSamples, unknown...)
-
-		// Check if Prometheus Style Metrics else process as normal (FlexSamples)
-		if checkPrometheus(dataSamples) {
-			data[key+"PrometheusSamples"] = dataSamples
-		} else {
-			key = checkPluralSlice(key)
-			data[key+"FlexSamples"] = dataSamples
-		}
+		key = checkPluralSlice(key)
+		data[key+"FlexSamples"] = dataSamples
 	case map[string]interface{}:
-		// only allow this to be used once
-		if api.SplitObjects {
-			dataSamples := []interface{}{}
-			for loopKey := range unknown {
-				switch data := unknown[loopKey].(type) {
-				case map[string]interface{}:
-					logger.Flex("debug", nil, fmt.Sprintf("splitting object %v", loopKey), false)
-					data["split.id"] = loopKey
-					dataSamples = append(dataSamples, data)
-				}
-			}
-			(*api).SplitObjects = false // only allow this to be run once
+		if api.SplitObjects { // split objects can only be used once
+			dataSamples := splitObjects(&unknown, api)
 			FlattenData(dataSamples, data, key, sampleKeys, api)
 		} else {
 			for loopKey := range unknown {
@@ -49,7 +32,7 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 				for _, sampleVal := range sampleKeys {
 					keys := strings.Split(sampleVal, ">")
 					flexSamples := []interface{}{}
-					// if the one of the keys == the loopKey we know to create samples
+					// if one of the keys == the loopKey we know to create samples
 					if len(keys) > 0 && keys[0] == loopKey {
 						switch unknown[loopKey].(type) {
 						case map[string]interface{}:
@@ -114,8 +97,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 					}
 					finalMergedSamples = append(finalMergedSamples, newSample)
 				default:
-					log.Debug("not sure what to do with this?")
-					log.Debug(fmt.Sprintf("%v", sample))
+					logger.Flex("debug", nil, fmt.Sprintf("%v not sure what to do with this?", sample), false)
 				}
 			}
 		case map[string]interface{}:
@@ -190,4 +172,20 @@ func checkPluralSlice(key string) string {
 		}
 	}
 	return key
+}
+
+// splitObjects splits a map string interface / object with nested objects
+// this will drop and ignore and slices/arrays that could exist
+func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} {
+	dataSamples := []interface{}{}
+	for loopKey := range *unknown {
+		switch data := (*unknown)[loopKey].(type) {
+		case map[string]interface{}:
+			logger.Flex("debug", nil, fmt.Sprintf("splitting object %v", loopKey), false)
+			data["split.id"] = loopKey
+			dataSamples = append(dataSamples, data)
+		}
+	}
+	(*api).SplitObjects = false // only allow this to be run once
+	return dataSamples
 }
