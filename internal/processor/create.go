@@ -181,38 +181,6 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 	}
 }
 
-// checkPrometheus Checks if the slice appears to be in a Prometheus style format
-// some code duplication this can probably be cleaned up
-func checkPrometheus(dataSamples []interface{}) bool {
-	// needed when only 1 value set is returned from prometheus
-	if len(dataSamples) == 2 {
-		//check if the first value (timestamp) is a parse-able to a float
-		value := fmt.Sprintf("%v", dataSamples[0])
-		_, err := strconv.ParseFloat(value, 64)
-		if err == nil {
-			return true
-		}
-	}
-
-	for _, dataSample := range dataSamples {
-		switch dataSample := dataSample.(type) {
-		case []interface{}:
-			//there should be 2 values a timestamp and value eg. [ 1435781430.781, "1" ]
-			if len(dataSample) == 2 {
-				//check if the first value (timestamp) is a parse-able to a float
-				value := fmt.Sprintf("%v", dataSample[0])
-				_, err := strconv.ParseFloat(value, 64)
-				if err == nil {
-					return true
-				}
-			}
-		default:
-			return false
-		}
-	}
-	return false
-}
-
 // RunSampleFilter Filters samples generated
 func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key string, v interface{}) {
 	for _, sampleFilter := range sampleFilters {
@@ -450,3 +418,36 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 		}
 	}
 }
+
+// deprecated
+// // checkPrometheus Checks if the slice appears to be in a Prometheus style format
+// // some code duplication this can probably be cleaned up
+// func checkPrometheus(dataSamples []interface{}) bool {
+// 	// needed when only 1 value set is returned from prometheus
+// 	if len(dataSamples) == 2 {
+// 		//check if the first value (timestamp) is a parse-able to a float
+// 		value := fmt.Sprintf("%v", dataSamples[0])
+// 		_, err := strconv.ParseFloat(value, 64)
+// 		if err == nil {
+// 			return true
+// 		}
+// 	}
+
+// 	for _, dataSample := range dataSamples {
+// 		switch dataSample := dataSample.(type) {
+// 		case []interface{}:
+// 			//there should be 2 values a timestamp and value eg. [ 1435781430.781, "1" ]
+// 			if len(dataSample) == 2 {
+// 				//check if the first value (timestamp) is a parse-able to a float
+// 				value := fmt.Sprintf("%v", dataSample[0])
+// 				_, err := strconv.ParseFloat(value, 64)
+// 				if err == nil {
+// 					return true
+// 				}
+// 			}
+// 		default:
+// 			return false
+// 		}
+// 	}
+// 	return false
+// }

@@ -294,8 +294,9 @@ docker run -it -p 9696:6379 --label flexDiscoveryRedis="t=redis,c=redis,tt=img,t
 - [+more here](https://github.com/newrelic/nri-flex/wiki/Functions)
 
 ## Integrations 
+For all see within the examples directory.
+
 - All Prometheus Exporters
-- Prometheus Rest API (vector, matrix, targets supported)
 - Consul
 - Vault (shows merge functionality)
 - Bamboo

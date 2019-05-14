@@ -56,7 +56,8 @@ func SubLookupFileData(configs *[]load.Config, config load.Config) {
 				if replaceOccured {
 					newCfg, err := ReadYML(tmpCfgStr)
 					if err != nil {
-						logger.Flex("error", err, fmt.Sprintf("new lookup file unmarshal failed %v", config.LookupFile), false)
+						logger.Flex("error", err, fmt.Sprintf("new lookup file unmarshal failed %v %v", config.Name, config.LookupFile), false)
+						logger.Flex("error", fmt.Errorf("check for errors or run yaml lint against the below output:\n%v", tmpCfgStr), "", false)
 					} else {
 						*configs = append(*configs, newCfg)
 					}
