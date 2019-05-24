@@ -94,6 +94,14 @@ func StatusCounterIncrement(key string) {
 	FlexStatusCounter.Unlock()
 }
 
+// StatusCounterRead the status counter for a particular key
+func StatusCounterRead(key string) int {
+	FlexStatusCounter.Lock()
+	value := FlexStatusCounter.M[key]
+	FlexStatusCounter.Unlock()
+	return value
+}
+
 // MetricsStore for Dimensional Metrics to store data and lock and unlock when needed
 var MetricsStore = struct {
 	sync.RWMutex
@@ -153,6 +161,7 @@ type TLSConfig struct {
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 	MinVersion         uint16 `yaml:"min_version"`
 	MaxVersion         uint16 `yaml:"max_version"`
+	Ca                 string `yaml:"ca"` // path to ca to read
 }
 
 // SampleMerge merge multiple samples into one (will remove previous samples)

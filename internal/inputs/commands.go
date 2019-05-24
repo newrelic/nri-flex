@@ -85,7 +85,11 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
 							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
-							processOutput(dataStore, sample["http"].(string), &dataSample, command, api, &processType)
+							if command.SplitOutput != "" {
+								splitOutput(dataStore, sample["http"].(string), command)
+							} else {
+								processOutput(dataStore, sample["http"].(string), &dataSample, command, api, &processType)
+							}
 						}
 					}
 				}

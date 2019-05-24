@@ -1,0 +1,19 @@
+; <<>> DiG 9.10.6 <<>> +time=1 +retries=1 @8.8.8.8 -p53 google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 33085
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;google.com.			IN	A
+
+;; ANSWER SECTION:
+google.com.		108	IN	A	216.58.200.110
+
+;; Query time: 107.13 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8)
+;; WHEN: Mon May 13 13:57:31 AEST 2019
+;; MSG SIZE  rcvd: 55
