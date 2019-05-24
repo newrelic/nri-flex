@@ -1,4 +1,4 @@
-name: com.kav.nri-flex
+name: com.newrelic.nri-flex
 description: nri-flex
 protocol_version: 2
 os: windows

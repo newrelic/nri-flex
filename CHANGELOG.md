@@ -1,3 +1,10 @@
+0.6.1-pre
+------
+- Allow regex matching feature to work with cache output
+- Update examples and configs
+- Fix event limiter counter not being unlocked
+- Add CA Support to TLSConfig for HTTP requests
+
 0.6.0-pre
 ------
 - Add net dial functionality

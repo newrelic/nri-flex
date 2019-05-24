@@ -1,34 +1,18 @@
 name: nginxFlex
 apis:
   - name: nginxStub
-    url: http://127.0.0.1/nginx_status
-    rename_keys:
-      "Active connections": "net.connectionsActive"
-    pluck_numbers: true
+    url: http://127.0.0.1:9999/nginx_status # get stub status output
+  - name: nginx
+    event_type: NginxSample
+    commands:
+      - cache: http://127.0.0.1:9999/nginx_status # use commands to parse the response
+        split_output: Active
+        regex_matches:
+          - expression: Active connections:\s(\S+)
+            keys: [net.connectionsActive]
+          - expression: \s(\d+)\s(\d+)\s(\d+)
+            keys: [net.connectionsAcceptedPerSecond, net.handledPerSecond, net.requestsPerSecond]
+          - expression: Reading:\s(\d+)\s\S+\s(\d+)\s\S+\s(\d+)
+            keys: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
     math:
       net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond}
-  - name: nginx
-    merge: NginxSample
-    commands:
-      - cache: http://127.0.0.1/nginx_status
-        split_by: ": "
-        line_end: 1
-  - name: nginx
-    merge: NginxSample
-    commands:
-      - cache: http://127.0.0.1/nginx_status
-        split: horizontal
-        set_header: [net.connectionsAcceptedPerSecond, net.handledPerSecond, net.requestsPerSecond]
-        row_start: 2
-        regex_match: true
-        split_by: (\S+)\s+(\S+)\s+(\S+)
-        line_end: 3
-  - name: nginx
-    merge: NginxSample
-    commands:
-      - cache: http://127.0.0.1/nginx_status
-        split: horizontal
-        set_header: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
-        row_start: 3
-        regex_match: true
-        split_by: 'Reading: (\d+)\s+Writing: (\d+)\s+Waiting: (\d+)'
