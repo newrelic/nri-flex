@@ -303,7 +303,13 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					}
 				}
 
-				ipMode := load.DefaultIPMode
+				ipMode := ""
+				if load.ContainerID == "" {
+					ipMode = "public"
+				} else {
+					ipMode = "private"
+				}
+
 				if load.Args.OverrideIPMode != "" && (load.Args.OverrideIPMode == load.Public || load.Args.OverrideIPMode == load.Private) {
 					ipMode = load.Args.OverrideIPMode
 				} else if discoveryConfig["ip"] != nil {
@@ -320,6 +326,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					discoveryIPAddress = networkIPAddress
 					discoveryPort = privatePort
 				}
+
+				logger.Flex("debug", nil, fmt.Sprintf("target: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort), false)
 
 				// attempt low level ip fetch
 				lowLevelIpv4Fetch(&discoveryIPAddress, targetContainerInspect.State.Pid)
