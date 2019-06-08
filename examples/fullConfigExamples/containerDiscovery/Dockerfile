@@ -5,7 +5,7 @@ FROM newrelic/infrastructure
 ENV NRIA_LICENSE_KEY=1234567890abcdefghijklmnopqrstuvwxyz1234
 
 # add netcat
-RUN apk add --update netcat-openbsd && rm -rf /var/cache/apk/*
+# RUN apk add --update netcat-openbsd && rm -rf /var/cache/apk/*
 
 # create some needed default directories for flex
 RUN mkdir -p /var/db/newrelic-infra/custom-integrations/flexConfigs/

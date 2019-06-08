@@ -17,7 +17,7 @@ RUN mkdir -p /var/db/newrelic-infra/custom-integrations/flexContainerDiscovery/
 # copy config/definition/binary over
 COPY ./configs/nri-flex-config.yml /etc/newrelic-infra/integrations.d/
 COPY ./configs/nri-flex-def-linux.yml /var/db/newrelic-infra/custom-integrations/nri-flex-definition.yml
-COPY ./bin/linux/flex /var/db/newrelic-infra/custom-integrations/nri-flex
+COPY ./bin/linux/nri-flex /var/db/newrelic-infra/custom-integrations/nri-flex
 
 # add kubectl
 # ENV KUBE_LATEST_VERSION="v1.13.3"

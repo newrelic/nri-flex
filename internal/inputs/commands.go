@@ -235,7 +235,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	}
 
 	for i, line := range lines {
-		if i != headerLine && i >= startLine {
+		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
 				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
 				break

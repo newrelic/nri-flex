@@ -70,7 +70,6 @@ const (
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
 	DefaultJmxPass     = "admin"
-	DefaultIPMode      = "private"
 	DefaultShell       = "/bin/sh"
 	DefaultLineLimit   = 255
 	Public             = "public"

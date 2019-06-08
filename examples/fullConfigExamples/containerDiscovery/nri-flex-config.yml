@@ -1,4 +1,4 @@
-integration_name: com.kav.nri-flex
+integration_name: com.newrelic.nri-flex
 
 instances:
   - name: nri-flex
