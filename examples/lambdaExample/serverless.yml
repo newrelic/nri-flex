@@ -1,0 +1,19 @@
+service: nri-flex
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: ap-southeast-2
+package:
+  exclude:
+    - ./**
+  include:
+    - ./pkg/**
+
+functions:
+  main:
+    handler: pkg/nri-flex
+    timeout: 60 # increase/decrease as needed
+    memory: 128 # increase/decrease as needed
+    events:
+      - schedule: rate(60 minutes) ### configure your rate/interval here
