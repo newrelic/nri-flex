@@ -51,7 +51,7 @@
 
 [[constraint]]
   name = "github.com/docker/docker"
-  revision = "308438c1ec8520eef7967cc97ae31bde2cbd3177"
+  revision = "238f8eaa31aa74be843c81703fabf774863ec30c"
 
 [[constraint]]
   branch = "master"
