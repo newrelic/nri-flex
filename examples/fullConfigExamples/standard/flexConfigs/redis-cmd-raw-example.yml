@@ -1,10 +1,10 @@
-### note if local testing, macOS does not have the -q flag for nc (netcat) that other linux systems have, so remove if testing locally
-### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+---
 name: redisFlex
 apis: 
   - name: redis
     commands: 
-      - run: (printf "info\r\n"; sleep 1) | nc 127.0.0.1 6379 # or even ### run: "redis-cli -h 127.0.0.1 -p 6379 info" ### (depends on redis-cli)
+      - dial: 127.0.0.1:6379
+        run: "info\r\n"
         split_by: ":"
     remove_keys: # remove any keys that contain any of the following strings
       - human
@@ -16,8 +16,6 @@ apis:
         split_by:
           - ","
           - "="
-    custom_attributes:
-      myCustomAttr: theValue
     metric_parser:
       metrics:
         totalNetInputBytes: RATE
