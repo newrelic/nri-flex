@@ -1,3 +1,8 @@
+0.6.2-pre
+------
+- Update Examples
+- Update container discovery ipMode defaulting
+
 0.6.1-pre
 ------
 - Allow regex matching feature to work with cache output

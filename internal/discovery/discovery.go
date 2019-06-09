@@ -327,8 +327,6 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					discoveryPort = privatePort
 				}
 
-				logger.Flex("debug", nil, fmt.Sprintf("target: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort), false)
-
 				// attempt low level ip fetch
 				lowLevelIpv4Fetch(&discoveryIPAddress, targetContainerInspect.State.Pid)
 				// attempt hostname fallback
@@ -371,6 +369,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						}
 					}
 				}
+
+				logger.Flex("debug", nil, fmt.Sprintf("target: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort), false)
 
 				if strings.Contains(ymlString, "${auto:host}") || strings.Contains(ymlString, "${auto:ip}") || strings.Contains(ymlString, "${auto:port}") {
 					logger.Flex("debug", nil, "couldn't build dynamic cfg for: "+targetContainer.Image+" - "+targetContainer.ID, false)
