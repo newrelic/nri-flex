@@ -61,6 +61,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 					delete(currentSample, k)
 				}
 
+				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
+				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+
 				// check if this contains any key pair values to filter out
 				RunSampleFilter(api.SampleFilter, &createSample, key, v)
 				// if keepkeys used will do inverse
@@ -356,9 +359,6 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 		if api.Prefix != "" && api.Merge == "" {
 			k = api.Prefix + k
 		}
-
-		StoreLookups(api.StoreLookups, &k, &config.LookupStore, &v)        // store lookups
-		VariableLookups(api.StoreVariables, &k, &config.VariableStore, &v) // store variable
 
 		if api.InventoryOnly {
 			setInventory(workingEntity, api.Inventory, k, v)
