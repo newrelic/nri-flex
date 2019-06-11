@@ -1,3 +1,8 @@
+0.6.3-pre
+------
+- Assign variable stores if nil
+- Store lookups earlier
+
 0.6.2-pre
 ------
 - Update Examples
