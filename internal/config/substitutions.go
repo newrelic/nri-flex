@@ -93,49 +93,125 @@ func SubEnvVariables(strConf *string) {
 }
 
 // SubTimestamps substitute timestamps into config
+// supported format
+// ${timestamp:[ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz][+|-][Number][ms|milli|millisecond|ns|nano|nanosecond|s|sec|second|m|min|minute|h|hr|hour]}
+
 // Substitution keys:
 // ${timestamp:ms} - timestamp in milliseconds
 // ${timestamp:ns} - timestamp in nanoseconds
 // ${timestamp:s} - timestamp in seconds
+// ${timestamp:date} - date in date format local timezone: 2006-01-02
+// ${timestamp:datetime} - datetime in date and time format local timezone : 2006-01-02T03:04
+// ${timestamp:datetimetz} - datetime in date and time format local timezone : 2006-01-02T15:04:05Z07:00
+// ${timestamp:dateutc} - date in date format utc timezone: 2006-01-02
+// ${timestamp:datetimeutc} - datetime in date and time format utc timezone: 2006-01-02T03:04
+// ${timestamp:datetimeutctz} - datetime in date and time format utc timezone: 2006-01-02T15:04:05Z07:00
+
+// SubTimestamps - return timestamp/date/datetime of current date/time with optional adjustment in various format
 func SubTimestamps(strConf *string) {
+
 	current := time.Now()
-	currentNano := current.UnixNano()
-	currentMs := currentNano / 1e+6
-	currentSec := current.Unix()
-	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(currentMs), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(currentNano), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(currentSec), -1)
+	currentUTC := time.Now().UTC()
+
+	// date and datetime output format
+	dateFormat := "2006-01-02"
+	datetimeFormat := "2006-01-02T15:04:05"
+	datetimeFormatTZ := "2006-01-02T15:04:05Z07:00"
+
+	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(current.UnixNano()/1e+6), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(current.UnixNano()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(current.Unix()), -1)
+
+	*strConf = strings.Replace(*strConf, "${timestamp:date}", fmt.Sprint(current.Format(dateFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetime}", fmt.Sprint(current.Format(datetimeFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetimetz}", fmt.Sprint(current.Format(datetimeFormatTZ)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:dateutc}", fmt.Sprint(currentUTC.Format(dateFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutc}", fmt.Sprint(currentUTC.Format(datetimeFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutctz}", fmt.Sprint(currentUTC.Format(datetimeFormatTZ)), -1)
 
 	timestamps := regexp.MustCompile(`\${timestamp:.*?}`).FindAllString(*strConf, -1)
 	for _, timestamp := range timestamps {
-		newTimestamp := int64(0)
-		matches := formatter.RegMatch(timestamp, `(\${timestamp:)(ms|ns|s)(-|\+)(\d*)`)
+
+		durationType := time.Millisecond
+		timestampCurrent := current
+		timestampUTC := currentUTC
+		timestampReturn := ""
+
+		matches := formatter.RegMatch(timestamp, `(\${timestamp:)(ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz)(-|\+)(\d+|\d+\D+)\}`)
+		// matches patterns like {timestamp:ms+10} or {timestamp:ns-10s}, {timestamp:ns-[Digits&NonDigits]},etc
 		if len(matches) == 4 {
+			var duration int64
+
+			matchDuration := formatter.RegMatch(matches[3], `(\d+)(\D+)`)
+			if len(matchDuration) == 2 {
+				//match case like {timestamp:ns-10s}
+				duration, _ = strconv.ParseInt(matchDuration[0], 10, 64)
+
+				switch strings.ToLower(matchDuration[1]) {
+				case "ns", "nano", "nanosecond":
+					durationType = time.Nanosecond
+				case "ms", "milli", "millisecond":
+					durationType = time.Millisecond
+				case "s", "sec", "second":
+					durationType = time.Second
+				case "m", "min", "minute":
+					durationType = time.Minute
+				case "h", "hr", "hour":
+					durationType = time.Hour
+					// default:
+					// 	durationType = time.Millisecond
+				}
+
+			} else {
+				// match case like {timestamp:ns-10}, only digits are provided, use default durationType := time.Millisecond
+				duration, _ = strconv.ParseInt(matches[3], 10, 64)
+			}
+
+			switch matches[2] {
+			case "+":
+			case "-":
+				duration = -duration
+			}
+
+			// adjust the timestamp offset based on duration and durationType
+			timestampCurrent = timestampCurrent.Add(time.Duration(duration) * durationType)
+			timestampUTC = timestampUTC.Add(time.Duration(duration) * durationType)
+
+			// prepare the timestamp return format
 			switch matches[1] {
 			case "ms":
-				newTimestamp = currentMs
+				timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 			case "ns":
-				newTimestamp = currentNano
+				timestampReturn = fmt.Sprint(timestampCurrent.UnixNano())
 			case "s":
-				newTimestamp = currentSec
+				timestampReturn = fmt.Sprint(timestampCurrent.Unix())
+			case "date":
+				timestampReturn = fmt.Sprint(timestampCurrent.Format(dateFormat))
+			case "datetime":
+				timestampReturn = fmt.Sprint(timestampCurrent.Format(datetimeFormat))
+			case "datetimetz":
+				timestampReturn = fmt.Sprint(timestampCurrent.Format(datetimeFormatTZ))
+			case "dateutc":
+				timestampReturn = fmt.Sprint(timestampUTC.Format(dateFormat))
+			case "datetimeutc":
+				timestampReturn = fmt.Sprint(timestampUTC.Format(datetimeFormat))
+			case "datetimeutctz":
+				timestampReturn = fmt.Sprint(timestampUTC.Format(datetimeFormatTZ))
+
 			default:
-				break
+				// default to timestamp in unix milliseoncds
+				timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 			}
-			value, err := strconv.ParseInt(matches[3], 10, 64)
-			if err != nil {
-				logger.Flex("error", err, "failed to parse int", false)
-			} else {
-				switch matches[2] {
-				case "+":
-					newTimestamp += value
-				case "-":
-					newTimestamp -= value
-				default:
-					break
-				}
-				*strConf = strings.Replace(*strConf, timestamp, fmt.Sprint(newTimestamp), -1)
-				load.StatusCounterIncrement("timestampsReplaced")
-			}
+
+		} else {
+
+			// if the regex does not match,  default to the current timestamp in unix milliseoncds
+			timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
+
 		}
+		*strConf = strings.Replace(*strConf, timestamp, timestampReturn, -1)
+		load.StatusCounterIncrement("timestampsReplaced")
+
 	}
+
 }
