@@ -1,0 +1,17 @@
+{
+    "networks": [
+        {
+            "networkId": 1,
+            "networkData": "one"
+        },
+        {
+            "networkId": 2,
+            "networkData": "two"
+        }
+        ,
+        {
+            "networkId": 3,
+            "networkData": "three"
+        }
+    ]
+}

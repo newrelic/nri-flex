@@ -4,6 +4,9 @@ instances:
   - name: nri-flex
     command: metrics
     arguments:
+      # git_repo: https://github.com/userName/repoName
+      # git_user: userName
+      # git_token: abcd
       # container_discovery: true ## default false
       # container_discovery_dir: "anotherDir" default "flexContainerDiscovery" 
       # config_file: "../myConfigFile.yml" ## default "" - run only a single specific config file

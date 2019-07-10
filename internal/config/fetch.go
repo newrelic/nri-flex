@@ -105,14 +105,28 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		replaceOccured := false
 		newAPIs := []string{}
 		lookupIndex := 0
+
+		logger.Flex("debug", fmt.Errorf("lookupStore keys: %d, values: %v", len(cfg.LookupStore), cfg.LookupStore), "", false)
 		for lookup, lookupKeys := range cfg.LookupStore {
+			logger.Flex("debug", fmt.Errorf("lookup checking index: %d", lookupIndex), "", false)
+
 			for z, key := range lookupKeys {
+				logger.Flex("debug", fmt.Errorf("lookup %v val: %v", lookup, key), "", false)
+
 				if lookupIndex == 0 {
 					newAPIs = append(newAPIs, tmpCfgStr)
 				}
-				newAPIs[z] = strings.Replace(newAPIs[z], ("${lookup:" + lookup + "}"), key, -1)
-				replaceOccured = true
+
+				if z < len(newAPIs) {
+					if strings.Contains(newAPIs[z], "${lookup:"+lookup+"}") { // confirm a lookup replacement exists
+						newAPIs[z] = strings.Replace(newAPIs[z], ("${lookup:" + lookup + "}"), key, -1) // replace
+						replaceOccured = true
+						logger.Flex("debug", fmt.Errorf("lookup %v replace with: %v", lookup, key), "", false)
+					}
+				}
+
 			}
+
 			lookupIndex++
 		}
 
@@ -125,7 +139,6 @@ func FetchLookups(cfg *load.Config, i int) bool {
 				} else {
 					lookupConfig.APIs = append(lookupConfig.APIs, API)
 				}
-
 			}
 			Run(lookupConfig)
 			return false

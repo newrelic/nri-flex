@@ -16,6 +16,7 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 	if len(entityMetrics) != len(expectedSamples) {
 		t.Errorf("Missing samples, got: %v, want: %v.", (entityMetrics), (expectedSamples))
 	}
+
 	for _, expectedSample := range expectedSamples {
 		matchedSample := false
 		for _, sample := range entityMetrics {
@@ -41,7 +42,7 @@ func TestConfigDir(t *testing.T) {
 	load.Args.ConfigDir = "../../test/configs/"
 	runIntegration()
 	expectedSamples := []string{
-		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
+		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
 			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
@@ -54,7 +55,7 @@ func TestConfigFile(t *testing.T) {
 	load.Args.ConfigFile = "../../test/configs/json-read-cmd-example.yml"
 	runIntegration()
 	expectedSamples := []string{
-		`{"event_type":"flexStatusSample","flex.ConfigsProcessed":1,"flex.EventCount":1,"flex.EventDropCount":0,"flex.commandJsonOutSample":1}`,
+		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
 			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)

@@ -22,6 +22,7 @@ func main() {
 	load.FlexStatusCounter.M["EventDropCount"] = 0
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
 
+	discovery.Processes()
 	outputs.InfraIntegration()
 	outputs.LambdaCheck()
 	runIntegration()
@@ -35,10 +36,15 @@ func main() {
 
 // runIntegration runs nri-flex
 func runIntegration() {
-	if load.Args.Verbose || os.Getenv("VERBOSE") == "true" {
+	if load.Args.Verbose && os.Getenv("VERBOSE") != "true" && os.Getenv("VERBOSE") != "1" {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
+
 	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v %v:%v", load.IntegrationName, load.IntegrationVersion, runtime.GOOS, runtime.GOARCH), false)
+
+	if load.Args.GitService != "" && load.Args.GitToken != "" && load.Args.GitUser != "" && load.Args.GitRepo != "" {
+		config.SyncGitConfigs()
+	}
 
 	// store config ymls
 	var configs []load.Config
@@ -53,18 +59,19 @@ func runIntegration() {
 		logger.Flex("fatal", err, "failed to read specified config file: "+load.Args.ConfigFile, false)
 		path = strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 		files = append(files, file)
+		config.LoadFiles(&configs, files, path)
 	} else {
+		var err error
 		// List config files in directory
 		path = filepath.FromSlash(load.Args.ConfigDir)
-		var err error
 		files, err = ioutil.ReadDir(path)
-		logger.Flex("fatal", err, "failed to read config dir: "+load.Args.ConfigDir, false)
+		config.LoadFiles(&configs, files, path)
+		logger.Flex("fatal", err, fmt.Sprintf("failed to read config dir %v", load.Args.ConfigDir), false)
 		if load.Args.ContainerDiscovery {
 			discovery.Run(&configs)
 		}
 	}
 
-	config.LoadFiles(&configs, files, path)
 	config.RunFiles(&configs)
 	outputs.StatusSample()
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
