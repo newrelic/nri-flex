@@ -1,0 +1,140 @@
+{
+    "Cluster": "arn:aws:ecs:ap-southeast-2:830139413159:cluster/kav-test-cluster",
+    "TaskARN": "arn:aws:ecs:ap-southeast-2:830139413159:task/f7787e65-4a4e-4e7a-b0d4-b0575414fbce",
+    "Family": "first-run-task-definition",
+    "Revision": "10",
+    "DesiredStatus": "RUNNING",
+    "KnownStatus": "RUNNING",
+    "Containers": [
+        {
+            "DockerId": "483c88e84e003acf125c239b0c5cd3ff52ac69d9da3a36cea9b663cf393a5dc4",
+            "Name": "nr-ecs-agent",
+            "DockerName": "ecs-first-run-task-definition-10-nr-ecs-agent-d2acbfacdea186e58601",
+            "Image": "830139413159.dkr.ecr.ap-southeast-2.amazonaws.com/nr-ecs-agent:latest",
+            "ImageID": "sha256:d531c11676acc9482e32807974820cf3908a0f206ade748a23389ac6aaa2c7c2",
+            "Labels": {
+                "com.amazonaws.ecs.cluster": "arn:aws:ecs:ap-southeast-2:830139413159:cluster/kav-test-cluster",
+                "com.amazonaws.ecs.container-name": "nr-ecs-agent",
+                "com.amazonaws.ecs.task-arn": "arn:aws:ecs:ap-southeast-2:830139413159:task/f7787e65-4a4e-4e7a-b0d4-b0575414fbce",
+                "com.amazonaws.ecs.task-definition-family": "first-run-task-definition",
+                "com.amazonaws.ecs.task-definition-version": "10"
+            },
+            "DesiredStatus": "RUNNING",
+            "KnownStatus": "RUNNING",
+            "Limits": {
+                "CPU": 0,
+                "Memory": 0
+            },
+            "CreatedAt": "2019-05-07T06:09:09.236896255Z",
+            "StartedAt": "2019-05-07T06:09:10.938566429Z",
+            "Type": "NORMAL",
+            "Networks": [
+                {
+                    "NetworkMode": "awsvpc",
+                    "IPv4Addresses": [
+                        "10.0.1.170"
+                    ]
+                }
+            ]
+        },
+        {
+            "DockerId": "a624bea927e0918686956d66e1132d58b14b374af16fbcb030887fe491c9c1de",
+            "Name": "sample-app",
+            "DockerName": "ecs-first-run-task-definition-10-sample-app-ceed8db484cc9c98a701",
+            "Image": "httpd:2.4",
+            "ImageID": "sha256:d4a07e6ce470b5888ec230eaa25a9b7ebcc0b2d8722bf0720464770867b8cf32",
+            "Labels": {
+                "com.amazonaws.ecs.cluster": "arn:aws:ecs:ap-southeast-2:830139413159:cluster/kav-test-cluster",
+                "com.amazonaws.ecs.container-name": "sample-app",
+                "com.amazonaws.ecs.task-arn": "arn:aws:ecs:ap-southeast-2:830139413159:task/f7787e65-4a4e-4e7a-b0d4-b0575414fbce",
+                "com.amazonaws.ecs.task-definition-family": "first-run-task-definition",
+                "com.amazonaws.ecs.task-definition-version": "10"
+            },
+            "DesiredStatus": "RUNNING",
+            "KnownStatus": "RUNNING",
+            "Limits": {
+                "CPU": 256,
+                "Memory": 0
+            },
+            "CreatedAt": "2019-05-07T06:09:31.471643834Z",
+            "StartedAt": "2019-05-07T06:09:38.161664022Z",
+            "Type": "NORMAL",
+            "Networks": [
+                {
+                    "NetworkMode": "awsvpc",
+                    "IPv4Addresses": [
+                        "10.0.1.170"
+                    ]
+                }
+            ]
+        },
+        {
+            "DockerId": "efe30ee1a4a98306135f941f9c53f17637b2e98a6dc43f97a4ff616913de7b92",
+            "Name": "ubuntu",
+            "DockerName": "ecs-first-run-task-definition-10-ubuntu-fe8eccb1facf95a22200",
+            "Image": "rastasheep/ubuntu-sshd:18.04",
+            "ImageID": "sha256:08f01ce8fd9f39a3668146ffc9e62a94317a100007b9ddfebc6267a870f541ae",
+            "Labels": {
+                "com.amazonaws.ecs.cluster": "arn:aws:ecs:ap-southeast-2:830139413159:cluster/kav-test-cluster",
+                "com.amazonaws.ecs.container-name": "ubuntu",
+                "com.amazonaws.ecs.task-arn": "arn:aws:ecs:ap-southeast-2:830139413159:task/f7787e65-4a4e-4e7a-b0d4-b0575414fbce",
+                "com.amazonaws.ecs.task-definition-family": "first-run-task-definition",
+                "com.amazonaws.ecs.task-definition-version": "10"
+            },
+            "DesiredStatus": "RUNNING",
+            "KnownStatus": "RUNNING",
+            "Limits": {
+                "CPU": 0,
+                "Memory": 0
+            },
+            "CreatedAt": "2019-05-07T06:09:38.628415736Z",
+            "StartedAt": "2019-05-07T06:09:39.072261356Z",
+            "Type": "NORMAL",
+            "Networks": [
+                {
+                    "NetworkMode": "awsvpc",
+                    "IPv4Addresses": [
+                        "10.0.1.170"
+                    ]
+                }
+            ]
+        },
+        {
+            "DockerId": "b257bcfccde8ee0973d7030f859cd265bfaf81b4ebb321d8c25d1c9b1177fbe1",
+            "Name": "~internal~ecs~pause",
+            "DockerName": "ecs-first-run-task-definition-10-internalecspause-d0a581e7a8a1d782fd01",
+            "Image": "fg-proxy:tinyproxy",
+            "ImageID": "",
+            "Labels": {
+                "com.amazonaws.ecs.cluster": "arn:aws:ecs:ap-southeast-2:830139413159:cluster/kav-test-cluster",
+                "com.amazonaws.ecs.container-name": "~internal~ecs~pause",
+                "com.amazonaws.ecs.task-arn": "arn:aws:ecs:ap-southeast-2:830139413159:task/f7787e65-4a4e-4e7a-b0d4-b0575414fbce",
+                "com.amazonaws.ecs.task-definition-family": "first-run-task-definition",
+                "com.amazonaws.ecs.task-definition-version": "10"
+            },
+            "DesiredStatus": "RESOURCES_PROVISIONED",
+            "KnownStatus": "RESOURCES_PROVISIONED",
+            "Limits": {
+                "CPU": 0,
+                "Memory": 0
+            },
+            "CreatedAt": "2019-05-07T06:09:01.457375223Z",
+            "StartedAt": "2019-05-07T06:09:01.987430618Z",
+            "Type": "CNI_PAUSE",
+            "Networks": [
+                {
+                    "NetworkMode": "awsvpc",
+                    "IPv4Addresses": [
+                        "10.0.1.170"
+                    ]
+                }
+            ]
+        }
+    ],
+    "Limits": {
+        "CPU": 0.25,
+        "Memory": 512
+    },
+    "PullStartedAt": "2019-05-07T06:09:02.123253694Z",
+    "PullStoppedAt": "2019-05-07T06:09:38.619407407Z"
+}

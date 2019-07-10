@@ -1,6 +1,7 @@
 package load
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -27,6 +28,15 @@ type ArgumentList struct {
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
 	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
 	MetricAPIKey          string `default:"" help:"Set Metric API key"`
+	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
+	GitService            string `default:"github" help:"Set git service"`
+	GitToken              string `default:"" help:"Set git token"`
+	GitUser               string `default:"" help:"Set git user"`
+	GitRepo               string `default:"" help:"Set git repository to sync"`
+	GitURL                string `default:"" help:"Set alternate git url"`
+	GitBranch             string `default:"master" help:"Checkout to specifed git branch"`
+	GitCommit             string `default:"" help:"Checkout to specifed git commit, if set will not use branch"`
+	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
 
 	// not implemented yet
 	// InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
@@ -49,8 +59,19 @@ var Hostname string
 // ContainerID current container id
 var ContainerID string
 
+// DiscoveredProcesses discovered processes
+var DiscoveredProcesses map[string]string
+
 // Logrus create instance of the logger
 var Logrus = logrus.New()
+
+type PlainFormatter struct {
+}
+
+func (f *PlainFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	fmt.Println(entry.Message)
+	return nil, nil
+}
 
 var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
 var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
@@ -76,8 +97,11 @@ const (
 	Private            = "private"
 	Jmx                = "jmx"
 	Img                = "img"
+	Image              = "image"
+	Container          = "container"
 	TypeJSON           = "json"
 	TypeColumns        = "columns"
+	Contains           = "contains"
 )
 
 // FlexStatusCounter count internal metrics
@@ -131,16 +155,28 @@ type Metrics struct {
 
 // Config YAML Struct
 type Config struct {
-	FileName         string // this will be set when files are read
-	Name             string
-	Global           Global
-	APIs             []API
-	Datastore        map[string][]interface{} `yaml:"datastore"`
-	LookupStore      map[string][]string      `yaml:"lookup_store"`
-	LookupFile       string                   `yaml:"lookup_file"`
-	VariableStore    map[string]string        `yaml:"variable_store"`
-	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
-	MetricAPI        bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+	FileName           string             `yaml:"file_name"`           // this will be set when files are read
+	FilePath           string             `yaml:"file_path"`           // this will be set when files are read
+	ContainerDiscovery ContainerDiscovery `yaml:"container_discovery"` // provide container discovery parameter at config level
+	Name               string
+	Global             Global
+	APIs               []API
+	Datastore          map[string][]interface{} `yaml:"datastore"`
+	LookupStore        map[string][]string      `yaml:"lookup_store"`
+	LookupFile         string                   `yaml:"lookup_file"`
+	VariableStore      map[string]string        `yaml:"variable_store"`
+	CustomAttributes   map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI          bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+}
+
+// ContainerDiscovery struct
+type ContainerDiscovery struct {
+	Target   string `yaml:"target"`  // string of container or image to target
+	Type     string `yaml:"type"`    // container or image
+	Mode     string `yaml:"mode"`    // contains, prefix, exact
+	Port     int    `yaml:"port"`    // port
+	IPMode   string `yaml:"ip_mode"` // public / private
+	FileName string `yaml:"file_name"`
 }
 
 // Global struct
@@ -297,6 +333,7 @@ type Prometheus struct {
 	Summary          bool              `yaml:"summary"`         // if flattening by default, create a full summary sample
 	SummaryEvent     string            `yaml:"summaryevent"`    // override summary event type
 	GoMetrics        bool              `yaml:"go_metrics"`      // enable go metrics
+	// Metrics          []string          `yaml:"metrics"`         // filter metrics
 }
 
 // JMX struct

@@ -18,12 +18,27 @@ import (
 // LoadFiles Loads Flex config files
 func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 	for _, f := range files {
-		b, err := ioutil.ReadFile(path + f.Name())
+		filePath := path + f.Name()
+		b, err := ioutil.ReadFile(filePath)
 		if err != nil {
-			logger.Flex("debug", err, "unable to readfile", false)
+			if strings.Contains(err.Error(), "is a directory") { // if it is a directory then recurse
+				if !strings.Contains(filePath, ".git") { // do not recurse through .git folder
+					logger.Flex("debug", err, fmt.Sprintf("checking nested configs %v", filePath), false)
+					nextPath := filePath + "/"
+					files, err = ioutil.ReadDir(nextPath)
+					if err != nil {
+						logger.Flex("debug", err, "failed to read config dir: "+nextPath, false)
+					} else {
+						LoadFiles(configs, files, nextPath)
+					}
+				}
+			} else {
+				logger.Flex("debug", err, "unable to readfile", false)
+			}
 			continue
 		}
-		if !strings.Contains(f.Name(), "yml") && !strings.Contains(f.Name(), "yaml") {
+		// not done earlier as there could be a directory first
+		if !strings.HasSuffix(f.Name(), "yml") && !strings.HasSuffix(f.Name(), "yaml") {
 			continue
 		}
 		ymlStr := string(b)
@@ -31,6 +46,8 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 		SubTimestamps(&ymlStr)
 		config, err := ReadYML(ymlStr)
 		config.FileName = f.Name()
+		config.FilePath = path
+
 		if err != nil {
 			logger.Flex("error", err, "unable to read yml", false)
 			continue
@@ -78,19 +95,37 @@ func Run(yml load.Config) {
 
 // RunFiles Processes yml files
 func RunFiles(configs *[]load.Config) {
-	logger.Flex("debug", nil, fmt.Sprintf("starting to process %d configs", len(*configs)), false)
+	// logger.Flex("debug", nil, fmt.Sprintf("starting to process %d configs", len(*configs)), false)
 	var wg sync.WaitGroup
 	wg.Add(len(*configs))
 	for _, cfg := range *configs {
 		go func(cfg load.Config) {
 			defer wg.Done()
-			logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
-			Run(cfg)
-			load.StatusCounterIncrement("ConfigsProcessed")
+			if verifyConfig(cfg) {
+				logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
+				Run(cfg)
+				load.StatusCounterIncrement("ConfigsProcessed")
+			}
 		}(cfg)
 	}
 	wg.Wait()
-	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", len(*configs)), false)
+	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", load.StatusCounterRead("ConfigsProcessed")), false)
+}
+
+// verifyConfig ensure the config file doesn't have anything it should not run
+func verifyConfig(cfg load.Config) bool {
+	if strings.HasPrefix(cfg.FileName, "cd-") {
+		return false
+	}
+	ymlBytes, err := yaml.Marshal(cfg)
+	if err != nil {
+		return false
+	}
+	ymlStr := string(ymlBytes)
+	if strings.Contains(ymlStr, "${auto:host}") || strings.Contains(ymlStr, "${auto:port}") {
+		return false
+	}
+	return true
 }
 
 // RunVariableProcessor substitute store variables into specific parts of config files

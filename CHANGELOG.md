@@ -1,3 +1,13 @@
+0.6.4-pre
+------
+- Add support to recurse through folders in flexConfigs
+- Add git syncing support
+- Update flexStatusSample
+- Improve lookup checking
+- Update examples
+- Do not log if VERBOSE env is set
+- - Makes NR Infra agent log "cannot handle plugin output"
+
 0.6.3-pre
 ------
 - Assign variable stores if nil
