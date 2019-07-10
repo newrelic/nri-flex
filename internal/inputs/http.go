@@ -157,7 +157,6 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		InsecureSkipVerify: yml.Global.TLSConfig.InsecureSkipVerify,
 		MinVersion:         yml.Global.TLSConfig.MinVersion,
 		MaxVersion:         yml.Global.TLSConfig.MaxVersion,
-		RootCAs:            rootCAs,
 	})
 
 	if api.TLSConfig.Enable {
