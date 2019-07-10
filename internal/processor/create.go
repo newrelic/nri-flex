@@ -23,6 +23,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
+		currentSample := sample.(map[string]interface{})
+		eventType := "UnknownSample" // set an UnknownSample event name
+		SetEventType(&currentSample, &eventType, api.EventType, api.Merge, api.Name)
+
 		// event limiter
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
@@ -33,10 +37,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			}
 			break
 		}
-
-		currentSample := sample.(map[string]interface{})
-		eventType := "UnknownSample" // set an UnknownSample event name
-		SetEventType(&currentSample, &eventType, api.EventType, api.Merge, api.Name)
 
 		// modify existing sample before final processing
 		createSample := true
@@ -146,6 +146,13 @@ func setEntity(entity string, customNamespace string) *integration.Entity {
 	return load.Entity
 }
 
+func cleanEvent(event string) string {
+	re := regexp.MustCompile(`[^a-zA-Z0-9_]`)
+	event = re.ReplaceAllLiteralString(event, "_")
+	event = strings.TrimPrefix(event, "_")
+	return event
+}
+
 // SetEventType sets the metricSet's eventType
 func SetEventType(currentSample *map[string]interface{}, eventType *string, apiEventType string, apiMerge string, apiName string) {
 	// if event_type is set use this, else attempt to autoset
@@ -168,6 +175,7 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 		}
 		delete((*currentSample), "event_type")
 	}
+	*eventType = cleanEvent(*eventType)
 }
 
 // RunSampleRenamer using regex if sample has a key that matches, make that a different sample (event_type)

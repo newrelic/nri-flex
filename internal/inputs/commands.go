@@ -17,8 +17,13 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+func makeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
 // RunCommands executes the given commands to create one merged sampled
 func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+	startTime := makeTimestamp()
 	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
 	api := yml.APIs[apiNo]
 	commandShell := load.DefaultShell
@@ -73,7 +78,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 				logger.Flex("debug", err, "command execution failed", false)
 			} else {
 				if command.SplitOutput != "" {
-					splitOutput(dataStore, string(output), command)
+					splitOutput(dataStore, string(output), command, startTime)
 				} else {
 					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 				}
@@ -86,7 +91,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 						if sample["http"] != nil {
 							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
 							if command.SplitOutput != "" {
-								splitOutput(dataStore, sample["http"].(string), command)
+								splitOutput(dataStore, sample["http"].(string), command, startTime)
 							} else {
 								processOutput(dataStore, sample["http"].(string), &dataSample, command, api, &processType)
 							}
@@ -101,12 +106,12 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed
 	// this can probably be shuffled elsewhere
 	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
-		// load.StoreAppend(dataSample)
+		dataSample["flex.commandTimeMs"] = makeTimestamp() - startTime
 		*dataStore = append(*dataStore, dataSample)
 	}
 }
 
-func splitOutput(dataStore *[]interface{}, output string, command load.Command) {
+func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 	outputBlocks := [][]string{}
 	startSplit := -1
@@ -126,10 +131,10 @@ func splitOutput(dataStore *[]interface{}, output string, command load.Command) 
 			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 		}
 	}
-	processBlocks(dataStore, outputBlocks, command)
+	processBlocks(dataStore, outputBlocks, command, startTime)
 }
 
-func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Command) {
+func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Command, startTime int64) {
 	for _, block := range blocks {
 		sample := map[string]interface{}{}
 		regmatchCount := 0
@@ -151,7 +156,7 @@ func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Com
 			}
 			regmatchCount = 0
 		}
-		// load.StoreAppend(sample)
+		sample["flex.commandTimeMs"] = makeTimestamp() - startTime
 		*dataStore = append(*dataStore, sample)
 	}
 }

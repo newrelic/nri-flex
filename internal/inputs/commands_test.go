@@ -165,6 +165,9 @@ func TestRedis(t *testing.T) {
 	RunCommands(&dataStore, &config, 0)
 
 	for key := range dataStore[0].(map[string]interface{}) {
+		if key == "flex.commandTimeMs" {
+			continue
+		}
 		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
 			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
 		}
