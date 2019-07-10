@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -68,6 +69,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				Prometheus(dataStore, resp.Body, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
+				// check weather nextLink is in the body in the response body if nextLink does not exist in header
+				if nextLink == "" {
+					nextLink = getNextLinkFromBody(body)
+				}
 				handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
@@ -76,6 +81,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				output, _ := detectCommandOutput(strBody, "")
 				switch output {
 				case load.TypeJSON:
+					// check weather nextLink is in the body in the response body if nextLink does not exist in header
+					if nextLink == "" {
+						nextLink = getNextLinkFromBody(body)
+					}
 					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 				default:
 					logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
@@ -217,4 +226,27 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 			}
 		}
 	}
+}
+
+func getNextLinkFromBody(body []byte) string {
+
+	nextLink := ""
+	var f interface{}
+	re := regexp.MustCompile(`(?i)nextlink`)
+	body = []byte(re.ReplaceAllString(string(body), "NEXTLINK"))
+
+	err := json.Unmarshal(body, &f)
+	if err != nil {
+		logger.Flex("error", err, "", false)
+	} else {
+		switch f := f.(type) {
+		case []interface{}:
+		case map[string]interface{}:
+			theSample := f
+			if theSample["NEXTLINK"] != nil {
+				nextLink = theSample["NEXTLINK"].(string)
+			}
+		}
+	}
+	return nextLink
 }
