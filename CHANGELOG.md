@@ -5,6 +5,7 @@
 - Update flexStatusSample
 - Improve lookup checking
 - Update examples
+- Adjust TLS config - only apply RootCAs if tls config enable = true
 - Do not log if VERBOSE env is set
 - - Makes NR Infra agent log "cannot handle plugin output"
 
