@@ -139,7 +139,6 @@ func setDatabaseDriver(database, driver string) string {
 	case "hana":
 		return load.DefaultHANA
 	}
-	}
 	return ""
 }
 
