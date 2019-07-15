@@ -17,6 +17,7 @@ func TestDrivers(t *testing.T) {
 		"sqlserver": load.DefaultMSSQLServer,
 		"mysql":     load.DefaultMySQL,
 		"mariadb":   load.DefaultMySQL,
+		"hana":      load.DefaultHANA
 		"unknown":   "",
 	}
 

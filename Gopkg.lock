@@ -26,6 +26,21 @@
   version = "v0.4.12"
 
 [[projects]]
+  digest = "1:7e34f1cfe7ae2f3ae8a96c61763fcd30f6fba11090d951b7fb422d7cf064d97d"
+  name = "github.com/SAP/go-hdb"
+  packages = [
+    "driver",
+    "driver/sqltrace",
+    "internal/bufio",
+    "internal/protocol",
+    "internal/unicode",
+    "internal/unicode/cesu8",
+  ]
+  pruneopts = "UT"
+  revision = "8a55c0fb15fcfec2756d987b90c8fa47cb7a8f64"
+  version = "v0.14.1"
+
+[[projects]]
   digest = "1:e92f5581902c345eb4ceffdcd4a854fb8f73cf436d47d837d1ec98ef1fe0a214"
   name = "github.com/StackExchange/wmi"
   packages = ["."]
@@ -600,6 +615,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Knetic/govaluate",
+    "github.com/SAP/go-hdb/driver",
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api/types",

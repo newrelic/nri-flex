@@ -1,0 +1,13 @@
+name: hanaDbFlex
+apis: 
+  - database: hana
+    db_conn: hdb://user:password@host:port
+    logging:
+      open: true
+    custom_attributes: # applies to all queries
+      host: myDbServer
+    db_queries: 
+      - name: hanaQueryExample
+        run: SELECT * FROM SYS.M_SERVICE_MEMORY
+        custom_attributes: # can apply additional at a nested level
+          nestedAttr: nestedVal
