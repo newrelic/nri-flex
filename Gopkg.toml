@@ -81,9 +81,9 @@
   version = "2.19.5"
 
 [[constraint]]
-  name = "github.com/src-d/go-git"
-  version = "3.2.0"
-
-[[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
   version = "4.12.0"
+
+[[constraint]]
+  name = "github.com/SAP/go-hdb"
+  version = "0.14.1"

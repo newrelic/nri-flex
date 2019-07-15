@@ -14,6 +14,7 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
 	//Database Drivers
+	_ "github.com/SAP/go-hdb/driver"     //SAP HANA
 	_ "github.com/denisenkom/go-mssqldb" //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"   //mysql
 	_ "github.com/lib/pq"                //postgres
@@ -135,6 +136,8 @@ func setDatabaseDriver(database, driver string) string {
 		return load.DefaultMySQL
 	case "mariadb":
 		return load.DefaultMySQL
+	case "hana":
+		return load.DefaultHANA
 	}
 	return ""
 }

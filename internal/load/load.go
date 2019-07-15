@@ -82,6 +82,7 @@ const (
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
 	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
 	DefaultPingTimeout = 5000                     // 5 seconds
+	DefaultHANA        = "hana"
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
