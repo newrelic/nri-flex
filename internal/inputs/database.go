@@ -122,21 +122,13 @@ func setDatabaseDriver(database, driver string) string {
 		return driver
 	}
 	switch database {
-	case "postgres":
+	case "postgres", "pg", "pq":
 		return load.DefaultPostgres
-	case "pg":
-		return load.DefaultPostgres
-	case "pq":
-		return load.DefaultPostgres
-	case "mssql":
+	case "mssql", "sqlserver":
 		return load.DefaultMSSQLServer
-	case "sqlserver":
-		return load.DefaultMSSQLServer
-	case "mysql":
+	case "mysql", "mariadb":
 		return load.DefaultMySQL
-	case "mariadb":
-		return load.DefaultMySQL
-	case "hana":
+	case "hana", "go-hdb", "hdb":
 		return load.DefaultHANA
 	}
 	return ""

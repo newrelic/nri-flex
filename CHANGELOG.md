@@ -1,5 +1,10 @@
+0.6.5-pre
+------
+- Add SAP HANA Database Support
+
 0.6.4-pre
 ------
+- Improve timestamp support
 - Add support to recurse through folders in flexConfigs
 - Add git syncing support
 - Update flexStatusSample
