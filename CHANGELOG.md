@@ -1,6 +1,7 @@
 0.6.5-pre
 ------
 - Add SAP HANA Database Support
+- Update discovery logic
 
 0.6.4-pre
 ------

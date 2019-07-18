@@ -47,10 +47,10 @@ func Processes() {
 
 func checkBlacklistedProcess(name string, cmd string) bool {
 	blacklistedProcesses := []string{
-		"Google Chrome", "Visual Studio Code", "BlueJeans", "WhatsApp", "Insomnia Helper",
-		"Slack.app", "SpotifyWebHelper", "ZoomOpener", "Dashlane", "docker.for.mac"}
+		"Chrome", "Visual Studio Code", "BlueJeans", "WhatsApp", "Insomnia Helper", "Slack", "SpotifyWebHelper", "ZoomOpener",
+		"Dashlane", "docker.for.mac", "svchost", "lsass", "wininit", "spoolsv", "[System Process]"}
 	for _, blProcess := range blacklistedProcesses {
-		if strings.Contains(name, blProcess) || strings.Contains(cmd, blProcess) {
+		if strings.EqualFold(name, blProcess) || strings.EqualFold(cmd, blProcess) {
 			return true
 		}
 	}

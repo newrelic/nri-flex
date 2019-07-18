@@ -421,7 +421,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					ymlString = strings.Replace(ymlString, "${auto:ip}", discoveryIPAddress, -1)
 				}
 
-				if discoveryPort != "" {
+				if discoveryPort != "" && discoveryPort != "0" {
 					// substitute port into yml
 					ymlString = strings.Replace(ymlString, "${auto:port}", discoveryPort, -1)
 				} else {
@@ -442,7 +442,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						}
 					}
 					// secondary inspect fallback
-					if discoveryPort == "" {
+					if discoveryPort == "" || discoveryPort == "0" {
 						if targetContainerInspect.Config != nil {
 							for port := range targetContainerInspect.Config.ExposedPorts {
 								discoveryPort = strings.Split(port.Port(), "/")[0]
@@ -557,8 +557,13 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
 		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
 		defer cancel() // The cancel should be deferred so resources are cleaned up
 
+		target := "/host/proc/"
+		if load.ContainerID == "" {
+			target = "/proc/"
+		}
+
 		// Create the command with our context
-		cmd := exec.CommandContext(ctx, "/bin/sh", "-c", `cat /host/proc/`+fmt.Sprintf("%v", pid)+
+		cmd := exec.CommandContext(ctx, "/bin/sh", "-c", fmt.Sprintf("cat %v/%v", target, pid)+
 			`/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u`)
 		output, err := cmd.CombinedOutput()
 
