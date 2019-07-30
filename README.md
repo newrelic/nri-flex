@@ -126,7 +126,7 @@ flexContainerDiscovery/ <- folder
 
 ### Serverless
 
-[Serverless README]("examples/lambdaExample/README.md")
+[Serverless README](examples/lambdaExample/README.md)
 
 ## Development
 
