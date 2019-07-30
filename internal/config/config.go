@@ -22,7 +22,7 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 		b, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			if strings.Contains(err.Error(), "is a directory") { // if it is a directory then recurse
-				if !strings.Contains(filePath, ".git") { // do not recurse through .git folder
+				if !strings.Contains(filePath, ".git") && !strings.Contains(filePath, "nr-integrations") { // do not recurse through .git or nr-integrations folder
 					logger.Flex("debug", err, fmt.Sprintf("checking nested configs %v", filePath), false)
 					nextPath := filePath + "/"
 					files, err = ioutil.ReadDir(nextPath)
@@ -57,6 +57,8 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 			continue
 		}
 
+		checkIngestConfigs(&config)
+
 		// if lookup files exist we need to potentially create multiple config files
 		if config.LookupFile != "" {
 			SubLookupFileData(configs, config)
@@ -64,6 +66,15 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 			*configs = append(*configs, config)
 		}
 
+	}
+}
+
+func checkIngestConfigs(config *load.Config) {
+	if (*config).FileName == "flex-lambda-ingest.yml" && load.LambdaName != "" {
+		if load.IngestData != nil {
+			(*config).Datastore = map[string][]interface{}{}
+			(*config).Datastore["IngestData"] = []interface{}{load.IngestData}
+		}
 	}
 }
 

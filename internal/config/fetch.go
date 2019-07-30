@@ -43,8 +43,11 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 			}
 		} else if api.Cache != "" {
 			if yml.Datastore[api.Cache] != nil {
-				// load.StoreAppend(yml.Datastore[api.Cache])
 				dataStore = yml.Datastore[api.Cache]
+			}
+		} else if api.Ingest {
+			if yml.Datastore["IngestData"] != nil {
+				dataStore = yml.Datastore["IngestData"]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
 			inputs.RunCommands(&dataStore, yml, apiNo)

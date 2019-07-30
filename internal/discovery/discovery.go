@@ -55,6 +55,9 @@ func FindFlexContainerID(read string) {
 	if err == nil {
 		strCpuset := strings.TrimSpace(string(cpuset))
 		logger.Flex("debug", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
+		if strings.Contains(strCpuset, "kube") {
+			load.IsKubernetes = true
+		}
 		values := strings.Split(strCpuset, "/")
 		if len(values) > 0 {
 			if len(values[len(values)-1]) == 64 {

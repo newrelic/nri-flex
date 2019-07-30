@@ -1,7 +1,6 @@
 package load
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -37,11 +36,6 @@ type ArgumentList struct {
 	GitBranch             string `default:"master" help:"Checkout to specifed git branch"`
 	GitCommit             string `default:"" help:"Checkout to specifed git commit, if set will not use branch"`
 	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
-
-	// not implemented yet
-	// InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
-	// ClusterModeKey string `default:"" help:"Set key used for cluster mode identification"`
-	// ClusterModeExp string `default:"60s" help:"Set cluster mode key identifier expiration"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -59,19 +53,23 @@ var Hostname string
 // ContainerID current container id
 var ContainerID string
 
+// IsKubernetes basic check if running on k8s
+var IsKubernetes bool
+
+// LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
+var LambdaName string
+
+// AWSExecutionEnv AWS execution environment
+var AWSExecutionEnv string
+
 // DiscoveredProcesses discovered processes
 var DiscoveredProcesses map[string]string
 
+// IngestData store ingested data
+var IngestData interface{}
+
 // Logrus create instance of the logger
 var Logrus = logrus.New()
-
-type PlainFormatter struct {
-}
-
-func (f *PlainFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	fmt.Println(entry.Message)
-	return nil, nil
-}
 
 var IntegrationName = "com.newrelic.nri-flex" // IntegrationName Name
 var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
@@ -209,9 +207,10 @@ type SampleMerge struct {
 // API YAML Struct
 type API struct {
 	Name              string            `yaml:"name"`
-	EventType         string            `yaml:"event_type"`     // override eventType
-	Entity            string            `yaml:"entity"`         // define a custom entity name
-	EntityType        string            `yaml:"entity_type"`    // define a custom entity type (namespace)
+	EventType         string            `yaml:"event_type"`  // override eventType
+	Entity            string            `yaml:"entity"`      // define a custom entity name
+	EntityType        string            `yaml:"entity_type"` // define a custom entity type (namespace)
+	Ingest            bool              `yaml:"ingest"`
 	Inventory         map[string]string `yaml:"inventory"`      // set as inventory
 	InventoryOnly     bool              `yaml:"inventory_only"` // only generate inventory data
 	Events            map[string]string `yaml:"events"`         // set as events

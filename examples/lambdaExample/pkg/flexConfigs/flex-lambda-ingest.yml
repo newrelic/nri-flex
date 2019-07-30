@@ -1,0 +1,8 @@
+### example of processing data being sent to the lambda
+---
+name: LambdaFlexIngestSample
+apis: 
+  - event_type: LambdaFlexIngestSample
+    ingest: true # the ingest parameter needs to be flagged to true
+    custom_attributes:
+      nestedCustAttr: nestedCustVal # nested custom attributes specific to each api
