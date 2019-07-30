@@ -161,7 +161,7 @@ func SubTimestamps(strConf *string) {
 				case "h", "hr", "hour":
 					durationType = time.Hour
 				default:
-					logger.Flex("info", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+					logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
 				}
 
 			} else {
@@ -202,14 +202,14 @@ func SubTimestamps(strConf *string) {
 
 			default:
 				// default to timestamp in unix milliseoncds
-				logger.Flex("info", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+				logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
 				timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 			}
 
 		} else {
 
 			// if the regex does not match,  default to the current timestamp in unix milliseoncds
-			logger.Flex("info", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+			logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
 			timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 
 		}

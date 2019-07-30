@@ -17,11 +17,20 @@ func StatusSample() {
 			logger.Flex("error", flexStatusSample.SetMetric("flex.GitBranch", load.Args.GitBranch, metric.ATTRIBUTE), "", false)
 		}
 	}
-	if LambdaEnabled {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.IsLambda", "true", metric.ATTRIBUTE), "", false)
+	if load.Hostname != "" {
+		logger.Flex("error", flexStatusSample.SetMetric("flex.Hostname", load.Hostname, metric.ATTRIBUTE), "", false)
 	}
 	if load.ContainerID != "" {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.IsContainer", "true", metric.ATTRIBUTE), "", false)
+	}
+	if load.IsKubernetes {
+		logger.Flex("error", flexStatusSample.SetMetric("flex.IsKubernetes", "true", metric.ATTRIBUTE), "", false)
+	}
+	if load.LambdaName != "" {
+		logger.Flex("error", flexStatusSample.SetMetric("flex.LambdaName", load.LambdaName, metric.ATTRIBUTE), "", false)
+	}
+	if load.AWSExecutionEnv != "" {
+		logger.Flex("error", flexStatusSample.SetMetric("flex.AWSExecutionEnv", load.AWSExecutionEnv, metric.ATTRIBUTE), "", false)
 	}
 	for counter, value := range load.FlexStatusCounter.M {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.counter."+counter, value, metric.GAUGE), "", false)

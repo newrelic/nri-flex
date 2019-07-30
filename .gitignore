@@ -9,7 +9,7 @@ coverage*
 .DS_Store
 examples_*
 CHANGELOG_*
-flex-*
 cmd/flex/flex*
 cmd/nri-flex/flex*
 dump*
+*.serverless

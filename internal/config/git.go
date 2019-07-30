@@ -15,28 +15,47 @@ import (
 
 var appFS = afero.NewOsFs()
 
-// SyncGitConfigs Clone git repo if already exists pull latest version
-func SyncGitConfigs() {
-	if !strings.HasSuffix(load.Args.GitRepo, "/") {
-		load.Args.GitRepo = load.Args.GitRepo + "/"
-	}
-	logger.Flex("debug", nil, fmt.Sprintf("syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, load.Args.ConfigDir), false)
-	u, err := url.Parse(load.Args.GitRepo)
-	if err != nil {
-		logger.Flex("error", err, "invalid url", false)
-	} else {
-		repoDir := path.Join(load.Args.ConfigDir, u.Path)
-		_, err = appFS.Stat(repoDir)
-		if err == nil {
-			logger.Flex("debug", nil, fmt.Sprintf("pulling git repo %v", load.Args.GitRepo), false)
-			err := GitPull(repoDir)
-			logger.Flex("error", err, "git pull failed", false)
-		} else {
-			logger.Flex("debug", nil, fmt.Sprintf("cloning git repo %v", load.Args.GitRepo), false)
-			err := GitClone(repoDir, u)
-			logger.Flex("error", err, "", false)
+// SyncGitConfigs Clone git repo if already exists, else pull latest version
+func SyncGitConfigs(customDir string) bool {
+	if load.Args.GitService != "" && load.Args.GitToken != "" && load.Args.GitUser != "" && load.Args.GitRepo != "" {
+		syncDir := load.Args.ConfigDir
+		if customDir != "" {
+			syncDir = customDir
 		}
+
+		if !strings.HasSuffix(load.Args.GitRepo, "/") {
+			load.Args.GitRepo = load.Args.GitRepo + "/"
+		}
+
+		logger.Flex("debug", nil, fmt.Sprintf("syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, syncDir), false)
+
+		u, err := url.Parse(load.Args.GitRepo)
+		if err != nil {
+			logger.Flex("error", err, "invalid url", false)
+		} else {
+			repoDir := path.Join(syncDir, u.Path)
+			_, err = appFS.Stat(repoDir)
+			if err == nil {
+				logger.Flex("debug", nil, fmt.Sprintf("pulling git repo %v", load.Args.GitRepo), false)
+				err := GitPull(repoDir)
+				logger.Flex("error", err, "git pull failed", false)
+				if err == nil {
+					return true
+				}
+			} else {
+				logger.Flex("debug", nil, fmt.Sprintf("cloning git repo %v", load.Args.GitRepo), false)
+				err := GitClone(repoDir, u)
+				logger.Flex("error", err, "", false)
+				if err == nil {
+					return true
+				}
+			}
+		}
+	} else {
+		logger.Flex("debug", nil, "git sync configuration not set", false)
 	}
+
+	return false
 }
 
 // GitClone git clone

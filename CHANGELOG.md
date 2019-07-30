@@ -1,3 +1,9 @@
+0.6.6-pre
+------
+- Refactor cmd entry point
+- Improve Lambda support & add ingest feature
+- Update Flex Status Sample
+
 0.6.5-pre
 ------
 - Add SAP HANA Database Support

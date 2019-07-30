@@ -16,7 +16,7 @@ New Relic has open-sourced this integration to enable monitoring of various tech
 
 ## Requirements
 - Linux
-- Windows (works but not fully tested)
+- Windows
 - New Relic Infrastructure
 
 ## Usage
@@ -46,11 +46,9 @@ New Relic has open-sourced this integration to enable monitoring of various tech
 ```
 Testing a single config
 ./nri-flex -config_file "examples/flexConfigs/redis-cmd-raw-example.yml"
-./nri-flex-mac -config_file "examples/flexConfigs/redis-cmd-raw-example.yml" (take the binary from the mac release)
 
 Running without any flags, will default to run all configs within ./flexConfigs
 ./nri-flex 
-./nri-flex-mac (take the binary from the mac release)
 
 Additional Logging
 ./nri-flex -verbose
@@ -125,6 +123,10 @@ nri-flex <- binary
 flexConfigs/ <- folder
 flexContainerDiscovery/ <- folder
 ```
+
+### Serverless
+
+[Serverless README]("examples/lambdaExample/README.md")
 
 ## Development
 

@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	fintegration "github.com/newrelic/nri-flex/internal/integration"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
@@ -40,7 +41,7 @@ func TestConfigDir(t *testing.T) {
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
 	load.Args.ConfigDir = "../../test/configs/"
-	runIntegration()
+	fintegration.RunFlex("")
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
@@ -53,7 +54,7 @@ func TestConfigFile(t *testing.T) {
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
 	load.Args.ConfigFile = "../../test/configs/json-read-cmd-example.yml"
-	runIntegration()
+	fintegration.RunFlex("")
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +

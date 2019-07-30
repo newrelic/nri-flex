@@ -81,34 +81,3 @@ func Readln(r *bufio.Reader) (string, error) {
 	}
 	return string(ln), err
 }
-
-//
-// if runtime.GOOS == "windows" {
-// 	out, err = exec.Command("cmd", "/C", `docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-// } else {
-// 	out, err = exec.Command(`docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-// 	if err != nil {
-// 		out, err = exec.Command(`/host/usr/local/bin/docker`, `version`, `--format`, `"{{json .Client.APIVersion}}"`).Output()
-// 	}
-// }
-
-// if err != nil {
-// 	logger.Flex("debug", err, "unable to fetch Docker API version - setting client with API version negotiation", false)
-// 	cli, err = client.NewClientWithOpts(client.WithAPIVersionNegotiation())
-// 	logger.Flex("error", err, "", false)
-// } else {
-// 	cmdOut := string(out)
-// 	clientAPIVersion := strings.TrimSpace(strings.Replace(cmdOut, `"`, "", -1))
-// 	clientVer, _ := strconv.ParseFloat(clientAPIVersion, 64)
-// 	apiVer, _ := strconv.ParseFloat(api.DefaultVersion, 64)
-
-// 	if clientVer <= apiVer {
-// 		logger.Flex("debug", nil, fmt.Sprintf("setting client with version:%v", clientAPIVersion), false)
-// 		cli, err = client.NewClientWithOpts(client.WithVersion(clientAPIVersion))
-// 	} else {
-// 		logger.Flex("debug", nil, fmt.Sprintf("client API Version %v is higher then integration version %v", clientAPIVersion, api.DefaultVersion), false)
-// 		logger.Flex("debug", nil, "setting client with API version negotiation", false)
-// 		cli, err = client.NewClientWithOpts(client.WithAPIVersionNegotiation())
-// 		logger.Flex("error", err, "", false)
-// 	}
-// }
