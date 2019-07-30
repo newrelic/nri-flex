@@ -21,7 +21,7 @@ func LambdaCheck() bool {
 	load.Logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	if load.Args.InsightsURL == "" || load.Args.InsightsAPIKey == "" {
-		logger.Flex("error", fmt.Errorf("Missing Insights URL and/or API Key"), "", false)
+		logger.Flex("error", fmt.Errorf("missing insights URL and/or API key"), "", false)
 		return false
 	}
 	return true
