@@ -282,6 +282,7 @@ type Command struct {
 	Shell            string            `yaml:"shell"`             // command shell
 	Cache            string            `yaml:"cache"`             // use content from cache instead of a run command
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
+	ContainerExec    string            `yaml:"container_exec"`    // execute a command against a container
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
 	CompressBean     bool              `yaml:"compress_bean"`     // compress bean name //unused
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
