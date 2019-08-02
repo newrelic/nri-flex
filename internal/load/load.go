@@ -154,8 +154,8 @@ type Metrics struct {
 
 // Config YAML Struct
 type Config struct {
-	FileName           string             `yaml:"file_name"`           // this will be set when files are read
-	FilePath           string             `yaml:"file_path"`           // this will be set when files are read
+	FileName           string             `yaml:"file_name"`           // set when file is read
+	FilePath           string             `yaml:"file_path"`           // set when file is read
 	ContainerDiscovery ContainerDiscovery `yaml:"container_discovery"` // provide container discovery parameter at config level
 	Name               string
 	Global             Global

@@ -473,8 +473,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						for key, val := range targetContainer.Labels {
 							yml.CustomAttributes[key] = val
 						}
-						yml.CustomAttributes["containerID"] = targetContainer.ID
-						yml.CustomAttributes["image"] = targetContainer.Image
+						yml.CustomAttributes["containerId"] = targetContainer.ID
+						yml.CustomAttributes["imageId"] = targetContainer.Image
 						yml.CustomAttributes["IDShort"] = targetContainer.ID[0:12]
 						*ymls = append(*ymls, yml)
 					}
@@ -598,7 +598,7 @@ func execHostnameFallback(discoveryIPAddress *string, containerID string) {
 	if *discoveryIPAddress == "" {
 		// fall back if IP is not discovered
 		// attempt to directly fetch IP from container
-		ip, err := execContainerCommand(containerID, []string{"hostname", "-i"})
+		ip, err := ExecContainerCommand(containerID, []string{"hostname", "-i"})
 		ipv4 := strings.TrimSpace(ip)
 		re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
 		if err != nil {

@@ -29,7 +29,8 @@ func setDockerClient() (*client.Client, error) {
 	return cli, err
 }
 
-func execContainerCommand(containerID string, command []string) (string, error) {
+// ExecContainerCommand execute command against a container
+func ExecContainerCommand(containerID string, command []string) (string, error) {
 	if cli == nil {
 		var err error
 		cli, err = setDockerClient()
