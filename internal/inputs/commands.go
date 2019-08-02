@@ -101,6 +101,8 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			}
 		} else if command.Dial != "" {
 			NetDialWithTimeout(dataStore, command, &dataSample, api, &processType)
+		} else if command.ContainerExec != "" {
+			// handle commands against containers
 		}
 	}
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed

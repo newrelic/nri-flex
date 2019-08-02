@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/config"
+	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/outputs"
@@ -27,21 +28,21 @@ func RunFlex(mode string) {
 
 	switch mode {
 	case "lambda":
-		load.Args.ConfigDir = "/var/task/pkg/flexConfigs/"
+		addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
 		if config.SyncGitConfigs("/tmp/") {
 			addConfigsFromPath("/tmp/", &configs)
 		}
 	default:
 		// running as default
 		config.SyncGitConfigs("")
-	}
-
-	// Check if specific config file has been specified
-	// else check flexConfigs dir and run container discovery if enabled
-	if load.Args.ConfigFile != "" {
-		addSingleConfigFile(load.Args.ConfigFile, &configs)
-	} else {
-		addConfigsFromPath(load.Args.ConfigDir, &configs)
+		if load.Args.ConfigFile != "" {
+			addSingleConfigFile(load.Args.ConfigFile, &configs)
+		} else {
+			addConfigsFromPath(load.Args.ConfigDir, &configs)
+		}
+		if load.Args.ContainerDiscovery {
+			discovery.Run(&configs)
+		}
 	}
 
 	logger.Flex("debug", nil, fmt.Sprintf("config files loaded %d", len(configs)), false)
