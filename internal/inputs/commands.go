@@ -105,7 +105,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			// handle commands against containers
 			if yml.CustomAttributes != nil {
 				if yml.CustomAttributes["containerId"] != "" {
-					// not handled yet
+					logger.Flex("debug", nil, "not handled yet", false)
 				}
 			}
 		}
