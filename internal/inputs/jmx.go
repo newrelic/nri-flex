@@ -1,10 +1,12 @@
 package inputs
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // SetJMXCommand Add parameters to JMX call
@@ -77,6 +79,16 @@ func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Co
 	} else if config.Global.Jmx.TrustStorePass != "" {
 		*runCommand = *runCommand + " -trustStorePassword " + config.Global.Jmx.TrustStorePass
 	}
+
+	if command.Jmx.URIPath != "" {
+		*runCommand = *runCommand + " -uriPath " + command.Jmx.URIPath
+	} else if api.Jmx.URIPath != "" {
+		*runCommand = *runCommand + " -uriPath " + api.Jmx.URIPath
+	} else if config.Global.Jmx.URIPath != "" {
+		*runCommand = *runCommand + " -uriPath " + config.Global.Jmx.URIPath
+	}
+
+	logger.Flex("debug", nil, fmt.Sprintf("completed jmx command: %v", *runCommand), false)
 }
 
 // ParseJMX Processes JMX Data

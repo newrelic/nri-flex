@@ -1,3 +1,9 @@
+
+0.6.7-pre
+------
+- Add AWS KMS Capabilities
+- Add uri_path option to JMX options
+
 0.6.6-pre
 ------
 - Refactor cmd entry point
