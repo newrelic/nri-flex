@@ -4,7 +4,6 @@ name: httpExample
 secrets:
   myawskey: # specify a namespace for your key
     kind: aws-kms # set kind of secret
-    key: 3e112aba-14ad-43e9-819f-8c16e1ed007e # set aws key id
     region: ap-southeast-2 # region required
     ### need to set one of three options, http, file, or data to decrypt
     http: 

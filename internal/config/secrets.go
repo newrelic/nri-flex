@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -38,11 +40,6 @@ func loadSecrets(config *load.Config) {
 
 		switch secret.Kind {
 		case "aws-kms":
-			if secret.Key == "" {
-				logger.Flex("error", fmt.Errorf("secret name: %v, missing key", secret.Key), "", false)
-				break
-			}
-
 			if secret.Region == "" {
 				logger.Flex("error", fmt.Errorf("secret name: %v, missing region", secret.Region), "", false)
 				break
@@ -121,7 +118,31 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 		logger.Flex("error", err, "", false)
 	} else if secret.HTTP.URL != "" {
 		client := &http.Client{}
+		tlsConf := &tls.Config{}
+
+		if secret.HTTP.TLSConfig.InsecureSkipVerify {
+			tlsConf.InsecureSkipVerify = secret.HTTP.TLSConfig.InsecureSkipVerify
+		}
+
+		if secret.HTTP.TLSConfig.Ca != "" {
+			rootCAs := x509.NewCertPool()
+			ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
+			if err != nil {
+				logger.Flex("error", err, "failed to read ca", false)
+			} else {
+				rootCAs.AppendCertsFromPEM(ca)
+				tlsConf.RootCAs = rootCAs
+			}
+		}
+
+		clientConf := &http.Transport{
+			TLSClientConfig: tlsConf,
+		}
+
+		client.Transport = clientConf
+
 		req, err := http.NewRequest("GET", secret.HTTP.URL, nil)
+
 		if err != nil {
 			logger.Flex("error", err, "", false)
 		} else {
