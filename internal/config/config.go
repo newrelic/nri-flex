@@ -93,6 +93,9 @@ func Run(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
 	logger.Flex("debug", nil, fmt.Sprintf("processing %d apis in %v", len(yml.APIs), yml.Name), false)
 
+	// load secrets
+	loadSecrets(&yml)
+
 	// intentionally handled synchronously
 	for i := range yml.APIs {
 		RunVariableProcessor(i, &yml)

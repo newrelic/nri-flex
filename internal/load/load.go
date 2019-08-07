@@ -164,8 +164,23 @@ type Config struct {
 	LookupStore        map[string][]string      `yaml:"lookup_store"`
 	LookupFile         string                   `yaml:"lookup_file"`
 	VariableStore      map[string]string        `yaml:"variable_store"`
+	Secrets            map[string]Secret        `yaml:"secrets"`
 	CustomAttributes   map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
 	MetricAPI          bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+}
+
+// Secret Struct
+type Secret struct {
+	Kind         string                 `yaml:"kind"` // eg. aws, vault
+	Key          string                 `yaml:"key"`
+	Token        string                 `yaml:"token"`
+	File         string                 `yaml:"file"`
+	Data         string                 `yaml:"data"`
+	HTTP         API                    `yaml:"http"`
+	Region       string                 `yaml:"region"`
+	Base64Decode bool                   `yaml:"base64_decode"`
+	Type         string                 `yaml:"type"` // basic, equal, json
+	Values       map[string]interface{} `yaml:"values"`
 }
 
 // ContainerDiscovery struct
@@ -344,6 +359,7 @@ type JMX struct {
 	Pass           string `yaml:"pass"`
 	Host           string `yaml:"host"`
 	Port           string `yaml:"port"`
+	URIPath        string `yaml:"uri_path"`
 	KeyStore       string `yaml:"key_store"`
 	KeyStorePass   string `yaml:"key_store_pass"`
 	TrustStore     string `yaml:"trust_store"`

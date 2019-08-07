@@ -47,12 +47,17 @@ func Processes() {
 
 func checkBlacklistedProcess(name string, cmd string) bool {
 	blacklistedProcesses := []string{
-		"Chrome", "Visual Studio Code", "BlueJeans", "WhatsApp", "Insomnia Helper", "Slack", "SpotifyWebHelper", "ZoomOpener",
+		"Chrome", "Visual Studio Code", "BlueJeans", "WhatsApp", "Insomnia", "Slack", "SpotifyWebHelper", "ZoomOpener",
 		"Dashlane", "docker.for.mac", "svchost", "lsass", "wininit", "spoolsv", "[System Process]"}
 	for _, blProcess := range blacklistedProcesses {
-		if strings.EqualFold(name, blProcess) || strings.EqualFold(cmd, blProcess) {
+		if caseInsensitiveContains(name, blProcess) || caseInsensitiveContains(cmd, blProcess) {
 			return true
 		}
 	}
 	return false
+}
+
+func caseInsensitiveContains(s, substr string) bool {
+	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
+	return strings.Contains(s, substr)
 }

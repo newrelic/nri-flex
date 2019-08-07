@@ -62,6 +62,48 @@
   version = "v1.11.1"
 
 [[projects]]
+  digest = "1:dfeb75453351dd3098460640e0e1d813ab1954548d95efffac4f3bdc5af8e2b4"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/ini",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/xml/xmlutil",
+    "service/kms",
+    "service/sts",
+    "service/sts/stsiface",
+  ]
+  pruneopts = "UT"
+  revision = "933fa4e60b06c8c1d3f91790ce134512f327b6af"
+  version = "v1.21.10"
+
+[[projects]]
   branch = "master"
   digest = "1:2e702b60af5efe4b3b0e3b40fddfb6beba6adca1e0a7ccd25cc5c21b5e7df9ef"
   name = "github.com/denisenkom/go-mssqldb"
@@ -200,6 +242,13 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "588fe0d4c603f5dc8b3854ff3f7f16e570618ef7"
+
+[[projects]]
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c2b33e84"
 
 [[projects]]
   digest = "1:f5a2051c55d05548d2d4fd23d244027b59fbd943217df8aa3b5e170ac2fd6e1b"
@@ -617,6 +666,9 @@
     "github.com/Knetic/govaluate",
     "github.com/SAP/go-hdb/driver",
     "github.com/aws/aws-lambda-go/lambda",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/kms",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api/types",
     "github.com/docker/docker/client",

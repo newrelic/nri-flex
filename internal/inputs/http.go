@@ -130,14 +130,6 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 	if yml.Global.User != "" {
 		request = request.SetBasicAuth(yml.Global.User, yml.Global.Pass)
 	}
-	if yml.Global.TLSConfig.Ca != "" {
-		ca, err := ioutil.ReadFile(yml.Global.TLSConfig.Ca)
-		if err != nil {
-			logger.Flex("error", err, "failed to read ca", false)
-		} else {
-			rootCAs.AppendCertsFromPEM(ca)
-		}
-	}
 	for h, v := range yml.Global.Headers {
 		request = request.Set(h, v)
 	}
@@ -153,28 +145,42 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 	for h, v := range api.Headers {
 		request = request.Set(h, v)
 	}
-	if api.TLSConfig.Ca != "" {
-		ca, err := ioutil.ReadFile(api.TLSConfig.Ca)
+
+	tmpGlobalTLSConfig := tls.Config{
+		InsecureSkipVerify: yml.Global.TLSConfig.InsecureSkipVerify,
+		MinVersion:         yml.Global.TLSConfig.MinVersion,
+		MaxVersion:         yml.Global.TLSConfig.MaxVersion,
+	}
+
+	if yml.Global.TLSConfig.Ca != "" {
+		ca, err := ioutil.ReadFile(yml.Global.TLSConfig.Ca)
 		if err != nil {
 			logger.Flex("error", err, "failed to read ca", false)
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
+			tmpGlobalTLSConfig.RootCAs = rootCAs
 		}
 	}
 
-	request = request.TLSClientConfig(&tls.Config{
-		InsecureSkipVerify: yml.Global.TLSConfig.InsecureSkipVerify,
-		MinVersion:         yml.Global.TLSConfig.MinVersion,
-		MaxVersion:         yml.Global.TLSConfig.MaxVersion,
-	})
+	request = request.TLSClientConfig(&tmpGlobalTLSConfig)
 
 	if api.TLSConfig.Enable {
-		request = request.TLSClientConfig(&tls.Config{
+		tmpAPITLSConfig := tls.Config{
 			InsecureSkipVerify: api.TLSConfig.InsecureSkipVerify,
 			MinVersion:         api.TLSConfig.MinVersion,
 			MaxVersion:         api.TLSConfig.MaxVersion,
-			RootCAs:            rootCAs,
-		})
+		}
+
+		if api.TLSConfig.Ca != "" {
+			ca, err := ioutil.ReadFile(api.TLSConfig.Ca)
+			if err != nil {
+				logger.Flex("error", err, "failed to read ca", false)
+			} else {
+				rootCAs.AppendCertsFromPEM(ca)
+				tmpAPITLSConfig.RootCAs = rootCAs
+			}
+		}
+		request = request.TLSClientConfig(&tmpAPITLSConfig)
 	}
 
 	return request
