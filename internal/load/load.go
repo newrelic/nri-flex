@@ -171,16 +171,18 @@ type Config struct {
 
 // Secret Struct
 type Secret struct {
-	Kind         string                 `yaml:"kind"` // eg. aws, vault
-	Key          string                 `yaml:"key"`
-	Token        string                 `yaml:"token"`
-	File         string                 `yaml:"file"`
-	Data         string                 `yaml:"data"`
-	HTTP         API                    `yaml:"http"`
-	Region       string                 `yaml:"region"`
-	Base64Decode bool                   `yaml:"base64_decode"`
-	Type         string                 `yaml:"type"` // basic, equal, json
-	Values       map[string]interface{} `yaml:"values"`
+	Kind           string                 `yaml:"kind"` // eg. aws, vault
+	Key            string                 `yaml:"key"`
+	Token          string                 `yaml:"token"`
+	CredentialFile string                 `yaml:"credential_file"`
+	ConfigFile     string                 `yaml:"config_file"`
+	File           string                 `yaml:"file"`
+	Data           string                 `yaml:"data"`
+	HTTP           API                    `yaml:"http"`
+	Region         string                 `yaml:"region"`
+	Base64Decode   bool                   `yaml:"base64_decode"`
+	Type           string                 `yaml:"type"` // basic, equal, json
+	Values         map[string]interface{} `yaml:"values"`
 }
 
 // ContainerDiscovery struct

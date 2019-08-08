@@ -5,9 +5,18 @@ secrets:
   myawskey: # specify a namespace for your key
     kind: aws-kms # set kind of secret
     region: ap-southeast-2 # region required
+    ### can specify your own credential and/or config file
+    # credential_file: "./myAWSCredentialFile"
+    # config_file: "./myAWSConfigFile"
     ### need to set one of three options, http, file, or data to decrypt
     http: 
       url: https://some-special-s3-bucket.s3-ap-southeast-2.amazonaws.com/some.file ### download a file containing a secret
+      ### other optional configuration for http
+      # headers:
+      #   myHeader: ABC
+      # tls_config:
+      #   insecure_skip_verify: true
+      #   ca: "./pathToCa"
     # file: ./some.file ### path to file
     # data: AQICAHgdUAUlK7RGdwKFdBCTfRCsNk3oNtTv7FWsrP5VgoCFUgHPmcKgBpjzi7sdnDvV+RipAAAAZzBlBgkqhkiG9w0BBwagWDBWAgEAMFEGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMDUJMrVgA36DJmdflAgEQgCQIlM5F0zpUbH0MgWUskXjb4GJmAOvLgJUkMf5SJDmE2sceuCs=
     ### the exact returned value will be accessible via ${secret.<namespace>:value} eg. ${secret.myawskey:value} 
