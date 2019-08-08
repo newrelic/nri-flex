@@ -169,9 +169,29 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 	}
 
 	if len(secretData) > 0 {
-		sess := session.Must(session.NewSession(&aws.Config{
-			Region: aws.String(secret.Region),
-		}))
+		var sess *session.Session
+
+		sharedConfigFiles := []string{}
+		if secret.CredentialFile != "" {
+			sharedConfigFiles = append(sharedConfigFiles, secret.CredentialFile)
+		}
+		if secret.ConfigFile != "" {
+			sharedConfigFiles = append(sharedConfigFiles, secret.ConfigFile)
+		}
+
+		if len(sharedConfigFiles) > 0 {
+			logger.Flex("debug", nil, "aws kms decrypt "+name+" using custom credentials and/or config", false)
+			sess = session.Must(session.NewSessionWithOptions(session.Options{
+				SharedConfigState: session.SharedConfigEnable,
+				SharedConfigFiles: sharedConfigFiles,
+			}))
+		} else {
+			logger.Flex("debug", nil, "aws kms decrypt "+name+" using default credentials", false)
+			sess = session.Must(session.NewSession(&aws.Config{
+				Region: aws.String(secret.Region),
+			}))
+		}
+
 		kmsClient := kms.New(sess)
 		params := &kms.DecryptInput{
 			CiphertextBlob: secretData,
