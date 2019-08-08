@@ -24,24 +24,28 @@ import (
 // Run discover containers
 func Run(configs *[]load.Config) {
 	FindFlexContainerID("/proc/1/cpuset")
-	var err error
-	cli, err = setDockerClient()
-	if err != nil {
-		logger.Flex("error", err, "unable to set docker client", false)
+	if load.Args.Fargate {
+		runFargateDiscovery(configs)
 	} else {
-		ctx := context.Background()
-		containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+		var err error
+		cli, err = setDockerClient()
 		if err != nil {
-			logger.Flex("error", err, "unable to set perform container list", false)
-		} else if len(containerList) > 0 {
-			// List config files in containerDiscoveryPath directory
-			containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
-			containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
-			logger.Flex("error", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
+			logger.Flex("error", err, "unable to set docker client", false)
+		} else {
+			ctx := context.Background()
+			containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+			if err != nil {
+				logger.Flex("error", err, "unable to set perform container list", false)
+			} else if len(containerList) > 0 {
+				// List config files in containerDiscoveryPath directory
+				containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
+				containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
+				logger.Flex("error", err, "failed to read config dir: "+load.Args.ContainerDiscoveryDir, false)
 
-			CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, configs)
-			if len(containerDiscoveryFiles) == 0 {
-				logger.Flex("debug", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+				CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, configs)
+				if len(containerDiscoveryFiles) == 0 {
+					logger.Flex("debug", nil, "no configs found: "+load.Args.ContainerDiscoveryDir, false)
+				}
 			}
 		}
 	}
@@ -201,7 +205,7 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 			target := strings.SplitAfter(yml.FileName, "cd-")[1]
 			target = strings.Replace(target, ".yml", "", -1)
 			target = strings.Replace(target, ".yaml", "", -1)
-			targetType := "container"
+			targetType := load.TypeContainer
 			mode := "contains"
 
 			cd := load.ContainerDiscovery{
@@ -519,7 +523,7 @@ func findContainerTarget(discoveryConfig map[string]interface{}, container types
 	switch discoveryConfig["tt"].(type) {
 	case string:
 		switch discoveryConfig["tt"].(string) {
-		case "cname", load.Container:
+		case "cname", load.TypeContainer:
 			for _, containerName := range container.Names {
 				checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
 				if formatter.KvFinder(discoveryConfig["tm"].(string), checkContainerName, discoveryConfig["t"].(string)) {

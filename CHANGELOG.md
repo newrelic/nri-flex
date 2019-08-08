@@ -1,7 +1,8 @@
 
 0.6.7-pre
 ------
-- Add AWS KMS Capabilities
+- Add AWS KMS capability
+- Add Fargate Container Discovery capability
 - Add uri_path option to JMX options
 
 0.6.6-pre

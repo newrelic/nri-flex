@@ -19,6 +19,7 @@ type ArgumentList struct {
 	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
 	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
+	Fargate               bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
 	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
@@ -55,6 +56,9 @@ var ContainerID string
 
 // IsKubernetes basic check if running on k8s
 var IsKubernetes bool
+
+// IsFargate basic check if running on fargate
+var IsFargate bool
 
 // LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
 var LambdaName string
@@ -97,7 +101,7 @@ const (
 	Jmx                = "jmx"
 	Img                = "img"
 	Image              = "image"
-	Container          = "container"
+	TypeContainer      = "container"
 	TypeJSON           = "json"
 	TypeColumns        = "columns"
 	Contains           = "contains"
@@ -187,12 +191,13 @@ type Secret struct {
 
 // ContainerDiscovery struct
 type ContainerDiscovery struct {
-	Target   string `yaml:"target"`  // string of container or image to target
-	Type     string `yaml:"type"`    // container or image
-	Mode     string `yaml:"mode"`    // contains, prefix, exact
-	Port     int    `yaml:"port"`    // port
-	IPMode   string `yaml:"ip_mode"` // public / private
-	FileName string `yaml:"file_name"`
+	Target          string `yaml:"target"`  // string of container or image to target
+	Type            string `yaml:"type"`    // container or image
+	Mode            string `yaml:"mode"`    // contains, prefix, exact
+	Port            int    `yaml:"port"`    // port
+	IPMode          string `yaml:"ip_mode"` // public / private
+	FileName        string `yaml:"file_name"`
+	ReplaceComplete bool   `yaml:"replace_complete"`
 }
 
 // Global struct

@@ -9,7 +9,9 @@
 const (
 	DefaultSplitBy     = ":"                      // unused currently
 	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
 	DefaultPingTimeout = 5000                     // 5 seconds
+	DefaultHANA        = "hdb"
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
@@ -19,22 +21,34 @@ const (
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
 	DefaultJmxPass     = "admin"
-	DefaultIPMode      = "private"
 	DefaultShell       = "/bin/sh"
 	DefaultLineLimit   = 255
 	Public             = "public"
 	Private            = "private"
 	Jmx                = "jmx"
 	Img                = "img"
-	TypeJSON           = "json"
-	TypeColumns        = "columns"
+	Image              = "image"
+	// Container          = "container"
+	TypeJSON    = "json"
+	TypeColumns = "columns"
+	Contains    = "contains"
 )
 ```
+
+```go
+var AWSExecutionEnv string
+```
+AWSExecutionEnv AWS execution environment
 
 ```go
 var ContainerID string
 ```
 ContainerID current container id
+
+```go
+var DiscoveredProcesses map[string]string
+```
+DiscoveredProcesses discovered processes
 
 ```go
 var Entity *integration.Entity
@@ -47,11 +61,17 @@ var FlexStatusCounter = struct {
 	M map[string]int
 }{M: make(map[string]int)}
 ```
+FlexStatusCounter count internal metrics
 
 ```go
 var Hostname string
 ```
 Hostname current host
+
+```go
+var IngestData interface{}
+```
+IngestData store ingested data
 
 ```go
 var Integration *integration.Integration
@@ -73,6 +93,49 @@ var IntegrationVersion = "Unknown-SNAPSHOT" // IntegrationVersion Version
 
 ```
 
+```go
+var IsFargate bool
+```
+IsFargate basic check if running on fargate
+
+```go
+var IsKubernetes bool
+```
+IsKubernetes basic check if running on k8s
+
+```go
+var LambdaName string
+```
+LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
+
+```go
+var Logrus = logrus.New()
+```
+Logrus create instance of the logger
+
+```go
+var MetricsStore = struct {
+	sync.RWMutex
+	Data []Metrics
+}{}
+```
+MetricsStore for Dimensional Metrics to store data and lock and unlock when
+needed
+
+#### func  MetricsStoreAppend
+
+```go
+func MetricsStoreAppend(metrics Metrics)
+```
+MetricsStoreAppend Append data to store
+
+#### func  MetricsStoreEmpty
+
+```go
+func MetricsStoreEmpty()
+```
+MetricsStoreEmpty empties stored data
+
 #### func  Refresh
 
 ```go
@@ -80,27 +143,49 @@ func Refresh()
 ```
 Refresh Helper function used for testing
 
+#### func  StatusCounterIncrement
+
+```go
+func StatusCounterIncrement(key string)
+```
+StatusCounterIncrement increment the status counter for a particular key
+
+#### func  StatusCounterRead
+
+```go
+func StatusCounterRead(key string) int
+```
+StatusCounterRead the status counter for a particular key
+
 #### type API
 
 ```go
 type API struct {
-	EventType         string     `yaml:"event_type"` // override eventType
-	Merge             string     `yaml:"merge"`      // merge into another eventType
-	Prefix            string     `yaml:"prefix"`     // prefix attribute keys
-	Name              string     `yaml:"name"`
-	File              string     `yaml:"file"`
-	URL               string     `yaml:"url"`
-	EscapeURL         bool       `yaml:"escape_url"`
-	Prometheus        Prometheus `yaml:"prometheus"`
-	Cache             string     `yaml:"cache"` // read data from datastore
-	Database          string     `yaml:"database"`
-	DbDriver          string     `yaml:"db_driver"`
-	DbConn            string     `yaml:"db_conn"`
-	Shell             string     `yaml:"shell"`
-	Commands          []Command  `yaml:"commands"`
-	DbQueries         []Command  `yaml:"db_queries"`
-	Jmx               JMX        `yaml:"jmx"`
-	IgnoreLines       []int      // not implemented - idea is to ignore particular lines starting from 0 of the command output
+	Name              string            `yaml:"name"`
+	EventType         string            `yaml:"event_type"`  // override eventType
+	Entity            string            `yaml:"entity"`      // define a custom entity name
+	EntityType        string            `yaml:"entity_type"` // define a custom entity type (namespace)
+	Ingest            bool              `yaml:"ingest"`
+	Inventory         map[string]string `yaml:"inventory"`      // set as inventory
+	InventoryOnly     bool              `yaml:"inventory_only"` // only generate inventory data
+	Events            map[string]string `yaml:"events"`         // set as events
+	EventsOnly        bool              `yaml:"events_only"`    // only generate events
+	Merge             string            `yaml:"merge"`          // merge into another eventType
+	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
+	File              string            `yaml:"file"`
+	URL               string            `yaml:"url"`
+	EscapeURL         bool              `yaml:"escape_url"`
+	Prometheus        Prometheus        `yaml:"prometheus"`
+	Cache             string            `yaml:"cache"` // read data from datastore
+	Database          string            `yaml:"database"`
+	DbDriver          string            `yaml:"db_driver"`
+	DbConn            string            `yaml:"db_conn"`
+	Shell             string            `yaml:"shell"`
+	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
+	Commands          []Command         `yaml:"commands"`
+	DbQueries         []Command         `yaml:"db_queries"`
+	Jmx               JMX               `yaml:"jmx"`
+	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
 	Proxy             string
 	TLSConfig         TLSConfig `yaml:"tls_config"`
@@ -133,6 +218,7 @@ type API struct {
 	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
+	SplitObjects      bool                `yaml:"split_objects"`     // convert object with nested objects to array
 	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy           string              `yaml:"split_by"`          // character to split by
 	SetHeader         []string            `yaml:"set_header"`        // manually set header column names
@@ -159,13 +245,24 @@ type ArgumentList struct {
 	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
 	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
+	Fargate               bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
 	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
 	Entity                string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsInterval      int    `default:"0" help:"Run Insights mode periodically at this set interval"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey          string `default:"" help:"Set Metric API key"`
+	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
+	GitService            string `default:"github" help:"Set git service"`
+	GitToken              string `default:"" help:"Set git token"`
+	GitUser               string `default:"" help:"Set git user"`
+	GitRepo               string `default:"" help:"Set git repository to sync"`
+	GitURL                string `default:"" help:"Set alternate git url"`
+	GitBranch             string `default:"master" help:"Checkout to specifed git branch"`
+	GitCommit             string `default:"" help:"Checkout to specifed git commit, if set will not use branch"`
+	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
 }
 ```
 
@@ -176,6 +273,90 @@ var Args ArgumentList
 ```
 Args Infrastructure SDK Arguments List
 
+#### type BlkioStatEntry
+
+```go
+type BlkioStatEntry struct {
+	Major uint64 `json:"major"`
+	Minor uint64 `json:"minor"`
+	Op    string `json:"op"`
+	Value uint64 `json:"value"`
+}
+```
+
+BlkioStatEntry is one small entity to store a piece of Blkio stats Not used on
+Windows.
+
+#### type BlkioStats
+
+```go
+type BlkioStats struct {
+	// number of bytes transferred to and from the block device
+	IoServiceBytesRecursive []BlkioStatEntry `json:"io_service_bytes_recursive"`
+	IoServicedRecursive     []BlkioStatEntry `json:"io_serviced_recursive"`
+	IoQueuedRecursive       []BlkioStatEntry `json:"io_queue_recursive"`
+	IoServiceTimeRecursive  []BlkioStatEntry `json:"io_service_time_recursive"`
+	IoWaitTimeRecursive     []BlkioStatEntry `json:"io_wait_time_recursive"`
+	IoMergedRecursive       []BlkioStatEntry `json:"io_merged_recursive"`
+	IoTimeRecursive         []BlkioStatEntry `json:"io_time_recursive"`
+	SectorsRecursive        []BlkioStatEntry `json:"sectors_recursive"`
+}
+```
+
+BlkioStats stores All IO service stats for data read and write. This is a Linux
+specific structure as the differences between expressing block I/O on Windows
+and Linux are sufficiently significant to make little sense attempting to morph
+into a combined structure.
+
+#### type CPUStats
+
+```go
+type CPUStats struct {
+	// CPU Usage. Linux and Windows.
+	CPUUsage CPUUsage `json:"cpu_usage"`
+
+	// System Usage. Linux only.
+	SystemUsage uint64 `json:"system_cpu_usage,omitempty"`
+
+	// Online CPUs. Linux only.
+	OnlineCPUs uint32 `json:"online_cpus,omitempty"`
+
+	// Throttling Data. Linux only.
+	ThrottlingData ThrottlingData `json:"throttling_data,omitempty"`
+}
+```
+
+CPUStats aggregates and wraps all CPU related info of container
+
+#### type CPUUsage
+
+```go
+type CPUUsage struct {
+	// Total CPU time consumed.
+	// Units: nanoseconds (Linux)
+	// Units: 100's of nanoseconds (Windows)
+	TotalUsage uint64 `json:"total_usage"`
+
+	// Total CPU time consumed per core (Linux). Not used on Windows.
+	// Units: nanoseconds.
+	PercpuUsage []uint64 `json:"percpu_usage,omitempty"`
+
+	// Time spent by tasks of the cgroup in kernel mode (Linux).
+	// Time spent by all container processes in kernel mode (Windows).
+	// Units: nanoseconds (Linux).
+	// Units: 100's of nanoseconds (Windows). Not populated for Hyper-V Containers.
+	UsageInKernelmode uint64 `json:"usage_in_kernelmode"`
+
+	// Time spent by tasks of the cgroup in user mode (Linux).
+	// Time spent by all container processes in user mode (Windows).
+	// Units: nanoseconds (Linux).
+	// Units: 100's of nanoseconds (Windows). Not populated for Hyper-V Containers
+	UsageInUsermode uint64 `json:"usage_in_usermode"`
+}
+```
+
+CPUUsage stores All CPU stats aggregated since container inception.
+
 #### type Command
 
 ```go
@@ -185,6 +366,7 @@ type Command struct {
 	Shell            string            `yaml:"shell"`             // command shell
 	Cache            string            `yaml:"cache"`             // use content from cache instead of a run command
 	Run              string            `yaml:"run"`               // runs commands, but if database is set, then this is used to run queries
+	ContainerExec    string            `yaml:"container_exec"`    // execute a command against a container
 	Jmx              JMX               `yaml:"jmx"`               // if wanting to run different jmx endpoints to merge
 	CompressBean     bool              `yaml:"compress_bean"`     // compress bean name //unused
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
@@ -194,19 +376,25 @@ type Command struct {
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout
+	Dial             string            `yaml:"dial"`              // eg. google.com:80
+	Network          string            `yaml:"network"`           // default tcp
 
 	// Parsing Options - Body
-	Split      string `yaml:"split"`       // default vertical, can be set to horizontal (column) useful for outputs that look like a table
-	SplitBy    string `yaml:"split_by"`    // character/match to split by
-	RegexMatch bool   `yaml:"regex_match"` // process SplitBy as a regex match
-	GroupBy    string `yaml:"group_by"`    // group by character
-	RowHeader  int    `yaml:"row_header"`  // set the row header, to be used with SplitBy
-	RowStart   int    `yaml:"row_start"`   // start from this line, to be used with SplitBy
+	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
+	SplitBy     string `yaml:"split_by"`     // character/match to split by
+	SplitOutput string `yaml:"split_output"` // split output by found regex
+	RegexMatch  bool   `yaml:"regex_match"`  // process SplitBy as a regex match
+	GroupBy     string `yaml:"group_by"`     // group by character
+	RowHeader   int    `yaml:"row_header"`   // set the row header, to be used with SplitBy
+	RowStart    int    `yaml:"row_start"`    // start from this line, to be used with SplitBy
 
 	// Parsing Options - Header
 	SetHeader        []string `yaml:"set_header"`         // manually set header column names (used when split is is set to horizontal)
 	HeaderSplitBy    string   `yaml:"header_split_by"`    // character/match to split header by
 	HeaderRegexMatch bool     `yaml:"header_regex_match"` // process HeaderSplitBy as a regex match
+
+	// RegexMatches
+	RegexMatches []RegMatch `yaml:"regex_matches"`
 }
 ```
 
@@ -216,18 +404,97 @@ Command Struct
 
 ```go
 type Config struct {
-	FileName         string // this will be set when files are read
-	Name             string
-	Global           Global
-	APIs             []API
-	Datastore        map[string][]interface{} `yaml:"datastore"`
-	LookupStore      map[string][]string      `yaml:"lookup_store"`
-	VariableStore    map[string]string        `yaml:"variable_store"`
-	CustomAttributes map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+	FileName           string             `yaml:"file_name"`           // set when file is read
+	FilePath           string             `yaml:"file_path"`           // set when file is read
+	ContainerDiscovery ContainerDiscovery `yaml:"container_discovery"` // provide container discovery parameter at config level
+	Name               string
+	Global             Global
+	APIs               []API
+	Datastore          map[string][]interface{} `yaml:"datastore"`
+	LookupStore        map[string][]string      `yaml:"lookup_store"`
+	LookupFile         string                   `yaml:"lookup_file"`
+	VariableStore      map[string]string        `yaml:"variable_store"`
+	Secrets            map[string]Secret        `yaml:"secrets"`
+	CustomAttributes   map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI          bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
 }
 ```
 
 Config YAML Struct
+
+#### type Container
+
+```go
+type Container struct {
+
+	// The Docker ID for the container.
+	DockerID string `json:"DockerID"`
+
+	// The name of the container as specified in the task definition.
+	Name string `json:"Name"`
+
+	// The name of the container supplied to Docker.
+	// The Amazon ECS container agent generates a unique name for the container to avoid name collisions when multiple copies of the same task definition are run on a single instance.
+	DockerName string `json:"DockerName"`
+
+	// The image for the container.
+	Image string `json:"Image"`
+
+	//The SHA-256 digest for the image.
+	ImageID string `json:"ImageID,omitempty"`
+
+	// Any ports exposed for the container. This parameter is omitted if there are no exposed ports.
+	Ports string `json:"Ports"`
+
+	// Any labels applied to the container. This parameter is omitted if there are no labels applied.
+	Labels map[string]string `json:"Labels"`
+
+	// Any labels applied to the container. This parameter is omitted if there are no labels applied.
+	Limits map[string]uint64 `json:"Limits"`
+
+	// The desired status for the container from Amazon ECS.
+	DesiredStatus string `json:"DesiredStatus"`
+
+	// The known status for the container from Amazon ECS.
+	KnownStatus string `json:"KnownStatus"`
+
+	// The exit code for the container. This parameter is omitted if the container has not exited.
+	ExitCode string `json:"ExitCode"`
+
+	// The time stamp for when the container was created. This parameter is omitted if the container has not been created yet.
+	CreatedAt string `json:"CreatedAt"`
+
+	// The time stamp for when the container started. This parameter is omitted if the container has not started yet.
+	StartedAt string `json:"StartedAt"` // 2017-11-17T17:14:07.781711848Z
+
+	// The time stamp for when the container stopped. This parameter is omitted if the container has not stopped yet.
+	FinishedAt string `json:"FinishedAt"`
+
+	// The type of the container. Containers that are specified in your task definition are of type NORMAL.
+	// You can ignore other container types, which are used for internal task resource provisioning by the Amazon ECS container agent.
+	Type string `json:"Type"`
+
+	// The network information for the container, such as the network mode and IP address. This parameter is omitted if no network information is defined.
+	Networks []Network `json:"Networks"`
+}
+```
+
+Container as defined by the ECS metadata API
+
+#### type ContainerDiscovery
+
+```go
+type ContainerDiscovery struct {
+	Target   string `yaml:"target"`  // string of container or image to target
+	Type     string `yaml:"type"`    // container or image
+	Mode     string `yaml:"mode"`    // contains, prefix, exact
+	Port     int    `yaml:"port"`    // port
+	IPMode   string `yaml:"ip_mode"` // public / private
+	FileName string `yaml:"file_name"`
+}
+```
+
+ContainerDiscovery struct
 
 #### type Global
 
@@ -254,6 +521,7 @@ type JMX struct {
 	Pass           string `yaml:"pass"`
 	Host           string `yaml:"host"`
 	Port           string `yaml:"port"`
+	URIPath        string `yaml:"uri_path"`
 	KeyStore       string `yaml:"key_store"`
 	KeyStorePass   string `yaml:"key_store_pass"`
 	TrustStore     string `yaml:"trust_store"`
@@ -263,17 +531,60 @@ type JMX struct {
 
 JMX struct
 
+#### type MemoryStats
+
+```go
+type MemoryStats struct {
+
+	// current res_counter usage for memory
+	Usage uint64 `json:"usage,omitempty"`
+	// maximum usage ever recorded.
+	MaxUsage uint64 `json:"max_usage,omitempty"`
+	// TODO(vishh): Export these as stronger types.
+	// all the stats exported via memory.stat.
+	Stats map[string]uint64 `json:"stats,omitempty"`
+	// number of times memory usage hits limits.
+	Failcnt uint64 `json:"failcnt,omitempty"`
+	Limit   uint64 `json:"limit,omitempty"`
+
+	// committed bytes
+	Commit uint64 `json:"commitbytes,omitempty"`
+	// peak committed bytes
+	CommitPeak uint64 `json:"commitpeakbytes,omitempty"`
+	// private working set
+	PrivateWorkingSet uint64 `json:"privateworkingset,omitempty"`
+}
+```
+
+MemoryStats aggregates all memory stats since container inception on Linux.
+Windows returns stats for commit and private working set only.
+
 #### type MetricParser
 
 ```go
 type MetricParser struct {
-	Namespace Namespace         `yaml:"namespace"`
-	Metrics   map[string]string `yaml:"metrics"`  // inputBytesPerSecond: RATE
-	AutoSet   bool              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Namespace Namespace                         `yaml:"namespace"`
+	Metrics   map[string]string                 `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	AutoSet   bool                              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
+	Counts    map[string]int64                  `yaml:"counts"`
+	Summaries map[string]map[string]interface{} `yaml:"summaries"`
 }
 ```
 
 MetricParser Struct
+
+#### type Metrics
+
+```go
+type Metrics struct {
+	TimestampMs      int64                    `json:"timestamp.ms,omitempty"` // required for every metric at root or nested
+	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
+	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
+	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
+}
+```
+
+Metrics struct
 
 #### type Namespace
 
@@ -287,6 +598,65 @@ type Namespace struct {
 
 Namespace Struct
 
+#### type NetStats
+
+```go
+type NetStats struct {
+	RxBytes   uint64 `json:"rx_bytes"`
+	RxPackets uint64 `json:"rx_packets"`
+	TxBytes   uint64 `json:"tx_bytes"`
+	TxPackets uint64 `json:"tx_packets"`
+}
+```
+
+NetStats ECS container network usage
+
+#### type Network
+
+```go
+type Network struct {
+
+	// NetworkMode currently only supported mode is awsvpc
+	NetworkMode string `json:"NetworkMode"`
+
+	// IPv4 Addresses supplied in a single element list
+	IPv4Addresses []string `json:"IPv4Addresses"`
+}
+```
+
+Network information of the container
+
+#### type NetworkStats
+
+```go
+type NetworkStats struct {
+	// Bytes received. Windows and Linux.
+	RxBytes uint64 `json:"rx_bytes"`
+	// Packets received. Windows and Linux.
+	RxPackets uint64 `json:"rx_packets"`
+	// Received errors. Not used on Windows. Note that we don't `omitempty` this
+	// field as it is expected in the >=v1.21 API stats structure.
+	RxErrors uint64 `json:"rx_errors"`
+	// Incoming packets dropped. Windows and Linux.
+	RxDropped uint64 `json:"rx_dropped"`
+	// Bytes sent. Windows and Linux.
+	TxBytes uint64 `json:"tx_bytes"`
+	// Packets sent. Windows and Linux.
+	TxPackets uint64 `json:"tx_packets"`
+	// Sent errors. Not used on Windows. Note that we don't `omitempty` this
+	// field as it is expected in the >=v1.21 API stats structure.
+	TxErrors uint64 `json:"tx_errors"`
+	// Outgoing packets dropped. Windows and Linux.
+	TxDropped uint64 `json:"tx_dropped"`
+	// Endpoint ID. Not used on Linux.
+	EndpointID string `json:"endpoint_id,omitempty"`
+	// Instance ID. Not used on Linux.
+	InstanceID string `json:"instance_id,omitempty"`
+}
+```
+
+NetworkStats aggregates the network stats of one container
+
 #### type Parse
 
 ```go
@@ -298,6 +668,20 @@ type Parse struct {
 ```
 
 Parse struct
+
+#### type PidsStats
+
+```go
+type PidsStats struct {
+	// Current is the number of pids in the cgroup
+	Current uint64 `json:"current,omitempty"`
+	// Limit is the hard limit on the number of pids in the cgroup.
+	// A "Limit" of 0 means that there is no limit.
+	Limit uint64 `json:"limit,omitempty"`
+}
+```
+
+PidsStats contains the stats of a container's pids
 
 #### type Prometheus
 
@@ -316,10 +700,22 @@ type Prometheus struct {
 	Summary          bool              `yaml:"summary"`         // if flattening by default, create a full summary sample
 	SummaryEvent     string            `yaml:"summaryevent"`    // override summary event type
 	GoMetrics        bool              `yaml:"go_metrics"`      // enable go metrics
+
 }
 ```
 
 Prometheus struct
+
+#### type RegMatch
+
+```go
+type RegMatch struct {
+	Expression string   `yaml:"expression"`
+	Keys       []string `yaml:"keys"`
+	KeysMulti  []string `yaml:"keys_multi"`
+}
+```
+
 
 #### type SampleMerge
 
@@ -332,6 +728,71 @@ type SampleMerge struct {
 
 SampleMerge merge multiple samples into one (will remove previous samples)
 
+#### type Secret
+
+```go
+type Secret struct {
+	Kind           string                 `yaml:"kind"` // eg. aws, vault
+	Key            string                 `yaml:"key"`
+	Token          string                 `yaml:"token"`
+	CredentialFile string                 `yaml:"credential_file"`
+	ConfigFile     string                 `yaml:"config_file"`
+	File           string                 `yaml:"file"`
+	Data           string                 `yaml:"data"`
+	HTTP           API                    `yaml:"http"`
+	Region         string                 `yaml:"region"`
+	Base64Decode   bool                   `yaml:"base64_decode"`
+	Type           string                 `yaml:"type"` // basic, equal, json
+	Values         map[string]interface{} `yaml:"values"`
+}
+```
+
+Secret Struct
+
+#### type Stats
+
+```go
+type Stats struct {
+	// Common stats
+	Read    time.Time `json:"read"`
+	PreRead time.Time `json:"preread"`
+
+	// Linux specific stats, not populated on Windows.
+	PidsStats  PidsStats  `json:"pids_stats,omitempty"`
+	BlkioStats BlkioStats `json:"blkio_stats,omitempty"`
+
+	// Windows specific stats, not populated on Linux.
+	NumProcs     uint32       `json:"num_procs"`
+	StorageStats StorageStats `json:"storage_stats,omitempty"`
+
+	// Shared stats
+	CPUStats    CPUStats    `json:"cpu_stats,omitempty"`
+	PreCPUStats CPUStats    `json:"precpu_stats,omitempty"` // "Pre"="Previous"
+	MemoryStats MemoryStats `json:"memory_stats,omitempty"`
+
+	// Network from AWS Stats API
+	Network NetStats `json:"network"`
+
+	// Networks request version >=1.21
+	Networks map[string]NetworkStats `json:"networks,omitempty"`
+}
+```
+
+Stats is Ultimate struct aggregating all types of stats of one container
+
+#### type StorageStats
+
+```go
+type StorageStats struct {
+	ReadCountNormalized  uint64 `json:"read_count_normalized,omitempty"`
+	ReadSizeBytes        uint64 `json:"read_size_bytes,omitempty"`
+	WriteCountNormalized uint64 `json:"write_count_normalized,omitempty"`
+	WriteSizeBytes       uint64 `json:"write_size_bytes,omitempty"`
+}
+```
+
+StorageStats is the disk I/O stats for read/write on Windows.
+
 #### type TLSConfig
 
 ```go
@@ -340,7 +801,67 @@ type TLSConfig struct {
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 	MinVersion         uint16 `yaml:"min_version"`
 	MaxVersion         uint16 `yaml:"max_version"`
+	Ca                 string `yaml:"ca"` // path to ca to read
 }
 ```
 
 TLSConfig struct
+
+#### type TaskMetadata
+
+```go
+type TaskMetadata struct {
+
+	// The name of the cluster that hosts the task.
+	Cluster string `json:"Cluster"`
+
+	// The Amazon Resource Name (ARN) of the task.
+	TaskArn string `locationName:"taskArn" type:"string"`
+
+	// The family of the Amazon ECS task definition for the task.
+	Family string `locationName:"family" type:"string"`
+
+	// The revision of the Amazon ECS task definition for the task.
+	Revision string `locationName:"revision" type:"string"`
+
+	// The desired status of the task. For more information, see Task Lifecycle
+	// (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_life_cycle.html).
+	DesiredStatus string `locationName:"desiredStatus" type:"string"`
+
+	// The known status for the task from Amazon ECS.
+	KnownStatus string `locationName:"knownStatus" type:"string"`
+
+	// A list of container metadata for each container associated with the task.
+	Containers []Container `json:"Containers"`
+
+	// The resource limits specified at the task level (such as CPU and memory). This parameter is omitted if no resource limits are defined.
+	Limits map[string]float64 `json:"Limits"`
+
+	// The Unix timestamp for when the container image pull began.
+	PullStartedAt *time.Time `locationName:"pullStartedAt" type:"timestamp"`
+
+	// The Unix timestamp for when the container image pull completed.
+	PullStoppedAt *time.Time `locationName:"pullStoppedAt" type:"timestamp"`
+
+	// The Unix timestamp for when the task execution stopped.
+	ExecutionStoppedAt *time.Time `locationName:"executionStoppedAt" type:"timestamp"`
+}
+```
+
+https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html#task-metadata-endpoint-v2-response
+
+#### type ThrottlingData
+
+```go
+type ThrottlingData struct {
+	// Number of periods with throttling active
+	Periods uint64 `json:"periods"`
+	// Number of periods when the container hits its throttling limit.
+	ThrottledPeriods uint64 `json:"throttled_periods"`
+	// Aggregate time the container was throttled for in nanoseconds.
+	ThrottledTime uint64 `json:"throttled_time"`
+}
+```
+
+ThrottlingData stores CPU throttling stats of one running container. Not used on
+Windows.

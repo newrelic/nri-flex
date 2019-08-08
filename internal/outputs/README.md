@@ -5,30 +5,39 @@
 
 ## Usage
 
-#### func  CreateIntegration
+#### func  InfraIntegration
 
 ```go
-func CreateIntegration()
+func InfraIntegration()
 ```
-CreateIntegration Creates Infrastructure SDK Integration
+InfraIntegration Creates Infrastructure SDK Integration
 
-#### func  CreateRemoteEntity
+#### func  InfraRemoteEntity
 
 ```go
-func CreateRemoteEntity()
+func InfraRemoteEntity()
 ```
-CreateRemoteEntity Creates Infrastructure Remote Entity
-
-#### func  CreateStatusSample
-
-```go
-func CreateStatusSample()
-```
-CreateStatusSample creates flexStatusSample
+InfraRemoteEntity Creates Infrastructure Remote Entity
 
 #### func  SendToInsights
 
 ```go
 func SendToInsights()
 ```
-SendToInsights - Send processed events to insights
+SendToInsights - Send processed events to insights loop through integration
+entities as there could be multiple that have been set when posted they are
+batched by entity
+
+#### func  SendToMetricAPI
+
+```go
+func SendToMetricAPI()
+```
+SendToMetricAPI - Send processed events to insights
+
+#### func  StatusSample
+
+```go
+func StatusSample()
+```
+StatusSample creates flexStatusSample

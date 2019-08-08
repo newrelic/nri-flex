@@ -234,7 +234,7 @@ make docker-test-infra
 ```
 # Use godocdown to create Markdown documentation for all commands and packages
 # this is run by default.
-make documentation
+make document
 ```
 
 ## Releasing
