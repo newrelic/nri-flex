@@ -40,7 +40,7 @@ func RunFlex(mode string) {
 		} else {
 			addConfigsFromPath(load.Args.ConfigDir, &configs)
 		}
-		if load.Args.ContainerDiscovery {
+		if load.Args.ContainerDiscovery || load.Args.Fargate {
 			discovery.Run(&configs)
 		}
 	}

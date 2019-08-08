@@ -12,13 +12,28 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 ```
 CreateDynamicContainerConfigs Creates dynamic configs for each container
 
+#### func  ExecContainerCommand
+
+```go
+func ExecContainerCommand(containerID string, command []string) (string, error)
+```
+ExecContainerCommand execute command against a container
+
 #### func  FindFlexContainerID
 
 ```go
-func FindFlexContainerID()
+func FindFlexContainerID(read string)
 ```
 FindFlexContainerID detects if Flex is running within a container and sets the
 ID
+
+#### func  Processes
+
+```go
+func Processes()
+```
+Processes loops through tcp connections and returns the corresponding process
+and connection information
 
 #### func  Readln
 
@@ -30,6 +45,17 @@ Readln from bufioReader
 #### func  Run
 
 ```go
-func Run(cfg *[]load.Config)
+func Run(configs *[]load.Config)
 ```
 Run discover containers
+
+#### type ProcessNetworkStat
+
+```go
+type ProcessNetworkStat struct {
+	Name string
+	Data string
+}
+```
+
+ProcessNetworkStat x

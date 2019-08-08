@@ -24,12 +24,14 @@ PercToDecimal convert percentage to decimal
 ```go
 func RegMatch(text string, regexmatch string) []string
 ```
+RegMatch Perform regex matching
 
 #### func  RegSplit
 
 ```go
 func RegSplit(text string, delimiter string) []string
 ```
+RegSplit Split by Regex
 
 #### func  SnakeCaseToCamelCase
 

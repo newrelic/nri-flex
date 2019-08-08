@@ -1,14 +1,21 @@
-# parser
+# inputs
 --
-    import "github.com/newrelic/nri-flex/internal/parsers"
+    import "github.com/newrelic/nri-flex/internal/inputs"
 
 
 ## Usage
 
+#### func  NetDialWithTimeout
+
+```go
+func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{}, api load.API, processType *string)
+```
+NetDialWithTimeout performs network dial without timeout
+
 #### func  ParseJMX
 
 ```go
-func ParseJMX(dataInterface interface{}, dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{})
+func ParseJMX(dataStore *[]interface{}, dataInterface interface{}, command load.Command, dataSample *map[string]interface{})
 ```
 ParseJMX Processes JMX Data
 
@@ -23,35 +30,35 @@ returns when all MetricFamilies are parsed and put on the channel.
 #### func  ProcessQueries
 
 ```go
-func ProcessQueries(api load.API, dataStore *[]interface{})
+func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int)
 ```
 ProcessQueries processes database queries
 
 #### func  Prometheus
 
 ```go
-func Prometheus(input io.Reader, dataStore *[]interface{}, api *load.API)
+func Prometheus(dataStore *[]interface{}, input io.Reader, cfg *load.Config, api *load.API)
 ```
 Prometheus from http io
 
 #### func  RunCommands
 
 ```go
-func RunCommands(yml *load.Config, api load.API, dataStore *[]interface{})
+func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int)
 ```
 RunCommands executes the given commands to create one merged sampled
 
 #### func  RunHTTP
 
 ```go
-func RunHTTP(doLoop *bool, yml *load.Config, api load.API, reqURL *string, dataStore *[]interface{})
+func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string)
 ```
 RunHTTP Executes HTTP Requests
 
 #### func  SetJMXCommand
 
 ```go
-func SetJMXCommand(runCommand *string, command load.Command, api load.API, config *load.Config)
+func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Command, api load.API, config *load.Config)
 ```
 SetJMXCommand Add parameters to JMX call
 

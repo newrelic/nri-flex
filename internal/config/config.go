@@ -128,7 +128,7 @@ func RunFiles(configs *[]load.Config) {
 
 // verifyConfig ensure the config file doesn't have anything it should not run
 func verifyConfig(cfg load.Config) bool {
-	if strings.HasPrefix(cfg.FileName, "cd-") {
+	if strings.HasPrefix(cfg.FileName, "cd-") && !cfg.ContainerDiscovery.ReplaceComplete {
 		return false
 	}
 	ymlBytes, err := yaml.Marshal(cfg)

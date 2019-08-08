@@ -5,12 +5,26 @@
 
 ## Usage
 
-#### func  AutoSetMetric
+#### func  AutoSetMetricAPI
 
 ```go
-func AutoSetMetric(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool)
+func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API)
 ```
-AutoSetMetric parse to number
+AutoSetMetricAPI automatically set metrics for use with the metric api
+
+#### func  AutoSetMetricInfra
+
+```go
+func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool)
+```
+AutoSetMetricInfra parse to number
+
+#### func  AutoSetStandard
+
+```go
+func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, workingEntity *integration.Entity, eventType string, config *load.Config)
+```
+AutoSetStandard x
 
 #### func  CreateMetricSets
 
@@ -30,23 +44,16 @@ flattened attributes
 #### func  FindStartKey
 
 ```go
-func FindStartKey(startKeys []string, mainDataset *map[string]interface{})
+func FindStartKey(mainDataset *map[string]interface{}, startKeys []string)
 ```
 FindStartKey start at a different section of a payload
 
 #### func  FlattenData
 
 ```go
-func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string) map[string]interface{}
+func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string, api *load.API) map[string]interface{}
 ```
 FlattenData flatten an interface
-
-#### func  LoadConfigFiles
-
-```go
-func LoadConfigFiles(ymls *[]load.Config, files []os.FileInfo, path string)
-```
-LoadConfigFiles loads config files
 
 #### func  ProcessSamplesToMerge
 
@@ -55,33 +62,20 @@ func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.C
 ```
 ProcessSamplesToMerge used to merge multiple samples together
 
-#### func  ReadYML
+#### func  RunDataHandler
 
 ```go
-func ReadYML(yml string) (load.Config, error)
+func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config)
 ```
-ReadYML Unmarshals yml files
-
-#### func  RunConfig
-
-```go
-func RunConfig(yml load.Config)
-```
-RunConfig Action each config file
-
-#### func  RunConfigFiles
-
-```go
-func RunConfigFiles(ymls *[]load.Config)
-```
-RunConfigFiles Processes yml files
+RunDataHandler handles the data received for processing
 
 #### func  RunKeepKeys
 
 ```go
 func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}, k *string)
 ```
-RunKeepKeys remove all other keys and keep these
+RunKeepKeys Removes all other keys/attributes and keep only those defined in
+keep_keys
 
 #### func  RunKeyConversion
 
@@ -107,7 +101,7 @@ RunKeyRenamer find key with regex, and replace the value
 #### func  RunLazyFlatten
 
 ```go
-func RunLazyFlatten(lazyFlatten []string, ds *map[string]interface{})
+func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int)
 ```
 RunLazyFlatten lazy flattens the payload
 
@@ -123,7 +117,9 @@ RunMathCalculations performs math calculations
 ```go
 func RunPluckNumbers(v *interface{}, api load.API, key *string)
 ```
-RunPluckNumbers pluck numbers out automatically with ValueParser
+RunPluckNumbers pluck numbers out automatically with ValueParser eg.
+"sample_start_time = 1552864614.137869 (Sun, 17 Mar 2019 23:16:54 GMT)" returns
+1552864614.137869
 
 #### func  RunSampleFilter
 
@@ -188,23 +184,9 @@ as the defined lookupStoreKey for later use
 #### func  StripKeys
 
 ```go
-func StripKeys(stripKeys []string, ds *map[string]interface{})
+func StripKeys(ds *map[string]interface{}, stripKeys []string)
 ```
 StripKeys strip defined keys out
-
-#### func  SubEnvVariables
-
-```go
-func SubEnvVariables(strConf *string)
-```
-SubEnvVariables substitutes environment variables into config
-
-#### func  SubTimestamps
-
-```go
-func SubTimestamps(strConf *string)
-```
-SubTimestamps substitute timestamps into config
 
 #### func  VariableLookups
 

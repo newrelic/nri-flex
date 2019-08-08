@@ -26,6 +26,9 @@ func StatusSample() {
 	if load.IsKubernetes {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.IsKubernetes", "true", metric.ATTRIBUTE), "", false)
 	}
+	if load.IsFargate {
+		logger.Flex("error", flexStatusSample.SetMetric("flex.IsFargate", "true", metric.ATTRIBUTE), "", false)
+	}
 	if load.LambdaName != "" {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.LambdaName", load.LambdaName, metric.ATTRIBUTE), "", false)
 	}
