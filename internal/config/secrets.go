@@ -37,6 +37,7 @@ func loadSecrets(config *load.Config) {
 
 		tempSecret := secret
 		secretResult := ""
+		results := map[string]interface{}{}
 
 		switch secret.Kind {
 		case "aws-kms":
@@ -44,11 +45,16 @@ func loadSecrets(config *load.Config) {
 				logger.Flex("error", fmt.Errorf("secret name: %v, missing region", secret.Region), "", false)
 				break
 			}
-
 			secretResult = awskmsDecrypt(name, tempSecret)
+		case "vault":
+			if secret.HTTP.URL == "" {
+				logger.Flex("error", fmt.Errorf("vault secret name: %v, requires http parameter set", name), "", false)
+				break
+			}
+			vaultFetch(name, tempSecret, results)
 		}
 
-		if secretResult != "" {
+		if secretResult != "" || len(results) > 0 {
 			// convert config to string, only the first time
 			if ymlStr == "" {
 				ymlBytes, err := yaml.Marshal(config)
@@ -59,11 +65,11 @@ func loadSecrets(config *load.Config) {
 				ymlStr = string(ymlBytes)
 			}
 
-			results := map[string]interface{}{
-				"secret.result": secretResult,
+			if secretResult != "" {
+				results["secret.result"] = secretResult
 			}
 
-			if secret.Type != "" {
+			if secret.Type != "" && secret.Kind != "vault" {
 				handleDataType(results, secret.Type)
 			}
 
@@ -96,6 +102,45 @@ func subSecrets(configStr string, secretKey string, secrets map[string]interface
 	return configStr
 }
 
+// vaultFetch fetch from Hashicorp Vault
+func vaultFetch(name string, secret load.Secret, results map[string]interface{}) {
+	logger.Flex("debug", nil, "vault fetch "+name, false)
+	bytes, err := httpWrapper(secret)
+	if err != nil {
+		logger.Flex("error", err, "", false)
+	} else {
+		var jsonInterface map[string]interface{}
+		err := json.Unmarshal(bytes, &jsonInterface)
+		if err != nil {
+			logger.Flex("error", err, "", false)
+		} else {
+			// v1 and v2 engines have this available
+			if jsonInterface["data"] != nil {
+				logger.Flex("debug", nil, "vault fetch "+name+", success", false)
+				switch firstData := jsonInterface["data"].(type) {
+				case map[string]interface{}:
+					isV2 := false
+					if firstData["data"] != nil { // v2 format
+						switch secondData := firstData["data"].(type) {
+						case map[string]interface{}:
+							// handle v2 data
+							isV2 = true
+							for key, val := range secondData {
+								results[key] = val
+							}
+						}
+					}
+					if !isV2 {
+						for key, val := range firstData {
+							results[key] = val
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 // awskmsDecrypt perform aws kms decrypt and return plaintext
 func awskmsDecrypt(name string, secret load.Secret) string {
 	logger.Flex("debug", nil, "attempting to aws kms decrypt "+name+" secret", false)
@@ -117,55 +162,14 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 		secretData, err = base64.StdEncoding.DecodeString(secret.Data)
 		logger.Flex("error", err, "", false)
 	} else if secret.HTTP.URL != "" {
-		client := &http.Client{}
-		tlsConf := &tls.Config{}
-
-		if secret.HTTP.TLSConfig.InsecureSkipVerify {
-			tlsConf.InsecureSkipVerify = secret.HTTP.TLSConfig.InsecureSkipVerify
-		}
-
-		if secret.HTTP.TLSConfig.Ca != "" {
-			rootCAs := x509.NewCertPool()
-			ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
-			if err != nil {
-				logger.Flex("error", err, "failed to read ca", false)
-			} else {
-				rootCAs.AppendCertsFromPEM(ca)
-				tlsConf.RootCAs = rootCAs
-			}
-		}
-
-		clientConf := &http.Transport{
-			TLSClientConfig: tlsConf,
-		}
-
-		client.Transport = clientConf
-
-		req, err := http.NewRequest("GET", secret.HTTP.URL, nil)
-
+		bytes, err := httpWrapper(secret)
 		if err != nil {
 			logger.Flex("error", err, "", false)
 		} else {
-			for header, value := range secret.HTTP.Headers {
-				req.Header.Add(header, value)
-			}
-			resp, err := client.Do(req)
-			if err != nil {
-				logger.Flex("error", err, "", false)
-			} else {
-				if resp.StatusCode == http.StatusOK {
-					bodyBytes, err := ioutil.ReadAll(resp.Body)
-					if err != nil {
-						logger.Flex("error", err, "", false)
-					} else {
-						var err error
-						secretData, err = base64.StdEncoding.DecodeString(string(bodyBytes))
-						logger.Flex("error", err, "", false)
-					}
-				}
-			}
+			var err error
+			secretData, err = base64.StdEncoding.DecodeString(string(bytes))
+			logger.Flex("error", err, "", false)
 		}
-
 	}
 
 	if len(secretData) > 0 {
@@ -228,4 +232,54 @@ func handleDataType(results map[string]interface{}, dataType string) {
 			}
 		}
 	}
+}
+
+func httpWrapper(secret load.Secret) ([]byte, error) {
+	client := &http.Client{}
+	tlsConf := &tls.Config{}
+
+	if secret.HTTP.TLSConfig.InsecureSkipVerify {
+		tlsConf.InsecureSkipVerify = secret.HTTP.TLSConfig.InsecureSkipVerify
+	}
+
+	if secret.HTTP.TLSConfig.Ca != "" {
+		rootCAs := x509.NewCertPool()
+		ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
+		if err != nil {
+			logger.Flex("error", err, "failed to read ca", false)
+		} else {
+			rootCAs.AppendCertsFromPEM(ca)
+			tlsConf.RootCAs = rootCAs
+		}
+	}
+
+	clientConf := &http.Transport{
+		TLSClientConfig: tlsConf,
+	}
+
+	client.Transport = clientConf
+	req, err := http.NewRequest("GET", secret.HTTP.URL, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for header, value := range secret.HTTP.Headers {
+		req.Header.Add(header, value)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode == http.StatusOK {
+		return bytes, nil
+	}
+
+	return nil, fmt.Errorf("http fetch failed %v %v", resp.StatusCode, string(bytes))
 }

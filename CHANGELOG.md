@@ -1,7 +1,7 @@
 
 0.6.7-pre
 ------
-- Add AWS KMS capability
+- Add AWS KMS & Hashicorp Vault secret capability
 - Add Fargate Container Discovery capability
 - Add uri_path option to JMX options
 
