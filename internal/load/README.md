@@ -28,10 +28,10 @@ const (
 	Jmx                = "jmx"
 	Img                = "img"
 	Image              = "image"
-	// Container          = "container"
-	TypeJSON    = "json"
-	TypeColumns = "columns"
-	Contains    = "contains"
+	TypeContainer      = "container"
+	TypeJSON           = "json"
+	TypeColumns        = "columns"
+	Contains           = "contains"
 )
 ```
 
@@ -485,12 +485,13 @@ Container as defined by the ECS metadata API
 
 ```go
 type ContainerDiscovery struct {
-	Target   string `yaml:"target"`  // string of container or image to target
-	Type     string `yaml:"type"`    // container or image
-	Mode     string `yaml:"mode"`    // contains, prefix, exact
-	Port     int    `yaml:"port"`    // port
-	IPMode   string `yaml:"ip_mode"` // public / private
-	FileName string `yaml:"file_name"`
+	Target          string `yaml:"target"`  // string of container or image to target
+	Type            string `yaml:"type"`    // container or image
+	Mode            string `yaml:"mode"`    // contains, prefix, exact
+	Port            int    `yaml:"port"`    // port
+	IPMode          string `yaml:"ip_mode"` // public / private
+	FileName        string `yaml:"file_name"`
+	ReplaceComplete bool   `yaml:"replace_complete"`
 }
 ```
 
