@@ -21,7 +21,7 @@ func StatusSample() {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.Hostname", load.Hostname, metric.ATTRIBUTE), "", false)
 	}
 	if load.ContainerID != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.IsContainer", "true", metric.ATTRIBUTE), "", false)
+		logger.Flex("error", flexStatusSample.SetMetric("flex.ContainerId", load.ContainerID, metric.ATTRIBUTE), "", false)
 	}
 	if load.IsKubernetes {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.IsKubernetes", "true", metric.ATTRIBUTE), "", false)
