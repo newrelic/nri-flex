@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
@@ -17,7 +16,6 @@ func main() {
 	} else {
 		// default process
 		integration.SetDefaults()
-		discovery.Processes()
 		integration.RunFlex("")
 	}
 

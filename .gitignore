@@ -13,3 +13,4 @@ cmd/flex/flex*
 cmd/nri-flex/flex*
 dump*
 *.serverless
+LATEST

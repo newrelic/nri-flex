@@ -1,4 +1,4 @@
-FROM newrelic/infrastructure
+FROM newrelic/infrastructure:1.5.0
 
 # define license key as below, or copy a newrelic-infra.yml over
 # refer to here for more info: https://hub.docker.com/r/newrelic/infrastructure/
