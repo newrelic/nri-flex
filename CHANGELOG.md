@@ -5,6 +5,8 @@
 - Ignore New Relic containers
 - Add synchronous config processing capability
 - Don't run process discovery if container
+- Add one liner S3 install to README
+- Detect Kubernetes
 
 0.6.7-pre
 ------
