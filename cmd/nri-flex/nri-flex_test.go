@@ -41,7 +41,7 @@ func TestConfigDir(t *testing.T) {
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
 	load.Args.ConfigDir = "../../test/configs/"
-	fintegration.RunFlex("")
+	fintegration.RunFlex("test")
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
@@ -54,7 +54,7 @@ func TestConfigFile(t *testing.T) {
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
 	load.Args.ConfigFile = "../../test/configs/json-read-cmd-example.yml"
-	fintegration.RunFlex("")
+	fintegration.RunFlex("test")
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +

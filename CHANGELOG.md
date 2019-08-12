@@ -1,4 +1,11 @@
 
+0.6.8-pre
+------
+- Improve container discovery
+- Ignore New Relic containers
+- Add synchronous config processing capability
+- Don't run process discovery if container
+
 0.6.7-pre
 ------
 - Add AWS KMS & Hashicorp Vault secret capability

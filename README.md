@@ -76,7 +76,15 @@ With these flags, you could also define multiple instances with different config
 - Flex will run everything by default in the default flexConfigs/ folder (so keep what you want before deploy)
 - Flex provides two options for ingesting your events, via the New Relic Infrastructure Agent, & the New Relic Insights Event API
 
-### New Relic Infrastructure Agent
+### New Relic Infrastructure Agent Install
+
+#### Installs Flex on Linux with defaults and without any Flex Configs 
+```
+sudo bash -c "$(curl -L https://newrelic-flex.s3-ap-southeast-2.amazonaws.com/install_linux_s3.sh)"
+
+# Unpacked in /tmp/nri-flex-linux-$VERSION/...
+```
+#### Standard Install
 - Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
 - Run scripts/install_linux.sh or build the docker image
 - Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)

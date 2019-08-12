@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/config"
@@ -43,6 +44,10 @@ func RunFlex(mode string) {
 		if load.Args.ContainerDiscovery || load.Args.Fargate {
 			discovery.Run(&configs)
 		}
+	}
+
+	if load.ContainerID == "" && mode != "test" {
+		discovery.Processes()
 	}
 
 	logger.Flex("debug", nil, fmt.Sprintf("config files loaded %d", len(configs)), false)
@@ -93,6 +98,10 @@ func SetEnvs() {
 	load.Args.InsightsURL = os.Getenv("INSIGHTS_URL")
 	load.Args.MetricAPIUrl = os.Getenv("METRIC_API_URL")
 	load.Args.MetricAPIKey = os.Getenv("METRIC_API_KEY")
+	configSync, err := strconv.ParseBool(os.Getenv("PROCESS_CONFIGS_SYNC"))
+	if err == nil && configSync {
+		load.Args.ProcessConfigsSync = configSync
+	}
 }
 
 func logCheck() {

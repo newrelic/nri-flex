@@ -109,20 +109,31 @@ func Run(yml load.Config) {
 
 // RunFiles Processes yml files
 func RunFiles(configs *[]load.Config) {
-	// logger.Flex("debug", nil, fmt.Sprintf("starting to process %d configs", len(*configs)), false)
-	var wg sync.WaitGroup
-	wg.Add(len(*configs))
-	for _, cfg := range *configs {
-		go func(cfg load.Config) {
-			defer wg.Done()
+	if load.Args.ProcessConfigsSync {
+		logger.Flex("debug", nil, fmt.Sprintf("processing %d configs synchronously", len(*configs)), false)
+		for _, cfg := range *configs {
 			if verifyConfig(cfg) {
 				logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
 				Run(cfg)
 				load.StatusCounterIncrement("ConfigsProcessed")
 			}
-		}(cfg)
+		}
+	} else {
+		logger.Flex("debug", nil, fmt.Sprintf("processing %d configs asynchronously", len(*configs)), false)
+		var wg sync.WaitGroup
+		wg.Add(len(*configs))
+		for _, cfg := range *configs {
+			go func(cfg load.Config) {
+				defer wg.Done()
+				if verifyConfig(cfg) {
+					logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
+					Run(cfg)
+					load.StatusCounterIncrement("ConfigsProcessed")
+				}
+			}(cfg)
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", load.StatusCounterRead("ConfigsProcessed")), false)
 }
 
