@@ -98,6 +98,9 @@ func SetEnvs() {
 	load.Args.InsightsURL = os.Getenv("INSIGHTS_URL")
 	load.Args.MetricAPIUrl = os.Getenv("METRIC_API_URL")
 	load.Args.MetricAPIKey = os.Getenv("METRIC_API_KEY")
+	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
+		load.IsKubernetes = true
+	}
 	configSync, err := strconv.ParseBool(os.Getenv("PROCESS_CONFIGS_SYNC"))
 	if err == nil && configSync {
 		load.Args.ProcessConfigsSync = configSync
