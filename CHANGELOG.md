@@ -1,3 +1,7 @@
+0.6.9-pre
+------
+- No functional changes
+- Configs and README updated
 
 0.6.8-pre
 ------
