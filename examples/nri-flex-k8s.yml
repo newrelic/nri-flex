@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -24,6 +23,13 @@ spec:
           env:
           - name: NRIA_LICENSE_KEY
             value: "YourNR-LicenseKey"
+          ### Sync integrations dynamically from your git repository
+          # - name: GIT_REPO 
+          #   value: "https://github.com/userName/repoName"
+          # - name: GIT_USER
+          #   value: "myGithubUser"
+          # - name: GIT_TOKEN
+          #   value: "myGithubToken"
           volumeMounts:
             - name: dockersock
               mountPath: /var/run/docker.sock
