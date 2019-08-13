@@ -1,3 +1,7 @@
+0.7.2-pre
+------
+- Improve self container id check
+
 0.7.1-pre
 ------
 - Don't run process discovery for Lambda
