@@ -1,3 +1,8 @@
+0.7.0-pre
+------
+- Update environment variable handling
+- Update linux s3 install script
+
 0.6.9-pre
 ------
 - No functional changes

@@ -90,7 +90,10 @@ func SetDefaults() {
 // SetEnvs set environment variable argument overrides
 func SetEnvs() {
 	load.AWSExecutionEnv = os.Getenv("AWS_EXECUTION_ENV")
-	load.Args.GitService = os.Getenv("GIT_SERVICE")
+	gitService := os.Getenv("GIT_SERVICE")
+	if gitService != "" {
+		load.Args.GitService = gitService
+	}
 	load.Args.GitToken = os.Getenv("GIT_TOKEN")
 	load.Args.GitUser = os.Getenv("GIT_USER")
 	load.Args.GitRepo = os.Getenv("GIT_REPO")
@@ -101,9 +104,17 @@ func SetEnvs() {
 	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 		load.IsKubernetes = true
 	}
+	eventLimit, err := strconv.Atoi(os.Getenv("EVENT_LIMIT"))
+	if err == nil && eventLimit > 0 {
+		load.Args.EventLimit = eventLimit
+	}
 	configSync, err := strconv.ParseBool(os.Getenv("PROCESS_CONFIGS_SYNC"))
 	if err == nil && configSync {
 		load.Args.ProcessConfigsSync = configSync
+	}
+	fargate, err := strconv.ParseBool(os.Getenv("FARGATE"))
+	if err == nil && fargate {
+		load.Args.Fargate = fargate
 	}
 }
 

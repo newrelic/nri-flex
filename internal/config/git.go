@@ -17,7 +17,7 @@ var appFS = afero.NewOsFs()
 
 // SyncGitConfigs Clone git repo if already exists, else pull latest version
 func SyncGitConfigs(customDir string) bool {
-	if load.Args.GitService != "" && load.Args.GitToken != "" && load.Args.GitUser != "" && load.Args.GitRepo != "" {
+	if load.Args.GitToken != "" && load.Args.GitUser != "" && load.Args.GitRepo != "" {
 		syncDir := load.Args.ConfigDir
 		if customDir != "" {
 			syncDir = customDir
