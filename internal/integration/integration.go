@@ -46,7 +46,7 @@ func RunFlex(mode string) {
 		}
 	}
 
-	if load.ContainerID == "" && mode != "test" {
+	if load.ContainerID == "" && mode != "test" && mode != "lambda" {
 		discovery.Processes()
 	}
 

@@ -1,3 +1,7 @@
+0.7.1-pre
+------
+- Don't run process discovery for Lambda
+
 0.7.0-pre
 ------
 - Update environment variable handling

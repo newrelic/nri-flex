@@ -1,0 +1,30 @@
+name: dfFlex
+apis:
+  - name: df
+    commands:
+      - run: df -i
+        split: horizontal
+        set_header: [fs,512Blocks,used,available,capacity,iused,ifree,iusedPerc,mountedOn]
+        regex_match: true
+        split_by: (\S+.\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+    perc_to_decimal: true
+### Above supports the expected output
+# Filesystem    512-blocks      Used Available Capacity iused               ifree %iused  Mounted on
+# /dev/disk1s1   976490568 928833376  31576920    97% 4558834 9223372036850216973    0%   /
+# devfs                427       427         0   100%     740                   0  100%   /dev
+# /dev/disk1s4   976490568  14680904  31576920    32%       8 9223372036854775799    0%   /private/var/vm
+# map -hosts             0         0         0   100%       0                   0  100%   /net
+# map auto_home          0         0         0   100%       0                   0  100%   /home
+
+### For Amazon Linux and other with the below format
+# Filesystem      Inodes IUsed   IFree IUse% Mounted on
+# devtmpfs        121428   281  121147    1% /dev
+# tmpfs           125916     1  125915    1% /dev/shm
+# tmpfs           125916   349  125567    1% /run
+# tmpfs           125916    16  125900    1% /sys/fs/cgroup
+# /dev/xvda1     4193216 39596 4153620    1% /
+# tmpfs           125916     1  125915    1% /run/user/1000
+
+# set these parameters differently
+# set_header: [filesystem,inodes,iused,ifree,iusedPerf,mountedOn]
+# split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)
