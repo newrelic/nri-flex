@@ -69,6 +69,10 @@ func FindFlexContainerID(read string) {
 				logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
 			}
 		}
+		// fallback on cgroup
+		if load.ContainerID == "" && read != "/proc/self/cgroup" {
+			FindFlexContainerID("/proc/self/cgroup")
+		}
 	} else {
 		logger.Flex("debug", nil, "potentially not running within a container", false)
 	}
