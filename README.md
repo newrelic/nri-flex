@@ -8,6 +8,7 @@
   - Simplies deployment and configuration as a single Flex integration can be running multiple integrations which would be just config files.
   - Provides over [200+ Integrations](#integrations)
   - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in
+  - Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms
   - As updates and upgrades are made, all Flex Integrations reap the benefits.
   - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API
 
@@ -135,6 +136,11 @@ flexContainerDiscovery/ <- folder
 ### Serverless
 
 [Serverless README](examples/lambdaExample/README.md)
+
+### Kubernetes
+
+- Build your Docker Image, and deploy as a daemonset, view [examples/nri-flex-k8s.yml](examples/nri-flex-k8s.yml)
+- View wiki for information on how to use [service discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery)
 
 ## Development
 
