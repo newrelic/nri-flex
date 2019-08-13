@@ -94,13 +94,17 @@ func SetEnvs() {
 	if gitService != "" {
 		load.Args.GitService = gitService
 	}
-	load.Args.GitToken = os.Getenv("GIT_TOKEN")
-	load.Args.GitUser = os.Getenv("GIT_USER")
-	load.Args.GitRepo = os.Getenv("GIT_REPO")
-	load.Args.InsightsAPIKey = os.Getenv("INSIGHTS_API_KEY")
-	load.Args.InsightsURL = os.Getenv("INSIGHTS_URL")
-	load.Args.MetricAPIUrl = os.Getenv("METRIC_API_URL")
-	load.Args.MetricAPIKey = os.Getenv("METRIC_API_KEY")
+	gitRepo := os.Getenv("GIT_REPO")
+	if gitRepo != "" {
+		load.Args.GitRepo = gitRepo
+		load.Args.GitToken = os.Getenv("GIT_TOKEN")
+		load.Args.GitUser = os.Getenv("GIT_USER")
+	}
+	insightsAPIKey := os.Getenv("INSIGHTS_API_KEY")
+	if insightsAPIKey != "" {
+		load.Args.InsightsAPIKey = insightsAPIKey
+		load.Args.InsightsURL = os.Getenv("INSIGHTS_URL")
+	}
 	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 		load.IsKubernetes = true
 	}
@@ -116,6 +120,12 @@ func SetEnvs() {
 	if err == nil && fargate {
 		load.Args.Fargate = fargate
 	}
+	cd, err := strconv.ParseBool(os.Getenv("CONTAINER_DISCOVERY"))
+	if err == nil && cd {
+		load.Args.ContainerDiscovery = cd
+	}
+	load.Args.MetricAPIUrl = os.Getenv("METRIC_API_URL")
+	load.Args.MetricAPIKey = os.Getenv("METRIC_API_KEY")
 }
 
 func logCheck() {

@@ -1,6 +1,8 @@
 0.7.1-pre
 ------
 - Don't run process discovery for Lambda
+- Add container_discovery environment variable
+- Update examples
 
 0.7.0-pre
 ------
