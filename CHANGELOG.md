@@ -1,3 +1,8 @@
+0.7.3-pre
+------
+- Bug fix key renamer/replacer (thx prodjito)
+- Update examples
+
 0.7.2-pre
 ------
 - Improve self container id check
