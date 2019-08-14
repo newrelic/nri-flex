@@ -47,11 +47,11 @@ func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSamp
 	}
 }
 
-// RunKeyRenamer find key with regex, and replace the value
-func RunKeyRenamer(renameKeys map[string]string, key *string) {
+// RunKeyRenamer find keys with regex, and replace the value
+func RunKeyRenamer(renameKeys map[string]string, key *string, originalKey string) {
 	for renameKey, renameVal := range renameKeys {
 		if formatter.KvFinder("regex", *key, renameKey) {
-			*key = strings.Replace(*key, renameKey, renameVal, -1)
+			*key = strings.Replace(*key, originalKey, renameVal, -1)
 			break
 		}
 	}

@@ -53,8 +53,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunPluckNumbers(&v, api, &key)
 				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 				RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
-				RunKeyRenamer(api.RenameKeys, &key)               // use key renamer if key replace hasn't occurred
-				RunKeyRenamer(api.ReplaceKeys, &key)              // kept for backwards compatibility with replace_keys
+				RunKeyRenamer(api.RenameKeys, &key, k)            // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &key, k)           // kept for backwards compatibility with replace_keys
 
 				currentSample[key] = v
 				if key != k {

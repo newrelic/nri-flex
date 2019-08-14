@@ -5,6 +5,7 @@ apis:
   - name: nginxStub
     url: http://${auto:ip}/nginx_status # get stub status output
   - name: nginx
+    entity: ${auto:ip}
     event_type: NginxSample
     commands:
       - cache: http://${auto:ip}/nginx_status # use commands to parse the response

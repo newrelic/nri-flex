@@ -95,21 +95,12 @@ func TestKeyRemover(t *testing.T) {
 }
 
 func TestKeyRenamer(t *testing.T) {
-	renameKeys := map[string]string{"abc": "xyz"}
-	key := "abc"
+	renameKeys := map[string]string{"abc$": "xyz"}
+	key := "aaaaabc"
+	originalKey := "abc"
 
-	RunKeyRenamer(renameKeys, &key)
-	if key != "xyz" {
+	RunKeyRenamer(renameKeys, &key, originalKey)
+	if key != "aaaaxyz" {
 		t.Errorf("want: xyz got: %v", key)
 	}
 }
-
-// // RunKeyRenamer find key with regex, and replace the value
-// func RunKeyRenamer(renameKeys map[string]string, key *string) {
-// 	for renameKey, renameVal := range renameKeys {
-// 		if formatter.KvFinder("regex", *key, renameKey) {
-// 			*key = strings.Replace(*key, renameKey, renameVal, -1)
-// 			break
-// 		}
-// 	}
-// }
