@@ -281,18 +281,19 @@ type API struct {
 	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
 	Math              map[string]string   `yaml:"math"`            // perform match across processed metrics
 	SubParse          []Parse             `yaml:"sub_parse"`
-	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
-	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
-	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
-	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
-	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
-	SplitObjects      bool                `yaml:"split_objects"`     // convert object with nested objects to array
-	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
-	SplitBy           string              `yaml:"split_by"`          // character to split by
-	SetHeader         []string            `yaml:"set_header"`        // manually set header column names
-	Regex             bool                `yaml:"regex"`             // process SplitBy as regex
-	RowHeader         int                 `yaml:"row_header"`        // set the row header, to be used with SplitBy
-	RowStart          int                 `yaml:"row_start"`         // start from this line, to be used with SplitBy
+	CustomAttributes  map[string]string   `yaml:"custom_attributes"`  // set additional custom attributes
+	ValueParser       map[string]string   `yaml:"value_parser"`       // find keys with regex, and parse the value with regex
+	ValueTransformer  map[string]string   `yaml:"value_transformer"`  // find key(s) with regex, and modify the value
+	MetricParser      MetricParser        `yaml:"metric_parser"`      // to use the MetricParser for setting deltas and gauges a namespace needs to be set
+	SampleFilter      []map[string]string `yaml:"sample_filter"`      // sample filter key pair values with regex
+	SplitObjects      bool                `yaml:"split_objects"`      // convert object with nested objects to array
+	Split             string              `yaml:"split"`              // default vertical, can be set to horizontal (column) useful for tabular outputs
+	SplitBy           string              `yaml:"split_by"`           // character to split by
+	SetHeader         []string            `yaml:"set_header"`         // manually set header column names
+	Regex             bool                `yaml:"regex"`              // process SplitBy as regex
+	RowHeader         int                 `yaml:"row_header"`         // set the row header, to be used with SplitBy
+	RowStart          int                 `yaml:"row_start"`          // start from this line, to be used with SplitBy
+	InheritAttributes bool                `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	Logging           struct {            // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}

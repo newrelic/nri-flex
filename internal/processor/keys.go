@@ -1,6 +1,8 @@
 package processor
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/formatter"
@@ -50,9 +52,10 @@ func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSamp
 // RunKeyRenamer find keys with regex, and replace the value
 func RunKeyRenamer(renameKeys map[string]string, key *string, originalKey string) {
 	for renameKey, renameVal := range renameKeys {
-		if formatter.KvFinder("regex", *key, renameKey) {
-			*key = strings.Replace(*key, originalKey, renameVal, -1)
-			break
+		validateKey := regexp.MustCompile(renameKey)
+		matches := validateKey.FindAllString(*key, -1)
+		for _, match := range matches {
+			*key = strings.Replace(*key, match, renameVal, -1)
 		}
 	}
 }
@@ -83,11 +86,13 @@ func StripKeys(ds *map[string]interface{}, stripKeys []string) {
 }
 
 // FindStartKey start at a different section of a payload
-func FindStartKey(mainDataset *map[string]interface{}, startKeys []string) {
-	for _, startKey := range startKeys {
+func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inheritAttributes bool) {
+	parentAttributes := map[string]interface{}{}
+	for level, startKey := range startKeys {
 		startSplit := strings.Split(startKey, ">")
 		if len(startSplit) == 2 {
 			if (*mainDataset)[startSplit[0]] != nil {
+				storeParentAttributes(*mainDataset, parentAttributes, startKey, level, inheritAttributes)
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
 					nestedSlices := []interface{}{}
@@ -104,16 +109,52 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string) {
 							}
 						}
 					}
+					applyParentAttributes(nil, nestedSlices, parentAttributes)
 					*mainDataset = map[string]interface{}{startSplit[1]: nestedSlices}
 				}
 			}
 		} else if len(startSplit) == 1 {
 			if (*mainDataset)[startKey] != nil {
+				storeParentAttributes(*mainDataset, parentAttributes, startKey, level, inheritAttributes)
 				switch mainDs := (*mainDataset)[startKey].(type) {
 				case map[string]interface{}:
 					*mainDataset = mainDs
+					if len(startKeys)-1 == level {
+						applyParentAttributes(*mainDataset, nil, parentAttributes)
+					}
 				case []interface{}:
+					applyParentAttributes(nil, mainDs, parentAttributes)
 					*mainDataset = map[string]interface{}{startKey: mainDs}
+				}
+			}
+		}
+	}
+}
+
+func storeParentAttributes(mainDataset map[string]interface{}, parentAttributes map[string]interface{}, startKey string, level int, inheritAttributes bool) {
+	if inheritAttributes {
+		for key, val := range mainDataset {
+			if key != startKey {
+				value := fmt.Sprintf("%v", val)
+				if !strings.Contains(value, "map[") {
+					parentAttributes[fmt.Sprintf("parent.%d.%v", level, key)] = value
+				}
+			}
+		}
+	}
+}
+
+func applyParentAttributes(mainDataset map[string]interface{}, datasets []interface{}, parentAttributes map[string]interface{}) {
+	if mainDataset != nil {
+		for key, val := range parentAttributes {
+			mainDataset[key] = val
+		}
+	} else if len(datasets) > 0 {
+		for _, dataset := range datasets {
+			switch switchDs := dataset.(type) {
+			case map[string]interface{}:
+				for key, val := range parentAttributes {
+					switchDs[key] = val
 				}
 			}
 		}

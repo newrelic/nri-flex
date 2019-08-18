@@ -41,6 +41,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		// modify existing sample before final processing
 		createSample := true
 		SkipProcessing := api.SkipProcessing
+
+		modifiedKeys := []string{}
 		for k, v := range currentSample { // k == original key
 			key := k
 			progress := true
@@ -53,11 +55,18 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				RunPluckNumbers(&v, api, &key)
 				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 				RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
-				RunKeyRenamer(api.RenameKeys, &key, k)            // use key renamer if key replace hasn't occurred
-				RunKeyRenamer(api.ReplaceKeys, &key, k)           // kept for backwards compatibility with replace_keys
+
+				// do not rename a key again, this is to avoid continuous replacement loops
+				// eg. if you replace id with project.id
+				// this could then again attempt to replace id within project.id to project.project.id
+				if !sliceContains(modifiedKeys, k) {
+					RunKeyRenamer(api.RenameKeys, &key, k)  // use key renamer if key replace hasn't occurred
+					RunKeyRenamer(api.ReplaceKeys, &key, k) // kept for backwards compatibility with replace_keys
+				}
 
 				currentSample[key] = v
 				if key != k {
+					modifiedKeys = append(modifiedKeys, key)
 					delete(currentSample, k)
 				}
 
@@ -422,6 +431,16 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 			logger.Flex("error", metricSet.SetMetric(k, parsed, metric.GAUGE), "", false)
 		}
 	}
+}
+
+// sliceContains check if slice contains an attribute
+func sliceContains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 // deprecated

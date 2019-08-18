@@ -28,9 +28,9 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
 	ds := (*dataSet)
 
-	FindStartKey(&ds, cfg.APIs[i].StartKey) // start at a later part in the received data
-	StripKeys(&ds, cfg.APIs[i].StripKeys)   // remove before flattening
-	RunLazyFlatten(&ds, cfg, i)             // perform lazy flatten if needed
+	FindStartKey(&ds, cfg.APIs[i].StartKey, cfg.APIs[i].InheritAttributes) // start at a later part in the received data
+	StripKeys(&ds, cfg.APIs[i].StripKeys)                                  // remove before flattening
+	RunLazyFlatten(&ds, cfg, i)                                            // perform lazy flatten if needed
 	flattenedData := FlattenData(ds, map[string]interface{}{}, "", cfg.APIs[i].SampleKeys, &cfg.APIs[i])
 
 	// also strip from flattened data
