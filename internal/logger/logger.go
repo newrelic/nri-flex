@@ -1,13 +1,15 @@
 package logger
 
 import (
+	"fmt"
+
 	"github.com/newrelic/nri-flex/internal/load"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 )
 
 // Flex generic log handler to support force logging and creating additional events for insights debugging
-func Flex(logType string, err error, message string, createEvent bool) {
+func Flex(logType string, err error, message interface{}, createEvent bool) {
 	if createEvent || load.Args.ForceLogEvent {
 		flexEvent := "flexDebug"
 		if logType == "fatal" {
@@ -52,7 +54,7 @@ func Flex(logType string, err error, message string, createEvent bool) {
 		if err != nil {
 			completeMsg := err.Error()
 			if message != "" {
-				completeMsg += " - " + message
+				completeMsg += " - " + fmt.Sprintf("%v", message)
 			}
 			load.Logrus.Error(completeMsg)
 		}
@@ -60,7 +62,7 @@ func Flex(logType string, err error, message string, createEvent bool) {
 		if err != nil {
 			completeMsg := err.Error()
 			if message != "" {
-				completeMsg += " - " + message
+				completeMsg += " - " + fmt.Sprintf("%v", message)
 			}
 			load.Logrus.Debug(completeMsg)
 		} else {

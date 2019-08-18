@@ -1,3 +1,8 @@
+0.7.4-pre
+------
+- Inherit parent attributes capability (currently works with start_keys)
+- Improve/Fix key renamer logic (lost functionality in previous release)
+
 0.7.3-pre
 ------
 - Bug fix key renamer/replacer (thx prodjito)
