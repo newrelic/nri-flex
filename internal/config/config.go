@@ -110,7 +110,6 @@ func Run(yml load.Config) {
 // RunFiles Processes yml files
 func RunFiles(configs *[]load.Config) {
 	if load.Args.ProcessConfigsSync {
-		logger.Flex("debug", nil, fmt.Sprintf("processing %d configs synchronously", len(*configs)), false)
 		for _, cfg := range *configs {
 			if verifyConfig(cfg) {
 				logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
@@ -119,7 +118,6 @@ func RunFiles(configs *[]load.Config) {
 			}
 		}
 	} else {
-		logger.Flex("debug", nil, fmt.Sprintf("processing %d configs asynchronously", len(*configs)), false)
 		var wg sync.WaitGroup
 		wg.Add(len(*configs))
 		for _, cfg := range *configs {
@@ -134,6 +132,7 @@ func RunFiles(configs *[]load.Config) {
 		}
 		wg.Wait()
 	}
+
 	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", load.StatusCounterRead("ConfigsProcessed")), false)
 }
 
