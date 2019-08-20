@@ -20,7 +20,10 @@ import (
 // RunFlex runs flex
 // if mode is "" run in default mode
 func RunFlex(mode string) {
-	logCheck()
+	verboseLogging := os.Getenv("VERBOSE")
+	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		load.Logrus.SetLevel(logrus.TraceLevel)
+	}
 
 	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v %v:%v", load.IntegrationName, load.IntegrationVersion, runtime.GOOS, runtime.GOARCH), false)
 
@@ -80,7 +83,7 @@ func addConfigsFromPath(path string, configs *[]load.Config) {
 
 // SetDefaults set flex defaults
 func SetDefaults() {
-	load.Logrus.Out = os.Stdout
+	load.Logrus.Out = os.Stderr
 	load.FlexStatusCounter.M = make(map[string]int)
 	load.FlexStatusCounter.M["EventCount"] = 0
 	load.FlexStatusCounter.M["EventDropCount"] = 0
@@ -126,12 +129,4 @@ func SetEnvs() {
 	}
 	load.Args.MetricAPIUrl = os.Getenv("METRIC_API_URL")
 	load.Args.MetricAPIKey = os.Getenv("METRIC_API_KEY")
-}
-
-func logCheck() {
-	if load.Args.Verbose && os.Getenv("VERBOSE") != "true" && os.Getenv("VERBOSE") != "1" && load.AWSExecutionEnv == "" {
-		load.Logrus.SetLevel(logrus.TraceLevel) // do not do verbose logging for infra agent
-	} else if os.Getenv("VERBOSE") == "true" && load.AWSExecutionEnv != "" {
-		load.Logrus.SetLevel(logrus.TraceLevel)
-	}
 }

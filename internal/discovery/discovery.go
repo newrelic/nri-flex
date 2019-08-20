@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -58,7 +57,7 @@ func FindFlexContainerID(read string) {
 	// output eg. /kubepods/besteffort/podaa8aee52-49b6-11e9-95e2-080027000d3d/d49ee19ddec683e0cd80ca881a27d45a88105f8c439a4c9d5607b675341e394e
 	if err == nil {
 		strCpuset := strings.TrimSpace(string(cpuset))
-		logger.Flex("debug", nil, fmt.Sprintf("cpuset: %v", strCpuset), false)
+		logger.Flex("debug", nil, fmt.Sprintf("%v: %v", read, strCpuset), false)
 		if strings.Contains(strCpuset, "kube") {
 			load.IsKubernetes = true
 		}
@@ -86,7 +85,6 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 
 	// store inspected containers, so we do not re-inspect anything unnecessarily
 	inspectedContainers := []types.ContainerJSON{}
-	logger.Flex("debug", fmt.Errorf("containers %d, containerDiscoveryConfigs %d", len(containers), len(containerYmls)), "", false)
 	// find flex container id if not set
 	if load.ContainerID == "" {
 		fallbackFindFlexContainerID(&containers)
@@ -108,7 +106,7 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 		filteredContainers = append(filteredContainers, container)
 	}
 
-	logger.Flex("debug", fmt.Errorf("filtered containers %d, containerDiscoveryConfigs %d", len(filteredContainers), len(containerYmls)), "", false)
+	logger.Flex("debug", fmt.Errorf("containers %d filtered containers %d", len(containers), len(filteredContainers)), "", false)
 
 	// flex config file container_discovery parameter -> container
 	runConfigLookup(cli, &filteredContainers, &inspectedContainers, &foundTargetContainerIds, ymls)
@@ -272,10 +270,10 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 					ctx := context.Background()
 					reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
 					if err != nil {
-						logger.Flex("error", fmt.Errorf("cfg container inspect failed on cid:%v - %v", container.ID, cd.FileName), "", false)
+						logger.Flex("error", fmt.Errorf("target: %v cfg container inspect failed - %v", container.ID, cd.FileName), "", false)
 					} else {
 						if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
-							logger.Flex("debug", fmt.Errorf("cfg lookup matched %v %v - %v", container.Names, container.ID, cd.FileName), "", false)
+							logger.Flex("debug", fmt.Errorf("target: %v cfg lookup matched %v - %v", container.ID, container.Names, cd.FileName), "", false)
 							*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
 							addDynamicConfig(ymls, discoveryConfig, ymls, container, reverseContainerInspect, "")
 						}
@@ -375,7 +373,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 			logger.Flex("error", fmt.Errorf("container discovery config file error %v", (discoveryConfig["c"])), "", false)
 		}
 		if containerYml.FileName == configName {
-			logger.Flex("debug", fmt.Errorf("container discovery %v matched %v", targetContainer.ID, containerYml.FileName), "", false)
+			logger.Flex("debug", fmt.Errorf("target: %v container discovery matched %v", targetContainer.ID, containerYml.FileName), "", false)
 			if path == "" {
 				path = containerYml.FilePath
 			}
@@ -432,47 +430,35 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					discoveryPort = privatePort
 				}
 
-				// attempt low level ip fetch
-				lowLevelIpv4Fetch(&discoveryIPAddress, targetContainerInspect.State.Pid)
-				// attempt hostname fallback
-				execHostnameFallback(&discoveryIPAddress, targetContainer.ID)
-
 				if discoveryIPAddress != "" {
-					// substitute ip into yml
-					ymlString = strings.Replace(ymlString, "${auto:host}", discoveryIPAddress, -1)
 					ymlString = strings.Replace(ymlString, "${auto:ip}", discoveryIPAddress, -1)
+					ymlString = strings.Replace(ymlString, "${auto:host}", discoveryIPAddress, -1)
 				}
 
+				// attempt low level ip fetch
+				if discoveryIPAddress == "" {
+					ipAddresses := lowLevelIpv4Fetch(&discoveryIPAddress, targetContainerInspect.State.Pid, targetContainer.ID)
+					for i, address := range ipAddresses {
+						if i == 0 {
+							ymlString = strings.Replace(ymlString, "${auto:ip}", address, -1)
+							ymlString = strings.Replace(ymlString, "${auto:host}", address, -1)
+							discoveryIPAddress = address
+						}
+						ymlString = strings.Replace(ymlString, fmt.Sprintf("${auto:ip[%d]}", i), address, -1)
+						ymlString = strings.Replace(ymlString, fmt.Sprintf("${auto:host[%d]}", i), address, -1)
+					}
+				}
+
+				// attempt hostname fallback
+				if discoveryIPAddress == "" {
+					execHostnameFallback(&discoveryIPAddress, targetContainer.ID, &ymlString)
+				}
+
+				// substitute port into yml
 				if discoveryPort != "" && discoveryPort != "0" {
-					// substitute port into yml
 					ymlString = strings.Replace(ymlString, "${auto:port}", discoveryPort, -1)
 				} else {
-					// kubernetes port fallback
-					for key, val := range targetContainer.Labels {
-						if key == "annotation.io.kubernetes.container.ports" {
-							var x []interface{}
-							err := json.Unmarshal([]byte(val), &x)
-							if err == nil {
-								for _, kubePort := range x {
-									if kubePort.(map[string]interface{})["containerPort"] != nil {
-										discoveryPort = fmt.Sprintf("%v", kubePort.(map[string]interface{})["containerPort"])
-										ymlString = strings.Replace(ymlString, "${auto:port}", discoveryPort, -1)
-										break
-									}
-								}
-							}
-						}
-					}
-					// secondary inspect fallback
-					if discoveryPort == "" || discoveryPort == "0" {
-						if targetContainerInspect.Config != nil {
-							for port := range targetContainerInspect.Config.ExposedPorts {
-								discoveryPort = strings.Split(port.Port(), "/")[0]
-								ymlString = strings.Replace(ymlString, "${auto:port}", discoveryPort, -1)
-								break
-							}
-						}
-					}
+					portFallback(targetContainer, targetContainerInspect, &ymlString, &discoveryPort)
 				}
 
 				logger.Flex("debug", nil, fmt.Sprintf("target: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort), false)
@@ -482,8 +468,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					if len(targetContainer.Names) > 0 {
 						containerName = targetContainer.Names[0]
 					}
-					logger.Flex("debug", nil, "couldn't build dynamic cfg for: "+containerName+" - "+targetContainer.ID, false)
-					logger.Flex("debug", nil, "missing variable unable to create dynamic cfg ip:<"+discoveryIPAddress+">-port:<"+discoveryPort+">", false)
+					logger.Flex("debug", nil, fmt.Sprintf("target: %v %v couldn't build dynamic cfg", targetContainer.ID, containerName), false)
+					logger.Flex("debug", nil, fmt.Sprintf("target: %v %v missing variable unable to create dynamic cfg ip:%v - port:%v", targetContainer.ID, containerName, discoveryIPAddress, discoveryPort), false)
 				} else {
 					yml, err := config.ReadYML(ymlString)
 					if err != nil {
@@ -506,7 +492,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 			}
 
 		} else {
-			logger.Flex("debug", fmt.Errorf("container discovery %v: containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName), "", false)
+			logger.Flex("debug", fmt.Errorf("target: %v container discovery containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName), "", false)
 		}
 	}
 }
@@ -573,63 +559,80 @@ func findContainerTarget(discoveryConfig map[string]interface{}, container types
 	return false
 }
 
-func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int) {
+func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int, containerID string) []string {
 	if *discoveryIPAddress == "" {
 		// targetContainerInspect.State.Pid
 		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
-
-		logger.Flex("debug", nil, "attempting low level ip fetch", false)
-
-		// Create a new context and add a timeout to it
-		ctx, cancel := context.WithTimeout(context.Background(), load.DefaultTimeout)
-		defer cancel() // The cancel should be deferred so resources are cleaned up
-
-		target := "/host/proc/"
+		logger.Flex("debug", nil, fmt.Sprintf("target: %v attempting low level ip fetch", containerID), false)
+		target := "/host/proc"
 		if load.ContainerID == "" {
-			target = "/proc/"
+			target = "/proc"
 		}
-
-		// Create the command with our context
-		cmd := exec.CommandContext(ctx, "/bin/sh", "-c", fmt.Sprintf("cat %v/%v", target, pid)+
-			`/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u`)
-		output, err := cmd.CombinedOutput()
-
-		if err != nil {
-			message := "command failed: " + ""
-			if output != nil {
-				message = message + " " + string(output)
+		fibTrie, err := ioutil.ReadFile(fmt.Sprintf("%v/%v/net/fib_trie", target, pid))
+		if err == nil && len(fibTrie) > 0 {
+			reg := regexp.MustCompile(`\b((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\.)){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\r\n|\r|\n)\s+\/32 host\b`)
+			matches := reg.FindAllStringSubmatch(strings.Replace(string(fibTrie), "127.0.0.1", "", -1), -1)
+			ipMatches := []string{}
+			for _, ipmatch := range matches {
+				if len(ipmatch) >= 2 && !sliceContains(ipMatches, ipmatch[1]) {
+					ipMatches = append(ipMatches, ipmatch[1])
+				}
 			}
-			logger.Flex("error", err, message, false)
-		} else if ctx.Err() == context.DeadlineExceeded {
-			logger.Flex("error", ctx.Err(), "command timed out", false)
-		} else if ctx.Err() != nil {
-			logger.Flex("debug", err, "command execution failed", false)
+			if len(ipMatches) > 0 {
+				logger.Flex("debug", nil, fmt.Errorf("target: %v ip addresses found %v", containerID, ipMatches), false)
+				*discoveryIPAddress = ipMatches[0]
+				return ipMatches
+			}
+			logger.Flex("error", fmt.Errorf("target: %v low level ip fetch failed", containerID), "", false)
 		} else {
-			ipv4 := strings.TrimSpace(string(output))
-			// ensure this is an ipv4 address
-			re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
-			if re.Match([]byte(ipv4)) {
-				logger.Flex("debug", nil, fmt.Sprintf("fetched %v", ipv4), false)
-				*discoveryIPAddress = ipv4
-			} else {
-				logger.Flex("debug", fmt.Errorf("low level fetch failed %v", ipv4), "", false)
+			logger.Flex("error", err, "", false)
+		}
+	}
+	return nil
+}
+
+func portFallback(container types.Container, containerInspect types.ContainerJSON, ymlString *string, discoveryPort *string) {
+	// kubernetes port fallback
+	for key, val := range container.Labels {
+		if key == "annotation.io.kubernetes.container.ports" {
+			var x []interface{}
+			err := json.Unmarshal([]byte(val), &x)
+			if err == nil {
+				for _, kubePort := range x {
+					if kubePort.(map[string]interface{})["containerPort"] != nil {
+						*discoveryPort = fmt.Sprintf("%v", kubePort.(map[string]interface{})["containerPort"])
+						*ymlString = strings.Replace(*ymlString, "${auto:port}", *discoveryPort, -1)
+						break
+					}
+				}
+			}
+		}
+	}
+	// secondary inspect fallback
+	if *discoveryPort == "" || *discoveryPort == "0" {
+		if containerInspect.Config != nil {
+			for port := range containerInspect.Config.ExposedPorts {
+				*discoveryPort = strings.Split(port.Port(), "/")[0]
+				*ymlString = strings.Replace(*ymlString, "${auto:port}", *discoveryPort, -1)
+				break
 			}
 		}
 	}
 }
 
-func execHostnameFallback(discoveryIPAddress *string, containerID string) {
-	if *discoveryIPAddress == "" {
-		// fall back if IP is not discovered
-		// attempt to directly fetch IP from container
-		ip, err := ExecContainerCommand(containerID, []string{"hostname", "-i"})
-		ipv4 := strings.TrimSpace(ip)
-		re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
-		if err != nil {
-			logger.Flex("debug", err, "secondary fetch container ip failed", false)
-		} else if ip != "" && re.Match([]byte(ipv4)) && !strings.Contains(ip, "exec failed") {
-			*discoveryIPAddress = ipv4
-		}
+func execHostnameFallback(discoveryIPAddress *string, containerID string, ymlString *string) {
+	// fall back if IP is not discovered
+	// attempt to directly fetch IP from container
+	logger.Flex("debug", nil, fmt.Sprintf("target: %v attempting hostname -i fallback", containerID), false)
+	ip, err := ExecContainerCommand(containerID, []string{"hostname", "-i"})
+	ipv4 := strings.TrimSpace(ip)
+	re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
+	if err != nil {
+		logger.Flex("debug", err, fmt.Sprintf("target: %v secondary fetch container ip failed", containerID), false)
+	} else if ip != "" && re.Match([]byte(ipv4)) && !strings.Contains(ip, "exec failed") {
+		*discoveryIPAddress = ipv4
+		*ymlString = strings.Replace(*ymlString, "${auto:host}", ipv4, -1)
+		*ymlString = strings.Replace(*ymlString, "${auto:ip}", ipv4, -1)
 	}
 }
 
@@ -677,4 +680,13 @@ func fallbackFindFlexContainerID(containers *[]types.Container) {
 	} else {
 		logger.Flex("debug", fmt.Errorf("flex container id: %v", load.ContainerID), "", false)
 	}
+}
+
+func sliceContains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

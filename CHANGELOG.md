@@ -1,3 +1,8 @@
+0.7.5-pre
+------
+- Container discovery - add support for multiple ips
+- Redirect logging to stderr
+
 0.7.4-pre
 ------
 - Inherit parent attributes capability (currently works with start_keys)
