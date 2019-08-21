@@ -11,7 +11,7 @@ import (
 
 // SetJMXCommand Add parameters to JMX call
 func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Command, api load.API, config *load.Config) {
-	*runCommand = `echo "` + *runCommand + `" | java -jar ` + load.DefaultJmxPath + `nrjmx.jar`
+	*runCommand = fmt.Sprintf("echo '%v' | java -jar %vnrjmx.jar", *runCommand, load.DefaultJmxPath)
 
 	// order command > api > global
 	if command.Jmx.Host != "" {
