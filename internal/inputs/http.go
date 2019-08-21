@@ -60,15 +60,19 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				}
 			}
 
-			// responseReceived := map[string]interface{}{}
 			contentType := resp.Header.Get("Content-Type")
 			responseError := ""
+
+			logger.Flex("debug", nil, fmt.Sprintf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode), false)
 
 			switch {
 			case api.Prometheus.Enable:
 				Prometheus(dataStore, resp.Body, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
+				if api.Debug {
+					logger.Flex("debug", nil, fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body)), false)
+				}
 				// check weather nextLink is in the body in the response body if nextLink does not exist in header
 				if nextLink == "" {
 					nextLink = getNextLinkFromBody(body)
@@ -76,30 +80,36 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
-				body, _ := ioutil.ReadAll(resp.Body)
-				strBody := string(body)
-				output, _ := detectCommandOutput(strBody, "")
-				switch output {
-				case load.TypeJSON:
-					// check weather nextLink is in the body in the response body if nextLink does not exist in header
-					if nextLink == "" {
-						nextLink = getNextLinkFromBody(body)
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					logger.Flex("error", err, fmt.Sprintf("HTTP URL: %v failed to read resp.Body", *reqURL), false)
+				} else {
+					strBody := string(body)
+					if api.Debug {
+						logger.Flex("debug", nil, fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, strBody), false)
 					}
-					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
-				default:
-					logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
-					logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
-					if yml.Datastore == nil {
-						yml.Datastore = map[string][]interface{}{}
-					}
-					yml.Datastore[api.URL] = []interface{}{
-						map[string]interface{}{
-							"http": strBody,
-						},
+					output, _ := detectCommandOutput(strBody, "")
+					switch output {
+					case load.TypeJSON:
+						// check weather nextLink is in the body in the response body if nextLink does not exist in header
+						if nextLink == "" {
+							nextLink = getNextLinkFromBody(body)
+						}
+						handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
+					default:
+						logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
+						logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
+						if yml.Datastore == nil {
+							yml.Datastore = map[string][]interface{}{}
+						}
+						yml.Datastore[api.URL] = []interface{}{
+							map[string]interface{}{
+								"http": strBody,
+							},
+						}
 					}
 				}
 			}
-
 			if responseError == "" {
 				if nextLink != "" {
 					*reqURL = nextLink

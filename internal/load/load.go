@@ -294,6 +294,7 @@ type API struct {
 	RowHeader         int                 `yaml:"row_header"`         // set the row header, to be used with SplitBy
 	RowStart          int                 `yaml:"row_start"`          // start from this line, to be used with SplitBy
 	InheritAttributes bool                `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
+	Debug             bool                `yaml:"debug"`              // logs out additional data, should not be enabled for production use!
 	Logging           struct {            // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
@@ -386,6 +387,7 @@ type Parse struct {
 type MetricParser struct {
 	Namespace Namespace                         `yaml:"namespace"`
 	Metrics   map[string]string                 `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	Mode      string                            `yaml:"mode"`     // options regex, prefix, suffix, contains
 	AutoSet   bool                              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
 	Counts    map[string]int64                  `yaml:"counts"`
 	Summaries map[string]map[string]interface{} `yaml:"summaries"`

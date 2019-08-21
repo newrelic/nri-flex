@@ -16,13 +16,23 @@ func TestPrometheusRedis(t *testing.T) {
 	load.Refresh()
 
 	// create a listener with desired port
-	l, _ := net.Listen("tcp", "127.0.0.1:9122")
+	l, err := net.Listen("tcp", "127.0.0.1:9122")
+	if err != nil {
+		t.Fatal(err)
+	}
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Header().Set("Content-Type", "text/plain; version=0.0.4")
-		fileData, _ := ioutil.ReadFile("../../test/payloads/prometheusRedis.out")
-		_, err := rw.Write(fileData)
+		fileData, err := ioutil.ReadFile("../../test/payloads/prometheusRedis.out")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = rw.Write(fileData)
+		if err != nil {
+			t.Fatal(err)
+		}
 		logger.Flex("debug", err, "failed to write", false)
 	}))
+
 	// NewUnstartedServer creates a listener. Close listener and replace with the one we created.
 	ts.Listener.Close()
 	ts.Listener = l
@@ -45,7 +55,10 @@ func TestPrometheusRedis(t *testing.T) {
 	}
 
 	var jsonOut interface{}
-	expectedOutput, _ := ioutil.ReadFile("../../test/payloadsExpected/promRedis.json")
+	expectedOutput, err := ioutil.ReadFile("../../test/payloadsExpected/promRedis.json")
+	if err != nil {
+		t.Fatal(err)
+	}
 	json.Unmarshal(expectedOutput, &jsonOut)
 	expectedDatastore := jsonOut.([]interface{})
 

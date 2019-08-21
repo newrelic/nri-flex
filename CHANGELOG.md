@@ -1,3 +1,9 @@
+0.7.6-pre
+------
+- Improve JMX support
+- Improve HTTP logging
+- Provide custom "mode" option for metric_parser options supported: prefix, suffix, regex, contains
+
 0.7.5-pre
 ------
 - Container discovery - add support for multiple ips

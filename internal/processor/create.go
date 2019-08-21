@@ -395,7 +395,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 			}()
 			go func() {
 				defer wg.Done()
-				AutoSetMetricInfra(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet)
+				AutoSetMetricInfra(k, v, metricSet, api.MetricParser.Metrics, api.MetricParser.AutoSet, api.MetricParser.Mode)
 			}()
 			wg.Wait()
 		}
@@ -403,7 +403,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 }
 
 // AutoSetMetricInfra parse to number
-func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool) {
+func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string) {
 	value := fmt.Sprintf("%v", v)
 	parsed, err := strconv.ParseFloat(value, 64)
 	if err != nil || strings.EqualFold(value, "infinity") {
@@ -411,7 +411,7 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
-			if (k == metricKey) || (autoSet && formatter.KvFinder("regex", k, metricKey)) {
+			if (k == metricKey) || (autoSet && formatter.KvFinder("regex", k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
 					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.RATE), "", false)

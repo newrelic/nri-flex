@@ -114,7 +114,7 @@ func TestSetJMXCommand(t *testing.T) {
 		runCommand := config.APIs[0].Commands[0].Run
 		dataStore := []interface{}{}
 		SetJMXCommand(&dataStore, &runCommand, config.APIs[0].Commands[0], config.APIs[0], &config)
-		expectedString := `echo "Catalina:type=ThreadPool,name=*" | java -jar ./nrjmx/nrjmx.jar` +
+		expectedString := `echo 'Catalina:type=ThreadPool,name=*' | java -jar ./nrjmx/nrjmx.jar` +
 			` -hostname 127.0.0.1 -port 9001 -username batman -password robin ` +
 			`-keyStore abc -keyStorePassword def -trustStore abc -trustStorePassword def`
 		if runCommand != expectedString {
