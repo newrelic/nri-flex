@@ -242,6 +242,7 @@ type API struct {
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
+	Pagination        Pagination        `yaml:"pagination"`
 	EscapeURL         bool              `yaml:"escape_url"`
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
@@ -338,6 +339,32 @@ type Command struct {
 	RegexMatches []RegMatch `yaml:"regex_matches"`
 }
 
+// Pagination handles request pagination
+type Pagination struct {
+	OriginalURL  string `yaml:"original_url"`  // internal use (not intended for user use)
+	NextLink     string `yaml:"next_link"`     // internal use (not intended for user use)
+	NoPages      int    `yaml:"no_pages"`      // used to track how many pages walked (not intended for user use)
+	PageMarker   int    `yaml:"page_marker"`   // used as a page marker (not intended for user use)
+	CursorMarker string `yaml:"cursor_marker"` // used as a marker currently for cursors (not intended for user use)
+	// attributes for use
+	Increment   int    `yaml:"increment"`     // number to increment by
+	MaxPages    int    `yaml:"max_pages"`     // set the max number of pages to walk (needs to be set or payload_key)
+	MaxPagesKey string `yaml:"max_pages_key"` // set the max number of pages to walk (needs to be set or payload_key)
+
+	PageStart    int    `yaml:"page_start"`     // page to start walking from
+	PageNextKey  string `yaml:"page_next_key"`  // set a key to look for the next page to walk too - regex eg. "next":.(\d+)
+	PageLimit    int    `yaml:"page_limit"`     // manually set the page_limit to use
+	PageLimitKey string `yaml:"page_limit_key"` // set a key to look for the limit / page size / offset to use - regex eg. "limit":.(\d+)
+
+	PayloadKey string `yaml:"payload_key"` // set a key to watch if data exists at a particular attribute (needs to be set or max_pages) regex eg. "someKey":(\[(.*?)\]|\{(.*?)\})
+
+	NextCursorKey string `yaml:"next_cursor_key"` // watch for next cursor to query next
+	MaxCursorKey  string `yaml:"max_cursor_key"`  // watch for max cursor to stop at
+
+	NextLinkKey string `yaml:"next_link_key"` // look for a next link key to browse too
+}
+
+// RegMatch support for regex matches
 type RegMatch struct {
 	Expression string   `yaml:"expression"`
 	Keys       []string `yaml:"keys"`
