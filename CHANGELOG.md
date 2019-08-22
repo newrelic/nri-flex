@@ -1,3 +1,7 @@
+0.7.7-pre
+------
+- Add URL Pagination Support, see examples/flexConfigs/pagination-example.yml
+
 0.7.6-pre
 ------
 - Improve JMX support

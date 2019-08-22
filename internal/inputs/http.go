@@ -1,12 +1,15 @@
 package inputs
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +35,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			*reqURL += "/%2f"
 		}
 
+		handlePagination(reqURL, &api.Pagination, nil, nil, 200)
 		*reqURL = yml.Global.BaseURL + *reqURL
 		switch {
 		case api.Method == "POST" && api.Payload != "":
@@ -70,17 +74,19 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				Prometheus(dataStore, resp.Body, yml, &api)
 			case strings.Contains(contentType, "application/json"):
 				body, _ := ioutil.ReadAll(resp.Body)
+				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
 				if api.Debug {
 					logger.Flex("debug", nil, fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body)), false)
 				}
-				// check weather nextLink is in the body in the response body if nextLink does not exist in header
-				if nextLink == "" {
-					nextLink = getNextLinkFromBody(body)
+				// if not using pagination handle json for any response, if using pagination check the status code before storing
+				if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
+					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 				}
-				handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, err := ioutil.ReadAll(resp.Body)
+				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
+
 				if err != nil {
 					logger.Flex("error", err, fmt.Sprintf("HTTP URL: %v failed to read resp.Body", *reqURL), false)
 				} else {
@@ -91,11 +97,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 					output, _ := detectCommandOutput(strBody, "")
 					switch output {
 					case load.TypeJSON:
-						// check weather nextLink is in the body in the response body if nextLink does not exist in header
-						if nextLink == "" {
-							nextLink = getNextLinkFromBody(body)
+						// if not using pagination handle json for any response, if using pagination check the status code before storing
+						if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
+							handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 						}
-						handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 					default:
 						logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
 						logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
@@ -110,6 +115,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 					}
 				}
 			}
+
 			if responseError == "" {
 				if nextLink != "" {
 					*reqURL = nextLink
@@ -117,6 +123,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 					*doLoop = false
 				}
 			}
+
 		} else {
 			for _, err := range errors {
 				logger.Flex("debug", err, "", false)
@@ -243,25 +250,138 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 	}
 }
 
-func getNextLinkFromBody(body []byte) string {
+func handlePagination(url *string, Pagination *load.Pagination, nextLink *string, body []byte, code int) bool {
+	if url != nil && strings.Contains(*url, "${page}") && (code >= 200 && code <= 299) {
+		(*Pagination).OriginalURL = *url
+		(*Pagination).NoPages = 1
+		(*Pagination).PageMarker = Pagination.PageStart
+		if (*Pagination).Increment == 0 {
+			(*Pagination).Increment = 1
+		}
+		*url = strings.Replace(*url, "${page}", fmt.Sprintf("%d", Pagination.PageStart), -1)
+		*url = strings.Replace(*url, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
+		logger.Flex("debug", nil, fmt.Sprintf("URL: %v begin pagination handling", *url), false)
+	} else if Pagination.OriginalURL != "" && nextLink != nil && (code >= 200 && code <= 299) {
+		if Pagination.MaxPages == 0 && Pagination.PageLimitKey == "" && Pagination.PayloadKey == "" {
+			link := ""
+			if url != nil {
+				link = *url
+			}
+			if nextLink != nil {
+				link = *nextLink
+			}
+			logger.Flex("debug", nil, fmt.Sprintf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link), false)
+		} else {
+			continueRequest := true
+			customPageMarker := false
+			nextCursor := ""
+			payloadEmpty := false
+			payloadKeyFound := false
+			manualNextLink := ""
+			buffer := new(bytes.Buffer)
+			if err := json.Compact(buffer, body); err != nil {
+				logger.Flex("error", err, "", false)
+			} else {
+				if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" {
+					jsonString := buffer.String()
+					if Pagination.PageLimitKey != "" { // offset
+						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.PageLimitKey, Pagination.PageLimitKey), jsonString, nextLink)
+						if len(matches) >= 2 {
+							no, nerr := strconv.Atoi(matches[1])
+							if nerr != nil {
+								logger.Flex("error", nerr, nil, false)
+							} else {
+								Pagination.PageLimit = no
+							}
+						}
+					}
+					if Pagination.MaxPagesKey != "" {
+						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.MaxPagesKey, Pagination.MaxPagesKey), jsonString, nextLink)
+						if len(matches) >= 2 {
+							no, nerr := strconv.Atoi(matches[1])
+							if nerr != nil {
+								logger.Flex("error", nerr, nil, false)
+							} else {
+								Pagination.MaxPages = no
+							}
+						}
+					}
+					if Pagination.PageNextKey != "" {
+						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.PageNextKey, Pagination.PageNextKey), jsonString, nextLink)
+						if len(matches) >= 2 {
+							no, nerr := strconv.Atoi(matches[1])
+							if nerr != nil {
+								logger.Flex("error", nerr, nil, false)
+							} else {
+								Pagination.PageMarker = no
+								customPageMarker = true
+							}
+						}
+					}
+					if Pagination.NextCursorKey != "" {
+						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.NextCursorKey, Pagination.NextCursorKey), jsonString, nextLink)
+						if len(matches) >= 2 {
+							nextCursor = matches[1]
+						}
+					}
+					if Pagination.NextLinkKey != "" {
+						matches := paginationRegex(fmt.Sprintf(`"%v":\"(\S+)\"`, Pagination.NextLinkKey), jsonString, nextLink)
+						if len(matches) >= 2 {
+							manualNextLink = matches[1]
+						}
+					}
+					if Pagination.PayloadKey != "" {
+						matches := paginationRegex(fmt.Sprintf(`"%v":(\[(.*?)\]|\{(.*?)\})`, Pagination.PayloadKey), jsonString, nextLink)
+						if len(matches) >= 3 {
+							payloadKeyFound = true
+							if matches[1] == "{}" || matches[1] == "[]" {
+								*nextLink = ""
+								continueRequest = false
+								payloadEmpty = true
+								logger.Flex("debug", nil, fmt.Sprintf("URL: %v walk payload %v %v empty", *nextLink, Pagination.PayloadKey, matches[1]), false)
+							}
+						}
+					}
+				}
+			}
 
-	nextLink := ""
-	var f interface{}
-	re := regexp.MustCompile(`(?i)nextlink`)
-	body = []byte(re.ReplaceAllString(string(body), "NEXTLINK"))
-
-	err := json.Unmarshal(body, &f)
-	if err != nil {
-		logger.Flex("error", err, "", false)
-	} else {
-		switch f := f.(type) {
-		case []interface{}:
-		case map[string]interface{}:
-			theSample := f
-			if theSample["NEXTLINK"] != nil {
-				nextLink = theSample["NEXTLINK"].(string)
+			if (Pagination.PageMarker >= Pagination.MaxPages && Pagination.PayloadKey == "" && payloadKeyFound) || (Pagination.PayloadKey != "" && payloadKeyFound && payloadEmpty) {
+				logger.Flex("debug", nil, fmt.Sprintf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty), false)
+				*nextLink = ""
+				continueRequest = false
+				return false
+			}
+			if continueRequest {
+				page := ""
+				if !customPageMarker {
+					(*Pagination).PageMarker = (*Pagination).PageMarker + (*Pagination).Increment
+					page = fmt.Sprintf("%d", (*Pagination).PageMarker)
+				}
+				if nextCursor != "" {
+					page = nextCursor
+				}
+				if page != "" && Pagination.NextLinkKey == "" {
+					*nextLink = strings.Replace((*Pagination).OriginalURL, "${page}", page, -1)
+					*nextLink = strings.Replace(*nextLink, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
+					logger.Flex("debug", nil, fmt.Sprintf("URL: %v walking next link", *nextLink), false)
+				}
+				if manualNextLink != "" {
+					*nextLink = manualNextLink
+					logger.Flex("debug", nil, fmt.Sprintf("URL: %v walking next link", *nextLink), false)
+				}
 			}
 		}
 	}
-	return nextLink
+	return true
+}
+
+// paginationRegex
+func paginationRegex(regexKey string, jsonString string, nextLink *string) []string {
+	re, err := regexp.Compile(regexKey)
+	if err != nil {
+		logger.Flex("error", err, fmt.Sprintf("URL: %v regex compile failed %v", *nextLink, regexKey), false)
+	} else {
+		return re.FindStringSubmatch(jsonString)
+	}
+	return []string{}
 }

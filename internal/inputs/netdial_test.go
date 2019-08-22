@@ -1,6 +1,7 @@
 package inputs
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"testing"

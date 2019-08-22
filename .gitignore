@@ -15,3 +15,4 @@ dump*
 *.serverless
 LATEST
 nri-flex-*-*
+.vendor-new*
