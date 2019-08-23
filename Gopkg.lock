@@ -444,6 +444,19 @@
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:19e12372685842ac216b7fffa015dac2f1fa9658f4d043807ce922de5a03e51c"
+  name = "github.com/vertica/vertica-sql-go"
+  packages = [
+    ".",
+    "common",
+    "logger",
+    "msgs",
+  ]
+  pruneopts = "UT"
+  revision = "dc2aed266d610e5f08713b649943c547ee82176c"
+  version = "v0.1.3"
+
+[[projects]]
   digest = "1:172f94a6b3644a8f9e6b5e5b7fc9fe1e42d424f52a0300b2e7ab1e57db73f85d"
   name = "github.com/xanzy/ssh-agent"
   packages = ["."]
@@ -662,6 +675,7 @@
     "github.com/shirou/gopsutil/process",
     "github.com/sirupsen/logrus",
     "github.com/spf13/afero",
+    "github.com/vertica/vertica-sql-go",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/plumbing",
     "gopkg.in/yaml.v2",
