@@ -22,12 +22,18 @@ can be found at https://github.com/newrelic/go-agent/.
 * [prometheus-client-model](#prometheus-client-model)
 * [prometheus-common](#prometheus-common)
 * [govaluate](#govaluate)
+* [aws-sdk-go](#aws-sdk-go)
 * [aws-lambda-go](#aws-lambda-go)
 * [logrus](#logrus)
 * [gopsutil](#gopsutil)
 * [go-git](#go-git)
 * [go-hdb](#go-hdb)
-* [aws-sdk-go](#aws-sdk-go)
+* [go-mssqldb](#go-mssqldb)
+* [mysql](#mysql)
+* [pq](#pq)
+* [gorequest](#gorequest)
+* [afero](#afero)
+* [vertica-sql-go](#vertica-sql-go)
 
 
 ## Go
