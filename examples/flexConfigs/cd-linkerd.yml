@@ -1,0 +1,9 @@
+---
+name: linkerdFlex
+global:
+    # base_url: http://localhost:9990/admin/metrics.json
+    headers:
+      accept: application/json
+apis:
+  - event_type: linkerdContainerSample
+    url: http://${auto:host}:${auto:port}/admin/metrics.json
