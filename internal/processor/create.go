@@ -1,3 +1,8 @@
+/*
+* Copyright 2019 New Relic Corporation. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+ */
+
 package processor
 
 import (
@@ -75,6 +80,12 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 				// check if this contains any key pair values to filter out
 				RunSampleFilter(api.SampleFilter, &createSample, key, v)
+
+				// do not bother processing any more keys
+				if !createSample {
+					break
+				}
+
 				// if keepkeys used will do inverse
 				RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
 				RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
@@ -220,6 +231,50 @@ func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key 
 				*createSample = false
 			}
 		}
+	}
+}
+
+// RunEventFilter filters events generated
+func RunEventFilter(filters []load.Filter, createEvent *bool, k string, v interface{}) {
+	for _, filter := range filters {
+		value := fmt.Sprintf("%v", v)
+		filterMode := filter.Mode
+		if filterMode == "" {
+			filterMode = "regex"
+		}
+		filterValue := filter.Value
+		if filterValue == "" && filter.Mode == "regex" {
+			filterValue = ".*"
+		}
+		if formatter.KvFinder(filterMode, k, filter.Key) && formatter.KvFinder(filterMode, value, filterValue) {
+			*createEvent = false
+			break
+		}
+	}
+}
+
+// RunKeyFilter filters keys generated
+func RunKeyFilter(filters []load.Filter, currentSample *map[string]interface{}, k string) {
+	foundKey := false
+	filterInverse := false
+
+	for _, filter := range filters {
+		filterMode := filter.Mode
+		filterInverse = filter.Inverse
+		if filterMode == "" {
+			filterMode = "regex"
+		}
+		if formatter.KvFinder(filterMode, k, filter.Key) {
+			if filterInverse {
+				foundKey = true
+				break
+			}
+		}
+	}
+
+	// delete the key if not found, and being used in inverse mode
+	if filterInverse && !foundKey {
+		delete(*currentSample, k)
 	}
 }
 

@@ -1,5 +1,10 @@
 // +build integration
 
+/*
+* Copyright 2019 New Relic Corporation. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+ */
+
 package inputs
 
 import (
@@ -17,7 +22,7 @@ func TestDrivers(t *testing.T) {
 		"sqlserver": load.DefaultMSSQLServer,
 		"mysql":     load.DefaultMySQL,
 		"mariadb":   load.DefaultMySQL,
-		"hana":      load.DefaultHANA
+		"hana":      load.DefaultHANA,
 		"unknown":   "",
 	}
 

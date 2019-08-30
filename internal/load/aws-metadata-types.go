@@ -1,8 +1,13 @@
+/*
+* Copyright 2019 New Relic Corporation. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+ */
+
 package load
 
 import "time"
 
-//https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html#task-metadata-endpoint-v2-response
+//TaskMetadata https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html#task-metadata-endpoint-v2-response
 type TaskMetadata struct {
 
 	// The name of the cluster that hosts the task.

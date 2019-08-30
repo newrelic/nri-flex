@@ -44,6 +44,12 @@ func Prometheus(dataStore *[]interface{}, input io.Reader, cfg *load.Config, api
 
 func prometheusStandard(api *load.API, mfChan *chan *dto.MetricFamily, dataStore *[]interface{}, cfgName string) {
 	logger.Flex("debug", nil, fmt.Sprintf("%v - prometheus parser generating standard event output", cfgName), false)
+
+	// kept for temporary backwards compatibility
+	if (*api).Prometheus.Unflatten {
+		(*api).Prometheus.Raw = true
+	}
+
 	// store the flattened sample
 	flattenedSample := map[string]interface{}{}
 	if api.Prometheus.FlattenedEvent != "" {
@@ -64,7 +70,7 @@ func prometheusStandard(api *load.API, mfChan *chan *dto.MetricFamily, dataStore
 		*dataStore = append(*dataStore, sampleKeys[sample])
 	}
 	// add flattened sample into datastore
-	if len(flattenedSample) > 0 && !api.Prometheus.Unflatten {
+	if len(flattenedSample) > 0 && !api.Prometheus.Raw {
 		applyCustomAttributes(&flattenedSample, &api.Prometheus.CustomAttributes)
 		*dataStore = append(*dataStore, flattenedSample)
 	}
@@ -87,10 +93,10 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 		prometheusMakeLabels(m, &metric)
 
 		if dtoMF.GetType() == dto.MetricType_SUMMARY {
-			if (*api).Prometheus.Unflatten {
+			if (*api).Prometheus.Raw {
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
-				prometheusMakeQuantiles(m, &metric, dtoMF, api.Prometheus.Unflatten)
+				prometheusMakeQuantiles(m, &metric, dtoMF, api.Prometheus.Raw)
 				*dataStore = append(*dataStore, metric)
 			} else if api.Prometheus.Summary {
 				metric["count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
@@ -108,17 +114,17 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				prometheusMakeQuantiles(m, &metric, dtoMF, true)
 				*dataStore = append(*dataStore, metric)
 			}
-			if len(m.Label) > 0 && !api.Prometheus.Summary && !api.Prometheus.Unflatten {
+			if len(m.Label) > 0 && !api.Prometheus.Summary && !api.Prometheus.Raw {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
 				key := dtoMF.GetName() + ".summary"
 				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetSummary().GetSampleCount())
 				(*sampleKeys)[sampleKey][key+".sum"] = fmt.Sprint(m.GetSummary().GetSampleSum())
 			}
 		} else if dtoMF.GetType() == dto.MetricType_HISTOGRAM {
-			if (*api).Prometheus.Unflatten {
+			if (*api).Prometheus.Raw {
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
 				metric["sum"] = fmt.Sprint(m.GetHistogram().GetSampleSum())
-				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Unflatten)
+				prometheusMakeBuckets(m, &metric, dtoMF, api.Prometheus.Raw)
 				*dataStore = append(*dataStore, metric)
 			} else if api.Prometheus.Histogram {
 				metric["count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
@@ -136,7 +142,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 				prometheusMakeBuckets(m, &metric, dtoMF, true)
 				*dataStore = append(*dataStore, metric)
 			}
-			if len(m.Label) > 0 && !api.Prometheus.Histogram && !api.Prometheus.Unflatten {
+			if len(m.Label) > 0 && !api.Prometheus.Histogram && !api.Prometheus.Raw {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)
 				key := dtoMF.GetName() + ".histogram"
 				(*sampleKeys)[sampleKey][key+".count"] = fmt.Sprint(m.GetHistogram().GetSampleCount())
@@ -145,7 +151,7 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 		} else { // gauge or counter
 			metric["value"] = fmt.Sprint(getValue(m))
 
-			if (*api).Prometheus.Unflatten {
+			if (*api).Prometheus.Raw {
 				*dataStore = append(*dataStore, metric)
 			} else if len(m.Label) > 0 {
 				sampleKey := prometheusMakeMergedMeta(sampleKeys, m)

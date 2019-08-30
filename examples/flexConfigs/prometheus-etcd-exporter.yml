@@ -8,6 +8,8 @@ apis:
     url: http://localhost:2379/metrics
     prometheus: 
       enable: true
+      # raw: true ### if enabled will create an event per prometheus metric retaining all metadata for the metric (same as unflatten)
+      ############### by default Flex will try to flatten the metrics where possible to reduce the events being generated
     # snake_to_camel: true
     # sample_filter:
       # - .*: GAUGE ## remove all gauge metrics
