@@ -7,6 +7,8 @@ apis:
     url: http://$$ISTIO_CITADEL_PORT_9093_TCP_ADDR:9093/metrics
     prometheus: 
       enable: true
+      # raw: true ### if enabled will create an event per prometheus metric retaining all metadata for the metric (same as unflatten)
+      ############### by default Flex will try to flatten the metrics where possible to reduce the events being generated
   - name: promIstioMixer
     url: http://$$ISTIO_TELEMETRY_SERVICE_HOST:9093/metrics
     prometheus: 

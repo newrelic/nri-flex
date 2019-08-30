@@ -1,3 +1,8 @@
+/*
+* Copyright 2019 New Relic Corporation. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+ */
+
 package processor
 
 import (
@@ -38,7 +43,7 @@ func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]inter
 	}
 }
 
-// RunKeyRemover Remove unwanted keys
+// RunKeyRemover Remove unwanted keys with regex
 func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{}) {
 	for _, removeKey := range removeKeys {
 		if formatter.KvFinder("regex", *key, removeKey) {
