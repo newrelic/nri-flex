@@ -23,6 +23,8 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/integration"
 )
 
+const regex = "regex"
+
 // CreateMetricSets creates metric sets
 func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 	api := config.APIs[i]
@@ -201,7 +203,7 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 // RunSampleRenamer using regex if sample has a key that matches, make that a different sample (event_type)
 func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string]interface{}, key string, eventType *string) {
 	for regex, newEventType := range renameSamples {
-		if formatter.KvFinder("regex", key, regex) {
+		if formatter.KvFinder(regex, key, regex) {
 			(*currentSample)["event_type"] = newEventType
 			*eventType = newEventType
 			break
@@ -240,10 +242,10 @@ func RunEventFilter(filters []load.Filter, createEvent *bool, k string, v interf
 		value := fmt.Sprintf("%v", v)
 		filterMode := filter.Mode
 		if filterMode == "" {
-			filterMode = "regex"
+			filterMode = regex
 		}
 		filterValue := filter.Value
-		if filterValue == "" && filter.Mode == "regex" {
+		if filterValue == "" && filter.Mode == regex {
 			filterValue = ".*"
 		}
 		if formatter.KvFinder(filterMode, k, filter.Key) && formatter.KvFinder(filterMode, value, filterValue) {
@@ -262,7 +264,7 @@ func RunKeyFilter(filters []load.Filter, currentSample *map[string]interface{}, 
 		filterMode := filter.Mode
 		filterInverse = filter.Inverse
 		if filterMode == "" {
-			filterMode = "regex"
+			filterMode = regex
 		}
 		if formatter.KvFinder(filterMode, k, filter.Key) {
 			if filterInverse {
@@ -466,7 +468,7 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
-			if (k == metricKey) || (autoSet && formatter.KvFinder("regex", k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
+			if (k == metricKey) || (autoSet && formatter.KvFinder(regex, k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
 					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.RATE), "", false)
