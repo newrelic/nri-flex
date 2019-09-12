@@ -1,0 +1,9 @@
+# ambari api documentation https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md
+name: ambariFlex
+global:
+    base_url: http://c7401.ambari.apache.org:8080/
+    user: admin
+    pass: admin
+apis:
+  - event_type: AmbariHostSample # import hosts' name, cluster, health, metrics
+    url: api/v1/hosts/?fields=Hosts/host_state,metrics
