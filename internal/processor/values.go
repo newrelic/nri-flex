@@ -56,7 +56,15 @@ func RunSubParse(subParse []load.Parse, currentSample *map[string]interface{}, k
 func RunValueParser(v *interface{}, api load.API, key *string) {
 	for regexKey, regexVal := range api.ValueParser {
 		if formatter.KvFinder("regex", *key, regexKey) {
-			value := fmt.Sprintf("%v", *v)
+			value := ""
+			switch (*v).(type) {
+			case float32, float64:
+				// For float numbers, use decimal point format instead of scientific notation (e.g. 2026112.000000 vs 2.026112e+06 )
+				// to allow the parser to process the original float number 2026112.000000 rather than 2.026112e+06
+				value = fmt.Sprintf("%f", *v)
+			default:
+				value = fmt.Sprintf("%v", *v)
+			}
 			*v = formatter.ValueParse(value, regexVal)
 		}
 	}
