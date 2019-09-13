@@ -15,7 +15,7 @@ AutoSetMetricAPI automatically set metrics for use with the metric api
 #### func  AutoSetMetricInfra
 
 ```go
-func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool)
+func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string)
 ```
 AutoSetMetricInfra parse to number
 
@@ -44,7 +44,7 @@ flattened attributes
 #### func  FindStartKey
 
 ```go
-func FindStartKey(mainDataset *map[string]interface{}, startKeys []string)
+func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inheritAttributes bool)
 ```
 FindStartKey start at a different section of a payload
 
@@ -69,6 +69,13 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 ```
 RunDataHandler handles the data received for processing
 
+#### func  RunEventFilter
+
+```go
+func RunEventFilter(filters []load.Filter, createEvent *bool, k string, v interface{})
+```
+RunEventFilter filters events generated
+
 #### func  RunKeepKeys
 
 ```go
@@ -84,19 +91,26 @@ func RunKeyConversion(key *string, api load.API, v interface{}, SkipProcessing *
 ```
 RunKeyConversion handles to lower and snake to camel case for keys
 
+#### func  RunKeyFilter
+
+```go
+func RunKeyFilter(filters []load.Filter, currentSample *map[string]interface{}, k string)
+```
+RunKeyFilter filters keys generated
+
 #### func  RunKeyRemover
 
 ```go
 func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{})
 ```
-RunKeyRemover Remove unwanted keys
+RunKeyRemover Remove unwanted keys with regex
 
 #### func  RunKeyRenamer
 
 ```go
-func RunKeyRenamer(renameKeys map[string]string, key *string)
+func RunKeyRenamer(renameKeys map[string]string, key *string, originalKey string)
 ```
-RunKeyRenamer find key with regex, and replace the value
+RunKeyRenamer find keys with regex, and replace the value
 
 #### func  RunLazyFlatten
 

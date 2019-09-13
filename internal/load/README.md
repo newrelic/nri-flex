@@ -16,6 +16,7 @@ const (
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
+	DefaultVertica     = "vertica"
 	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
@@ -174,6 +175,7 @@ type API struct {
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
+	Pagination        Pagination        `yaml:"pagination"`
 	EscapeURL         bool              `yaml:"escape_url"`
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
@@ -192,40 +194,54 @@ type API struct {
 	Timeout           int
 	Method            string
 	Payload           string
-	DisableParentAttr bool                `yaml:"disable_parent_attr"`
-	Headers           map[string]string   `yaml:"headers"`
-	StartKey          []string            `yaml:"start_key"`
-	StoreLookups      map[string]string   `yaml:"store_lookups"`
-	StoreVariables    map[string]string   `yaml:"store_variables"`
-	StripKeys         []string            `yaml:"strip_keys"`
-	LazyFlatten       []string            `yaml:"lazy_flatten"`
-	SampleKeys        map[string]string   `yaml:"sample_keys"`
-	ReplaceKeys       map[string]string   `yaml:"replace_keys"`   // uses rename_keys functionality
-	RenameKeys        map[string]string   `yaml:"rename_keys"`    // use regex to find keys, then replace value
-	RenameSamples     map[string]string   `yaml:"rename_samples"` // using regex if sample has a key that matches, make that a different sample
-	RemoveKeys        []string            `yaml:"remove_keys"`
-	KeepKeys          []string            `yaml:"keep_keys"`       // inverse of removing keys
-	SkipProcessing    []string            `yaml:"skip_processing"` // skip processing particular keys using an array of regex strings
-	ToLower           bool                `yaml:"to_lower"`        // convert all unicode letters mapped to their lower case.
-	ConvertSpace      string              `yaml:"convert_space"`   // convert spaces to another char
-	SnakeToCamel      bool                `yaml:"snake_to_camel"`
-	PercToDecimal     bool                `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
-	PluckNumbers      bool                `yaml:"pluck_numbers"`   // plucks numbers out of the value
-	Math              map[string]string   `yaml:"math"`            // perform match across processed metrics
-	SubParse          []Parse             `yaml:"sub_parse"`
-	CustomAttributes  map[string]string   `yaml:"custom_attributes"` // set additional custom attributes
-	ValueParser       map[string]string   `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
-	ValueTransformer  map[string]string   `yaml:"value_transformer"` // find key(s) with regex, and modify the value
-	MetricParser      MetricParser        `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
-	SampleFilter      []map[string]string `yaml:"sample_filter"`     // sample filter key pair values with regex
-	SplitObjects      bool                `yaml:"split_objects"`     // convert object with nested objects to array
-	Split             string              `yaml:"split"`             // default vertical, can be set to horizontal (column) useful for tabular outputs
-	SplitBy           string              `yaml:"split_by"`          // character to split by
-	SetHeader         []string            `yaml:"set_header"`        // manually set header column names
-	Regex             bool                `yaml:"regex"`             // process SplitBy as regex
-	RowHeader         int                 `yaml:"row_header"`        // set the row header, to be used with SplitBy
-	RowStart          int                 `yaml:"row_start"`         // start from this line, to be used with SplitBy
-	Logging           struct {
+	Headers           map[string]string `yaml:"headers"`
+	DisableParentAttr bool              `yaml:"disable_parent_attr"`
+	StartKey          []string          `yaml:"start_key"` // start from a different section of the payload
+	StoreLookups      map[string]string `yaml:"store_lookups"`
+	StoreVariables    map[string]string `yaml:"store_variables"`
+	LazyFlatten       []string          `yaml:"lazy_flatten"`
+	SampleKeys        map[string]string `yaml:"sample_keys"`
+	RenameSamples     map[string]string `yaml:"rename_samples"`     // using regex if sample has a key that matches, make that a different sample
+	SkipProcessing    []string          `yaml:"skip_processing"`    // skip processing particular keys using an array of regex strings
+	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
+	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
+	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
+
+	// Key manipulation
+	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
+	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
+	SnakeToCamel bool              `yaml:"snake_to_camel"` // snake_case to camelCase
+	ReplaceKeys  map[string]string `yaml:"replace_keys"`   // uses rename_keys functionality
+	RenameKeys   map[string]string `yaml:"rename_keys"`    // use regex to find keys, then replace value
+
+	// Value manipulation
+	PercToDecimal    bool              `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
+	PluckNumbers     bool              `yaml:"pluck_numbers"`   // plucks numbers out of the value
+	Math             map[string]string `yaml:"math"`            // perform match across processed metrics
+	SubParse         []Parse           `yaml:"sub_parse"`
+	ValueParser      map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
+	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
+	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
+
+	// Command based options
+	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
+	SplitBy   string   `yaml:"split_by"`   // character to split by
+	SetHeader []string `yaml:"set_header"` // manually set header column names
+	Regex     bool     `yaml:"regex"`      // process SplitBy as regex
+	RowHeader int      `yaml:"row_header"` // set the row header, to be used with SplitBy
+	RowStart  int      `yaml:"row_start"`  // start from this line, to be used with SplitBy
+
+	// Filtering Options
+	EventFilter  []Filter            `yaml:"event_filter"` // filters events in/out
+	KeyFilter    []Filter            `yaml:"key_filter"`   // filters keys in/out
+	StripKeys    []string            `yaml:"strip_keys"`
+	RemoveKeys   []string            `yaml:"remove_keys"`
+	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
+	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
+
+	// Debug Options
+	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
+	Logging struct {
 		Open bool `yaml:"open"` // log open related errors
 	}
 }
@@ -260,9 +276,10 @@ type ArgumentList struct {
 	GitUser               string `default:"" help:"Set git user"`
 	GitRepo               string `default:"" help:"Set git repository to sync"`
 	GitURL                string `default:"" help:"Set alternate git url"`
-	GitBranch             string `default:"master" help:"Checkout to specifed git branch"`
-	GitCommit             string `default:"" help:"Checkout to specifed git commit, if set will not use branch"`
+	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
+	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
+	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
 }
 ```
 
@@ -497,6 +514,19 @@ type ContainerDiscovery struct {
 
 ContainerDiscovery struct
 
+#### type Filter
+
+```go
+type Filter struct {
+	Key     string `yaml:"key"`
+	Value   string `yaml:"value"`
+	Mode    string `yaml:"mode"`    // default regex, other options contains, prefix, suffix
+	Inverse bool   `yaml:"inverse"` // inverse only works when being used for keys currently (setting to true is like using keep keys)
+}
+```
+
+Filter struct
+
 #### type Global
 
 ```go
@@ -566,6 +596,7 @@ Windows returns stats for commit and private working set only.
 type MetricParser struct {
 	Namespace Namespace                         `yaml:"namespace"`
 	Metrics   map[string]string                 `yaml:"metrics"`  // inputBytesPerSecond: RATE
+	Mode      string                            `yaml:"mode"`     // options regex, prefix, suffix, contains
 	AutoSet   bool                              `yaml:"auto_set"` // if set to true, will attempt to do a contains instead of a direct key match, this is useful for setting multiple metrics
 	Counts    map[string]int64                  `yaml:"counts"`
 	Summaries map[string]map[string]interface{} `yaml:"summaries"`
@@ -658,6 +689,38 @@ type NetworkStats struct {
 
 NetworkStats aggregates the network stats of one container
 
+#### type Pagination
+
+```go
+type Pagination struct {
+	// internal attribute use
+	OriginalURL  string `yaml:"original_url"`  // internal use (not intended for user use)
+	NextLink     string `yaml:"next_link"`     // internal use (not intended for user use)
+	NoPages      int    `yaml:"no_pages"`      // used to track how many pages walked (not intended for user use)
+	PageMarker   int    `yaml:"page_marker"`   // used as a page marker (not intended for user use)
+	CursorMarker string `yaml:"cursor_marker"` // used as a marker currently for cursors (not intended for user use)
+
+	// attributes for use
+	Increment   int    `yaml:"increment"`     // number to increment by
+	MaxPages    int    `yaml:"max_pages"`     // set the max number of pages to walk (needs to be set or payload_key)
+	MaxPagesKey string `yaml:"max_pages_key"` // set the max number of pages to walk (needs to be set or payload_key)
+
+	PageStart    int    `yaml:"page_start"`     // page to start walking from
+	PageNextKey  string `yaml:"page_next_key"`  // set a key to look for the next page to walk too - regex eg. "next":.(\d+)
+	PageLimit    int    `yaml:"page_limit"`     // manually set the page_limit to use
+	PageLimitKey string `yaml:"page_limit_key"` // set a key to look for the limit / page size / offset to use - regex eg. "limit":.(\d+)
+
+	PayloadKey string `yaml:"payload_key"` // set a key to watch if data exists at a particular attribute (needs to be set or max_pages) regex eg. "someKey":(\[(.*?)\]|\{(.*?)\})
+
+	NextCursorKey string `yaml:"next_cursor_key"` // watch for next cursor to query next
+	MaxCursorKey  string `yaml:"max_cursor_key"`  // watch for max cursor to stop at
+
+	NextLinkKey string `yaml:"next_link_key"` // look for a next link key to browse too
+}
+```
+
+Pagination handles request pagination
+
 #### type Parse
 
 ```go
@@ -689,6 +752,7 @@ PidsStats contains the stats of a container's pids
 ```go
 type Prometheus struct {
 	Enable           bool              `yaml:"enable"`
+	Raw              bool              `yaml:"raw"`             // creates an event per prometheus metric retaining all metadata
 	Unflatten        bool              `yaml:"unflatten"`       // unflattens all counters and gauges into separate metric samples retaining all their metadata // make this map[string]string
 	FlattenedEvent   string            `yaml:"flattened_event"` // name of the flattenedEvent
 	KeyMerge         []string          `yaml:"key_merge"`       // list of keys to merge into the key name when flattening, not usable when unflatten set to true
@@ -717,6 +781,7 @@ type RegMatch struct {
 }
 ```
 
+RegMatch support for regex matches
 
 #### type SampleMerge
 
@@ -849,6 +914,7 @@ type TaskMetadata struct {
 }
 ```
 
+TaskMetadata
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html#task-metadata-endpoint-v2-response
 
 #### type ThrottlingData

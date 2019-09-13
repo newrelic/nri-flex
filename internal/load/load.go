@@ -39,8 +39,8 @@ type ArgumentList struct {
 	GitUser               string `default:"" help:"Set git user"`
 	GitRepo               string `default:"" help:"Set git repository to sync"`
 	GitURL                string `default:"" help:"Set alternate git url"`
-	GitBranch             string `default:"master" help:"Checkout to specifed git branch"`
-	GitCommit             string `default:"" help:"Checkout to specifed git commit, if set will not use branch"`
+	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
+	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
 	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
 }

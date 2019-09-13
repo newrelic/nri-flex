@@ -27,20 +27,22 @@ func runFargateDiscovery(configs *[]load.Config) {
 	resp, err := client.Get("http://169.254.170.2/v2/metadata")
 	if err != nil {
 		logger.Flex("error", err, "", false)
-	} else {
-		if resp.StatusCode == http.StatusOK {
-			load.IsFargate = true
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		load.IsFargate = true
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			logger.Flex("error", err, "", false)
+		} else {
+			TaskMetadata := load.TaskMetadata{}
+			err := json.Unmarshal(bodyBytes, &TaskMetadata)
 			if err != nil {
 				logger.Flex("error", err, "", false)
 			} else {
-				TaskMetadata := load.TaskMetadata{}
-				err := json.Unmarshal(bodyBytes, &TaskMetadata)
-				if err != nil {
-					logger.Flex("error", err, "", false)
-				} else {
-					determineDynamicFargateConfigs(configs, TaskMetadata)
-				}
+				determineDynamicFargateConfigs(configs, TaskMetadata)
 			}
 		}
 	}

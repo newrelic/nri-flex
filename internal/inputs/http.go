@@ -272,9 +272,6 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 			if url != nil {
 				link = *url
 			}
-			if nextLink != nil {
-				link = *nextLink
-			}
 			logger.Flex("debug", nil, fmt.Sprintf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link), false)
 		} else {
 			continueRequest := true
@@ -353,7 +350,6 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 			if (Pagination.PageMarker >= Pagination.MaxPages && Pagination.PayloadKey == "" && payloadKeyFound) || (Pagination.PayloadKey != "" && payloadKeyFound && payloadEmpty) {
 				logger.Flex("debug", nil, fmt.Sprintf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty), false)
 				*nextLink = ""
-				continueRequest = false
 				return false
 			}
 			if continueRequest {
