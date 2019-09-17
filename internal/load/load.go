@@ -48,6 +48,9 @@ type ArgumentList struct {
 // Args Infrastructure SDK Arguments List
 var Args ArgumentList
 
+// StartTime time Flex starts in Nanoseconds
+var StartTime int64
+
 // Integration Infrastructure SDK Integration
 var Integration *integration.Integration
 
