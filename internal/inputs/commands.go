@@ -25,7 +25,7 @@ func makeTimestamp() int64 {
 
 // RunCommands executes the given commands to create one merged sampled
 func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
-	startTime := makeTimestamp()
+	startTime := time.Now().UnixNano()
 	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
 	api := yml.APIs[apiNo]
 	commandShell := load.DefaultShell
@@ -115,7 +115,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	// only send dataSample back, not if horizontal (columns) split or jmx was processed
 	// this can probably be shuffled elsewhere
 	if len(dataSample) > 0 && processType != load.TypeColumns && processType != "jmx" {
-		dataSample["flex.commandTimeMs"] = makeTimestamp() - startTime
+		dataSample["flex.commandTimeNs"] = time.Now().UnixNano() - startTime
 		*dataStore = append(*dataStore, dataSample)
 	}
 }
@@ -136,7 +136,7 @@ func splitOutput(dataStore *[]interface{}, output string, command load.Command, 
 			}
 		}
 		//create the last block
-		if i+1 == len(lines) {
+		if i+1 == len(lines) && startSplit >= 0 {
 			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 		}
 	}
@@ -165,7 +165,7 @@ func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Com
 			}
 			regmatchCount = 0
 		}
-		sample["flex.commandTimeMs"] = makeTimestamp() - startTime
+		sample["flex.commandTimeNs"] = time.Now().UnixNano() - startTime
 		*dataStore = append(*dataStore, sample)
 	}
 }

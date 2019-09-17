@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	logrus "github.com/sirupsen/logrus"
@@ -89,32 +90,34 @@ var IntegrationNameShort = "nri-flex"         // IntegrationNameShort Short Name
 var IntegrationVersion = "Unknown-SNAPSHOT"   // IntegrationVersion Version
 
 const (
-	DefaultSplitBy     = ":"                      // unused currently
-	DefaultTimeout     = 10000 * time.Millisecond // 10 seconds, used for raw commands
-	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
-	DefaultPingTimeout = 5000                     // 5 seconds
-	DefaultHANA        = "hdb"
-	DefaultPostgres    = "postgres"
-	DefaultMSSQLServer = "sqlserver"
-	DefaultMySQL       = "mysql"
-	DefaultOracle      = "ora"
-	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
-	DefaultJmxHost     = "127.0.0.1"
-	DefaultJmxPort     = "9999"
-	DefaultJmxUser     = "admin"
-	DefaultJmxPass     = "admin"
-	DefaultShell       = "/bin/sh"
-	DefaultLineLimit   = 255
-	Public             = "public"
-	Private            = "private"
-	Jmx                = "jmx"
-	Img                = "img"
-	Image              = "image"
-	TypeContainer      = "container"
-	TypeJSON           = "json"
-	TypeColumns        = "columns"
-	Contains           = "contains"
+	DefaultSplitBy          = ":"                      // unused currently
+	DefaultTimeout          = 10000 * time.Millisecond // 10 seconds, used for raw commands
+	DefaultDialTimeout      = 1000                     // 1 seconds, used for dial
+	DefaultPingTimeout      = 5000                     // 5 seconds
+	DefaultHANA             = "hdb"
+	DefaultPostgres         = "postgres"
+	DefaultMSSQLServer      = "sqlserver"
+	DefaultMySQL            = "mysql"
+	DefaultOracle           = "ora"
+	DefaultVertica          = "vertica"
+	DefaultJmxPath          = "./nrjmx/"
+	DefaultJmxHost          = "127.0.0.1"
+	DefaultJmxPort          = "9999"
+	DefaultJmxUser          = "admin"
+	DefaultJmxPass          = "admin"
+	DefaultShell            = "/bin/sh"
+	DefaultLineLimit        = 255
+	DefaultCWNativeInterval = 300
+	DefaultCWMetricsPerReq  = 99
+	Public                  = "public"
+	Private                 = "private"
+	Jmx                     = "jmx"
+	Img                     = "img"
+	Image                   = "image"
+	TypeContainer           = "container"
+	TypeJSON                = "json"
+	TypeColumns             = "columns"
+	Contains                = "contains"
 )
 
 // FlexStatusCounter count internal metrics
@@ -214,7 +217,7 @@ type ContainerDiscovery struct {
 type Global struct {
 	BaseURL    string `yaml:"base_url"`
 	User, Pass string
-	Proxy      string
+	Proxy      string `yaml:"proxy"`
 	Timeout    int
 	Headers    map[string]string `yaml:"headers"`
 	Jmx        JMX               `yaml:"jmx"`
@@ -251,6 +254,7 @@ type API struct {
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
+	Cloudwatch        Cloudwatch        `yaml:"cloudwatch"`
 	Pagination        Pagination        `yaml:"pagination"`
 	EscapeURL         bool              `yaml:"escape_url"`
 	Prometheus        Prometheus        `yaml:"prometheus"`
@@ -320,6 +324,26 @@ type API struct {
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
+}
+
+// Cloudwatch Struct
+type Cloudwatch struct {
+	CredentialFile    string             `yaml:"credential_file"`
+	ConfigFile        string             `yaml:"config_file"`
+	Region            string             `yaml:"region"`
+	NativeInterval    int                `yaml:"native_interval"`     // AWS default is 5 minutes, 1 minute is Detailed Monitoring
+	MetricsPerRequest int                `yaml:"metrics_per_request"` // AWS default API limit 100
+	Metrics           []CloudwatchMetric `yaml:"metrics"`             // Metrics to Query
+}
+
+// CloudwatchMetric struct
+type CloudwatchMetric struct {
+	Namespace   string                  `yaml:"namespace"`    // eg "AWS/EC2" , "AWS/RDS
+	MetricName  string                  `yaml:"metric_name"`  // eg. VolumeReadBytes
+	MetricTypes []string                `yaml:"metric_types"` // eg. ["RATE", "DELTA"]
+	Statistics  []string                `yaml:"statistics"`   // eg. ["Sum","Average"]
+	Filter      []map[string]string     `yaml:"filter"`       // uses regex to filter metrics, if not set default to everything
+	Dimensions  []*cloudwatch.Dimension `yaml:"dimensions"`
 }
 
 // Filter struct

@@ -62,7 +62,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:dfeb75453351dd3098460640e0e1d813ab1954548d95efffac4f3bdc5af8e2b4"
+  digest = "1:65febd4d55c401774d00f3959a745d8d6ffadc1853414a6bed6f3b6623d6a587"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -95,6 +95,7 @@
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
+    "service/cloudwatch",
     "service/kms",
     "service/sts",
     "service/sts/stsiface",
@@ -657,6 +658,7 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/cloudwatch",
     "github.com/aws/aws-sdk-go/service/kms",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api/types",

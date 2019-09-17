@@ -1,3 +1,8 @@
+0.7.8-pre
+------
+- Improve HTTP TLS Config Support
+- Add Start & End Time in Nanoseconds to FlexStatusSample
+
 0.7.7-pre
 ------
 - Add URL Pagination Support, see examples/flexConfigs/pagination-example.yml

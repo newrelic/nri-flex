@@ -60,6 +60,8 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
 		} else if api.Database != "" && api.DbConn != "" {
 			inputs.ProcessQueries(&dataStore, yml, apiNo)
+		} else if len(api.Cloudwatch.Metrics) > 0 {
+			inputs.RunCloudwatch(&dataStore, yml, apiNo)
 		}
 	}
 
