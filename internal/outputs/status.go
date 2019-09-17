@@ -6,6 +6,8 @@
 package outputs
 
 import (
+	"time"
+
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
 
@@ -15,6 +17,11 @@ import (
 // StatusSample creates flexStatusSample
 func StatusSample() {
 	flexStatusSample := load.Entity.NewMetricSet("flexStatusSample")
+	endTimeNs := time.Now().UnixNano()
+	logger.Flex("error", flexStatusSample.SetMetric("flex.time.endNs", endTimeNs, metric.GAUGE), "", false)
+	logger.Flex("error", flexStatusSample.SetMetric("flex.time.startNs", load.StartTime, metric.GAUGE), "", false)
+	logger.Flex("error", flexStatusSample.SetMetric("flex.time.elaspedNs", endTimeNs-load.StartTime, metric.GAUGE), "", false)
+
 	logger.Flex("error", flexStatusSample.SetMetric("flex.IntegrationVersion", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
 	if load.Args.GitRepo != "" {
 		logger.Flex("error", flexStatusSample.SetMetric("flex.GitRepo", load.Args.GitRepo, metric.ATTRIBUTE), "", false)
