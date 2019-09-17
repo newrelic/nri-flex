@@ -3,20 +3,30 @@ apis:
   - name: ping
     commands:
       - name: google
-        run: ping -c 5 google.com
-        split: horizontal
-        split_by: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
-        regex_match: true
-        set_header: [min,avg,max,stddev]
-        custom_attributes:
-          url: google.com
+        run: ping -c 5 google.com || true
+        split_output: statistics ---
+        regex_matches:
+          - expression: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
+            keys: [min,avg,max,stddev]
+            ### there are two different variants for the packet statistics returned, below allows support for both
+          - expression: (\d+) packets transmitted, (\d+) packets received, (\S+)% packet loss
+            keys: [packetsTransmitted, packetsReceived, packetLoss]
+          - expression: (\d+) packets transmitted, (\d+) received, (\d+)% packet loss, time (\d+)
+            keys: [packetsTransmitted, packetsReceived, packetLoss, timeMs]
+    custom_attributes:
+      url: google.com
   - name: ping
     commands:
       - name: yahoo
-        run: ping -c 5 yahoo.com
-        split: horizontal
-        split_by: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
-        regex_match: true
-        set_header: [min,avg,max,stddev]
-        custom_attributes:
-          url: yahoo.com
+        run: ping -c 5 yahoo.com || true
+        split_output: statistics ---
+        regex_matches:
+          - expression: ([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)\/([0-9]+\.?[0-9]+)
+            keys: [min,avg,max,stddev]
+            ### there are two different variants for the packet statistics returned, below allows support for both
+          - expression: (\d+) packets transmitted, (\d+) packets received, (\S+)% packet loss
+            keys: [packetsTransmitted, packetsReceived, packetLoss]
+          - expression: (\d+) packets transmitted, (\d+) received, (\d+)% packet loss, time (\d+)
+            keys: [packetsTransmitted, packetsReceived, packetLoss, timeMs]
+    custom_attributes:
+      url: yahoo.com
