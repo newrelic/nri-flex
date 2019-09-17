@@ -26,6 +26,9 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 	for _, expectedSample := range expectedSamples {
 		matchedSample := false
 		for _, sample := range entityMetrics {
+			delete(sample.Metrics, "flex.time.startNs")
+			delete(sample.Metrics, "flex.time.endNs")
+			delete(sample.Metrics, "flex.time.elaspedNs")
 			out, err := sample.MarshalJSON()
 			if err != nil {
 				logger.Flex("debug", err, "failed to marshal", false)
