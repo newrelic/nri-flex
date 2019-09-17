@@ -13,7 +13,7 @@ mkdir -p ${BUILD_DIR}
 
 cp ./bin/${OS}/* ${BUILD_DIR}/
 cp ./README.md ${BUILD_DIR}/
-cp ./Dockerfile ${BUILD_DIR}/
+[ -f "./configs/Dockerfile-${OS}" ] && cp ./configs/Dockerfile-${OS} ${BUILD_DIR}/Dockerfile
 [ -f "./scripts/install_${OS}.sh" ] && cp ./scripts/install_${OS}.sh ${BUILD_DIR}/
 [ -f "./scripts/install_${OS}.bat" ] && cp ./scripts/install_${OS}.bat ${BUILD_DIR}/
 cp ./configs/nri-flex-config.yml ${BUILD_DIR}/
@@ -26,4 +26,3 @@ tar -C ${TEMPDIR} -czf ${OUTPUT_NAME}.tar.gz ${OUTPUT_NAME}/
 
 # Cleanup
 rm -rf ${BUILD_DIR}
-
