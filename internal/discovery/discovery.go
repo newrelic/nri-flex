@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/formatter"
@@ -481,6 +482,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						logger.Flex("error", err, "unable to unmarshal yml config: "+path+containerYml.FileName, false)
 						logger.Flex("error", fmt.Errorf(ymlString), "", false)
 					} else {
+
+						// decorate additional docker attributes
 						if yml.CustomAttributes == nil {
 							yml.CustomAttributes = map[string]string{}
 						}
@@ -490,6 +493,14 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						yml.CustomAttributes["containerId"] = targetContainer.ID
 						yml.CustomAttributes["imageId"] = targetContainer.Image
 						yml.CustomAttributes["IDShort"] = targetContainer.ID[0:12]
+						yml.CustomAttributes["image"] = targetContainer.Image
+						img := strings.Split(targetContainer.Image, "@")
+						yml.CustomAttributes["imageShort"] = img[0]
+						yml.CustomAttributes["container.duration"] = fmt.Sprintf("%d", MakeTimestamp()-(targetContainer.Created*1000))
+						yml.CustomAttributes["container.state"] = targetContainer.State
+						yml.CustomAttributes["container.status"] = targetContainer.Status
+						yml.CustomAttributes["container.name"] = strings.TrimPrefix(targetContainerInspect.Name, "/")
+
 						*ymls = append(*ymls, yml)
 					}
 				}
@@ -694,4 +705,8 @@ func sliceContains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func MakeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
