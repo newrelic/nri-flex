@@ -278,7 +278,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
+				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", command.LineEnd))
 				break
 			}
 
@@ -342,7 +342,6 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 			load.Logrus.WithFields(logrus.Fields{
 				"err": err,
 			}).Error("commands: failed to unmarshal jmx output")
-
 		}
 		return load.Jmx, map[string]interface{}{"error": "Failed to process JMX Data"}
 	}

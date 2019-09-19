@@ -19,14 +19,14 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	"github.com/parnurzeal/gorequest"
 )
 
 // RunHTTP Executes HTTP Requests
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
-	logger.Flex("debug", nil, fmt.Sprintf("%v - running http requests", yml.Name), false)
+	load.Logrus.Debug(fmt.Sprintf("%v - running http requests", yml.Name))
 	for *doLoop {
 		request := gorequest.New()
 
@@ -54,7 +54,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 		}
 
 		request = setRequestOptions(request, *yml, api)
-		logger.Flex("debug", nil, fmt.Sprintf("sending %v request to %v", request.Method, *reqURL), false)
+		load.Logrus.Debug(fmt.Sprintf("sending %v request to %v", request.Method, *reqURL))
 		resp, _, errors := request.End()
 		if resp != nil {
 			nextLink := ""
@@ -72,7 +72,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			contentType := resp.Header.Get("Content-Type")
 			responseError := ""
 
-			logger.Flex("debug", nil, fmt.Sprintf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode), false)
+			load.Logrus.Debug(fmt.Sprintf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode))
 
 			switch {
 			case api.Prometheus.Enable:
@@ -81,7 +81,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				body, _ := ioutil.ReadAll(resp.Body)
 				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
 				if api.Debug {
-					logger.Flex("debug", nil, fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body)), false)
+					load.Logrus.Debug(fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body)))
 				}
 				// if not using pagination handle json for any response, if using pagination check the status code before storing
 				if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
@@ -93,11 +93,13 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
 
 				if err != nil {
-					logger.Flex("error", err, fmt.Sprintf("HTTP URL: %v failed to read resp.Body", *reqURL), false)
+					load.Logrus.WithFields(logrus.Fields{
+						"err": err,
+					}).Error(fmt.Sprintf("http: URL %v failed to read resp.Body", *reqURL))
 				} else {
 					strBody := string(body)
 					if api.Debug {
-						logger.Flex("debug", nil, fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, strBody), false)
+						load.Logrus.Debug(fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, strBody))
 					}
 					output, _ := detectCommandOutput(strBody, "")
 					switch output {
@@ -107,8 +109,9 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 							handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
 						}
 					default:
-						logger.Flex("debug", fmt.Errorf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType), "", false)
-						logger.Flex("debug", fmt.Errorf("%v - storing unknown http output into datastore", api.URL), "", false)
+						load.Logrus.Debug(fmt.Sprintf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType))
+						load.Logrus.Debug(fmt.Sprintf("%v - storing unknown http output into datastore", api.URL))
+
 						if yml.Datastore == nil {
 							yml.Datastore = map[string][]interface{}{}
 						}
@@ -131,7 +134,9 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 
 		} else {
 			for _, err := range errors {
-				logger.Flex("debug", err, "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Debug("http: error")
 			}
 			*doLoop = false
 		}
@@ -177,7 +182,9 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 	if yml.Global.TLSConfig.Ca != "" {
 		ca, err := ioutil.ReadFile(yml.Global.TLSConfig.Ca)
 		if err != nil {
-			logger.Flex("error", err, "failed to read ca", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("http: failed to read ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tmpGlobalTLSConfig.RootCAs = rootCAs
@@ -196,7 +203,9 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		if api.TLSConfig.Ca != "" {
 			ca, err := ioutil.ReadFile(api.TLSConfig.Ca)
 			if err != nil {
-				logger.Flex("error", err, "failed to read ca", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Error("http: failed to read ca")
 			} else {
 				rootCAs.AppendCertsFromPEM(ca)
 				tmpAPITLSConfig.RootCAs = rootCAs
@@ -213,7 +222,9 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
-		logger.Flex("error", err, "", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: failed to unmarshal json")
 	} else {
 		switch f := f.(type) {
 		case []interface{}:
@@ -232,7 +243,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 					// load.StoreAppend(strSample)
 					*dataStore = append(*dataStore, strSample)
 				default:
-					logger.Flex("debug", fmt.Errorf("not sure how to handle this %v", sample), "", false)
+					load.Logrus.Debug(fmt.Sprintf("http: not sure how to handle this %v", sample))
 				}
 			}
 
@@ -243,7 +254,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 			*dataStore = append(*dataStore, theSample)
 
 			if theSample["error"] != nil {
-				logger.Flex("debug", nil, "Request failed "+fmt.Sprintf("%v", theSample["error"]), false)
+				load.Logrus.Debug(fmt.Sprintf("http: request failed %v", theSample["error"]))
 			}
 
 			if theSample["error"] == nil && nextLink != "" {
@@ -265,14 +276,14 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 		}
 		*url = strings.Replace(*url, "${page}", fmt.Sprintf("%d", Pagination.PageStart), -1)
 		*url = strings.Replace(*url, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
-		logger.Flex("debug", nil, fmt.Sprintf("URL: %v begin pagination handling", *url), false)
+		load.Logrus.Debug(fmt.Sprintf("URL: %v begin pagination handling", *url))
 	} else if Pagination.OriginalURL != "" && nextLink != nil && (code >= 200 && code <= 299) {
 		if Pagination.MaxPages == 0 && Pagination.PageLimitKey == "" && Pagination.PayloadKey == "" {
 			link := ""
 			if url != nil {
 				link = *url
 			}
-			logger.Flex("debug", nil, fmt.Sprintf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link), false)
+			load.Logrus.Debug(fmt.Sprintf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link))
 		} else {
 			continueRequest := true
 			customPageMarker := false
@@ -282,7 +293,9 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 			manualNextLink := ""
 			buffer := new(bytes.Buffer)
 			if err := json.Compact(buffer, body); err != nil {
-				logger.Flex("error", err, "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Error("http: failed to compact json")
 			} else {
 				if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" {
 					jsonString := buffer.String()
@@ -291,7 +304,9 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								logger.Flex("error", nerr, nil, false)
+								load.Logrus.WithFields(logrus.Fields{
+									"err": nerr,
+								}).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.PageLimit = no
 							}
@@ -302,7 +317,9 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								logger.Flex("error", nerr, nil, false)
+								load.Logrus.WithFields(logrus.Fields{
+									"err": nerr,
+								}).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.MaxPages = no
 							}
@@ -313,7 +330,9 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								logger.Flex("error", nerr, nil, false)
+								load.Logrus.WithFields(logrus.Fields{
+									"err": nerr,
+								}).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.PageMarker = no
 								customPageMarker = true
@@ -340,7 +359,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 								*nextLink = ""
 								continueRequest = false
 								payloadEmpty = true
-								logger.Flex("debug", nil, fmt.Sprintf("URL: %v walk payload %v %v empty", *nextLink, Pagination.PayloadKey, matches[1]), false)
+								load.Logrus.Debug(fmt.Sprintf("URL: %v walk payload %v %v empty", *nextLink, Pagination.PayloadKey, matches[1]))
 							}
 						}
 					}
@@ -348,7 +367,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 			}
 
 			if (Pagination.PageMarker >= Pagination.MaxPages && Pagination.PayloadKey == "" && payloadKeyFound) || (Pagination.PayloadKey != "" && payloadKeyFound && payloadEmpty) {
-				logger.Flex("debug", nil, fmt.Sprintf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty), false)
+				load.Logrus.Debug(fmt.Sprintf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty))
 				*nextLink = ""
 				return false
 			}
@@ -364,11 +383,11 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 				if page != "" && Pagination.NextLinkKey == "" {
 					*nextLink = strings.Replace((*Pagination).OriginalURL, "${page}", page, -1)
 					*nextLink = strings.Replace(*nextLink, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
-					logger.Flex("debug", nil, fmt.Sprintf("URL: %v walking next link", *nextLink), false)
+					load.Logrus.Debug(fmt.Sprintf("URL: %v walking next link", *nextLink))
 				}
 				if manualNextLink != "" {
 					*nextLink = manualNextLink
-					logger.Flex("debug", nil, fmt.Sprintf("URL: %v walking next link", *nextLink), false)
+					load.Logrus.Debug(fmt.Sprintf("URL: %v walking next link", *nextLink))
 				}
 			}
 		}
@@ -380,7 +399,9 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 func paginationRegex(regexKey string, jsonString string, nextLink *string) []string {
 	re, err := regexp.Compile(regexKey)
 	if err != nil {
-		logger.Flex("error", err, fmt.Sprintf("URL: %v regex compile failed %v", *nextLink, regexKey), false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error(fmt.Sprintf("http: URL %v regex compile failed %v", *nextLink, regexKey))
 	} else {
 		return re.FindStringSubmatch(jsonString)
 	}
