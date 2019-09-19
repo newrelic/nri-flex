@@ -17,29 +17,40 @@ import (
 
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
 // SubLookupFileData substitutes data from lookup files into config
 func SubLookupFileData(configs *[]load.Config, config load.Config) {
-	logger.Flex("debug", nil, "running lookup files", false)
+	load.Logrus.WithFields(logrus.Fields{
+		"name": config.Name,
+	}).Debug("config: running lookup files")
 
 	tmpCfgBytes, err := yaml.Marshal(&config)
 	if err != nil {
-		logger.Flex("error", err, "sub lookup file data marshal failed", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"name": config.Name,
+			"err":  err,
+		}).Error("config: sub lookup file data marshal failed")
 	} else {
 
 		b, err := ioutil.ReadFile(config.LookupFile)
 		if err != nil {
-			logger.Flex("error", err, "unable to readfile", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"file": config.LookupFile,
+				"err":  err,
+			}).Error("config: failed to read lookup file")
 			return
 		}
 
 		jsonOut := []interface{}{}
 		jsonErr := json.Unmarshal(b, &jsonOut)
 		if jsonErr != nil {
-			logger.Flex("error", jsonErr, config.LookupFile, false)
+			load.Logrus.WithFields(logrus.Fields{
+				"file": config.LookupFile,
+				"err":  jsonErr,
+			}).Error("config: failed to unmarshal lookup file")
 			return
 		}
 
@@ -61,14 +72,20 @@ func SubLookupFileData(configs *[]load.Config, config load.Config) {
 				if replaceOccured {
 					newCfg, err := ReadYML(tmpCfgStr)
 					if err != nil {
-						logger.Flex("error", err, fmt.Sprintf("new lookup file unmarshal failed %v %v", config.Name, config.LookupFile), false)
-						logger.Flex("error", fmt.Errorf("check for errors or run yaml lint against the below output:\n%v", tmpCfgStr), "", false)
+
+						load.Logrus.WithFields(logrus.Fields{
+							"file":       config.LookupFile,
+							"err":        err,
+							"name":       config.Name,
+							"suggestion": fmt.Sprintf("check for errors or run yaml lint against the below output:\n%v", tmpCfgStr),
+						}).Error("config: new lookup file unmarshal failed")
+
 					} else {
 						*configs = append(*configs, newCfg)
 					}
 				}
 			default:
-				logger.Flex("debug", nil, "lookup file needs to contain an array of objects", false)
+				load.Logrus.Debug("config: lookup file needs to contain an array of objects")
 			}
 		}
 	}
@@ -166,7 +183,9 @@ func SubTimestamps(strConf *string) {
 				case "h", "hr", "hour":
 					durationType = time.Hour
 				default:
-					logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+					load.Logrus.WithFields(logrus.Fields{
+						"err": err,
+					}).Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
 				}
 
 			} else {
@@ -206,15 +225,21 @@ func SubTimestamps(strConf *string) {
 				timestampReturn = fmt.Sprint(timestampUTC.Format(datetimeFormatTZ))
 
 			default:
-				// default to timestamp in unix milliseoncds
-				logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+				// default to timestamp in unix milliseconds
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Debug("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
+
 				timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 			}
 
 		} else {
 
 			// if the regex does not match,  default to the current timestamp in unix milliseoncds
-			logger.Flex("debug", err, "unable to parse "+timestamp+", defaulting to "+defaultTimestamp, false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Debug("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
+
 			timestampReturn = fmt.Sprint(timestampCurrent.UnixNano() / 1e+6)
 
 		}
