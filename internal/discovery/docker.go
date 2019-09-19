@@ -11,7 +11,6 @@ import (
 	"fmt"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -25,10 +24,10 @@ func setDockerClient() (*client.Client, error) {
 	// var out []byte
 	var err error
 	if load.Args.DockerAPIVersion != "" {
-		logger.Flex("debug", nil, fmt.Sprintf("setting docker client via argument %v", load.Args.DockerAPIVersion), false)
+		load.Logrus.Debug(fmt.Sprintf("docker: setting client via argument %v", load.Args.DockerAPIVersion))
 		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
 	} else {
-		logger.Flex("debug", err, "setting docker client with API version negotiation", false)
+		load.Logrus.Debug("docker: setting client with API version negotiation")
 		cli, err = client.NewClientWithOpts(client.WithAPIVersionNegotiation())
 	}
 	return cli, err
