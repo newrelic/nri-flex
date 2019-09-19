@@ -20,7 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -30,15 +30,22 @@ func loadSecrets(config *load.Config) {
 
 	for name, secret := range config.Secrets {
 		if secret.Kind == "" {
-			logger.Flex("error", fmt.Errorf("secret name: %v, missing kind", name), "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"secret": name,
+			}).Error("config: secret is missing kind")
 			break
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
-			logger.Flex("error", fmt.Errorf("secret name: %v, file, data or http parameter needs to be set", name), "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"secret": name,
+			}).Error(fmt.Sprintf("config: secret needs file, data or http parameter needs to be set"))
 			break
 		}
 
-		logger.Flex("debug", nil, fmt.Sprintf("fetching secret for name: %v, kind: %v", name, secret.Kind), false)
+		load.Logrus.WithFields(logrus.Fields{
+			"secret": name,
+			"kind":   secret.Kind,
+		}).Debug("config: fetching secret")
 
 		tempSecret := secret
 		secretResult := ""
@@ -47,13 +54,19 @@ func loadSecrets(config *load.Config) {
 		switch secret.Kind {
 		case "aws-kms":
 			if secret.Region == "" {
-				logger.Flex("error", fmt.Errorf("secret name: %v, missing region", secret.Region), "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"secret": name,
+					"kind":   secret.Kind,
+				}).Error("config: secret missing region")
 				break
 			}
 			secretResult = awskmsDecrypt(name, tempSecret)
 		case "vault":
 			if secret.HTTP.URL == "" {
-				logger.Flex("error", fmt.Errorf("vault secret name: %v, requires http parameter set", name), "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"secret": name,
+					"kind":   secret.Kind,
+				}).Error("config: vault secret requires http parameter to be set")
 				break
 			}
 			vaultFetch(name, tempSecret, results)
@@ -64,7 +77,11 @@ func loadSecrets(config *load.Config) {
 			if ymlStr == "" {
 				ymlBytes, err := yaml.Marshal(config)
 				if err != nil {
-					logger.Flex("error", err, "", false)
+					load.Logrus.WithFields(logrus.Fields{
+						"secret": name,
+						"kind":   secret.Kind,
+						"err":    err,
+					}).Error("config: secret marshal failed")
 					break
 				}
 				ymlStr = string(ymlBytes)
@@ -88,7 +105,10 @@ func loadSecrets(config *load.Config) {
 		var err error
 		*config, err = ReadYML(ymlStr)
 		if err != nil {
-			logger.Flex("error", err, "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"config": config.Name,
+				"err":    err,
+			}).Error("config: secret unmarshal failed")
 		}
 	}
 }
@@ -109,19 +129,19 @@ func subSecrets(configStr string, secretKey string, secrets map[string]interface
 
 // vaultFetch fetch from Hashicorp Vault
 func vaultFetch(name string, secret load.Secret, results map[string]interface{}) {
-	logger.Flex("debug", nil, "vault fetch "+name, false)
+	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: fetching vault secret")
 	bytes, err := httpWrapper(secret)
 	if err != nil {
-		logger.Flex("error", err, "", false)
+		load.Logrus.WithFields(logrus.Fields{"name": name, "err": err}).Error("config: fetching vault secret failed")
 	} else {
 		var jsonInterface map[string]interface{}
 		err := json.Unmarshal(bytes, &jsonInterface)
 		if err != nil {
-			logger.Flex("error", err, "", false)
+			load.Logrus.WithFields(logrus.Fields{"name": name, "err": err}).Error("config: vault data unmarshal failed")
 		} else {
 			// v1 and v2 engines have this available
 			if jsonInterface["data"] != nil {
-				logger.Flex("debug", nil, "vault fetch "+name+", success", false)
+				load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: fetching vault secret success")
 				switch firstData := jsonInterface["data"].(type) {
 				case map[string]interface{}:
 					isV2 := false
@@ -148,7 +168,7 @@ func vaultFetch(name string, secret load.Secret, results map[string]interface{})
 
 // awskmsDecrypt perform aws kms decrypt and return plaintext
 func awskmsDecrypt(name string, secret load.Secret) string {
-	logger.Flex("debug", nil, "attempting to aws kms decrypt "+name+" secret", false)
+	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: attempting to aws kms decrypt secret")
 	secretData := []byte{}
 
 	if secret.File != "" {
@@ -157,23 +177,46 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 		if err == nil {
 			secretData, err = base64.StdEncoding.DecodeString(string(fileData))
 			if err != nil {
-				logger.Flex("error", err, "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"name": name,
+					"err":  err,
+				}).Error("config: secret base64 decode failed")
 			}
 		} else {
-			logger.Flex("error", err, "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+				"err":  err,
+				"file": secret.File,
+			}).Error("config: aws kms read file failed")
 		}
 	} else if secret.Data != "" {
 		var err error
 		secretData, err = base64.StdEncoding.DecodeString(secret.Data)
-		logger.Flex("error", err, "", false)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+				"err":  err,
+			}).Error("config: aws kms base64 decode failed")
+		}
 	} else if secret.HTTP.URL != "" {
 		bytes, err := httpWrapper(secret)
 		if err != nil {
-			logger.Flex("error", err, "", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"url":  secret.HTTP.URL,
+				"name": name,
+				"err":  err,
+			}).Error("config: aws kms http fetch failed")
+
 		} else {
 			var err error
 			secretData, err = base64.StdEncoding.DecodeString(string(bytes))
-			logger.Flex("error", err, "", false)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": name,
+					"err":  err,
+				}).Error("config: aws kms base64 decode failed")
+			}
 		}
 	}
 
@@ -189,13 +232,19 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 		}
 
 		if len(sharedConfigFiles) > 0 {
-			logger.Flex("debug", nil, "aws kms decrypt "+name+" using custom credentials and/or config", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+			}).Debug("config: aws kms decrypt using custom credentials and/or config")
+
 			sess = session.Must(session.NewSessionWithOptions(session.Options{
 				SharedConfigState: session.SharedConfigEnable,
 				SharedConfigFiles: sharedConfigFiles,
 			}))
 		} else {
-			logger.Flex("debug", nil, "aws kms decrypt "+name+" using default credentials", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+			}).Debug("config: aws kms decrypt using default credentials")
 			sess = session.Must(session.NewSession(&aws.Config{
 				Region: aws.String(secret.Region),
 			}))
@@ -207,9 +256,13 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 		}
 		resp, err := kmsClient.Decrypt(params)
 		if err != nil {
-			logger.Flex("error", err, "aws kms decrypt "+name+" secret, fail", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+			}).Error("config: aws kms decrypt secret failed")
 		} else {
-			logger.Flex("debug", nil, "aws kms decrypt "+name+" secret, success", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+			}).Error("config: aws kms decrypt secret success")
 			return string(resp.Plaintext)
 		}
 	}
@@ -222,7 +275,9 @@ func handleDataType(results map[string]interface{}, dataType string) {
 		var jsonResult map[string]interface{}
 		err := json.Unmarshal([]byte(results["secret.result"].(string)), &jsonResult)
 		if err != nil {
-			logger.Flex("error", err, "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("config: secret unmarshal failed")
 		} else {
 			for key, value := range jsonResult {
 				results[key] = fmt.Sprintf("%v", value)
@@ -251,7 +306,9 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 		rootCAs := x509.NewCertPool()
 		ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
 		if err != nil {
-			logger.Flex("error", err, "failed to read ca", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("config: secret failed to read ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tlsConf.RootCAs = rootCAs

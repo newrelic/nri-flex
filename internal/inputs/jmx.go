@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // SetJMXCommand Add parameters to JMX call
@@ -93,7 +92,7 @@ func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Co
 		*runCommand = *runCommand + " -uriPath " + config.Global.Jmx.URIPath
 	}
 
-	logger.Flex("debug", nil, fmt.Sprintf("completed jmx command: %v", *runCommand), false)
+	load.Logrus.Debug(fmt.Sprintf("commands: completed jmx command: %v", *runCommand))
 }
 
 // ParseJMX Processes JMX Data

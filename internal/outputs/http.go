@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // postRequest wraps request and attaches needed headers and zlib compression
@@ -22,21 +22,28 @@ func postRequest(url string, key string, data []byte) {
 	w := zlib.NewWriter(&zlibCompressedPayload)
 	_, err := w.Write(data)
 	if err != nil {
-		logger.Flex("error", fmt.Errorf("failed to compress payload"), "", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: failed to compress payload")
 		return
 	}
 	err = w.Close()
 	if err != nil {
-		logger.Flex("error", err, "unable to close zlib writer", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: failed to close zlib writer")
 		return
 	}
-	logger.Flex("debug", nil, fmt.Sprintf("insights: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)), false)
+
+	load.Logrus.Debug(fmt.Sprintf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)))
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
 	if err != nil {
-		logger.Flex("error", err, "unable to create http.Request", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: unable to create http.Request")
 		return
 	}
 
@@ -46,16 +53,20 @@ func postRequest(url string, key string, data []byte) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Flex("error", err, "unable to send", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: failed to send")
 	}
 	defer resp.Body.Close()
 
 	if resp != nil {
 		if resp.StatusCode > 299 || resp.StatusCode < 200 {
-			logger.Flex("error", fmt.Errorf("http post unsuccessful code %d", resp.StatusCode), "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"code": resp.StatusCode,
+			}).Error("http: post failed")
 		}
 	} else {
-		logger.Flex("error", fmt.Errorf("http response nil"), "", false)
+		load.Logrus.Error("http: response nil")
 	}
 
 }

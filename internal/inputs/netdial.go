@@ -8,14 +8,12 @@ package inputs
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/textproto"
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // NetDialWithTimeout performs network dial without timeout
@@ -45,7 +43,7 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 	var data string
 	// Run dial via a goroutine
 	go func() {
-		logger.Flex("debug", nil, fmt.Sprintf("dialling %v : %v", addr, netw), false)
+		load.Logrus.Debug(fmt.Sprintf("commands: dialling %v : %v", addr, netw))
 		dialConn, err := net.DialTimeout(netw, addr, time.Duration(timeout)*time.Millisecond)
 		if err != nil {
 			dialError = err
@@ -74,9 +72,9 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 			processOutput(dataStore, data, dataSample, command, api, processType)
 		}
 		if data == "" {
-			logger.Flex("error", errors.New("dial: "+ctx.Err().Error()), "", false)
+			load.Logrus.Error("commands: dial " + ctx.Err().Error())
 		} else {
-			logger.Flex("debug", errors.New("dial: "+ctx.Err().Error()), "", false)
+			load.Logrus.Debug("commands: dial " + ctx.Err().Error())
 		}
 	case <-c:
 		if command.Run == "" && dialError == nil {
@@ -88,6 +86,6 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 		} else if command.Run != "" && dialError == nil && data != "" {
 			processOutput(dataStore, data, dataSample, command, api, processType)
 		}
-		logger.Flex("debug", nil, fmt.Sprintf("finished dial %v : %v", command.Dial, netw), false)
+		load.Logrus.Debug(fmt.Sprintf("commands: finished dial %v : %v", command.Dial, netw))
 	}
 }

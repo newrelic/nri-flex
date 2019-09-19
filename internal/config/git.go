@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -32,32 +32,52 @@ func SyncGitConfigs(customDir string) bool {
 			load.Args.GitRepo = load.Args.GitRepo + "/"
 		}
 
-		logger.Flex("debug", nil, fmt.Sprintf("syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, syncDir), false)
+		load.Logrus.Debug(fmt.Sprintf("config: syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, syncDir))
 
 		u, err := url.Parse(load.Args.GitRepo)
 		if err != nil {
-			logger.Flex("error", err, "invalid url", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"repo": load.Args.GitRepo,
+				"err":  err,
+			}).Error("config: git sync invalid url")
 		} else {
 			repoDir := path.Join(syncDir, u.Path)
 			_, err = appFS.Stat(repoDir)
 			if err == nil {
-				logger.Flex("debug", nil, fmt.Sprintf("pulling git repo %v", load.Args.GitRepo), false)
+				load.Logrus.WithFields(logrus.Fields{
+					"repo": load.Args.GitRepo,
+				}).Debug("config: git sync pulling repo")
+
 				err := GitPull(repoDir)
-				logger.Flex("error", err, "git pull failed", false)
+				if err != nil {
+					load.Logrus.WithFields(logrus.Fields{
+						"err":  err,
+						"repo": load.Args.GitRepo,
+					}).Error("config: git sync pull failed")
+				}
 				if err == nil {
 					return true
 				}
 			} else {
-				logger.Flex("debug", nil, fmt.Sprintf("cloning git repo %v", load.Args.GitRepo), false)
+				load.Logrus.WithFields(logrus.Fields{
+					"repo": load.Args.GitRepo,
+				}).Debug("config: git sync cloning repo")
+
 				err := GitClone(repoDir, u)
-				logger.Flex("error", err, "", false)
+				if err != nil {
+					load.Logrus.WithFields(logrus.Fields{
+						"err":  err,
+						"repo": load.Args.GitRepo,
+					}).Error("config: git clone failed")
+				}
+
 				if err == nil {
 					return true
 				}
 			}
 		}
 	} else {
-		logger.Flex("debug", nil, "git sync configuration not set", false)
+		load.Logrus.Debug("config: git sync configuration not set")
 	}
 
 	return false
@@ -105,7 +125,7 @@ func GitPull(dir string) error {
 	err = w.Pull(&git.PullOptions{RemoteName: "origin"})
 	if err != nil {
 		if err.Error() == "already up-to-date" {
-			logger.Flex("debug", nil, "git pull - "+dir+" "+err.Error(), false)
+			load.Logrus.Debug("config: git pull - " + dir + " " + err.Error())
 			return nil
 		}
 		return err
@@ -120,11 +140,23 @@ func GitCheckout(w *git.Worktree) {
 		err := w.Checkout(&git.CheckoutOptions{
 			Branch: plumbing.NewBranchReferenceName(load.Args.GitBranch),
 		})
-		logger.Flex("error", err, load.Args.GitBranch, false)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err":    err,
+				"repo":   load.Args.GitRepo,
+				"branch": load.Args.GitBranch,
+			}).Error("config: git sync checkout failed")
+		}
 	} else if load.Args.GitCommit != "" {
 		err := w.Checkout(&git.CheckoutOptions{
 			Hash: plumbing.NewHash(load.Args.GitCommit),
 		})
-		logger.Flex("error", err, load.Args.GitCommit, false)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err":    err,
+				"repo":   load.Args.GitRepo,
+				"commit": load.Args.GitCommit,
+			}).Error("config: git sync checkout failed")
+		}
 	}
 }

@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
+	"github.com/sirupsen/logrus"
 )
 
 // ProcessNetworkStat x
@@ -25,7 +25,9 @@ type ProcessNetworkStat struct {
 func Processes() {
 	conns, err := net.Connections("tcp")
 	if err != nil {
-		logger.Flex("error", err, "unable to get tcp connections", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("discovery: processes unable to get tcp connections")
 	} else {
 		load.DiscoveredProcesses = map[string]string{}
 		for _, conn := range conns {
@@ -34,9 +36,17 @@ func Processes() {
 				running, _ := p.IsRunning()
 				if running {
 					name, err := p.Name()
-					logger.Flex("error", err, "", false)
+					if err != nil {
+						load.Logrus.WithFields(logrus.Fields{
+							"err": err,
+						}).Error("discovery: processes unable to get name")
+					}
 					cmd, err := p.Cmdline()
-					logger.Flex("error", err, "", false)
+					if err != nil {
+						load.Logrus.WithFields(logrus.Fields{
+							"err": err,
+						}).Error("discovery: processes unable to cmd line")
+					}
 
 					if checkBlacklistedProcess(name, cmd) {
 						continue

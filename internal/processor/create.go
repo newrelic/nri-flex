@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/data/event"
+	"github.com/sirupsen/logrus"
 
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -38,9 +38,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
 			if load.StatusCounterRead("EventDropCount") == 1 { // don't output the message more then once
-				logger.Flex("error",
-					fmt.Errorf("event limit %d has been reached, please increase if required", load.Args.EventLimit),
-					"", false)
+				load.Logrus.Error(fmt.Sprintf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit))
 			}
 			break
 		}
@@ -126,9 +124,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
 		if inventory[k] == "value" {
-			logger.Flex("error", entity.SetInventoryItem(k, "value", v), "", false)
+			set(entity.SetInventoryItem(k, "value", v))
 		} else {
-			logger.Flex("error", entity.SetInventoryItem(inventory[k], k, v), "", false)
+			set(entity.SetInventoryItem(inventory[k], k, v))
 		}
 	}
 }
@@ -138,17 +136,15 @@ func setEvents(entity *integration.Entity, inventory map[string]string, k string
 	if inventory[k] != "" {
 		value := fmt.Sprintf("%v", v)
 		if inventory[k] != "default" {
-			err := entity.AddEvent(&event.Event{
+			set(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: inventory[k],
-			})
-			logger.Flex("debug", err, "", false)
+			}))
 		} else {
-			err := entity.AddEvent(&event.Event{
+			set(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: k,
-			})
-			logger.Flex("debug", err, "", false)
+			}))
 		}
 	}
 }
@@ -416,7 +412,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 		}
 
 		if useDefaultNamespace {
-			logger.Flex("debug", fmt.Errorf("defaulting a namespace for:%v", api.Name), "", false)
+			load.Logrus.Debug(fmt.Sprintf("flex: defaulting a namespace for:%v", api.Name))
 			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
 		}
 	} else {
@@ -424,8 +420,8 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 	}
 
 	// set default attribute(s)
-	logger.Flex("error", metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
-	logger.Flex("error", metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE), "", false)
+	set(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
+	set(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
 
 	//add sample metrics
 	for k, v := range *currentSample {
@@ -464,28 +460,28 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	value := fmt.Sprintf("%v", v)
 	parsed, err := strconv.ParseFloat(value, 64)
 	if err != nil || strings.EqualFold(value, "infinity") {
-		logger.Flex("error", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
+		set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
 			if (k == metricKey) || (autoSet && formatter.KvFinder(regex, k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
-					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.RATE), "", false)
+					set(metricSet.SetMetric(k, parsed, metric.RATE))
 					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
-					logger.Flex("error", metricSet.SetMetric(k, parsed, metric.DELTA), "", false)
+					set(metricSet.SetMetric(k, parsed, metric.DELTA))
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
-					logger.Flex("error", metricSet.SetMetric(k, value, metric.ATTRIBUTE), "", false)
+					set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 					break
 				}
 			}
 		}
 		if !foundKey {
-			logger.Flex("error", metricSet.SetMetric(k, parsed, metric.GAUGE), "", false)
+			set(metricSet.SetMetric(k, parsed, metric.GAUGE))
 		}
 	}
 }
@@ -498,6 +494,12 @@ func sliceContains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func set(err error) {
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
+	}
 }
 
 // deprecated

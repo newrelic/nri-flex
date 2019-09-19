@@ -13,14 +13,14 @@ import (
 
 	"github.com/newrelic/nri-flex/internal/inputs"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
 func FetchData(apiNo int, yml *load.Config) []interface{} {
-	logger.Flex("debug", nil, fmt.Sprintf("fetching data for %v", yml.Name), false)
+	load.Logrus.Debug(fmt.Sprintf("fetch: %v data", yml.Name))
 
 	api := yml.APIs[apiNo]
 	file := yml.APIs[apiNo].File
@@ -35,13 +35,19 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 		if file != "" {
 			fileData, err := ioutil.ReadFile(file)
 			if err != nil {
-				logger.Flex("error", err, "unable to read file: "+file, false)
+				load.Logrus.WithFields(logrus.Fields{
+					"name": yml.Name,
+					"file": file,
+				}).Error("fetch: failed to read")
 			} else {
 				newBody := strings.Replace(string(fileData), " ", "", -1)
 				var f interface{}
 				err := json.Unmarshal([]byte(newBody), &f)
 				if err != nil {
-					logger.Flex("error", err, "failed to unmarshal", false)
+					load.Logrus.WithFields(logrus.Fields{
+						"name": yml.Name,
+						"file": file,
+					}).Error("fetch: failed to unmarshal")
 				} else {
 					dataStore = append(dataStore, f)
 				}
@@ -91,7 +97,10 @@ func FetchLookups(cfg *load.Config, i int) bool {
 	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[i])
 
 	if err != nil {
-		logger.Flex("error", err, "lookup processor marshal failed", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"name": cfg.Name,
+			"err":  err,
+		}).Error("fetch: lookup processor marshal failed")
 	} else {
 		tmpCfgStr := string(tmpCfgBytes)
 
@@ -114,12 +123,22 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		newAPIs := []string{}
 		lookupIndex := 0
 
-		logger.Flex("debug", fmt.Errorf("lookupStore keys: %d, values: %v", len(cfg.LookupStore), cfg.LookupStore), "", false)
+		load.Logrus.WithFields(logrus.Fields{
+			"name":   cfg.Name,
+			"keys":   len(cfg.LookupStore),
+			"values": cfg.LookupStore,
+		}).Debug("fetch: lookupStore")
+
 		for lookup, lookupKeys := range cfg.LookupStore {
-			logger.Flex("debug", fmt.Errorf("lookup checking index: %d", lookupIndex), "", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+			}).Debug(fmt.Sprintf("fetch: lookup checking index: %d", lookupIndex))
 
 			for z, key := range lookupKeys {
-				logger.Flex("debug", fmt.Errorf("lookup %v val: %v", lookup, key), "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"name": cfg.Name,
+				}).Debug(fmt.Sprintf("fetch: lookup %v val: %v", lookup, key))
 
 				if lookupIndex == 0 {
 					newAPIs = append(newAPIs, tmpCfgStr)
@@ -129,7 +148,9 @@ func FetchLookups(cfg *load.Config, i int) bool {
 					if strings.Contains(newAPIs[z], "${lookup:"+lookup+"}") { // confirm a lookup replacement exists
 						newAPIs[z] = strings.Replace(newAPIs[z], ("${lookup:" + lookup + "}"), key, -1) // replace
 						replaceOccured = true
-						logger.Flex("debug", fmt.Errorf("lookup %v replace with: %v", lookup, key), "", false)
+						load.Logrus.WithFields(logrus.Fields{
+							"name": cfg.Name,
+						}).Debug(fmt.Sprintf("fetch: lookup %v replace with: %v", lookup, key))
 					}
 				}
 
@@ -143,7 +164,10 @@ func FetchLookups(cfg *load.Config, i int) bool {
 				API := load.API{}
 				err := yaml.Unmarshal([]byte(newAPI), &API)
 				if err != nil {
-					logger.Flex("error", err, "failed to unmarshal lookup config", false)
+					load.Logrus.WithFields(logrus.Fields{
+						"name": cfg.Name,
+						"err":  err,
+					}).Error("fetch: failed to unmarshal lookup config")
 				} else {
 					lookupConfig.APIs = append(lookupConfig.APIs, API)
 				}
