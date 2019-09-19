@@ -9,12 +9,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
@@ -30,7 +29,11 @@ import (
 // ProcessQueries processes database queries
 func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	api := yml.APIs[apiNo]
-	logger.Flex("debug", nil, fmt.Sprintf("%v - running db queries %v", yml.Name, api.Database), false)
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name":     yml.Name,
+		"database": api.Database,
+	}).Debug("database: finding flex container id")
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
@@ -44,13 +47,24 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 
 	if err != nil || pingError != nil {
 		if err != nil {
-			logger.Flex("error", err, "", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"err":      err,
+				"name":     yml.Name,
+				"database": api.Database,
+			}).Debug("database: unable to connect")
+
 			if api.Logging.Open {
 				errorLogToInsights(err, api.Database, api.Name, "")
 			}
 		}
 		if pingError != nil {
-			logger.Flex("error", pingError, "ping error", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err":      err,
+				"name":     yml.Name,
+				"database": api.Database,
+			}).Debug("database: ping error")
+
 			if api.Logging.Open {
 				errorLogToInsights(pingError, api.Database, api.Name, "")
 			}
@@ -58,24 +72,47 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	} else {
 		for _, query := range api.DbQueries {
 			if query.Name == "" {
-				logger.Flex("error", fmt.Errorf("missing name for: %v", query.Run), "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"query": query.Run,
+				}).Error("database: query missing name")
 				break
 			}
 			if query.Run == "" {
-				logger.Flex("error", fmt.Errorf("query ('run') parameter not defined"), "", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"query":    query.Run,
+					"name":     yml.Name,
+					"database": api.Database,
+				}).Error("database: run parameter not defined")
 				break
 			}
 
 			rows, err := db.Query(query.Run)
 			if err != nil {
-				logger.Flex("error", err, "query: "+query.Run, false)
+				load.Logrus.WithFields(logrus.Fields{
+					"query":    query.Run,
+					"name":     yml.Name,
+					"database": api.Database,
+				}).Error("database: query failed")
+
 				errorLogToInsights(err, api.Database, api.Name, query.Name)
 			} else {
-				logger.Flex("debug", nil, fmt.Sprintf("running query: %v", query.Run), false)
+
+				load.Logrus.WithFields(logrus.Fields{
+					"configName": yml.Name,
+					"database":   api.Database,
+					"query":      query.Run,
+				}).Debug("database: running query")
 
 				cols, err := rows.Columns()
 				if err != nil {
-					logger.Flex("error", err, "", false)
+
+					load.Logrus.WithFields(logrus.Fields{
+						"configName": yml.Name,
+						"apiName":    api.Name,
+						"database":   api.Database,
+						"query":      query.Run,
+					}).Debug("database: column return failed")
+
 					errorLogToInsights(err, api.Database, api.Name, query.Name)
 				} else {
 					values := make([]sql.RawBytes, len(cols))
@@ -100,7 +137,9 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 						// get RawBytes
 						err = rows.Scan(scanArgs...)
 						if err != nil {
-							logger.Flex("error", err, "", false)
+							load.Logrus.WithFields(logrus.Fields{
+								"err": err,
+							}).Error("database: row scan failed")
 						} else {
 							// Loop through each column
 							for i, col := range values {
@@ -149,12 +188,12 @@ func errorLogToInsights(err error, database, name, queryLabel string) {
 	load.StatusCounterIncrement("EventCount")
 	load.StatusCounterIncrement(database + "Error")
 
-	logger.Flex("debug", errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE), "", false)
+	set(errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE))
 	if name != "" {
-		logger.Flex("debug", errorMetricSet.SetMetric("name", name, metric.ATTRIBUTE), "", false)
+		set(errorMetricSet.SetMetric("name", name, metric.ATTRIBUTE))
 	}
 	if queryLabel != "" {
-		logger.Flex("debug", errorMetricSet.SetMetric("queryLabel", queryLabel, metric.ATTRIBUTE), "", false)
+		set(errorMetricSet.SetMetric("queryLabel", queryLabel, metric.ATTRIBUTE))
 	}
 }
 
@@ -178,11 +217,17 @@ func dbPingWithTimeout(db *sql.DB, pingError *error) {
 	case <-ctx.Done():
 		*pingError = errors.New("Ping failed: " + ctx.Err().Error())
 	case <-c:
-		logger.Flex("debug", nil, "db.Ping finished", false)
+		load.Logrus.Debug("database: db.Ping finished")
 	}
 }
 
 func pingWrapper(db *sql.DB, c chan struct{}, pingError *error) {
 	*pingError = db.Ping()
 	c <- struct{}{}
+}
+
+func set(err error) {
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
+	}
 }
