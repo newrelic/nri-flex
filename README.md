@@ -4,17 +4,15 @@
 
 - Flex is an agnostic AIO New Relic Integration, that can:
   - Abstract the need for end users to write any code other then to define a configuration yml, allowing you to consume metrics from practically anywhere!
-  - Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query. (Java 7+ is required for JMX to work)
+  - Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query (Java 7+ is required for JMX to work).
   - Can generate New Relic metric samples automatically from almost [any endpoint for almost any payload, useful helper functions exist to tidy up your output neatly](#features--support).
   - Simplies deployment and configuration as a single Flex integration can be running multiple integrations which would be just config files.
   - Provides over [200+ Integrations](#integrations)
-  - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in
-  - Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms
+  - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in,
+  - Flex's Service Discovery is tidy, it avoids the need of applying annotations, labels or additional configs against your existing deployments!
+  - Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms.
   - As updates and upgrades are made, all Flex Integrations reap the benefits.
-  - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API
-
-## Disclaimer
-New Relic has open-sourced this integration to enable monitoring of various technologies. This integration is provided AS-IS WITHOUT WARRANTY OR SUPPORT, although you can report issues and contribute to this integration via GitHub. Support for this integration is available with an Expert Services subscription.
+  - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API,
 
 ## Requirements
 - Linux
@@ -22,14 +20,17 @@ New Relic has open-sourced this integration to enable monitoring of various tech
 - New Relic Infrastructure
 
 ## Usage
+- [Installation](#installation)
 - [Download the latest compiled release under the Releases section](https://github.com/newrelic/nri-flex/releases)
 - [Config Examples](https://github.com/newrelic/nri-flex/tree/master/cmd/flex/examples)
-- [Testing](#testing)
 - [Standard Config Layout](#standard-configuration)
-- [Installation](#installation)
 - [Development](#development)
+- [Testing](#testing)
 - [Releasing](#releasing)
 - [Contributing](#contributing)
+
+## Visualizing & Managing with the Flex Manager UI
+- [Flex Manager](https://github.com/newrelic/nr1-flex-manager)
 
 ## Further Documentation
 - [Features & Support](#features--support)
@@ -56,6 +57,26 @@ Additional Logging
 ./nri-flex -verbose
 ```
 
+## Installation
+
+- Setup your configuration(s) see inside examples/flexConfigs for examples
+- Flex will run everything by default in the default flexConfigs/ folder (so keep what you want before deploy)
+- Flex provides two options for ingesting your events, via the New Relic Infrastructure Agent, & the New Relic Insights Event API
+
+### New Relic Infrastructure Agent Install
+
+#### Installs Flex on Linux with defaults and without any Flex Configs 
+```
+sudo bash -c "$(curl -L https://newrelic-flex.s3-ap-southeast-2.amazonaws.com/install_linux_s3.sh)"
+
+# Unpacked in /tmp/nri-flex-linux-$VERSION/...
+```
+
+#### Standard Install
+- Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
+- Run scripts/install_linux.sh or build the docker image
+- Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)
+
 ## Standard Configuration
 - Default configuration looks for Flex config files in /flexConfigs.
 - Run ./nri-flex -help for all available flags.
@@ -71,25 +92,6 @@ The below two flags you could specific a single Flex Config, or another config d
 
 With these flags, you could also define multiple instances with different configurations of Flex within "nri-flex-config.yml" 
 ```
-
-## Installation
-
-- Setup your configuration(s) see inside examples/flexConfigs for examples
-- Flex will run everything by default in the default flexConfigs/ folder (so keep what you want before deploy)
-- Flex provides two options for ingesting your events, via the New Relic Infrastructure Agent, & the New Relic Insights Event API
-
-### New Relic Infrastructure Agent Install
-
-#### Installs Flex on Linux with defaults and without any Flex Configs 
-```
-sudo bash -c "$(curl -L https://newrelic-flex.s3-ap-southeast-2.amazonaws.com/install_linux_s3.sh)"
-
-# Unpacked in /tmp/nri-flex-linux-$VERSION/...
-```
-#### Standard Install
-- Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
-- Run scripts/install_linux.sh or build the docker image
-- Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)
 
 #### Typical file/directory structure layout:
 ```
@@ -131,7 +133,7 @@ From any location:
 nri-flex <- binary
 # below folders in the same location as the binary unless you've specific a different location
 flexConfigs/ <- folder
-flexContainerDiscovery/ <- folder
+flexContainerDiscovery/ <- folder (v1 service discovery, see v2)
 ```
 
 ### Serverless
@@ -311,7 +313,7 @@ docker run -it -p 9696:6379 --label flexDiscoveryRedis="t=redis,c=redis,tt=img,t
 - [+more here](https://github.com/newrelic/nri-flex/wiki/Functions)
 
 ## Integrations 
-For all see within the examples directory.
+For all see within the examples directory as there are many more.
 
 - All Prometheus Exporters
 - Consul
@@ -344,3 +346,6 @@ For all see within the examples directory.
 - tomcat - via jmx
 - bind9
 - df display disk & inode info (shows horizontal split functionality)
+
+## Disclaimer
+New Relic has open-sourced this integration to enable monitoring of various technologies. This integration is provided AS-IS WITHOUT WARRANTY OR SUPPORT, although you can report issues and contribute to this integration via GitHub. Support for this integration is available with an Expert Services subscription.

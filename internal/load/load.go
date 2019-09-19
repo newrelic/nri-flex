@@ -41,8 +41,8 @@ type ArgumentList struct {
 	GitURL                string `default:"" help:"Set alternate git url"`
 	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
-	ProcessDiscovery      bool   `default:"true" help:"Disable process discovery"`
 	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
+	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
 }
 
 // Args Infrastructure SDK Arguments List

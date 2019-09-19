@@ -23,6 +23,8 @@ spec:
           env:
           - name: NRIA_LICENSE_KEY
             value: "YourNR-LicenseKey"
+          - name: CONTAINER_DISCOVERY
+            value: "true"
           ### Sync integrations dynamically from your git repository
           # - name: GIT_REPO 
           #   value: "https://github.com/userName/repoName"

@@ -62,9 +62,11 @@ func TestConfigDir(t *testing.T) {
 	var err error
 	files, err = ioutil.ReadDir(path)
 
-	load.Logrus.WithFields(logrus.Fields{
-		"err": err,
-	}).Fatal("failed to read config dir: " + load.Args.ConfigDir)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Fatal("failed to read config dir: " + load.Args.ConfigDir)
+	}
 
 	LoadFiles(&ymls, files, path) // load standard configs if available
 	RunFiles(&ymls)
