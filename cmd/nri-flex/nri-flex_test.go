@@ -12,9 +12,9 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	fintegration "github.com/newrelic/nri-flex/internal/integration"
+	"github.com/sirupsen/logrus"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
@@ -31,7 +31,9 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 			delete(sample.Metrics, "flex.time.elaspedNs")
 			out, err := sample.MarshalJSON()
 			if err != nil {
-				logger.Flex("debug", err, "failed to marshal", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Debug("failed to marshal")
 			} else if expectedSample == string(out) {
 				matchedSample = true
 				break
