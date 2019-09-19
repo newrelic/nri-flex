@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 )
@@ -18,39 +18,45 @@ import (
 func StatusSample() {
 	flexStatusSample := load.Entity.NewMetricSet("flexStatusSample")
 	endTimeNs := time.Now().UnixNano()
-	logger.Flex("error", flexStatusSample.SetMetric("flex.time.endNs", endTimeNs, metric.GAUGE), "", false)
-	logger.Flex("error", flexStatusSample.SetMetric("flex.time.startNs", load.StartTime, metric.GAUGE), "", false)
-	logger.Flex("error", flexStatusSample.SetMetric("flex.time.elaspedNs", endTimeNs-load.StartTime, metric.GAUGE), "", false)
+	statusLog(flexStatusSample.SetMetric("flex.time.endNs", endTimeNs, metric.GAUGE))
+	statusLog(flexStatusSample.SetMetric("flex.time.startNs", load.StartTime, metric.GAUGE))
+	statusLog(flexStatusSample.SetMetric("flex.time.elaspedNs", endTimeNs-load.StartTime, metric.GAUGE))
 
-	logger.Flex("error", flexStatusSample.SetMetric("flex.IntegrationVersion", load.IntegrationVersion, metric.ATTRIBUTE), "", false)
+	statusLog(flexStatusSample.SetMetric("flex.IntegrationVersion", load.IntegrationVersion, metric.ATTRIBUTE))
 	if load.Args.GitRepo != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.GitRepo", load.Args.GitRepo, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.GitRepo", load.Args.GitRepo, metric.ATTRIBUTE))
 		if load.Args.GitBranch != "" && load.Args.GitCommit == "" {
-			logger.Flex("error", flexStatusSample.SetMetric("flex.GitBranch", load.Args.GitBranch, metric.ATTRIBUTE), "", false)
+			statusLog(flexStatusSample.SetMetric("flex.GitBranch", load.Args.GitBranch, metric.ATTRIBUTE))
 		}
 	}
 	if load.Hostname != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.Hostname", load.Hostname, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.Hostname", load.Hostname, metric.ATTRIBUTE))
 	}
 	if load.ContainerID != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.ContainerId", load.ContainerID, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.ContainerId", load.ContainerID, metric.ATTRIBUTE))
 	}
 	if load.IsKubernetes {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.IsKubernetes", "true", metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.IsKubernetes", "true", metric.ATTRIBUTE))
 	}
 	if load.IsFargate {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.IsFargate", "true", metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.IsFargate", "true", metric.ATTRIBUTE))
 	}
 	if load.LambdaName != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.LambdaName", load.LambdaName, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.LambdaName", load.LambdaName, metric.ATTRIBUTE))
 	}
 	if load.AWSExecutionEnv != "" {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.AWSExecutionEnv", load.AWSExecutionEnv, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.AWSExecutionEnv", load.AWSExecutionEnv, metric.ATTRIBUTE))
 	}
 	for counter, value := range load.FlexStatusCounter.M {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.counter."+counter, value, metric.GAUGE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.counter."+counter, value, metric.GAUGE))
 	}
 	for pid, val := range load.DiscoveredProcesses {
-		logger.Flex("error", flexStatusSample.SetMetric("flex.pd."+pid, val, metric.ATTRIBUTE), "", false)
+		statusLog(flexStatusSample.SetMetric("flex.pd."+pid, val, metric.ATTRIBUTE))
+	}
+}
+
+func statusLog(err error) {
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("status: failed to set metric")
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 )
 
 // FlattenData flatten an interface
@@ -102,7 +101,8 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 					}
 					finalMergedSamples = append(finalMergedSamples, newSample)
 				default:
-					logger.Flex("debug", nil, fmt.Sprintf("%v not sure what to do with this?", sample), false)
+					load.Logrus.Debug("processor: flattener - not sure what to do with this?")
+					load.Logrus.Debug(sample)
 				}
 			}
 		case map[string]interface{}:
@@ -186,7 +186,7 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	for loopKey := range *unknown {
 		switch data := (*unknown)[loopKey].(type) {
 		case map[string]interface{}:
-			logger.Flex("debug", nil, fmt.Sprintf("splitting object %v", loopKey), false)
+			load.Logrus.Debug(fmt.Sprintf("processor: splitting object %v", loopKey))
 			data["split.id"] = loopKey
 			dataSamples = append(dataSamples, data)
 		}

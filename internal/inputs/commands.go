@@ -16,7 +16,7 @@ import (
 
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func makeTimestamp() int64 {
@@ -26,8 +26,13 @@ func makeTimestamp() int64 {
 // RunCommands executes the given commands to create one merged sampled
 func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	startTime := makeTimestamp()
-	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
 	api := yml.APIs[apiNo]
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name":  yml.Name,
+		"count": len(api.Commands),
+	}).Debug("commands: executing")
+
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
 	processType := ""
@@ -69,29 +74,42 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			output, err := cmd.CombinedOutput()
 
 			if err != nil {
-				message := "command failed: " + command.Run
-				if output != nil {
-					message = message + " " + string(output)
-				}
-				logger.Flex("debug", err, message, false)
-			} else if ctx.Err() == context.DeadlineExceeded {
-				logger.Flex("debug", ctx.Err(), "command timed out", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"exec":       command.Run,
+					"err":        err,
+					"suggestion": "if you are handling this error case, ignore",
+				}).Debug("command: failed")
+			}
+
+			if ctx.Err() == context.DeadlineExceeded {
+				load.Logrus.WithFields(logrus.Fields{
+					"exec": command.Run,
+					"err":  ctx.Err(),
+				}).Debug("command: timed out")
 			} else if ctx.Err() != nil {
-				logger.Flex("debug", err, "command execution failed", false)
-			} else {
+				load.Logrus.WithFields(logrus.Fields{
+					"exec": command.Run,
+					"err":  ctx.Err(),
+				}).Debug("command: execution failed")
+			} else if len(output) > 0 {
 				if command.SplitOutput != "" {
 					splitOutput(dataStore, string(output), command, startTime)
 				} else {
 					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 				}
 			}
+
 		} else if command.Cache != "" {
 			if yml.Datastore[command.Cache] != nil {
 				for _, cache := range yml.Datastore[command.Cache] {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
-							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
+
+							load.Logrus.WithFields(logrus.Fields{
+								"cache": command.Cache,
+							}).Debug("command: processing http cache with command processor")
+
 							if command.SplitOutput != "" {
 								splitOutput(dataStore, sample["http"].(string), command, startTime)
 							} else {
@@ -107,7 +125,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			// handle commands against containers
 			if yml.CustomAttributes != nil {
 				if yml.CustomAttributes["containerId"] != "" {
-					logger.Flex("debug", nil, "not handled yet", false)
+					load.Logrus.Debug("command: not handled yet")
 				}
 			}
 		}
@@ -123,23 +141,30 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 	outputBlocks := [][]string{}
-	startSplit := -1
+	startSplit := -1 // initialize
 	endSplit := 0
-	for i, line := range lines {
-		if formatter.KvFinder("regex", line, command.SplitOutput) {
-			if startSplit == -1 {
-				startSplit = i
-			} else {
-				endSplit = i
-				outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
-				startSplit = i
+
+	if len(lines) == 1 {
+		outputBlocks = append(outputBlocks, lines[0:1])
+	} else {
+		for i, line := range lines {
+			if formatter.KvFinder("regex", line, command.SplitOutput) {
+				if startSplit == -1 {
+					startSplit = i
+				} else {
+					endSplit = i
+					outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
+					startSplit = i
+				}
+			}
+
+			//create the last block
+			if i+1 == len(lines) {
+				outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 			}
 		}
-		//create the last block
-		if i+1 == len(lines) {
-			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
-		}
 	}
+
 	processBlocks(dataStore, outputBlocks, command, startTime)
 }
 
@@ -180,13 +205,15 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 			if command.Cache != "" {
 				cmd = "cache - " + command.Cache
 			}
-			logger.Flex("debug", nil, fmt.Sprintf("running %v", cmd), false)
+
+			load.Logrus.Debug(fmt.Sprintf("command: running %v", cmd))
+
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
 			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
 				if *processType == load.TypeColumns {
-					logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
+					load.Logrus.Debug(fmt.Sprintf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name))
 				} else {
 					*processType = "columns"
 					processRawCol(dataStore, dataSample, dataOutput, command)
@@ -208,7 +235,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
+				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -251,7 +278,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
+				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", command.LineEnd))
 				break
 			}
 
@@ -311,7 +338,10 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 			if err == nil {
 				return load.Jmx, f
 			}
-			logger.Flex("debug", err, "failed to unmarshal jmx output", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("commands: failed to unmarshal jmx output")
 		}
 		return load.Jmx, map[string]interface{}{"error": "Failed to process JMX Data"}
 	}

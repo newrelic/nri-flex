@@ -14,8 +14,8 @@ import (
 	"sync"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/processor"
+	"github.com/sirupsen/logrus"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -28,17 +28,24 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 		if err != nil {
 			if strings.Contains(err.Error(), "is a directory") { // if it is a directory then recurse
 				if !strings.Contains(filePath, ".git") && !strings.Contains(filePath, "nr-integrations") { // do not recurse through .git or nr-integrations folder
-					logger.Flex("debug", err, fmt.Sprintf("checking nested configs %v", filePath), false)
+					load.Logrus.WithFields(logrus.Fields{
+						"path": filePath,
+					}).Debug("config: checking nested configs")
 					nextPath := filePath + "/"
 					files, err = ioutil.ReadDir(nextPath)
 					if err != nil {
-						logger.Flex("debug", err, "failed to read config dir: "+nextPath, false)
+						load.Logrus.WithFields(logrus.Fields{
+							"path": nextPath,
+						}).Debug("config: failed to read")
 					} else {
 						LoadFiles(configs, files, nextPath)
 					}
 				}
 			} else {
-				logger.Flex("debug", err, "unable to readfile", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"file": filePath,
+					"err":  err,
+				}).Debug("config: failed to read")
 			}
 			continue
 		}
@@ -54,11 +61,16 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 		config.FilePath = path
 
 		if err != nil {
-			logger.Flex("error", err, "unable to read yml", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"file": filePath,
+				"err":  err,
+			}).Error("config: failed to unmarshal yaml")
 			continue
 		}
 		if config.Name == "" {
-			logger.Flex("error", fmt.Errorf("config file %v requires a name", f.Name()), "", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"file": filePath,
+			}).Error("config: flexConfig requires name")
 			continue
 		}
 
@@ -96,7 +108,7 @@ func ReadYML(yml string) (load.Config, error) {
 // Run Action each config file
 func Run(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
-	logger.Flex("debug", nil, fmt.Sprintf("processing %d apis in %v", len(yml.APIs), yml.Name), false)
+	load.Logrus.Debug(fmt.Sprintf("config: processing %d apis in %v", len(yml.APIs), yml.Name))
 
 	// load secrets
 	loadSecrets(&yml)
@@ -108,7 +120,7 @@ func Run(yml load.Config) {
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
 
-	logger.Flex("debug", nil, fmt.Sprintf("finished processing %d apis in %v", len(yml.APIs), yml.Name), false)
+	load.Logrus.Debug(fmt.Sprintf("config: finished processing %d apis in %v", len(yml.APIs), yml.Name))
 	processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
 }
 
@@ -117,7 +129,7 @@ func RunFiles(configs *[]load.Config) {
 	if load.Args.ProcessConfigsSync {
 		for _, cfg := range *configs {
 			if verifyConfig(cfg) {
-				logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
+				load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running")
 				Run(cfg)
 				load.StatusCounterIncrement("ConfigsProcessed")
 			}
@@ -129,7 +141,7 @@ func RunFiles(configs *[]load.Config) {
 			go func(cfg load.Config) {
 				defer wg.Done()
 				if verifyConfig(cfg) {
-					logger.Flex("debug", nil, fmt.Sprintf("running config: %v", cfg.Name), false)
+					load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running")
 					Run(cfg)
 					load.StatusCounterIncrement("ConfigsProcessed")
 				}
@@ -137,8 +149,7 @@ func RunFiles(configs *[]load.Config) {
 		}
 		wg.Wait()
 	}
-
-	logger.Flex("debug", nil, fmt.Sprintf("completed processing %d configs", load.StatusCounterRead("ConfigsProcessed")), false)
+	load.Logrus.Info(fmt.Sprintf("flex: completed processing %d config(s)", load.StatusCounterRead("ConfigsProcessed")))
 }
 
 // verifyConfig ensure the config file doesn't have anything it should not run
@@ -161,11 +172,11 @@ func verifyConfig(cfg load.Config) bool {
 func RunVariableProcessor(i int, cfg *load.Config) {
 	// don't use variable processor if nothing exists in variable store
 	if len((*cfg).VariableStore) > 0 {
-		logger.Flex("debug", nil, fmt.Sprintf("running variable processor %d items in store", len((*cfg).VariableStore)), false)
+		load.Logrus.Debug(fmt.Sprintf("running variable processor %d items in store", len((*cfg).VariableStore)))
 		// to simplify replacement, convert to string, and convert back later
 		tmpCfgBytes, err := yaml.Marshal(&cfg)
 		if err != nil {
-			logger.Flex("error", err, "variable processor marshal failed", false)
+			load.Logrus.WithFields(logrus.Fields{"err": err, "name": cfg.Name}).Error("config: variable processor marshal failed")
 		} else {
 			tmpCfgStr := string(tmpCfgBytes)
 			variableReplaces := regexp.MustCompile(`\${var:.*?}`).FindAllString(tmpCfgStr, -1)
@@ -181,7 +192,7 @@ func RunVariableProcessor(i int, cfg *load.Config) {
 			if replaceOccured {
 				newCfg, err := ReadYML(tmpCfgStr)
 				if err != nil {
-					logger.Flex("error", err, "variable processor unmarshal failed", false)
+					load.Logrus.WithFields(logrus.Fields{"err": err, "name": cfg.Name}).Error("config: variable processor unmarshal failed")
 				} else {
 					*cfg = newCfg
 				}

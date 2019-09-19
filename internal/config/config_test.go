@@ -17,7 +17,7 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
@@ -61,7 +61,10 @@ func TestConfigDir(t *testing.T) {
 	path := filepath.FromSlash(load.Args.ConfigDir)
 	var err error
 	files, err = ioutil.ReadDir(path)
-	logger.Flex("fatal", err, "failed to read config dir: "+load.Args.ConfigDir, false)
+
+	load.Logrus.WithFields(logrus.Fields{
+		"err": err,
+	}).Fatal("failed to read config dir: " + load.Args.ConfigDir)
 
 	LoadFiles(&ymls, files, path) // load standard configs if available
 	RunFiles(&ymls)

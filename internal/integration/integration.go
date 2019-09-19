@@ -17,7 +17,6 @@ import (
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/newrelic/nri-flex/internal/outputs"
 	"github.com/sirupsen/logrus"
 )
@@ -30,7 +29,11 @@ func RunFlex(mode string) {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
 
-	logger.Flex("debug", nil, fmt.Sprintf("%v: v%v %v:%v", load.IntegrationName, load.IntegrationVersion, runtime.GOOS, runtime.GOARCH), false)
+	load.Logrus.WithFields(logrus.Fields{
+		"version": load.IntegrationVersion,
+		"GOOS":    runtime.GOOS,
+		"GOARCH":  runtime.GOARCH,
+	}).Info(load.IntegrationName)
 
 	// store config ymls
 	configs := []load.Config{}
@@ -58,7 +61,8 @@ func RunFlex(mode string) {
 		discovery.Processes()
 	}
 
-	logger.Flex("debug", nil, fmt.Sprintf("config files loaded %d", len(configs)), false)
+	load.Logrus.Info(fmt.Sprintf("flex: config files loaded %d", len(configs)))
+
 	config.RunFiles(&configs)
 	outputs.StatusSample()
 
@@ -67,13 +71,18 @@ func RunFlex(mode string) {
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		outputs.SendToMetricAPI()
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
-		logger.Flex("debug", nil, "metric_api is being used, but metric url and/or key has not been set", false)
+		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set", len(configs))
 	}
 }
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) {
 	file, err := os.Stat(configFile)
-	logger.Flex("fatal", err, "failed to read specified config file: "+configFile, false)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err":  err,
+			"file": configFile,
+		}).Fatal("config: failed to read")
+	}
 	path := strings.Replace(filepath.FromSlash(configFile), file.Name(), "", -1)
 	files := []os.FileInfo{file}
 	config.LoadFiles(configs, files, path)
@@ -82,7 +91,12 @@ func addSingleConfigFile(configFile string, configs *[]load.Config) {
 func addConfigsFromPath(path string, configs *[]load.Config) {
 	configPath := filepath.FromSlash(path)
 	files, err := ioutil.ReadDir(configPath)
-	logger.Flex("fatal", err, fmt.Sprintf("failed to read config dir %v", path), false)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+			"dir": path,
+		}).Fatal("config: failed to read")
+	}
 	config.LoadFiles(configs, files, configPath)
 }
 

@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 )
@@ -20,7 +20,10 @@ func InfraIntegration() {
 
 	var err error
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
-	logger.Flex("fatal", err, "", false)
+
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create integration")
+	}
 
 	if load.Args.Local {
 		load.Entity = load.Integration.LocalEntity()
@@ -37,5 +40,7 @@ func InfraRemoteEntity() {
 		setEntity = load.Args.Entity
 	}
 	load.Entity, err = load.Integration.Entity(setEntity, "nri-flex")
-	logger.Flex("fatal", err, "", false)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create remote entity")
+	}
 }

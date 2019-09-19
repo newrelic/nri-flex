@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func TestRunHTTP(t *testing.T) {
@@ -25,7 +25,11 @@ func TestRunHTTP(t *testing.T) {
 		rw.Header().Set("Content-Type", "application/json")
 		fileData, _ := ioutil.ReadFile("../../test/payloadsExpected/httpTest.json")
 		_, err := rw.Write(fileData)
-		logger.Flex("debug", err, "failed to write", false)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("http: failed to write")
+		}
 	}))
 	// NewUnstartedServer creates a listener. Close listener and replace with the one we created.
 	ts.Listener.Close()

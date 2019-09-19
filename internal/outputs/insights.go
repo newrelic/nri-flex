@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -24,9 +24,11 @@ func SendToInsights() {
 		modifyEventType(entity)
 		jsonData, err := json.Marshal(entity.Metrics)
 		if err != nil {
-			logger.Flex("debug", err, "failed to marshal", false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("insights: failed to marshal json")
 		} else {
-			logger.Flex("info", nil, fmt.Sprintf("posting %d events to insights", len(entity.Metrics)), false)
+			load.Logrus.Info(fmt.Sprintf("posting %d events to insights", len(entity.Metrics)))
 			postRequest(load.Args.InsightsURL, load.Args.InsightsAPIKey, jsonData)
 			if load.Args.InsightsOutput {
 				fmt.Println(string(jsonData))
