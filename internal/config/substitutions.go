@@ -77,8 +77,9 @@ func SubLookupFileData(configs *[]load.Config, config load.Config) {
 							"file":       config.LookupFile,
 							"err":        err,
 							"name":       config.Name,
-							"suggestion": fmt.Sprintf("check for errors or run yaml lint against the below output:\n%v", tmpCfgStr),
+							"suggestion": "check for errors or run yaml lint against the below output",
 						}).Error("config: new lookup file unmarshal failed")
+						load.Logrus.Error(tmpCfgStr)
 
 					} else {
 						*configs = append(*configs, newCfg)
