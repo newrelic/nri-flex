@@ -16,7 +16,6 @@ import (
 
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -83,9 +82,15 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			}
 
 			if ctx.Err() == context.DeadlineExceeded {
-				logger.Flex("debug", ctx.Err(), "command timed out", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"exec": command.Run,
+					"err":  ctx.Err(),
+				}).Debug("command: timed out")
 			} else if ctx.Err() != nil {
-				logger.Flex("debug", err, "command execution failed", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"exec": command.Run,
+					"err":  ctx.Err(),
+				}).Debug("command: execution failed")
 			} else if len(output) > 0 {
 				if command.SplitOutput != "" {
 					splitOutput(dataStore, string(output), command, startTime)
@@ -100,7 +105,11 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
-							logger.Flex("debug", nil, fmt.Sprintf("processing http cache with command processor %v", command.Cache), false)
+
+							load.Logrus.WithFields(logrus.Fields{
+								"cache": command.Cache,
+							}).Debug("command: processing http cache with command processor")
+
 							if command.SplitOutput != "" {
 								splitOutput(dataStore, sample["http"].(string), command, startTime)
 							} else {
@@ -116,7 +125,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			// handle commands against containers
 			if yml.CustomAttributes != nil {
 				if yml.CustomAttributes["containerId"] != "" {
-					logger.Flex("debug", nil, "not handled yet", false)
+					load.Logrus.Debug("command: not handled yet")
 				}
 			}
 		}
@@ -196,13 +205,15 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 			if command.Cache != "" {
 				cmd = "cache - " + command.Cache
 			}
-			logger.Flex("debug", nil, fmt.Sprintf("running %v", cmd), false)
+
+			load.Logrus.Debug(fmt.Sprintf("command: running %v", cmd))
+
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
 			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
 				if *processType == load.TypeColumns {
-					logger.Flex("debug", fmt.Errorf("horizonal split only allowed once per command set %v %v", api.Name, command.Name), "", false)
+					load.Logrus.Debug(fmt.Sprintf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name))
 				} else {
 					*processType = "columns"
 					processRawCol(dataStore, dataSample, dataOutput, command)
@@ -224,7 +235,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", lineEnd), false)
+				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -267,7 +278,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				logger.Flex("debug", nil, fmt.Sprintf("reached line limit %d", command.LineEnd), false)
+				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
 				break
 			}
 
@@ -327,7 +338,11 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 			if err == nil {
 				return load.Jmx, f
 			}
-			logger.Flex("debug", err, "failed to unmarshal jmx output", false)
+
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error("commands: failed to unmarshal jmx output")
+
 		}
 		return load.Jmx, map[string]interface{}{"error": "Failed to process JMX Data"}
 	}
