@@ -12,7 +12,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	logrus "github.com/sirupsen/logrus"
 )
 
@@ -26,7 +25,7 @@ func LambdaCheck() bool {
 	load.Logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	if load.Args.InsightsURL == "" || load.Args.InsightsAPIKey == "" {
-		logger.Flex("error", fmt.Errorf("missing insights URL and/or API key"), "", false)
+		load.Logrus.Fatal("lambda: missing insights URL and/or API key")
 		return false
 	}
 	return true
@@ -39,7 +38,7 @@ func Lambda() {
 
 // HandleRequest Handles incoming lambda request
 func HandleRequest(ctx context.Context, event interface{}) (string, error) {
-	logger.Flex("info", nil, "running as lambda", false)
+	load.Logrus.Info("flex: running as lambda")
 	SetDefaults()
 
 	if event != nil {
