@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -26,12 +26,19 @@ type Family struct {
 
 // Prometheus from http io
 func Prometheus(dataStore *[]interface{}, input io.Reader, cfg *load.Config, api *load.API) {
-	logger.Flex("debug", nil, fmt.Sprintf("%v running prometheus parser", cfg.Name), false)
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfg.Name,
+	}).Debug("prometheus: running parser")
 
 	mfChan := make(chan *dto.MetricFamily, 1024)
 	go func() {
 		if err := ParseReader(input, mfChan); err != nil {
-			logger.Flex("error", err, "prometheus parsing failure", false)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": cfg.Name,
+					"err":  err,
+				}).Error("prometheus: parsing failure")
+			}
 		}
 	}()
 
@@ -43,7 +50,9 @@ func Prometheus(dataStore *[]interface{}, input io.Reader, cfg *load.Config, api
 }
 
 func prometheusStandard(api *load.API, mfChan *chan *dto.MetricFamily, dataStore *[]interface{}, cfgName string) {
-	logger.Flex("debug", nil, fmt.Sprintf("%v - prometheus parser generating standard event output", cfgName), false)
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfgName,
+	}).Debug("prometheus: parser generating standard event output")
 
 	// kept for temporary backwards compatibility
 	if (*api).Prometheus.Unflatten {
@@ -178,7 +187,9 @@ func prometheusNewFamily(dtoMF *dto.MetricFamily, dataStore *[]interface{}, api 
 }
 
 func prometheusMetricAPI(api *load.API, mfChan *chan *dto.MetricFamily, cfgName string) {
-	logger.Flex("debug", nil, fmt.Sprintf("%v - prometheus parser generating metric api output", cfgName), false)
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfgName,
+	}).Debug("prometheus: parser generating standard event output")
 
 	for mf := range *mfChan {
 		for _, m := range mf.Metric {
