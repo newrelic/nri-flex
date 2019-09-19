@@ -6,15 +6,15 @@
 package processor
 
 import (
-	"fmt"
-
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // RunDataHandler handles the data received for processing
 func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
-	logger.Flex("debug", nil, fmt.Sprintf("running data handler for %v", cfg.Name), false)
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfg.Name,
+	}).Debug("processor: running data handler")
 	for _, dataSet := range dataSets {
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
@@ -24,7 +24,9 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 			nextDataSets := dataSet
 			RunDataHandler(nextDataSets, samplesToMerge, i, cfg)
 		default:
-			logger.Flex("debug", nil, "not sure what to do with "+cfg.Name, false)
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+			}).Debug("processor: not sure what to do with this?!")
 		}
 	}
 }
