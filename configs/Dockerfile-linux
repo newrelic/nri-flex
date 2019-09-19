@@ -1,5 +1,7 @@
 FROM newrelic/infrastructure:1.5.0
 
+# Note if using for Kubernetes you could alternatively set these options in your deployment yaml too
+
 # define license key as below, or copy a newrelic-infra.yml over
 # refer to here for more info: https://hub.docker.com/r/newrelic/infrastructure/
 # ENV NRIA_LICENSE_KEY=1234567890abcdefghijklmnopqrstuvwxyz1234
@@ -7,6 +9,12 @@ FROM newrelic/infrastructure:1.5.0
 # disable the newrelic infrastructure agent from performing any additional monitoring
 # using forwarder mode will only make it responsible for executing integrations
 ENV NRIA_IS_FORWARD_ONLY true 
+
+# Enable Container Discovery for all orchestrators (for Fargate see below option)
+ENV CONTAINER_DISCOVERY true 
+
+# Enable Container Discovery for Fargate
+# ENV FARGATE true
 
 # Allow environment variables to be passed through to flex
 # https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/configuration/infrastructure-configuration-settings#integrations-variables

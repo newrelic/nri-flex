@@ -4,14 +4,15 @@
 
 - Flex is an agnostic AIO New Relic Integration, that can:
   - Abstract the need for end users to write any code other then to define a configuration yml, allowing you to consume metrics from practically anywhere!
-  - Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query. (Java 7+ is required for JMX to work)
+  - Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query (Java 7+ is required for JMX to work).
   - Can generate New Relic metric samples automatically from almost [any endpoint for almost any payload, useful helper functions exist to tidy up your output neatly](#features--support).
   - Simplies deployment and configuration as a single Flex integration can be running multiple integrations which would be just config files.
   - Provides over [200+ Integrations](#integrations)
-  - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in
-  - Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms
+  - Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in,
+  - Flex's Service Discovery is tidy, it avoids the need of applying annotations, labels or additional configs against your existing deployments!
+  - Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms.
   - As updates and upgrades are made, all Flex Integrations reap the benefits.
-  - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API
+  - Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API,
 
 ## Requirements
 - Linux
@@ -132,7 +133,7 @@ From any location:
 nri-flex <- binary
 # below folders in the same location as the binary unless you've specific a different location
 flexConfigs/ <- folder
-flexContainerDiscovery/ <- folder
+flexContainerDiscovery/ <- folder (v1 service discovery, see v2)
 ```
 
 ### Serverless
@@ -312,7 +313,7 @@ docker run -it -p 9696:6379 --label flexDiscoveryRedis="t=redis,c=redis,tt=img,t
 - [+more here](https://github.com/newrelic/nri-flex/wiki/Functions)
 
 ## Integrations 
-For all see within the examples directory.
+For all see within the examples directory as there are many more.
 
 - All Prometheus Exporters
 - Consul
