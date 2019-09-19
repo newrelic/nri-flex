@@ -1,3 +1,10 @@
+0.8.0-pre
+------
+- Remove logger and use logrus natively
+- Update build scripts and configs
+- Improve decoration of docker attributes
+- Add additional timing options
+
 0.7.7-pre
 ------
 - Add URL Pagination Support, see examples/flexConfigs/pagination-example.yml

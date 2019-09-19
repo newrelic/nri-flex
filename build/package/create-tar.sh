@@ -16,8 +16,9 @@ cp ./README.md ${BUILD_DIR}/
 [ -f "./configs/Dockerfile-${OS}" ] && cp ./configs/Dockerfile-${OS} ${BUILD_DIR}/Dockerfile
 [ -f "./scripts/install_${OS}.sh" ] && cp ./scripts/install_${OS}.sh ${BUILD_DIR}/
 [ -f "./scripts/install_${OS}.bat" ] && cp ./scripts/install_${OS}.bat ${BUILD_DIR}/
-cp ./configs/nri-flex-config.yml ${BUILD_DIR}/
-cp ./configs/nri-flex-def-${OS}.yml ${BUILD_DIR}/${COMMAND}-definition.yml
+[ -f "./configs/nri-flex-def-${OS}.yml" ] && cp ./configs/nri-flex-def-${OS}.yml ${BUILD_DIR}/${COMMAND}-definition.yml
+[ -f "./configs/nri-flex-config-${OS}.yml" ] && cp ./configs/nri-flex-config-${OS}.yml ${BUILD_DIR}/nri-flex-config.yml
+
 cp -a ./examples ${BUILD_DIR}/
 cp -a ./nrjmx ${BUILD_DIR}/
 

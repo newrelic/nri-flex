@@ -14,5 +14,4 @@ cmd/nri-flex/flex*
 dump*
 *.serverless
 LATEST
-nri-flex-*-*
 .vendor-new*
