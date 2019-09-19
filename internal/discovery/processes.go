@@ -36,13 +36,17 @@ func Processes() {
 				running, _ := p.IsRunning()
 				if running {
 					name, err := p.Name()
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("discovery: processes unable to get name")
+					if err != nil {
+						load.Logrus.WithFields(logrus.Fields{
+							"err": err,
+						}).Error("discovery: processes unable to get name")
+					}
 					cmd, err := p.Cmdline()
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("discovery: processes unable to cmd line")
+					if err != nil {
+						load.Logrus.WithFields(logrus.Fields{
+							"err": err,
+						}).Error("discovery: processes unable to cmd line")
+					}
 
 					if checkBlacklistedProcess(name, cmd) {
 						continue

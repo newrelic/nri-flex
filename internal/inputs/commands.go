@@ -17,6 +17,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func makeTimestamp() int64 {
@@ -26,8 +27,13 @@ func makeTimestamp() int64 {
 // RunCommands executes the given commands to create one merged sampled
 func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	startTime := makeTimestamp()
-	logger.Flex("debug", nil, fmt.Sprintf("%v - running commands", yml.Name), false)
 	api := yml.APIs[apiNo]
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name":  yml.Name,
+		"count": len(api.Commands),
+	}).Debug("commands: executing")
+
 	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
 	processType := ""
@@ -69,22 +75,25 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			output, err := cmd.CombinedOutput()
 
 			if err != nil {
-				message := "command failed: " + command.Run
-				if output != nil {
-					message = message + " " + string(output)
-				}
-				logger.Flex("debug", err, message, false)
-			} else if ctx.Err() == context.DeadlineExceeded {
+				load.Logrus.WithFields(logrus.Fields{
+					"exec":       command.Run,
+					"err":        err,
+					"suggestion": "if you are handling this error case, ignore",
+				}).Debug("command: failed")
+			}
+
+			if ctx.Err() == context.DeadlineExceeded {
 				logger.Flex("debug", ctx.Err(), "command timed out", false)
 			} else if ctx.Err() != nil {
 				logger.Flex("debug", err, "command execution failed", false)
-			} else {
+			} else if len(output) > 0 {
 				if command.SplitOutput != "" {
 					splitOutput(dataStore, string(output), command, startTime)
 				} else {
 					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 				}
 			}
+
 		} else if command.Cache != "" {
 			if yml.Datastore[command.Cache] != nil {
 				for _, cache := range yml.Datastore[command.Cache] {
@@ -123,23 +132,30 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 	outputBlocks := [][]string{}
-	startSplit := -1
+	startSplit := -1 // initialize
 	endSplit := 0
-	for i, line := range lines {
-		if formatter.KvFinder("regex", line, command.SplitOutput) {
-			if startSplit == -1 {
-				startSplit = i
-			} else {
-				endSplit = i
-				outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
-				startSplit = i
+
+	if len(lines) == 1 {
+		outputBlocks = append(outputBlocks, lines[0:1])
+	} else {
+		for i, line := range lines {
+			if formatter.KvFinder("regex", line, command.SplitOutput) {
+				if startSplit == -1 {
+					startSplit = i
+				} else {
+					endSplit = i
+					outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
+					startSplit = i
+				}
+			}
+
+			//create the last block
+			if i+1 == len(lines) {
+				outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 			}
 		}
-		//create the last block
-		if i+1 == len(lines) {
-			outputBlocks = append(outputBlocks, lines[startSplit:i+1])
-		}
 	}
+
 	processBlocks(dataStore, outputBlocks, command, startTime)
 }
 
