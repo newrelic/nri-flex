@@ -1,6 +1,5 @@
 # New Relic - Flex
 [![Build Status](https://badge.buildkite.com/fe011ab8474a98a28ac3255e2141ec3887e9accda7d3c31196.svg?branch=master)](https://buildkite.com/kav91/nri-flex)
-[![Known Vulnerabilities](https://snyk.io/test/github/newrelic/nri-flex/badge.svg)](https://snyk.io/test/github/newrelic/nri-flex)
 
 - Flex is an agnostic AIO New Relic Integration, that can:
   - Abstract the need for end users to write any code other then to define a configuration yml, allowing you to consume metrics from practically anywhere!
