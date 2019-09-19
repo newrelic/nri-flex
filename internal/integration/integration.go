@@ -77,10 +77,12 @@ func RunFlex(mode string) {
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) {
 	file, err := os.Stat(configFile)
-	load.Logrus.WithFields(logrus.Fields{
-		"err":  err,
-		"file": configFile,
-	}).Fatal("config: failed to read")
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err":  err,
+			"file": configFile,
+		}).Fatal("config: failed to read")
+	}
 	path := strings.Replace(filepath.FromSlash(configFile), file.Name(), "", -1)
 	files := []os.FileInfo{file}
 	config.LoadFiles(configs, files, path)
@@ -89,10 +91,12 @@ func addSingleConfigFile(configFile string, configs *[]load.Config) {
 func addConfigsFromPath(path string, configs *[]load.Config) {
 	configPath := filepath.FromSlash(path)
 	files, err := ioutil.ReadDir(configPath)
-	load.Logrus.WithFields(logrus.Fields{
-		"err": err,
-		"dir": path,
-	}).Fatal("config: failed to read")
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+			"dir": path,
+		}).Fatal("config: failed to read")
+	}
 	config.LoadFiles(configs, files, configPath)
 }
 
