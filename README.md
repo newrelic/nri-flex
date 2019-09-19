@@ -43,20 +43,6 @@
 
 ---
 
-## Testing
-- [Compiled Releases](https://github.com/newrelic/nri-flex/releases)
-- For additional logging use the `-verbose` flag
-```
-Testing a single config
-./nri-flex -config_file "examples/flexConfigs/redis-cmd-raw-example.yml"
-
-Running without any flags, will default to run all configs within ./flexConfigs
-./nri-flex 
-
-Additional Logging
-./nri-flex -verbose
-```
-
 ## Installation
 
 - Setup your configuration(s) see inside examples/flexConfigs for examples
@@ -73,6 +59,7 @@ sudo bash -c "$(curl -L https://newrelic-flex.s3-ap-southeast-2.amazonaws.com/in
 ```
 
 #### Standard Install
+- [Compiled Releases](https://github.com/newrelic/nri-flex/releases)
 - Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
 - Run scripts/install_linux.sh or build the docker image
 - Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)
@@ -144,6 +131,20 @@ flexContainerDiscovery/ <- folder (v1 service discovery, see v2)
 
 - Build your Docker Image, and deploy as a daemonset, view [examples/nri-flex-k8s.yml](examples/nri-flex-k8s.yml)
 - View wiki for information on how to use [service discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery)
+
+## Testing
+- [Compiled Releases](https://github.com/newrelic/nri-flex/releases)
+- For additional logging use the `-verbose` flag
+```
+Testing a single config
+./nri-flex -config_file "examples/flexConfigs/redis-cmd-raw-example.yml"
+
+Running without any flags, will default to run all configs within ./flexConfigs
+./nri-flex 
+
+Additional Logging
+./nri-flex -verbose
+```
 
 ## Development
 
