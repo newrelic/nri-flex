@@ -15,7 +15,7 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // RunValConversion performs percentage to decimal & nano second to millisecond
@@ -138,7 +138,9 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 				delete((*ds), flattenKey)
 				(*ds)[flattenKey] = flat
 			} else {
-				logger.Flex("error", err, "unable to lazy_flatten", false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Error("processor: unable to lazy_flatten")
 			}
 		}
 	}
@@ -157,11 +159,15 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		}
 		expression, err := govaluate.NewEvaluableExpression(finalFormula)
 		if err != nil {
-			logger.Flex("error", err, fmt.Sprintf("%v math exp failed %v", newMetric, finalFormula), false)
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Error(fmt.Sprintf("processor: %v math exp failed %v", newMetric, finalFormula))
 		} else {
 			result, err := expression.Evaluate(nil)
 			if err != nil {
-				logger.Flex("error", err, fmt.Sprintf("%v math evalute failed %v", newMetric, finalFormula), false)
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Error(fmt.Sprintf("processor: %v math evalute failed %v", newMetric, finalFormula))
 			} else {
 				(*currentSample)[newMetric] = result
 			}
