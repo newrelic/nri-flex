@@ -15,7 +15,6 @@ import (
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -239,9 +238,9 @@ func TestPrometheusNginx3(t *testing.T) {
 		rw.Header().Set("Content-Type", "text/plain; version=0.0.4")
 		fileData, _ := ioutil.ReadFile("../../test/payloads/prometheusNginx.out")
 		_, err := rw.Write(fileData)
-		err != nil {
+		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
-				"err":   err,
+				"err": err,
 			}).Error("prometheus: failed to write")
 		}
 	}))
