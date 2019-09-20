@@ -6,6 +6,7 @@ apis:
       open: true
     custom_attributes: # applies to all queries
       host: myDbServer
+    db_async: true # process queries async
     db_queries: 
       - name: mysqlSessionSample
         run: Select * from sys.dm_exec_sessions
