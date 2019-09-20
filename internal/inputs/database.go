@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
@@ -70,91 +71,114 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			}
 		}
 	} else {
-		for _, query := range api.DbQueries {
-			if query.Name == "" {
-				load.Logrus.WithFields(logrus.Fields{
-					"query": query.Run,
-				}).Error("database: query missing name")
-				break
+		// execute queries async else do synchronously
+		if api.DbAsync {
+			var wg sync.WaitGroup
+			wg.Add(len(api.DbQueries))
+			for _, query := range api.DbQueries {
+				go func(query load.Command) {
+					defer wg.Done()
+					if query.Name == "" || query.Run == "" {
+						if query.Name == "" {
+							load.Logrus.WithFields(logrus.Fields{"query": query.Run}).Error("database: query missing name")
+						}
+						if query.Run == "" {
+							load.Logrus.WithFields(logrus.Fields{"query": query.Run, "name": yml.Name, "database": api.Database}).Error("database: run parameter not defined")
+						}
+					} else {
+						runQuery(db, query, api, yml, dataStore)
+					}
+				}(query)
 			}
-			if query.Run == "" {
-				load.Logrus.WithFields(logrus.Fields{
-					"query":    query.Run,
-					"name":     yml.Name,
-					"database": api.Database,
-				}).Error("database: run parameter not defined")
-				break
+			wg.Wait()
+		} else {
+			for _, query := range api.DbQueries {
+				if query.Name == "" {
+					load.Logrus.WithFields(logrus.Fields{"query": query.Run}).Error("database: query missing name")
+					break
+				}
+				if query.Run == "" {
+					load.Logrus.WithFields(logrus.Fields{"query": query.Run, "name": yml.Name, "database": api.Database}).Error("database: run parameter not defined")
+					break
+				}
+				runQuery(db, query, api, yml, dataStore)
+			}
+		}
+	}
+}
+
+func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, dataStore *[]interface{}) {
+	queryStartTime := load.TimestampMs()
+	rows, err := db.Query(query.Run)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"query":    query.Run,
+			"name":     yml.Name,
+			"database": api.Database,
+		}).Error("database: query failed")
+
+		errorLogToInsights(err, api.Database, api.Name, query.Name)
+	} else {
+
+		load.Logrus.WithFields(logrus.Fields{
+			"configName": yml.Name,
+			"database":   api.Database,
+			"query":      query.Run,
+		}).Debug("database: running query")
+
+		cols, err := rows.Columns()
+		if err != nil {
+
+			load.Logrus.WithFields(logrus.Fields{
+				"configName": yml.Name,
+				"apiName":    api.Name,
+				"database":   api.Database,
+				"query":      query.Run,
+			}).Debug("database: column return failed")
+
+			errorLogToInsights(err, api.Database, api.Name, query.Name)
+		} else {
+			values := make([]sql.RawBytes, len(cols))
+			scanArgs := make([]interface{}, len(values))
+			for i := range values {
+				scanArgs[i] = &values[i]
 			}
 
-			rows, err := db.Query(query.Run)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"query":    query.Run,
-					"name":     yml.Name,
-					"database": api.Database,
-				}).Error("database: query failed")
+			// Fetch rows
+			rowNo := 1
+			for rows.Next() {
+				rowSet := map[string]interface{}{
+					"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
+					"queryLabel":    query.Name,
+					"event_type":    query.Name,
+				}
+				// apply event type override if set (this is useful to set if needing to group multiples under one event type)
+				if query.EventType != "" {
+					rowSet["event_type"] = query.EventType
+				}
 
-				errorLogToInsights(err, api.Database, api.Name, query.Name)
-			} else {
-
-				load.Logrus.WithFields(logrus.Fields{
-					"configName": yml.Name,
-					"database":   api.Database,
-					"query":      query.Run,
-				}).Debug("database: running query")
-
-				cols, err := rows.Columns()
+				// get RawBytes
+				err = rows.Scan(scanArgs...)
 				if err != nil {
-
 					load.Logrus.WithFields(logrus.Fields{
-						"configName": yml.Name,
-						"apiName":    api.Name,
-						"database":   api.Database,
-						"query":      query.Run,
-					}).Debug("database: column return failed")
-
-					errorLogToInsights(err, api.Database, api.Name, query.Name)
+						"err": err,
+					}).Error("database: row scan failed")
 				} else {
-					values := make([]sql.RawBytes, len(cols))
-					scanArgs := make([]interface{}, len(values))
-					for i := range values {
-						scanArgs[i] = &values[i]
-					}
-
-					// Fetch rows
-					rowNo := 1
-					for rows.Next() {
-						rowSet := map[string]interface{}{
-							"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
-							"queryLabel":    query.Name,
-							"event_type":    query.Name,
-						}
-						// apply event type override if set (this is useful to set if needing to group multiples under one event type)
-						if query.EventType != "" {
-							rowSet["event_type"] = query.EventType
-						}
-
-						// get RawBytes
-						err = rows.Scan(scanArgs...)
-						if err != nil {
-							load.Logrus.WithFields(logrus.Fields{
-								"err": err,
-							}).Error("database: row scan failed")
+					// Loop through each column
+					for i, col := range values {
+						// If value nil == null
+						if col == nil {
+							rowSet[cols[i]] = "NULL"
 						} else {
-							// Loop through each column
-							for i, col := range values {
-								// If value nil == null
-								if col == nil {
-									rowSet[cols[i]] = "NULL"
-								} else {
-									rowSet[cols[i]] = string(col)
-								}
-							}
-							*dataStore = append(*dataStore, rowSet)
-							// load.StoreAppend(rowSet)
-							rowNo++
+							rowSet[cols[i]] = string(col)
 						}
 					}
+					queryEndTime := load.TimestampMs()
+					rowSet["flex.QueryStartMs"] = queryStartTime
+					rowSet["flex.QueryTimeMs"] = queryEndTime - queryStartTime
+					*dataStore = append(*dataStore, rowSet)
+					// load.StoreAppend(rowSet)
+					rowNo++
 				}
 			}
 		}

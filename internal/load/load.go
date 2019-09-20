@@ -117,27 +117,6 @@ const (
 	Contains           = "contains"
 )
 
-// FlexStatusCounter count internal metrics
-var FlexStatusCounter = struct {
-	sync.RWMutex
-	M map[string]int
-}{M: make(map[string]int)}
-
-// StatusCounterIncrement increment the status counter for a particular key
-func StatusCounterIncrement(key string) {
-	FlexStatusCounter.Lock()
-	FlexStatusCounter.M[key]++
-	FlexStatusCounter.Unlock()
-}
-
-// StatusCounterRead the status counter for a particular key
-func StatusCounterRead(key string) int {
-	FlexStatusCounter.Lock()
-	value := FlexStatusCounter.M[key]
-	FlexStatusCounter.Unlock()
-	return value
-}
-
 // MetricsStore for Dimensional Metrics to store data and lock and unlock when needed
 var MetricsStore = struct {
 	sync.RWMutex
@@ -262,6 +241,7 @@ type API struct {
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
 	DbQueries         []Command         `yaml:"db_queries"`
+	DbAsync           bool              `yaml:"db_async"` // perform db queries async
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -458,16 +438,4 @@ type Namespace struct {
 	// if neither of the below are set and the MetricParser is used, the namespace will default to the "Name" attribute
 	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
 	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
-}
-
-// Refresh Helper function used for testing
-func Refresh() {
-	FlexStatusCounter.M = make(map[string]int)
-	FlexStatusCounter.M["EventCount"] = 0
-	FlexStatusCounter.M["EventDropCount"] = 0
-	FlexStatusCounter.M["ConfigsProcessed"] = 0
-	Args.ConfigDir = ""
-	Args.ConfigFile = ""
-	Args.ContainerDiscovery = false
-	Args.ContainerDiscoveryDir = ""
 }

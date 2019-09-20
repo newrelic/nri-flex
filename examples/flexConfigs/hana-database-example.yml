@@ -6,6 +6,7 @@ apis:
       open: true
     custom_attributes: # applies to all queries
       host: YOUR_HANA_HOSTNAME
+    db_async: true # process queries async
     db_queries: 
       - name: disk_logical_ids
         run: SELECT m_disks.device_id AS DEVICE_ID, String_agg(m_disks.disk_id, ', ') AS DISK_IDS FROM sys.m_disks GROUP BY m_disks.device_id

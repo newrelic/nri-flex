@@ -6,6 +6,7 @@ apis:
       open: true
     custom_attributes: # applies to all queries
       host: myDbServer
+    db_async: true # process queries async
     db_queries: 
       - name: pgStatActivitySample
         run: select * FROM pg_stat_activity
