@@ -66,9 +66,7 @@ func processCsv(dataStore *[]interface{}, file string, data string, header []str
 
 		// establish header / keys
 		if index == 0 && len(keys) == 0 {
-			for _, key := range record {
-				keys = append(keys, key)
-			}
+			keys = append(keys, record...)
 		} else {
 			if len(record) == len(keys) {
 				newSample := map[string]interface{}{}
