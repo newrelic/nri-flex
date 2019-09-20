@@ -1,3 +1,7 @@
+0.8.1-pre
+------
+- Add support to allow database queries to process async with `db_async: true`
+
 0.8.0-pre
 ------
 - Remove logger and use logrus natively
