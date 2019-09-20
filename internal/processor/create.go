@@ -109,6 +109,31 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				currentSample["baseUrl"] = config.Global.BaseURL
 			}
 
+			// add attribute, use attributes from current sample to create new attributes like http links
+			for key, val := range api.AddAttribute {
+				newAttributeValue := val
+				variableReplaceOccured := false
+				// in the value of each attribute find the keys that need replacing
+				variableReplaces := regexp.MustCompile(`\${.*?}`).FindAllString(val, -1)
+				for _, variableReplace := range variableReplaces {
+					replaceKey := strings.TrimSuffix(strings.TrimPrefix(variableReplace, "${"), "}")
+
+					if currentSample[replaceKey] != nil {
+						replacementValue := fmt.Sprintf("%v", currentSample[replaceKey])
+						newAttributeValue = strings.Replace(newAttributeValue, variableReplace, replacementValue, -1)
+
+						// check if the replacement occured
+						// if this check is not in place there will be a unneeded templated sample generated
+						if strings.Contains(newAttributeValue, replacementValue) {
+							variableReplaceOccured = true
+						}
+					}
+				}
+				if variableReplaceOccured {
+					currentSample[key] = newAttributeValue
+				}
+			}
+
 			workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
 			if config.MetricAPI {
 				AutoSetMetricAPI(&currentSample, &api)

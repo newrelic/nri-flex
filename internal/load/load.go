@@ -289,6 +289,7 @@ type API struct {
 	SnakeToCamel bool              `yaml:"snake_to_camel"` // snake_case to camelCase
 	ReplaceKeys  map[string]string `yaml:"replace_keys"`   // uses rename_keys functionality
 	RenameKeys   map[string]string `yaml:"rename_keys"`    // use regex to find keys, then replace value
+	AddAttribute map[string]string `yaml:"add_attribute"`  // add attribute // needs description
 
 	// Value manipulation
 	PercToDecimal    bool              `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
