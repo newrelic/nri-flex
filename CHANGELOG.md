@@ -1,3 +1,8 @@
+0.8.2-pre
+------
+- Move file read to inputs package
+- Add csv read
+
 0.8.1-pre
 ------
 - Add support to allow database queries to process async with `db_async: true`

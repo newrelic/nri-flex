@@ -108,7 +108,10 @@ func ReadYML(yml string) (load.Config, error) {
 // Run Action each config file
 func Run(yml load.Config) {
 	samplesToMerge := map[string][]interface{}{}
-	load.Logrus.Debug(fmt.Sprintf("config: processing %d apis in %v", len(yml.APIs), yml.Name))
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: processing apis")
 
 	// load secrets
 	loadSecrets(&yml)
@@ -120,7 +123,10 @@ func Run(yml load.Config) {
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
 
-	load.Logrus.Debug(fmt.Sprintf("config: finished processing %d apis in %v", len(yml.APIs), yml.Name))
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: finished processing apis")
 	processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
 }
 
@@ -149,7 +155,10 @@ func RunFiles(configs *[]load.Config) {
 		}
 		wg.Wait()
 	}
-	load.Logrus.Info(fmt.Sprintf("flex: completed processing %d config(s)", load.StatusCounterRead("ConfigsProcessed")))
+
+	load.Logrus.WithFields(logrus.Fields{
+		"configs": load.StatusCounterRead("ConfigsProcessed"),
+	}).Info("flex: completed processing")
 }
 
 // verifyConfig ensure the config file doesn't have anything it should not run
