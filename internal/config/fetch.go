@@ -6,9 +6,7 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/inputs"
@@ -20,7 +18,9 @@ import (
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
 func FetchData(apiNo int, yml *load.Config) []interface{} {
-	load.Logrus.Debug(fmt.Sprintf("fetch: %v data", yml.Name))
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+	}).Debug("fetch: collect data")
 
 	api := yml.APIs[apiNo]
 	file := yml.APIs[apiNo].File
@@ -33,25 +33,7 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 
 	if continueProcessing {
 		if file != "" {
-			fileData, err := ioutil.ReadFile(file)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"name": yml.Name,
-					"file": file,
-				}).Error("fetch: failed to read")
-			} else {
-				newBody := strings.Replace(string(fileData), " ", "", -1)
-				var f interface{}
-				err := json.Unmarshal([]byte(newBody), &f)
-				if err != nil {
-					load.Logrus.WithFields(logrus.Fields{
-						"name": yml.Name,
-						"file": file,
-					}).Error("fetch: failed to unmarshal")
-				} else {
-					dataStore = append(dataStore, f)
-				}
-			}
+			inputs.RunFile(&dataStore, yml, apiNo)
 		} else if api.Cache != "" {
 			if yml.Datastore[api.Cache] != nil {
 				dataStore = yml.Datastore[api.Cache]
