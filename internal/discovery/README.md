@@ -27,6 +27,13 @@ func FindFlexContainerID(read string)
 FindFlexContainerID detects if Flex is running within a container and sets the
 ID
 
+#### func  MakeTimestamp
+
+```go
+func MakeTimestamp() int64
+```
+MakeTimestamp struct
+
 #### func  Processes
 
 ```go
