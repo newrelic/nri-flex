@@ -48,6 +48,13 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int)
 ```
 RunCommands executes the given commands to create one merged sampled
 
+#### func  RunFile
+
+```go
+func RunFile(dataStore *[]interface{}, cfg *load.Config, apiNo int)
+```
+RunFile runs file read data collection
+
 #### func  RunHTTP
 
 ```go

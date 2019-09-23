@@ -33,12 +33,10 @@ func Prometheus(dataStore *[]interface{}, input io.Reader, cfg *load.Config, api
 	mfChan := make(chan *dto.MetricFamily, 1024)
 	go func() {
 		if err := ParseReader(input, mfChan); err != nil {
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"name": cfg.Name,
-					"err":  err,
-				}).Error("prometheus: parsing failure")
-			}
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+				"err":  err,
+			}).Error("prometheus: parsing failure")
 		}
 	}()
 
