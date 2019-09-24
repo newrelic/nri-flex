@@ -135,7 +135,7 @@ func RunFiles(configs *[]load.Config) {
 	if load.Args.ProcessConfigsSync {
 		for _, cfg := range *configs {
 			if verifyConfig(cfg) {
-				load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running")
+				load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running sync")
 				Run(cfg)
 				load.StatusCounterIncrement("ConfigsProcessed")
 			}
@@ -147,7 +147,7 @@ func RunFiles(configs *[]load.Config) {
 			go func(cfg load.Config) {
 				defer wg.Done()
 				if verifyConfig(cfg) {
-					load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running")
+					load.Logrus.WithFields(logrus.Fields{"name": cfg.Name}).Debug("config: running async")
 					Run(cfg)
 					load.StatusCounterIncrement("ConfigsProcessed")
 				}

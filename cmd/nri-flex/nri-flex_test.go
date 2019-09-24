@@ -26,9 +26,9 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 	for _, expectedSample := range expectedSamples {
 		matchedSample := false
 		for _, sample := range entityMetrics {
-			delete(sample.Metrics, "flex.time.startNs")
-			delete(sample.Metrics, "flex.time.endNs")
-			delete(sample.Metrics, "flex.time.elaspedNs")
+			delete(sample.Metrics, "flex.time.startMs")
+			delete(sample.Metrics, "flex.time.endMs")
+			delete(sample.Metrics, "flex.time.elaspedMs")
 			out, err := sample.MarshalJSON()
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{

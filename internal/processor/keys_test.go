@@ -87,12 +87,10 @@ func TestKeyRemover(t *testing.T) {
 		"xyz":   2,
 		"dfadf": "dafsdfa",
 	}
-	key := "abc"
-	progress := false
 
-	RunKeyRemover(removeKeys, &key, &progress, &currentSample)
+	RunKeyRemover(&currentSample, removeKeys)
 	output, _ := json.Marshal(currentSample)
-	expected := `{"dfadf":"dafsdfa","xyz":2}`
+	expected := `{"dfadf":"dafsdfa"}`
 
 	if string(output) != expected {
 		t.Errorf("want: %v got: %v", expected, string(output))

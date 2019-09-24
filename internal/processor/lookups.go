@@ -5,15 +5,22 @@
 
 package processor
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/sirupsen/logrus"
+)
 
 // StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
 func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
 		if *key == lookupFindKey {
-			if (*lookupStore) == nil {
-				(*lookupStore) = map[string][]string{}
-			}
+			load.Logrus.WithFields(logrus.Fields{
+				"lookupFindKey": lookupFindKey,
+				lookupStoreKey:  fmt.Sprintf("%v", *v),
+			}).Debug("create: store lookup")
+
 			(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
 		}
 	}

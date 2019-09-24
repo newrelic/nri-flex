@@ -1,3 +1,7 @@
+0.8.3-pre
+------
+- Update sample filter and key remover logic
+
 0.8.2-pre
 ------
 - Move file read to inputs package

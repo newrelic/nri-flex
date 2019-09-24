@@ -44,12 +44,13 @@ func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]inter
 }
 
 // RunKeyRemover Remove unwanted keys with regex
-func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{}) {
+func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string) {
 	for _, removeKey := range removeKeys {
-		if formatter.KvFinder("regex", *key, removeKey) {
-			*progress = false
-			delete(*currentSample, *key)
-			break
+		for key := range *currentSample {
+			if formatter.KvFinder("regex", key, removeKey) {
+				delete(*currentSample, key)
+				break
+			}
 		}
 	}
 }
