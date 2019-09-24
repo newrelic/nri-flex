@@ -6,8 +6,6 @@
 package outputs
 
 import (
-	"time"
-
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
 
@@ -17,10 +15,10 @@ import (
 // StatusSample creates flexStatusSample
 func StatusSample() {
 	flexStatusSample := load.Entity.NewMetricSet("flexStatusSample")
-	endTimeNs := time.Now().UnixNano()
-	statusLog(flexStatusSample.SetMetric("flex.time.endNs", endTimeNs, metric.GAUGE))
-	statusLog(flexStatusSample.SetMetric("flex.time.startNs", load.StartTime, metric.GAUGE))
-	statusLog(flexStatusSample.SetMetric("flex.time.elaspedNs", endTimeNs-load.StartTime, metric.GAUGE))
+	endTimeNs := load.MakeTimestamp()
+	statusLog(flexStatusSample.SetMetric("flex.time.endMs", endTimeNs, metric.GAUGE))
+	statusLog(flexStatusSample.SetMetric("flex.time.startMs", load.StartTime, metric.GAUGE))
+	statusLog(flexStatusSample.SetMetric("flex.time.elaspedMs", endTimeNs-load.StartTime, metric.GAUGE))
 
 	statusLog(flexStatusSample.SetMetric("flex.IntegrationVersion", load.IntegrationVersion, metric.ATTRIBUTE))
 	if load.Args.GitRepo != "" {

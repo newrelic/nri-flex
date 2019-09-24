@@ -439,3 +439,8 @@ type Namespace struct {
 	CustomAttr   string   `yaml:"custom_attr"`   // set your own custom namespace attribute
 	ExistingAttr []string `yaml:"existing_attr"` // utilise existing attributes and chain together to create a custom namespace
 }
+
+// MakeTimestamp creates timestamp in milliseconds
+func MakeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
