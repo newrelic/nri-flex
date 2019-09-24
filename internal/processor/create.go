@@ -34,6 +34,11 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		eventType := "UnknownSample" // set an UnknownSample event name
 		SetEventType(&currentSample, &eventType, api.EventType, api.Merge, api.Name)
 
+		// init lookup store
+		if (&config.LookupStore) == nil {
+			config.LookupStore = map[string][]string{}
+		}
+
 		// event limiter
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
@@ -44,55 +49,48 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		}
 
 		// modify existing sample before final processing
-		createSample := true
 		SkipProcessing := api.SkipProcessing
 
 		modifiedKeys := []string{}
 		for k, v := range currentSample { // k == original key
 			key := k
-			progress := true
-			RunKeyRemover(api.RemoveKeys, &key, &progress, &currentSample)
+			RunKeyConversion(&key, api, v, &SkipProcessing)
+			RunValConversion(&v, api, &key)
+			RunValueParser(&v, api, &key)
+			RunPluckNumbers(&v, api, &key)
+			RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
+			RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
 
-			if progress {
-				RunKeyConversion(&key, api, v, &SkipProcessing)
-				RunValConversion(&v, api, &key)
-				RunValueParser(&v, api, &key)
-				RunPluckNumbers(&v, api, &key)
-				RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
-				RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
-
-				// do not rename a key again, this is to avoid continuous replacement loops
-				// eg. if you replace id with project.id
-				// this could then again attempt to replace id within project.id to project.project.id
-				if !sliceContains(modifiedKeys, k) {
-					RunKeyRenamer(api.RenameKeys, &key, k)  // use key renamer if key replace hasn't occurred
-					RunKeyRenamer(api.ReplaceKeys, &key, k) // kept for backwards compatibility with replace_keys
-				}
-
-				currentSample[key] = v
-				if key != k {
-					modifiedKeys = append(modifiedKeys, key)
-					delete(currentSample, k)
-				}
-
-				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
-				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
-
-				// check if this contains any key pair values to filter out
-				RunSampleFilter(api.SampleFilter, &createSample, key, v)
-
-				// do not bother processing any more keys
-				if !createSample {
-					break
-				}
-
-				// if keepkeys used will do inverse
-				RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
-				RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
+			// do not rename a key again, this is to avoid continuous replacement loops
+			// eg. if you replace id with project.id
+			// this could then again attempt to replace id within project.id to project.project.id
+			if !sliceContains(modifiedKeys, k) {
+				RunKeyRenamer(api.RenameKeys, &key, k)  // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &key, k) // kept for backwards compatibility with replace_keys
 			}
+
+			currentSample[key] = v
+			if key != k {
+				modifiedKeys = append(modifiedKeys, key)
+				delete(currentSample, k)
+			}
+
+			StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
+			VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+
+			// if keepkeys used will do inverse
+			RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
+			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
 
+		// check if this contains any key pair values to filter out
+		createSample := true
+		RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+
 		if createSample {
+			// remove keys from sample
+			RunKeyRemover(&currentSample, api.RemoveKeys)
+
 			RunMathCalculations(&api.Math, &currentSample)
 
 			// add custom attribute(s)
@@ -210,25 +208,27 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 }
 
 // RunSampleFilter Filters samples generated
-func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key string, v interface{}) {
+func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
 	for _, sampleFilter := range sampleFilters {
-		for regKey, regVal := range sampleFilter {
-			regKeyFound := false
-			regValFound := false
-			if regKey != "" {
-				validateKey := regexp.MustCompile(regKey)
-				if validateKey.MatchString(key) {
-					regKeyFound = true
+		for key, v := range currentSample {
+			for regKey, regVal := range sampleFilter {
+				regKeyFound := false
+				regValFound := false
+				if regKey != "" {
+					validateKey := regexp.MustCompile(regKey)
+					if validateKey.MatchString(key) {
+						regKeyFound = true
+					}
 				}
-			}
-			if regVal != "" {
-				validateVal := regexp.MustCompile(regVal)
-				if validateVal.MatchString(fmt.Sprintf("%v", v)) {
-					regValFound = true
+				if regVal != "" {
+					validateVal := regexp.MustCompile(regVal)
+					if validateVal.MatchString(fmt.Sprintf("%v", v)) {
+						regValFound = true
+					}
 				}
-			}
-			if regKeyFound && regValFound {
-				*createSample = false
+				if regKeyFound && regValFound {
+					*createSample = false
+				}
 			}
 		}
 	}
