@@ -19,9 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // loadSecrets if secrets configured fetch, store and substitute secrets
@@ -259,12 +260,14 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
 			}).Error("config: aws kms decrypt secret failed")
-		} else {
-			load.Logrus.WithFields(logrus.Fields{
-				"name": name,
-			}).Error("config: aws kms decrypt secret success")
-			return string(resp.Plaintext)
+			return ""
 		}
+		result := string(resp.Plaintext)
+		load.Logrus.WithFields(logrus.Fields{
+			"name":   name,
+			"secret": result,
+		}).Debug("config: aws kms decrypt secret success")
+		return result
 	}
 	return ""
 }
