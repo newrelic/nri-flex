@@ -38,7 +38,7 @@ func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]inter
 			}
 		}
 		if !foundKey {
-			delete(*currentSample, *k)
+			delete(*currentSample, *key)
 		}
 	}
 }
