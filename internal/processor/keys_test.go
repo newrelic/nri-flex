@@ -66,12 +66,12 @@ func TestKeepKeys(t *testing.T) {
 		"abc":   1,
 		"xyz":   2,
 		"dfadf": "dafsdfa",
+		"def":   "initely busted",
 	}
 
 	key := "def"
-	k := "def"
 
-	RunKeepKeys(keepKeys, &key, &currentSample, &k)
+	RunKeepKeys(keepKeys, &key, &currentSample)
 	output, _ := json.Marshal(currentSample)
 	expected := `{"abc":1,"dfadf":"dafsdfa","xyz":2}`
 
