@@ -79,7 +79,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
 
 			// if keepkeys used will do inverse
-			RunKeepKeys(api.KeepKeys, &key, &currentSample, &k)
+			RunKeepKeys(api.KeepKeys, &key, &currentSample)
 			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
 

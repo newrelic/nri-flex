@@ -28,7 +28,7 @@ func RunKeyConversion(key *string, api load.API, v interface{}, SkipProcessing *
 }
 
 // RunKeepKeys Removes all other keys/attributes and keep only those defined in keep_keys
-func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}, k *string) {
+func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}) {
 	if len(keepKeys) > 0 {
 		foundKey := false
 		for _, keepKey := range keepKeys {
@@ -38,7 +38,7 @@ func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]inter
 			}
 		}
 		if !foundKey {
-			delete(*currentSample, *k)
+			delete(*currentSample, *key)
 		}
 	}
 }
