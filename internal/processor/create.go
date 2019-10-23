@@ -198,8 +198,8 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 
 // RunSampleRenamer using regex if sample has a key that matches, make that a different sample (event_type)
 func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string]interface{}, key string, eventType *string) {
-	for regex, newEventType := range renameSamples {
-		if formatter.KvFinder(regex, key, regex) {
+	for regexLocal, newEventType := range renameSamples {
+		if formatter.KvFinder(regex, key, regexLocal) {
 			(*currentSample)["event_type"] = newEventType
 			*eventType = newEventType
 			break
