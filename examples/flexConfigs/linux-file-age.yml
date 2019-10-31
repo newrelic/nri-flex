@@ -1,0 +1,10 @@
+# Used to query file age via File Status
+name: linuxFileAge
+apis:
+  - name: linuxFileAge
+    commands:
+      - run: stat -c '%n;%y' /etc/*conf
+        split: horizontal
+        set_header: [fileName,fileAgeSeconds]
+        regex_match: false
+        split_by: ";"

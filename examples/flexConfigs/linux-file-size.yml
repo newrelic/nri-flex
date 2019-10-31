@@ -1,0 +1,10 @@
+# Used to query File Size via File Status
+name: linuxFileSize
+apis:
+  - name: linuxFileSize
+    commands:
+      - run: stat -c '%n;%s' /etc/*conf
+        split: horizontal
+        set_header: [fileName,fileSizeBytes]
+        regex_match: false
+        split_by: ";"
