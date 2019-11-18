@@ -62,6 +62,13 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 ```
 RunHTTP Executes HTTP Requests
 
+#### func  RunScpWithTimeout
+
+```go
+func RunScpWithTimeout(dataStore *[]interface{}, cfg *load.Config, api load.API, apiNo int)
+```
+RunScpWithTimeout performs scp with timeout
+
 #### func  SetJMXCommand
 
 ```go

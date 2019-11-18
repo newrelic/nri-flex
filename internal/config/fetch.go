@@ -48,6 +48,8 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
 		} else if api.Database != "" && api.DbConn != "" {
 			inputs.ProcessQueries(&dataStore, yml, apiNo)
+		} else if api.Scp.Host != "" {
+			inputs.RunScpWithTimeout(&dataStore, yml, api, apiNo)
 		}
 	}
 

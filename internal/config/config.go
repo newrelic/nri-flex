@@ -127,7 +127,10 @@ func Run(yml load.Config) {
 		"name": yml.Name,
 		"apis": len(yml.APIs),
 	}).Debug("config: finished processing apis")
-	processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
+
+	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
+	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
+	processor.ProcessSamplesMergeJoin(&samplesToMerge, &yml)
 }
 
 // RunFiles Processes yml files

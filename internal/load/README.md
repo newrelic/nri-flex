@@ -128,6 +128,13 @@ var StartTime int64
 ```
 StartTime time Flex starts in Nanoseconds
 
+#### func  MakeTimestamp
+
+```go
+func MakeTimestamp() int64
+```
+MakeTimestamp creates timestamp in milliseconds
+
 #### func  MetricsStoreAppend
 
 ```go
@@ -184,6 +191,7 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
+	Joinkey           string            `yaml:"joinkey"`        // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
@@ -219,7 +227,7 @@ type API struct {
 	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
-
+	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -293,6 +301,9 @@ type ArgumentList struct {
 	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
+	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
+	EncryptPass string `default:"" help:"Pass to be encypted"`
+	PassPhrase  string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 }
 ```
 
@@ -551,6 +562,8 @@ type Global struct {
 	Headers    map[string]string `yaml:"headers"`
 	Jmx        JMX               `yaml:"jmx"`
 	TLSConfig  TLSConfig         `yaml:"tls_config"`
+	Passphrase string            `yaml:"pass_phrase"`
+	SSHPEMFile string            `yaml:"ssh_pem_file"`
 }
 ```
 
@@ -795,6 +808,22 @@ type RegMatch struct {
 ```
 
 RegMatch support for regex matches
+
+#### type SCP
+
+```go
+type SCP struct {
+	User       string `yaml:"user"`
+	Pass       string `yaml:"pass"`
+	Host       string `yaml:"host"`
+	Port       string `yaml:"port"`
+	RemoteFile string `yaml:"remote_file"`
+	Passphrase string `yaml:"pass_phrase"`
+	SSHPEMFile string `yaml:"ssh_pem_file"`
+}
+```
+
+SCP struct
 
 #### type SampleMerge
 

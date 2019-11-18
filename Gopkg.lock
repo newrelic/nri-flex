@@ -267,6 +267,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:9cedee824c21326bd26950bd9e1ffe9dc4e7ca03dc8634d0e6f954ee6a383172"
+  name = "github.com/kr/fs"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1455def202f6e05b95cc7bfc7e8ae67ae5141eba"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:bdd53b87de8185da386bae179c84d4848854c6870bacacf6a154fe63e2e750f7"
   name = "github.com/lib/pq"
   packages = [
@@ -360,6 +368,14 @@
   pruneopts = "UT"
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
+
+[[projects]]
+  digest = "1:b3f925fe815cb932adc5403dc17ad57b04868eb48df7bb771479ef68cfc06f48"
+  name = "github.com/pkg/sftp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3edd153f213d8d4191a0ee4577c61cca19436632"
+  version = "v1.10.1"
 
 [[projects]]
   branch = "master"
@@ -669,6 +685,7 @@
     "github.com/newrelic/infra-integrations-sdk/data/metric",
     "github.com/newrelic/infra-integrations-sdk/integration",
     "github.com/parnurzeal/gorequest",
+    "github.com/pkg/sftp",
     "github.com/prometheus/client_model/go",
     "github.com/prometheus/common/expfmt",
     "github.com/shirou/gopsutil/net",
@@ -676,6 +693,7 @@
     "github.com/sirupsen/logrus",
     "github.com/spf13/afero",
     "github.com/vertica/vertica-sql-go",
+    "golang.org/x/crypto/ssh",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/plumbing",
     "gopkg.in/yaml.v2",
