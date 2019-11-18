@@ -22,30 +22,30 @@ func createHash(key string) string {
 
 //Encrypt string
 func Encrypt(data []byte, passphrase string) ([]byte, error) {
-	ciphertext := []byte("")
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
-	gcm, err := cipher.NewGCM(block)
-	if err == nil {
 
-		nonce := make([]byte, gcm.NonceSize())
-		if _, err = io.ReadFull(rand.Reader, nonce); err == nil {
-			ciphertext = gcm.Seal(nonce, nonce, data, nil)
+	var gcm cipher.AEAD
+	ciphertext := []byte("")
+	block, err := aes.NewCipher([]byte(createHash(passphrase)))
+	if err == nil {
+		gcm, err = cipher.NewGCM(block)
+		if err == nil {
+			nonce := make([]byte, gcm.NonceSize())
+			if _, err = io.ReadFull(rand.Reader, nonce); err == nil {
+				ciphertext = gcm.Seal(nonce, nonce, data, nil)
+			}
 		}
 	}
-
 	return ciphertext, err
 }
 
 //Decrypt string
 func Decrypt(data []byte, passphrase string) ([]byte, error) {
-	var err error
-	var block cipher.Block
+
 	var gcm cipher.AEAD
 	plaintext := []byte("")
 	key := []byte(createHash(passphrase))
-	block, err = aes.NewCipher(key)
+	block, err := aes.NewCipher(key)
 	if err == nil {
-
 		gcm, err = cipher.NewGCM(block)
 		if err == nil {
 			nonceSize := gcm.NonceSize()
