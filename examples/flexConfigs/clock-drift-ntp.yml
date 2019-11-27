@@ -1,0 +1,6 @@
+# Queries ntpq to return offset from current time server
+name: clockDriftNTP
+apis:
+  - name: clockDriftNTP
+    commands:
+      - run: echo -e "{\"remote\":\"$(ntpq -np | grep "\*"  | awk '{print $1}' | tr -d '\*' | tr -d '\+')\",\"offset\":$(ntpq -np | grep "\*" | cut -c 62-66 | tr -d '-' | awk '{$1=$1};1')}"
