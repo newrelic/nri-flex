@@ -104,6 +104,14 @@
   version = "v1.21.10"
 
 [[projects]]
+  digest = "1:be4d8a4c748dd853dc952f0b7a9dfb2b91f143b03ef8244e4f487bd87fa464d1"
+  name = "github.com/basgys/goxml2json"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "652b277a9313806ef04f7c0cb0205dd455c4f344"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:2e702b60af5efe4b3b0e3b40fddfb6beba6adca1e0a7ccd25cc5c21b5e7df9ef"
   name = "github.com/denisenkom/go-mssqldb"
@@ -508,10 +516,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4b60d96b377c8a5a38b0b15305bd848b9636700a82c83bda06d65849aeb4457a"
+  digest = "1:38d6b51401808a6ead1901e7a6c59a742ee5d39d7e7475eeaf1ffcafebd15868"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "html",
+    "html/atom",
+    "html/charset",
     "idna",
     "internal/socks",
     "proxy",
@@ -533,11 +544,21 @@
   revision = "5b15430b70e38eb7f9c844f97c25f25a246d5c63"
 
 [[projects]]
-  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
+  digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
   name = "golang.org/x/text"
   packages = [
     "collate",
     "collate/build",
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
     "internal/colltab",
     "internal/gen",
     "internal/language",
@@ -545,7 +566,9 @@
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "internal/utf8internal",
     "language",
+    "runes",
     "secure/bidirule",
     "transform",
     "unicode/bidi",
@@ -674,6 +697,7 @@
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/kms",
+    "github.com/basgys/goxml2json",
     "github.com/denisenkom/go-mssqldb",
     "github.com/docker/docker/api/types",
     "github.com/docker/docker/client",

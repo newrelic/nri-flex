@@ -47,27 +47,21 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 	}
 
 	mergedData := FinalMerge(flattenedData)
-	mergedSample := false
 
-	if cfg.APIs[i].Merge != "" {
-		for _, mergeItem := range mergedData {
-			mergeItem.(map[string]interface{})["_sampleNo"] = i
-			// hren overwrite event_type if it is merge operation
-			mergeItem.(map[string]interface{})["event_type"] = cfg.APIs[i].Merge
-			(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergeItem)
-		}
-		mergedSample = true
-	}
-
-	// if len(mergedData) == 1 {
-	// 	if cfg.APIs[i].Merge != "" {
-	// 		mergedData[0].(map[string]interface{})["_sampleNo"] = i
-	// 		(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergedData[0])
-	// 		mergedSample = true
+	// hren: moved this portion to CreateMetricSets
+	// if cfg.APIs[i].Merge != "" {
+	// 	for _, mergeItem := range mergedData {
+	// 		mergeItem.(map[string]interface{})["_sampleNo"] = i
+	// 		// hren overwrite event_type if it is merge operation
+	// 		mergeItem.(map[string]interface{})["event_type"] = cfg.APIs[i].Merge
+	// 		(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergeItem)
 	// 	}
+	// 	mergedSample = true
 	// }
 
-	if !mergedSample {
-		CreateMetricSets(mergedData, cfg, i)
+	if cfg.APIs[i].Merge == "" {
+		CreateMetricSets(mergedData, cfg, i, false, nil)
+	} else {
+		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge)
 	}
 }

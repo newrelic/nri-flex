@@ -15,6 +15,7 @@ import (
 func RunFile(dataStore *[]interface{}, cfg *load.Config, apiNo int) {
 	file := cfg.APIs[apiNo].File
 	fileData, err := ioutil.ReadFile(file)
+	dataString := string(fileData)
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"name": cfg.Name,
@@ -26,9 +27,9 @@ func RunFile(dataStore *[]interface{}, cfg *load.Config, apiNo int) {
 				"name": cfg.Name,
 				"file": file,
 			}).Debug("fetch: reading csv")
-			processCsv(dataStore, file, string(fileData), cfg.APIs[apiNo].SetHeader)
+			processCsv(dataStore, file, &dataString, cfg.APIs[apiNo].SetHeader)
 		} else {
-			newBody := strings.Replace(string(fileData), " ", "", -1)
+			newBody := strings.Replace(dataString, " ", "", -1)
 			var f interface{}
 			err := json.Unmarshal([]byte(newBody), &f)
 			if err != nil {
@@ -43,9 +44,8 @@ func RunFile(dataStore *[]interface{}, cfg *load.Config, apiNo int) {
 	}
 }
 
-func processCsv(dataStore *[]interface{}, file string, data string, header []string) {
-	r := csv.NewReader(strings.NewReader(data))
-
+func processCsv(dataStore *[]interface{}, file string, data *string, header []string) {
+	r := csv.NewReader(strings.NewReader(*data))
 	keys := []string{}
 	if len(header) > 0 {
 		keys = header

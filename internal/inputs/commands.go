@@ -352,6 +352,11 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	if err == nil {
 		return load.TypeJSON, f
 	}
+	// check xml
+	xmlSignature := `<?xml version=`
+	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
+		return load.TypeXML, nil
+	}
 
 	// default raw
 	return "raw", nil

@@ -31,6 +31,7 @@ const (
 	Image              = "image"
 	TypeContainer      = "container"
 	TypeJSON           = "json"
+	TypeXML            = "xml"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )
@@ -245,6 +246,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
+	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy   string   `yaml:"split_by"`   // character to split by
@@ -290,6 +293,7 @@ type ArgumentList struct {
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+	InsightBatchSize      int    `default:"5000" help:"Batch Size - number of metrics per post call to Insight endpoint"`
 	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
 	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`

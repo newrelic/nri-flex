@@ -128,21 +128,22 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 }
 
 // ProcessSamplesToMerge used to merge multiple samples together
-func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config) {
-	for eventType, sampleSet := range *samplesToMerge {
-		newSample := map[string]interface{}{}
-		newSample["event_type"] = eventType
-		for _, sample := range sampleSet {
-			prefix := yml.APIs[sample.(map[string]interface{})[_sampleNo].(int)].Prefix
-			for k, v := range sample.(map[string]interface{}) {
-				if k != _sampleNo {
-					newSample[prefix+k] = v
-				}
-			}
-		}
-		CreateMetricSets([]interface{}{newSample}, yml, 0)
-	}
-}
+// hren: this function is replaced by ProcessSamplesMergeJoin
+// func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config) {
+// 	for eventType, sampleSet := range *samplesToMerge {
+// 		newSample := map[string]interface{}{}
+// 		newSample["event_type"] = eventType
+// 		for _, sample := range sampleSet {
+// 			prefix := yml.APIs[sample.(map[string]interface{})[_sampleNo].(int)].Prefix
+// 			for k, v := range sample.(map[string]interface{}) {
+// 				if k != _sampleNo {
+// 					newSample[prefix+k] = v
+// 				}
+// 			}
+// 		}
+// 		CreateMetricSets([]interface{}{newSample}, yml, 0)
+// 	}
+// }
 
 // processFlexSamples Processes Flex detected samples
 func processFlexSamples(dataKey string, dataSamples []interface{}, sampleKeys map[string]string, api *load.API) (string, []interface{}) {
@@ -199,7 +200,7 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	return dataSamples
 }
 
-// ProcessSamplesMergeJoin used to merge/join multiple samples together hren
+// hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config) {
 	for eventType, sampleSet := range *samplesToMerge {
 		newSample := map[string]interface{}{}
@@ -260,7 +261,7 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 		}
 
 		if mergeOperation {
-			CreateMetricSets([]interface{}{newSample}, yml, mergeEvent)
+			CreateMetricSets([]interface{}{newSample}, yml, mergeEvent, false, nil)
 		}
 
 		// if primary join event has samples
@@ -302,7 +303,7 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 					}
 				}
 			}
-			CreateMetricSets([]interface{}{newJoinSample}, yml, primaryEvent)
+			CreateMetricSets([]interface{}{newJoinSample}, yml, primaryEvent, false, nil)
 		}
 
 	}

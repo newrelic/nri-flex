@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
+	xj "github.com/basgys/goxml2json"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
-
 	"github.com/parnurzeal/gorequest"
+	"github.com/sirupsen/logrus"
 )
 
 // RunHTTP Executes HTTP Requests
@@ -107,6 +107,20 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						// if not using pagination handle json for any response, if using pagination check the status code before storing
 						if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
 							handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
+						}
+						// if it is XML, convert XML to JSON and process it
+					case load.TypeXML:
+						xmlbody := strings.NewReader(strBody)
+						jsonbody, err := xj.Convert(xmlbody)
+
+						if err != nil {
+							load.Logrus.WithFields(logrus.Fields{
+								"err": err,
+							}).Error(fmt.Sprintf("http: URL %v failed to convert XML to Json resp.Body", *reqURL))
+						} else {
+							if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
+								handleJSON(dataStore, jsonbody.Bytes(), &resp, doLoop, reqURL, nextLink)
+							}
 						}
 					default:
 						load.Logrus.Debug(fmt.Sprintf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType))
