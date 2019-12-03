@@ -11,7 +11,7 @@ apis:
         regex_match: true
         split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
         custom_attributes:
-          processFilter: "sshd"
+          processFilter: sshd
   # Note you can monitor multiple processes in the single YAML configuration
   - name: processfilterDhclient
     commands:
