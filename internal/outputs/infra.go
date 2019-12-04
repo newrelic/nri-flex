@@ -21,6 +21,12 @@ func InfraIntegration() {
 	var err error
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
 
+	// Accepts ConfigPath as alias for ConfigFile. This will allow the Infrastructure Agent
+	// passing an embedded config via the default CONFIG_PATH environment variable
+	if load.Args.ConfigPath != "" {
+		load.Args.ConfigFile = load.Args.ConfigPath
+	}
+
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create integration")
 	}
