@@ -16,41 +16,21 @@ for configuration.
 
 From [Compiled releases](https://github.com/newrelic/nri-flex/releases)
 
-```
-$ wget https://github.com/newrelic/nri-flex/releases/download/v0.8.3-pre/nri-flex-linux-0.8.3-pre.tar.gz
-$ tar xvf nri-flex-linux-0.8.3-pre.tar.gz
-```
-
-Folder structure:
-
-```
-nri-flex-linux-0.8.3-pre
-|-- examples
-|   |-- flexConfigs
-|   |-- flexContainerDiscovery
-|   |-- fullConfigExamples
-|   |   |-- containerDiscovery
-|   |   |   `-- flexContainerDiscovery
-|   |   `-- standard
-|   |       `-- flexConfigs
-|   `-- lambdaExample
-|       `-- pkg
-|           `-- flexConfigs
-`-- nrjmx
-```
-
 Run the ./install_linux.sh (or `install_windows.bat`) script.
 
-### Manual
-1 - copy nri-flex to /var/db/newrelic-infra/newrelic-integrations/
-
-## Configure infra-agent
-
-From [Compiled releases](https://github.com/newrelic/nri-flex/releases)
-
+Just copy the executable to newrelic-integrations
 ```
-$ wget https://github.com/newrelic/nri-flex/releases/download/v0.8.3-pre/nri-flex-linux-0.8.3-pre.tar.gz
-$ tar xvf nri-flex-linux-0.8.3-pre.tar.gz
+$ wget https://github.com/newrelic/nri-flex/releases/download/v0.8.4-pre/nri-flex-linux-0.8.4-pre.tar.gz
+$ tar xvf nri-flex-linux-0.8.4-pre.tar.gz
+$ cd nri-flex-linux-0.8.4-pre
+$ sudo ./install_linux.sh
 ```
 
-cp
+
+
+```sql
+from flexStatusSample  select * where entityName = '#9033841498900681752'
+```
+
+
+El PROBLEMA con embedded config: FLEX no reconoce archivos que no estén como YAML
