@@ -3,7 +3,7 @@
 TODO: windows options
 
 Requirements:
-* Infrastructure Agent 1.8.0 (older versions also work with Flex, but the new integrations configuration
+* Infrastructure Agent 1.8.2 (older versions also work with Flex, but the new integrations configuration
   system makes Flex easier to configure)
 * Run as root mode
 
@@ -101,77 +101,6 @@ integrations:
 SELECT average(availableBytes / 1000000) AS AvailableMB From FileSystemSample TIMESERIES FACET mountedOn
 ```
   
-## Using HTTP services
-
-E.g. elastic search:
-
-```
-docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.5.0
-```
-
-```yaml
-integrations:
-  - name: nri-flex
-    interval: 15s
-    config:
-      name: elasticsearch-monitor
-      global:
-          base_url: http://localhost:9200/
-          headers:
-            accept: application/json
-      apis:
-        - event_type: elasticsearchNodeSample
-          url: _nodes/stats
-          sample_keys:
-            nodes: nodes>node.id # there are objects within objects distinguished by key, we can create samples like so
-          rename_keys:
-            _nodes: parentNodes # bring the parent node attributes within the node sample
-          remove_keys:
-            - ingest.pipelines.xpack
-            - roleSampleSamples
-            - fs. ### no need for file system usage stats if infra collects it already
-```
-
-```
-FROM elasticsearchNodeSample SELECT *
-```
-
-## Paso 2: añadir remote entity
-
-```
-integrations:
-  - name: nri-flex
-    interval: 15s
-    env:
-      LOCAL: false
-      ENTITY: elastic-container
-    config:
-      name: elasticsearch-monitor
-      global:
-          base_url: http://localhost:9200/
-          headers:
-            accept: application/json
-      apis:
-        - event_type: elasticsearchNodeSample
-          url: _nodes/stats
-          sample_keys:
-            nodes: nodes>node.id # there are objects within objects distinguished by key, we can create samples like so
-          rename_keys:
-            _nodes: parentNodes # bring the parent node attributes within the node sample
-          remove_keys:
-            - ingest.pipelines.xpack
-            - roleSampleSamples
-            - fs. ### no need for file system usage stats if infra collects it already
-```
-
-```
-FROM elasticsearchNodeSample SELECT average(jvm.mem.heap_used_percent) AS HeapPercent  TIMESERIES FACET entityName 
-```
-
-## Paso 3: añadir discovery
-
-
-
 ## Moving your configuration outside
 
 * Automatic: drop into `/var/db/newrelic-infra/custom-integrations/flexConfigs`
