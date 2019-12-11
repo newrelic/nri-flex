@@ -49,6 +49,11 @@ linters:
     - goimports
     - maligned
     - scopelint
+    - wsl
+    - funlen
+    - whitespace
+    - godox
+    - gocognit
     - unparam # switch back on later
     - gocritic # switch back on later
 

@@ -79,7 +79,7 @@ RunEventFilter filters events generated
 #### func  RunKeepKeys
 
 ```go
-func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}, k *string)
+func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{})
 ```
 RunKeepKeys Removes all other keys/attributes and keep only those defined in
 keep_keys
@@ -101,7 +101,7 @@ RunKeyFilter filters keys generated
 #### func  RunKeyRemover
 
 ```go
-func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{})
+func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string)
 ```
 RunKeyRemover Remove unwanted keys with regex
 
@@ -138,7 +138,7 @@ RunPluckNumbers pluck numbers out automatically with ValueParser eg.
 #### func  RunSampleFilter
 
 ```go
-func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key string, v interface{})
+func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
 ```
 RunSampleFilter Filters samples generated
 
