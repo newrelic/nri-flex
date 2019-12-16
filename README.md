@@ -18,6 +18,10 @@
 - Windows
 - New Relic Infrastructure
 
+## Tutorials
+
+- [Basic step-by-step tutorial](./docs/basic-tutorial.md)
+
 ## Usage
 - [Installation](#installation)
 - [Download the latest compiled release under the Releases section](https://github.com/newrelic/nri-flex/releases)
