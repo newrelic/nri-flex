@@ -4,9 +4,8 @@ Requirements:
 
 * Infrastructure Agent version 1.8.x or higher.
   - Flex can also work with older versions, but this tutorial relies on the
-    latest integrations' engine, which has been added in the version 1.8.0.
-  - [Please check the documentation to know more about
-    it](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180)       
+    latest integrations engine, which has been added in the version 1.8.0.
+  - [Please check the documentation to learn more](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180)       
 * Run the Infrastructure Agent in Root/Administrator mode. 
   - It is the user that executes the Agent by default.  
   - Current versions of Flex require administrator permissions for the
@@ -25,7 +24,7 @@ The Flex package comes with an installer script (`install_linux.sh` or `install_
 It is aimed at installing all the required files for older versions of the Agent, and also
 start/stopping the Agent service so the changes take effect.
 
-From the Agent version 1.8.0, you just need manually copy the `nri-flex` executable from the
+From the Infrastructure Agent version 1.8.0 and later, you just need manually copy the `nri-flex` executable from the
 tarball into the `/var/db/newrelic-infra/newrelic-integrations/` folder:
 
 Steps (from a command-line):
@@ -37,7 +36,7 @@ $ sudo cp nri-flex-linux-0.8.5/nri-flex /var/db/newrelic-infra/newrelic-integrat
 
 > Windows users: copy the `nri-flex.exe` file into `C:\Program Files\New Relic\newrelic-infra\newrelic-integrations`. 
 
-Flex is already installed and ready to work with the agent.
+Flex is now installed and ready to work with the agent.
 
 ## Checking that Flex is up and running
 
@@ -159,6 +158,8 @@ Sections from the above YAML worth mentioning:
     - `set_header` specifies, in order, a matching name for each value of the aforementioned array.
     - `perc_to_decimal: true` aims for converting any percentage string into a decimal value
       (this is, removing the trailing `%` symbol, if exists).
+
+**Once the Flex config is created, the Infrastructure Agent will auto-detect the new config and begin collecting data.**
 
 To check that our new integration is working, you can try executing the following query
 in Insights:
