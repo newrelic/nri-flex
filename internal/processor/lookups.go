@@ -21,7 +21,18 @@ func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[
 				lookupStoreKey:  fmt.Sprintf("%v", *v),
 			}).Debug("create: store lookup")
 
-			(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
+			switch data := (*v).(type) {
+			case []interface{}:
+				load.Logrus.WithFields(logrus.Fields{
+					"lookupFindKey": lookupFindKey,
+				}).Debug("splitting array")
+
+				for _, dataKey := range data {
+					(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", dataKey))
+				}
+			default:
+				(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
+			}
 		}
 	}
 }
