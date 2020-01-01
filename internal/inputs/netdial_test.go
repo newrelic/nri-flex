@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
@@ -31,7 +33,13 @@ func TestNetDial(t *testing.T) {
 	}
 
 	var jsonOut interface{}
-	expectedOutput, _ := ioutil.ReadFile("../../test/payloadsExpected/portTestSingle.json")
+	expectedOutput := []byte{}
+	if strings.Contains(runtime.Version(), "go1.13") {
+		expectedOutput, _ = ioutil.ReadFile("../../test/payloadsExpected/portTestSingle-go113.json")
+	} else {
+		expectedOutput, _ = ioutil.ReadFile("../../test/payloadsExpected/portTestSingle.json")
+	}
+
 	json.Unmarshal(expectedOutput, &jsonOut)
 	expectedDatastore := jsonOut.([]interface{})
 
