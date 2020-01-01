@@ -9,5 +9,5 @@ echo -e "--- \033[33m Running Tests \033[0m :golang::hammer_and_wrench:"
 go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 echo -e "--- \033[33m Running Linter \033[0m :golang::lint-remover:"
-golangci-lint --version
+golangci-lint version
 golangci-lint run -v
