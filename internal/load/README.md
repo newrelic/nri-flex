@@ -128,6 +128,13 @@ var StartTime int64
 ```
 StartTime time Flex starts in Nanoseconds
 
+#### func  MakeTimestamp
+
+```go
+func MakeTimestamp() int64
+```
+MakeTimestamp creates timestamp in milliseconds
+
 #### func  MetricsStoreAppend
 
 ```go
@@ -271,7 +278,8 @@ type ArgumentList struct {
 	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
 	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
 	Local                 bool   `default:"true" help:"Collect local entity info"`
-	ConfigFile            string `default:"" help:"Set a specific config file - not usable for container discovery"`
+	ConfigPath            string `default:"" help:"Set a specific config file."`
+	ConfigFile            string `default:"" help:"(deprecated) Set a specific config file. Alias for config_path"`
 	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
 	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`

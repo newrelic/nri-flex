@@ -41,6 +41,13 @@ func GitPull(dir string) error
 ```
 GitPull git pull
 
+#### func  LoadFile
+
+```go
+func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error
+```
+LoadFile loads a single Flex config file
+
 #### func  LoadFiles
 
 ```go
