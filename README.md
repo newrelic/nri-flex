@@ -20,6 +20,10 @@
 -   Windows
 -   New Relic Infrastructure
 
+## Tutorials
+
+- [Basic step-by-step tutorial](./docs/basic-tutorial.md)
+
 ## Usage
 
 -   [Installation](#installation)

@@ -253,7 +253,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 			// load.StoreAppend(theSample)
 			*dataStore = append(*dataStore, theSample)
 
-			if theSample["error"] != nil {
+			if theSample["error"] != nil && fmt.Sprintf("%v", theSample["error"]) != "false" {
 				load.Logrus.Debug(fmt.Sprintf("http: request failed %v", theSample["error"]))
 			}
 

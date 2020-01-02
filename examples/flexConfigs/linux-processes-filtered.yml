@@ -3,22 +3,22 @@
 #   *current limit for the 'strip_command_line' attribute for the Infrastructure Agent
 name: linuxProcessFiltered
 apis:
-  - name: linuxProcessFiltered
+  - name: processfilterSshd
     commands:
-      - event_type: processfilterTanium
-        run: ps -eo pid,ppid,time,euser,cmd | grep -E "sshd" | grep -v grep
+      - run: ps -eo pid,ppid,time,euser,cmd | grep -E "sshd" | grep -v grep
         split: horizontal
         set_header: [processID,parentID,time,userName,commandLine]
         regex_match: true
         split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
         custom_attributes:
-          processFilter: "sshd"
-      # Note you can monitor multiple processes in the single YAML configuration
-      - event_type: processfilterDhclient
-        run: ps -eo pid,ppid,time,euser,cmd | grep -E "dhclient" | grep -v grep
+          processFilter: sshd
+  # Note you can monitor multiple processes in the single YAML configuration
+  - name: processfilterDhclient
+    commands:
+      - run: ps -eo pid,ppid,time,euser,cmd | grep -E "dhclient" | grep -v grep
         split: horizontal
         set_header: [processID,parentID,time,userName,commandLine]
         regex_match: true
         split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
         custom_attributes:
-          processFilter: "dhclient"
+          processFilter: dhclient
