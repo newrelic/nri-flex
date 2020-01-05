@@ -1,3 +1,11 @@
+0.8.4-pre
+------
+- Accepting `CONFIG_PATH` as an alias for `CONFIG_FILE`
+- Fixed key deletion
+- Updated RunSampleRenamer
+- Fixed logging an error when retrieving kms secret succeeds
+
+
 0.8.3-pre
 ------
 - Update sample filter and key remover logic

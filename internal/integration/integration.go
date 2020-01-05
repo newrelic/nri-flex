@@ -103,8 +103,12 @@ func addSingleConfigFile(configFile string, configs *[]load.Config) {
 		}).Fatal("config: failed to read")
 	}
 	path := strings.Replace(filepath.FromSlash(configFile), file.Name(), "", -1)
-	files := []os.FileInfo{file}
-	config.LoadFiles(configs, files, path)
+	if err := config.LoadFile(configs, file, path); err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err":  err,
+			"file": configFile,
+		}).Error("config: failed to load file")
+	}
 }
 
 func addConfigsFromPath(path string, configs *[]load.Config) {

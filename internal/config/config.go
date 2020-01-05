@@ -6,6 +6,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -24,65 +25,73 @@ import (
 func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) {
 	for _, f := range files {
 		filePath := path + f.Name()
-		b, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			if strings.Contains(err.Error(), "is a directory") { // if it is a directory then recurse
-				if !strings.Contains(filePath, ".git") && !strings.Contains(filePath, "nr-integrations") { // do not recurse through .git or nr-integrations folder
-					load.Logrus.WithFields(logrus.Fields{
-						"path": filePath,
-					}).Debug("config: checking nested configs")
-					nextPath := filePath + "/"
-					files, err = ioutil.ReadDir(nextPath)
-					if err != nil {
-						load.Logrus.WithFields(logrus.Fields{
-							"path": nextPath,
-						}).Debug("config: failed to read")
-					} else {
-						LoadFiles(configs, files, nextPath)
-					}
-				}
-			} else {
-				load.Logrus.WithFields(logrus.Fields{
-					"file": filePath,
-					"err":  err,
-				}).Debug("config: failed to read")
-			}
+		if f.IsDir() {
+			recurseDirectory(filePath, configs)
 			continue
 		}
-		// not done earlier as there could be a directory first
+		// ignoring non-yaml files
 		if !strings.HasSuffix(f.Name(), "yml") && !strings.HasSuffix(f.Name(), "yaml") {
 			continue
 		}
-		ymlStr := string(b)
-		SubEnvVariables(&ymlStr)
-		SubTimestamps(&ymlStr)
-		config, err := ReadYML(ymlStr)
-		config.FileName = f.Name()
-		config.FilePath = path
-
-		if err != nil {
+		if err := LoadFile(configs, f, path); err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"file": filePath,
 				"err":  err,
-			}).Error("config: failed to unmarshal yaml")
-			continue
+			}).Error("can't load file")
 		}
-		if config.Name == "" {
+	}
+}
+
+// LoadFile loads a single Flex config file
+func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
+	filePath := path + f.Name()
+
+	b, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	ymlStr := string(b)
+	SubEnvVariables(&ymlStr)
+	SubTimestamps(&ymlStr)
+	config, err := ReadYML(ymlStr)
+	if err != nil {
+		return err
+	}
+	config.FileName = f.Name()
+	config.FilePath = path
+
+	if err != nil {
+		return err
+	}
+	if config.Name == "" {
+		return errors.New("config: flexConfig requires name")
+	}
+
+	checkIngestConfigs(&config)
+
+	// if lookup files exist we need to potentially create multiple config files
+	if config.LookupFile != "" {
+		SubLookupFileData(configs, config)
+	} else {
+		*configs = append(*configs, config)
+	}
+	return nil
+}
+
+func recurseDirectory(filePath string, configs *[]load.Config) {
+	if !strings.Contains(filePath, ".git") && !strings.Contains(filePath, "nr-integrations") { // do not recurse through .git or nr-integrations folder
+		load.Logrus.WithFields(logrus.Fields{
+			"path": filePath,
+		}).Debug("config: checking nested configs")
+		nextPath := filePath + "/"
+		files, err := ioutil.ReadDir(nextPath)
+		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
-				"file": filePath,
-			}).Error("config: flexConfig requires name")
-			continue
-		}
-
-		checkIngestConfigs(&config)
-
-		// if lookup files exist we need to potentially create multiple config files
-		if config.LookupFile != "" {
-			SubLookupFileData(configs, config)
+				"path": nextPath,
+			}).Debug("config: failed to read")
 		} else {
-			*configs = append(*configs, config)
+			LoadFiles(configs, files, nextPath)
 		}
-
 	}
 }
 
