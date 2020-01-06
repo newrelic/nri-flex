@@ -248,7 +248,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 
 func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{}, dataOutput string, command load.Command) {
 	headerLine := 0
-	startLine := 1
+	startLine := 0
 
 	if command.RowHeader != 0 {
 		headerLine = command.RowHeader
@@ -267,6 +267,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	// set header keys
 	if len(command.SetHeader) > 0 {
 		keys = command.SetHeader
+		headerLine = -1
 	} else {
 		if command.HeaderRegexMatch {
 			keys = append(keys, formatter.RegMatch(header, command.HeaderSplitBy)...)
