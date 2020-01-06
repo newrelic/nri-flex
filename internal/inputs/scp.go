@@ -125,7 +125,7 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 			Auth: []ssh.AuthMethod{
 				authMethod,
 			},
-		}
+		} // #nosec
 
 		sshconfig.SetDefaults()
 		conn, err = ssh.Dial("tcp", host+":"+port, sshconfig)
