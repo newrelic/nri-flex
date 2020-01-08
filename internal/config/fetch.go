@@ -136,7 +136,9 @@ func FetchLookups(cfg *load.Config, i int) bool {
 
 		loopNo := -1
 		combinations := [][]string{}
-		loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, &combinations)
+		if len(sliceLookups) > 0 {
+			loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, &combinations)
+		}
 
 		load.Logrus.WithFields(logrus.Fields{
 			"name": cfg.Name,
@@ -145,10 +147,16 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		newAPIs := []string{}
 		for _, combo := range combinations {
 			tmpConfigWithLookupReplace := tmpCfgStr
-			for i, key := range lookupDimensions {
-				tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
+			if len(combo) == len(lookupDimensions) {
+				for i, key := range lookupDimensions {
+					tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
+				}
+				newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
+			} else {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": cfg.Name,
+				}).Debug("fetch: invalid lookup, missing a replace")
 			}
-			newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
 		}
 
 		lookupConfig := load.Config{
