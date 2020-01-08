@@ -7,6 +7,7 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/inputs"
@@ -85,10 +86,69 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		}).Error("fetch: lookup processor marshal failed")
 	} else {
 		tmpCfgStr := string(tmpCfgBytes)
+		lookupsFound := regexp.MustCompile(`\${lookup:.*?}`).FindAllString(tmpCfgStr, -1)
 
 		// if no lookups, do not continue running the processor
-		if !strings.Contains(tmpCfgStr, "${lookup:") {
+		if len(lookupsFound) == 0 {
 			return true
+		}
+
+		// determine each unique lookup found
+		lookupDimensions := []string{}
+		for _, lookupVar := range lookupsFound {
+			lookupDimensionFound := false
+			// eg. ${lookup:consumers} -> consumers
+			currentLookupDimension := strings.TrimSuffix(strings.Split(lookupVar, "${lookup:")[1], "}")
+
+			for _, lookupDimension := range lookupDimensions {
+				if currentLookupDimension == lookupDimension {
+					lookupDimensionFound = true
+					break
+				}
+			}
+
+			// only if not found then append to ensure the slice is unique
+			if !lookupDimensionFound {
+				lookupDimensions = append(lookupDimensions, currentLookupDimension)
+			}
+		}
+
+		load.Logrus.WithFields(logrus.Fields{
+			"name": cfg.Name,
+		}).Debug(fmt.Sprintf("fetch: unique lookups found in api %v", (lookupDimensions)))
+
+		sliceIndexes := []int{}
+		sliceKeys := []string{}
+		sliceLookups := [][]string{}
+
+		// init stuff
+		for key, val := range cfg.LookupStore {
+			// only create lookups for the found dimensions
+			for _, dimKey := range lookupDimensions {
+				if key == dimKey {
+					sliceIndexes = append(sliceIndexes, 0)
+					sliceKeys = append(sliceKeys, key)
+					sliceLookups = append(sliceLookups, val)
+					break
+				}
+			}
+		}
+
+		loopNo := -1
+		combinations := [][]string{}
+		loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, &combinations)
+
+		load.Logrus.WithFields(logrus.Fields{
+			"name": cfg.Name,
+		}).Debug(fmt.Sprintf("fetch: combinations found %v", (combinations)))
+
+		newAPIs := []string{}
+		for _, combo := range combinations {
+			tmpConfigWithLookupReplace := tmpCfgStr
+			for i, key := range lookupDimensions {
+				tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
+			}
+			newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
 		}
 
 		lookupConfig := load.Config{
@@ -101,63 +161,42 @@ func FetchLookups(cfg *load.Config, i int) bool {
 			CustomAttributes: cfg.CustomAttributes,
 		}
 
-		replaceOccured := false
-		newAPIs := []string{}
-		lookupIndex := 0
+		fmt.Println(newAPIs)
 
-		load.Logrus.WithFields(logrus.Fields{
-			"name":   cfg.Name,
-			"keys":   len(cfg.LookupStore),
-			"values": cfg.LookupStore,
-		}).Debug("fetch: lookupStore")
-
-		for lookup, lookupKeys := range cfg.LookupStore {
-
-			load.Logrus.WithFields(logrus.Fields{
-				"name": cfg.Name,
-			}).Debug(fmt.Sprintf("fetch: lookup checking index: %d", lookupIndex))
-
-			for z, key := range lookupKeys {
+		for _, newAPI := range newAPIs {
+			API := load.API{}
+			err := yaml.Unmarshal([]byte(newAPI), &API)
+			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"name": cfg.Name,
-				}).Debug(fmt.Sprintf("fetch: lookup %v val: %v", lookup, key))
-
-				if lookupIndex == 0 {
-					newAPIs = append(newAPIs, tmpCfgStr)
-				}
-
-				if z < len(newAPIs) {
-					if strings.Contains(newAPIs[z], "${lookup:"+lookup+"}") { // confirm a lookup replacement exists
-						newAPIs[z] = strings.Replace(newAPIs[z], ("${lookup:" + lookup + "}"), key, -1) // replace
-						replaceOccured = true
-						load.Logrus.WithFields(logrus.Fields{
-							"name": cfg.Name,
-						}).Debug(fmt.Sprintf("fetch: lookup %v replace with: %v", lookup, key))
-					}
-				}
-
+					"err":  err,
+				}).Error("fetch: failed to unmarshal lookup config")
+			} else {
+				lookupConfig.APIs = append(lookupConfig.APIs, API)
 			}
-
-			lookupIndex++
 		}
-
-		if replaceOccured {
-			for _, newAPI := range newAPIs {
-				API := load.API{}
-				err := yaml.Unmarshal([]byte(newAPI), &API)
-				if err != nil {
-					load.Logrus.WithFields(logrus.Fields{
-						"name": cfg.Name,
-						"err":  err,
-					}).Error("fetch: failed to unmarshal lookup config")
-				} else {
-					lookupConfig.APIs = append(lookupConfig.APIs, API)
-				}
-			}
-			Run(lookupConfig)
-			return false
-		}
+		Run(lookupConfig)
+		return false
 	}
 
 	return true
+}
+
+func loopLookups(loopNo int, sliceIndexes []int, sliceKeys []string, sliceLookups [][]string, combinations *[][]string) {
+	loopNo++
+	for i := range sliceLookups[loopNo] {
+		// track the index of each loop
+		(sliceIndexes)[loopNo] = i
+
+		// this indicates we are in the inner most loop, else do another loop
+		if loopNo+1 == len(sliceLookups) {
+			keys := []string{}
+			for x := 0; x <= loopNo; x++ {
+				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
+			}
+			*combinations = append(*combinations, keys)
+		} else {
+			loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, combinations)
+		}
+	}
 }
