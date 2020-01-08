@@ -161,8 +161,6 @@ func FetchLookups(cfg *load.Config, i int) bool {
 			CustomAttributes: cfg.CustomAttributes,
 		}
 
-		fmt.Println(newAPIs)
-
 		for _, newAPI := range newAPIs {
 			API := load.API{}
 			err := yaml.Unmarshal([]byte(newAPI), &API)
