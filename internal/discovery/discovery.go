@@ -420,6 +420,8 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 				load.Logrus.Error(fmt.Sprintf("discovery: unable to read flex config: " + path + containerYml.FileName))
 			} else {
 				ymlString := string(b)
+				config.SubEnvVariables(&ymlString)
+				config.SubTimestamps(&ymlString)
 				discoveryIPAddress := "" // we require IP at least
 				discoveryPort := ""      // we don't require port
 				networkIPAddress := ""
