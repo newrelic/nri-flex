@@ -49,7 +49,6 @@ func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string) {
 		for key := range *currentSample {
 			if formatter.KvFinder("regex", key, removeKey) {
 				delete(*currentSample, key)
-				break
 			}
 		}
 	}
