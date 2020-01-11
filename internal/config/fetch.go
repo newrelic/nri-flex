@@ -147,8 +147,8 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		newAPIs := []string{}
 		for _, combo := range combinations {
 			tmpConfigWithLookupReplace := tmpCfgStr
-			if len(combo) == len(lookupDimensions) {
-				for i, key := range lookupDimensions {
+			if len(combo) == len(sliceKeys) {
+				for i, key := range sliceKeys {
 					tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
 				}
 				newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
@@ -198,6 +198,7 @@ func loopLookups(loopNo int, sliceIndexes []int, sliceKeys []string, sliceLookup
 		if loopNo+1 == len(sliceLookups) {
 			keys := []string{}
 			for x := 0; x <= loopNo; x++ {
+				fmt.Println(sliceIndexes[x], sliceLookups[x], x)
 				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
 			}
 			*combinations = append(*combinations, keys)
