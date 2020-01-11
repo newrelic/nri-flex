@@ -21,7 +21,7 @@ func TestDimensionalLookup(t *testing.T) {
 
 	loopNo := -1
 	combinations := [][]string{}
-	loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, &combinations)
+	loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
 
 	expected := map[int][]string{}
 	expected[0] = []string{"dog", "m", "10"}

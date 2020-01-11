@@ -137,7 +137,7 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		loopNo := -1
 		combinations := [][]string{}
 		if len(sliceLookups) > 0 {
-			loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, &combinations)
+			loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
 		}
 
 		load.Logrus.WithFields(logrus.Fields{
@@ -188,7 +188,7 @@ func FetchLookups(cfg *load.Config, i int) bool {
 	return true
 }
 
-func loopLookups(loopNo int, sliceIndexes []int, sliceKeys []string, sliceLookups [][]string, combinations *[][]string) {
+func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combinations *[][]string) {
 	loopNo++
 	for i := range sliceLookups[loopNo] {
 		// track the index of each loop
@@ -198,12 +198,11 @@ func loopLookups(loopNo int, sliceIndexes []int, sliceKeys []string, sliceLookup
 		if loopNo+1 == len(sliceLookups) {
 			keys := []string{}
 			for x := 0; x <= loopNo; x++ {
-				fmt.Println(sliceIndexes[x], sliceLookups[x], x)
 				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
 			}
 			*combinations = append(*combinations, keys)
 		} else {
-			loopLookups(loopNo, sliceIndexes, sliceKeys, sliceLookups, combinations)
+			loopLookups(loopNo, sliceIndexes, sliceLookups, combinations)
 		}
 	}
 }
