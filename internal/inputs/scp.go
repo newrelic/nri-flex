@@ -61,14 +61,14 @@ func RunScpWithTimeout(dataStore *[]interface{}, cfg *load.Config, api load.API,
 }
 
 func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
-	//
+
 	var user, pass, passphrase, host, port, sshpemfile string
 	var encryptedpass, realpass []byte
 	var err error
 	var conn *ssh.Client
 	var client *sftp.Client
 	var authMethod ssh.AuthMethod
-
+	var timeout time.Duration
 	host = api.Scp.Host
 	port = api.Scp.Port
 
@@ -81,6 +81,12 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 	if yml.Global.User != "" {
 		user = yml.Global.User
 	}
+	if yml.Global.Timeout > 0 {
+		timeout = time.Duration(yml.Global.Timeout) * time.Millisecond
+	} else {
+		timeout = load.DefaultPingTimeout
+	}
+
 	if api.Scp.User != "" {
 		user = api.Scp.User
 	}
@@ -106,13 +112,13 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 		if passphrase != "" {
 			encryptedpass, err = hex.DecodeString(pass)
 			if err == nil {
-
 				realpass, err = utils.Decrypt(encryptedpass, passphrase)
 				if err == nil {
 					pass = string(realpass)
 				}
 			}
 		}
+		err = nil
 		authMethod = ssh.Password(pass)
 	}
 
@@ -121,7 +127,7 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 		sshconfig := &ssh.ClientConfig{
 			User:            user,
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-			Timeout:         5 * time.Second,
+			Timeout:         timeout,
 			Auth: []ssh.AuthMethod{
 				authMethod,
 			},
@@ -131,8 +137,9 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 		conn, err = ssh.Dial("tcp", host+":"+port, sshconfig)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
-				"user": user,
-				"err":  err,
+				"user":  user,
+				"host:": host,
+				"err":   err,
 			}).Error("ssh: failed to connect to host")
 		} else {
 			client, err = sftp.NewClient(conn)
