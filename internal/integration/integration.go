@@ -77,7 +77,16 @@ func RunFlex(mode string) {
 	}
 
 	if load.ContainerID == "" && mode != "test" && mode != "lambda" && runtime.GOOS != "darwin" {
-		discovery.Processes()
+		switch runtime.GOOS {
+		case "windows":
+			if load.Args.DiscoverProcessWin {
+				discovery.Processes()
+			}
+		case "linux":
+			if load.Args.DiscoverProcessLinux {
+				discovery.Processes()
+			}
+		}
 	}
 
 	load.Logrus.Info(fmt.Sprintf("flex: config files loaded %d", len(configs)))
