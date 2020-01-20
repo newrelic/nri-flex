@@ -263,6 +263,7 @@ type API struct {
 	RemoveKeys   []string            `yaml:"remove_keys"`
 	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
 	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
+	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
 	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
@@ -307,8 +308,10 @@ type ArgumentList struct {
 	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
 	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
-	EncryptPass string `default:"" help:"Pass to be encypted"`
-	PassPhrase  string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
+	EncryptPass          string `default:"" help:"Pass to be encypted"`
+	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
+	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
+	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
 }
 ```
 
