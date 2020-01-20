@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -138,7 +140,9 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 
 			errorLogToInsights(err, api.Database, api.Name, query.Name)
 		} else {
-			values := make([]sql.RawBytes, len(cols))
+			// Use interface{} type instead of original sql.RawBytes, parsing the value ourselves instead of using sql scan convert routine,
+			// which does not hanlde sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64 conversion to sql.RawBytes.
+			values := make([]interface{}, len(cols))
 			scanArgs := make([]interface{}, len(values))
 			for i := range values {
 				scanArgs[i] = &values[i]
@@ -168,9 +172,9 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 					for i, col := range values {
 						// If value nil == null
 						if col == nil {
-							rowSet[cols[i]] = "NULL"
+							rowSet[cols[i]] = ""
 						} else {
-							rowSet[cols[i]] = string(col)
+							rowSet[cols[i]] = asString(col)
 						}
 					}
 					queryEndTime := load.TimestampMs()
@@ -254,4 +258,32 @@ func set(err error) {
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
 	}
+}
+
+func asString(src interface{}) string {
+
+	switch v := src.(type) {
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	case sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64:
+		return ""
+	}
+	rv := reflect.ValueOf(src)
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.FormatInt(rv.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return strconv.FormatUint(rv.Uint(), 10)
+	case reflect.Float64:
+		return strconv.FormatFloat(rv.Float(), 'g', -1, 64)
+	case reflect.Float32:
+		return strconv.FormatFloat(rv.Float(), 'g', -1, 32)
+	case reflect.Bool:
+		return strconv.FormatBool(rv.Bool())
+
+	}
+
+	return fmt.Sprintf("%v", src)
 }

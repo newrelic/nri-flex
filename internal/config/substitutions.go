@@ -140,7 +140,6 @@ func SubTimestamps(strConf *string) {
 	dateFormat := "2006-01-02"
 	datetimeFormat := "2006-01-02T15:04:05"
 	datetimeFormatTZ := "2006-01-02T15:04:05Z07:00"
-
 	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(current.UnixNano()/1e+6), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(current.UnixNano()), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(current.Unix()), -1)
@@ -152,6 +151,20 @@ func SubTimestamps(strConf *string) {
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutc}", fmt.Sprint(currentUTC.Format(datetimeFormat)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutctz}", fmt.Sprint(currentUTC.Format(datetimeFormatTZ)), -1)
 
+	*strConf = strings.Replace(*strConf, "${timestamp:year}", strconv.Itoa(current.Year()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:month}", strconv.Itoa(int(current.Month())), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:day}", strconv.Itoa(current.Day()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:hour}", strconv.Itoa(current.Hour()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:minute}", strconv.Itoa(current.Minute()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:second}", strconv.Itoa(current.Second()), -1)
+
+	*strConf = strings.Replace(*strConf, "${timestamp:utcyear}", strconv.Itoa(currentUTC.Year()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:utcmonth}", strconv.Itoa(int(currentUTC.Month())), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:utcday}", strconv.Itoa(currentUTC.Day()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:utchour}", strconv.Itoa(currentUTC.Hour()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:utcminute}", strconv.Itoa(currentUTC.Minute()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:utcsecond}", strconv.Itoa(currentUTC.Second()), -1)
+
 	timestamps := regexp.MustCompile(`\${timestamp:.*?}`).FindAllString(*strConf, -1)
 	for _, timestamp := range timestamps {
 
@@ -162,7 +175,8 @@ func SubTimestamps(strConf *string) {
 		defaultTimestamp := "${timestamp:ms}"
 		var err error
 
-		matches := formatter.RegMatch(timestamp, `(\${timestamp:)(ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz)(-|\+)(\d+|\d+\D+)\}`)
+		matches := formatter.RegMatch(timestamp, `(\${timestamp:)(ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz|year|month|day|hour|second|utcyear|utcmonth|utcday|utchour|minute|utcminute|utcsecond)(-|\+)(\d+|\d+\D+)\}`)
+
 		// matches patterns like {timestamp:ms+10} or {timestamp:ns-10s}, {timestamp:ns-[Digits&NonDigits]},etc
 		if len(matches) == 4 {
 			var duration int64
@@ -224,6 +238,33 @@ func SubTimestamps(strConf *string) {
 				timestampReturn = fmt.Sprint(timestampUTC.Format(datetimeFormat))
 			case "datetimeutctz":
 				timestampReturn = fmt.Sprint(timestampUTC.Format(datetimeFormatTZ))
+
+			case "year":
+				timestampReturn = strconv.Itoa(timestampCurrent.Year())
+			case "month":
+				timestampReturn = strconv.Itoa(int(timestampCurrent.Month()))
+			case "day":
+				timestampReturn = strconv.Itoa(timestampCurrent.Day())
+			case "hour":
+				timestampReturn = strconv.Itoa(timestampCurrent.Hour())
+			case "minute":
+				timestampReturn = strconv.Itoa(timestampCurrent.Minute())
+			case "second":
+				timestampReturn = strconv.Itoa(timestampCurrent.Second())
+
+			case "utcyear":
+				timestampReturn = strconv.Itoa(timestampUTC.Year())
+			case "utcmonth":
+				timestampReturn = strconv.Itoa(int(timestampCurrent.Month()))
+			case "utcday":
+				timestampReturn = strconv.Itoa(timestampUTC.Day())
+			case "utchour":
+				timestampReturn = strconv.Itoa(timestampUTC.Hour())
+			case "utcminute":
+				timestampReturn = strconv.Itoa(timestampUTC.Minute())
+
+			case "utcsecond":
+				timestampReturn = strconv.Itoa(timestampUTC.Second())
 
 			default:
 				// default to timestamp in unix milliseconds

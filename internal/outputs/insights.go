@@ -21,24 +21,37 @@ import (
 // when posted they are batched by entity
 func SendToInsights() {
 	for _, entity := range load.Integration.Entities {
+		// split the payload into smaller batches so that the payload size does not exceed the Insight endpoint size limit
+		batchSize := load.Args.InsightBatchSize
+		sizeMetrics := len(entity.Metrics)
+		batches := sizeMetrics/batchSize + 1
+
 		modifyEventType(entity)
-		jsonData, err := json.Marshal(entity.Metrics)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("insights: failed to marshal json")
-		} else {
-			load.Logrus.Info(fmt.Sprintf("posting %d events to insights", len(entity.Metrics)))
-			postRequest(load.Args.InsightsURL, load.Args.InsightsAPIKey, jsonData)
-			if load.Args.InsightsOutput {
-				fmt.Println(string(jsonData))
+
+		for i := 0; i < batches; i++ {
+			start := i * batchSize
+			end := start + batchSize
+			if end > sizeMetrics {
+				end = sizeMetrics
 			}
-			// empty the infrastructure entity metrics by default
-			entity.Metrics = []*metric.Set{}
-			// if !load.Args.InsightsOutput {
-			// 	load.Entity.Metrics = []*metric.Set{}
-			// }
+			thisBatch := (entity.Metrics)[start:end]
+			jsonData, err := json.Marshal(thisBatch)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Error("insights: failed to marshal json")
+				break
+			} else {
+				load.Logrus.Debug(fmt.Sprintf("posting %d events to insights", len(thisBatch)))
+				postRequest(load.Args.InsightsURL, load.Args.InsightsAPIKey, jsonData)
+				if load.Args.InsightsOutput {
+					fmt.Println(string(jsonData))
+				}
+			}
+
 		}
+		// empty the infrastructure entity metrics by default
+		entity.Metrics = []*metric.Set{}
 	}
 }
 

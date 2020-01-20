@@ -13,28 +13,28 @@ can be found at https://github.com/newrelic/nri-flex/.
 
 ## Contents
 
-* [Go](#go)
-* [infra-integrations-sdkK](#infra-integrations-sdk)
-* [yaml](#yaml)
-* [flatten](#flatten)
-* [docker-distribution](#docker-distribution)
-* [docker](#docker)
-* [prometheus-client-model](#prometheus-client-model)
-* [prometheus-common](#prometheus-common)
-* [govaluate](#govaluate)
-* [aws-sdk-go](#aws-sdk-go)
-* [aws-lambda-go](#aws-lambda-go)
-* [logrus](#logrus)
-* [gopsutil](#gopsutil)
-* [go-git](#go-git)
-* [go-hdb](#go-hdb)
-* [go-mssqldb](#go-mssqldb)
-* [mysql](#mysql)
-* [pq](#pq)
-* [gorequest](#gorequest)
-* [afero](#afero)
-* [vertica-sql-go](#vertica-sql-go)
-
+- [Go](#go)
+- [infra-integrations-sdkK](#infra-integrations-sdk)
+- [yaml](#yaml)
+- [flatten](#flatten)
+- [docker-distribution](#docker-distribution)
+- [docker](#docker)
+- [prometheus-client-model](#prometheus-client-model)
+- [prometheus-common](#prometheus-common)
+- [govaluate](#govaluate)
+- [aws-sdk-go](#aws-sdk-go)
+- [aws-lambda-go](#aws-lambda-go)
+- [logrus](#logrus)
+- [gopsutil](#gopsutil)
+- [go-git](#go-git)
+- [go-hdb](#go-hdb)
+- [go-mssqldb](#go-mssqldb)
+- [mysql](#mysql)
+- [pq](#pq)
+- [gorequest](#gorequest)
+- [afero](#afero)
+- [vertica-sql-go](#vertica-sql-go)
+- [goxml2json](#goxml2json)
 
 ## Go
 
@@ -73,6 +73,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 ## infra-integrations-sdk
+
 https://github.com/newrelic/infra-integrations-sdk/blob/master/LICENSE
 
 ```
@@ -100,6 +101,7 @@ SOFTWARE.
 ```
 
 ## gorequest
+
 https://github.com/parnurzeal/gorequest/blob/develop/LICENSE
 
 ```
@@ -126,6 +128,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
 ## yaml
+
 https://github.com/go-yaml/yaml/blob/v2/LICENSE
 
 ```
@@ -333,10 +336,11 @@ https://github.com/go-yaml/yaml/blob/v2/LICENSE
 ```
 
 ## flatten
+
 https://github.com/jeremywohl/flatten/blob/master/LICENSE
 
 ```
-    
+
 The MIT License (MIT)
 
 Copyright (c) 2016 Jeremy Wohl
@@ -361,6 +365,7 @@ SOFTWARE.
 ```
 
 ## docker-distribution
+
 https://github.com/docker/distribution/blob/master/LICENSE
 
 ```
@@ -569,6 +574,7 @@ Apache License
 ```
 
 ## docker
+
 https://github.com/moby/moby
 
 ```
@@ -766,6 +772,7 @@ https://github.com/moby/moby
 ```
 
 ## prometheus-client-model
+
 https://github.com/prometheus/client_model/blob/master/LICENSE
 
 ```
@@ -973,6 +980,7 @@ https://github.com/prometheus/client_model/blob/master/LICENSE
 ```
 
 ## prometheus-common
+
 https://github.com/prometheus/common/blob/master/LICENSE
 
 ```
@@ -1180,6 +1188,7 @@ https://github.com/prometheus/common/blob/master/LICENSE
 ```
 
 ## govaluate
+
 https://github.com/Knetic/govaluate/blob/master/LICENSE
 
 ```
@@ -1207,7 +1216,9 @@ SOFTWARE.
 ```
 
 ## aws-lambda-go
+
 https://github.com/aws/aws-lambda-go/blob/master/LICENSE
+
 ```
 
                                  Apache License
@@ -1414,6 +1425,7 @@ https://github.com/aws/aws-lambda-go/blob/master/LICENSE
 ```
 
 ## logrus
+
 https://github.com/sirupsen/logrus/blob/master/LICENSE
 
 ```
@@ -1441,6 +1453,7 @@ THE SOFTWARE.
 ```
 
 ## gopsutil
+
 https://github.com/shirou/gopsutil/blob/master/LICENSE
 
 ```
@@ -1509,6 +1522,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 ## go-git
+
 https://github.com/src-d/go-git/blob/master/LICENSE
 
 ```
@@ -1716,6 +1730,7 @@ https://github.com/src-d/go-git/blob/master/LICENSE
 ```
 
 ## go-hdb
+
 https://github.com/SAP/go-hdb/blob/master/LICENSE
 
 ```
@@ -1923,6 +1938,7 @@ Apache License
 ```
 
 ## aws-sdk-go
+
 https://github.com/aws/aws-sdk-go/blob/master/LICENSE.txt
 
 ```
@@ -2131,6 +2147,7 @@ https://github.com/aws/aws-sdk-go/blob/master/LICENSE.txt
 ```
 
 ## go-mssqldb
+
 https://github.com/denisenkom/go-mssqldb/blob/master/LICENSE.txt
 
 ```
@@ -2164,6 +2181,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 ## mysql
+
 https://github.com/go-sql-driver/mysql/blob/master/LICENSE
 
 ```
@@ -2204,7 +2222,7 @@ Mozilla Public License Version 2.0
     means any form of the work other than Source Code Form.
 
 1.7. "Larger Work"
-    means a work that combines Covered Software with other material, in 
+    means a work that combines Covered Software with other material, in
     a separate file or files, that is not Covered Software.
 
 1.8. "License"
@@ -2543,6 +2561,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 ```
 
 ## pq
+
 https://github.com/lib/pq/blob/master/LICENSE.md
 
 ```
@@ -2557,6 +2576,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
 
 ## afero
+
 https://github.com/spf13/afero/blob/master/LICENSE.txt
 
 ```
@@ -2737,6 +2757,7 @@ https://github.com/spf13/afero/blob/master/LICENSE.txt
 ```
 
 ## vertica-sql-go
+
 https://github.com/vertica/vertica-sql-go/blob/master/LICENSE
 
 ```
@@ -2941,4 +2962,32 @@ https://github.com/vertica/vertica-sql-go/blob/master/LICENSE
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+```
+
+## goxml2json
+
+https://github.com/basgys/goxml2json/blob/master/LICENSE
+
+```
+The MIT License (MIT)
+
+Copyright (c) 2016 Bastien Gysler
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
