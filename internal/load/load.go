@@ -305,6 +305,7 @@ type API struct {
 	RemoveKeys   []string            `yaml:"remove_keys"`
 	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
 	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
+	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
 	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!

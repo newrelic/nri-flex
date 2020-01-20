@@ -56,6 +56,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 		request = setRequestOptions(request, *yml, api)
 		load.Logrus.Debug(fmt.Sprintf("sending %v request to %v", request.Method, *reqURL))
 		resp, _, errors := request.End()
+		load.StatusCounterIncrement("HttpRequests")
 		if resp != nil {
 			nextLink := ""
 			if resp.Header["Link"] != nil {

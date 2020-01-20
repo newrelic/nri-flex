@@ -85,9 +85,15 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
 
-		// check if this contains any key pair values to filter out
 		createSample := true
-		RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+		// check if we should ignore this output completely
+		// useful when requests are made to generate a lookup, but the data is not needed
+		if api.IgnoreOutput {
+			createSample = false
+		} else {
+			// check if this contains any key pair values to filter out
+			RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+		}
 
 		if createSample {
 			// remove keys from sample
