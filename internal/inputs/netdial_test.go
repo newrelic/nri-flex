@@ -60,8 +60,22 @@ func TestNetDial(t *testing.T) {
 				switch recSample := rSample.(type) {
 				case map[string]interface{}:
 					for key := range sample {
-						if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
-							t.Errorf("dbSample %v want %v, got %v", key, sample[key], recSample[key])
+						if recSample[key] != nil {
+							if key == "err" {
+								allowedErrors := []string{"dial tcp: lookup fake12311290.com: no such host", "context deadline exceeded", "dial tcp: i/o timeout"}
+								foundError := false
+								for _, allowedError := range allowedErrors {
+									if allowedError == fmt.Sprintf("%v", recSample[key]) {
+										foundError = true
+										break
+									}
+								}
+								if !foundError {
+									t.Errorf("expected one of these errors %v", allowedErrors)
+								}
+							} else if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
+								t.Errorf("%v want %v, got %v", key, sample[key], recSample[key])
+							}
 						}
 					}
 				}
