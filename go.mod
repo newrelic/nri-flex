@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-lambda-go v1.11.1
 	github.com/aws/aws-sdk-go v1.21.10
 	github.com/axw/gocov v1.0.0 // indirect
+	github.com/basgys/goxml2json v1.1.0
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible // indirect
@@ -34,6 +35,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/parnurzeal/gorequest v0.2.15
+	github.com/pkg/sftp v1.11.0
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90
 	github.com/prometheus/common v0.4.0
 	github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481 // indirect
@@ -41,6 +43,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
 	github.com/vertica/vertica-sql-go v0.1.3
+	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
 	golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6 // indirect
