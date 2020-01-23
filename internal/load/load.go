@@ -17,32 +17,33 @@ import (
 // ArgumentList Available Arguments
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
-	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
-	Local                 bool   `default:"true" help:"Collect local entity info"`
-	ConfigPath            string `default:"" help:"Set a specific config file."`
-	ConfigFile            string `default:"" help:"(deprecated) Set a specific config file. Alias for config_path"`
-	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
-	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
-	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
-	Fargate               bool   `default:"false" help:"Enable Fargate discovery"`
-	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
-	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
-	Entity                string `default:"" help:"Manually set a remote entity name"`
-	InsightsURL           string `default:"" help:"Set Insights URL"`
-	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
-	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
-	MetricAPIKey          string `default:"" help:"Set Metric API key"`
-	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
-	GitService            string `default:"github" help:"Set git service"`
-	GitToken              string `default:"" help:"Set git token"`
-	GitUser               string `default:"" help:"Set git user"`
-	GitRepo               string `default:"" help:"Set git repository to sync"`
-	GitURL                string `default:"" help:"Set alternate git url"`
-	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
-	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
-	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
+	ForceLogEvent           bool   `default:"false" help:"Force create an event for everything - useful for testing"`
+	OverrideIPMode          string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
+	Local                   bool   `default:"true" help:"Collect local entity info"`
+	ConfigPath              string `default:"" help:"Set a specific config file."`
+	ConfigFile              string `default:"" help:"(deprecated) Set a specific config file. Alias for config_path"`
+	ConfigDir               string `default:"flexConfigs/" help:"Set directory of config files"`
+	ContainerDiscoveryDir   string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
+	ContainerDiscovery      bool   `default:"false" help:"Enable container auto discovery"`
+	ContainerDiscoveryMulti bool   `default:"false" help:"Allow a container to be matched multiple times"`
+	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
+	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
+	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	Entity                  string `default:"" help:"Manually set a remote entity name"`
+	InsightsURL             string `default:"" help:"Set Insights URL"`
+	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
+	InsightsOutput          bool   `default:"false" help:"Output the events generated to standard out"`
+	MetricAPIUrl            string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey            string `default:"" help:"Set Metric API key"`
+	GitFlexDir              string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
+	GitService              string `default:"github" help:"Set git service"`
+	GitToken                string `default:"" help:"Set git token"`
+	GitUser                 string `default:"" help:"Set git user"`
+	GitRepo                 string `default:"" help:"Set git repository to sync"`
+	GitURL                  string `default:"" help:"Set alternate git url"`
+	GitBranch               string `default:"master" help:"Checkout to specified git branch"`
+	GitCommit               string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
+	ProcessConfigsSync      bool   `default:"false" help:"Process configs synchronously rather then async"`
 	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
 }
 

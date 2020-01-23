@@ -152,11 +152,13 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 		go func(container types.Container) {
 			defer wg.Done()
 
-			// do not target already targeted containers
+			// do not target already targeted containers unless container discovery multi param is true
 			targeted := false
-			for _, foundTargetContainerID := range *foundTargetContainerIds {
-				if foundTargetContainerID == container.ID {
-					targeted = true
+			if !load.Args.ContainerDiscoveryMulti {
+				for _, foundTargetContainerID := range *foundTargetContainerIds {
+					if foundTargetContainerID == container.ID {
+						targeted = true
+					}
 				}
 			}
 
@@ -571,11 +573,13 @@ func parseFlexDiscoveryLabel(discoveryConfig map[string]interface{}, key string,
 }
 
 func findContainerTarget(discoveryConfig map[string]interface{}, container types.Container, foundTargetContainerIds *[]string) bool {
-	// do not add any dynamic configs for already targeted containers
-	for _, id := range *foundTargetContainerIds {
-		if id == container.ID {
-			load.Logrus.Debug("discovery: container id " + container.ID + " already targeted")
-			return false
+	// do not add any dynamic configs for already targeted containers, unless container discovery multi param is true
+	if !load.Args.ContainerDiscoveryMulti {
+		for _, id := range *foundTargetContainerIds {
+			if id == container.ID {
+				load.Logrus.Debug("discovery: container id " + container.ID + " already targeted")
+				return false
+			}
 		}
 	}
 
