@@ -29,9 +29,11 @@ AutoSetStandard x
 #### func  CreateMetricSets
 
 ```go
-func CreateMetricSets(samples []interface{}, config *load.Config, i int)
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{})
 ```
-CreateMetricSets creates metric sets
+CreateMetricSets creates metric sets hren added samplesToMerge parameter, moved
+merge operation to CreateMetricSets so that the "Run...." functions still apply
+before merge
 
 #### func  FinalMerge
 
@@ -55,12 +57,12 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 ```
 FlattenData flatten an interface
 
-#### func  ProcessSamplesToMerge
+#### func  ProcessSamplesMergeJoin
 
 ```go
-func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config)
+func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config)
 ```
-ProcessSamplesToMerge used to merge multiple samples together
+hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 
 #### func  RunDataHandler
 
@@ -164,6 +166,14 @@ db0:keys=1,expires=0,avg_ttl=0
 func RunValConversion(v *interface{}, api load.API, key *string)
 ```
 RunValConversion performs percentage to decimal & nano second to millisecond
+
+#### func  RunValueMapper
+
+```go
+func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{})
+```
+RunValueMapper map the value using regex grouping for keys e.g. "*.?\s(Service
+Status)=>$1-Good" -> "Service Status-Good"
 
 #### func  RunValueParser
 

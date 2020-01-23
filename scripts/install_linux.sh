@@ -26,7 +26,11 @@ mkdir -p /var/db/newrelic-infra/custom-integrations/flexContainerDiscovery/
 mkdir -p /var/db/newrelic-infra/custom-integrations/flexConfigs/
 
 # if you want JMX support, remember you will need Java 7+ installed
-# cp -avr ./nrjmx /var/db/newrelic-infra/custom-integrations/ 
+if [[ $1 == "--jmx" ]]; then
+    echo "NOTE: To use JMX, please ensure you have Java 7+ installed"
+    echo "Copying JMX Files"
+    cp -avr ./nrjmx /var/db/newrelic-infra/custom-integrations/
+fi
 
 # this will copy all configs, only take what you need
 # cp -avr ./flexConfigs /var/db/newrelic-infra/custom-integrations/

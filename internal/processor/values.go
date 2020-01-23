@@ -174,3 +174,35 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		}
 	}
 }
+
+// RunValueMapper map the value using regex grouping for keys e.g.  "*.?\s(Service Status)=>$1-Good" -> "Service Status-Good"
+func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{}) {
+
+	if mapentries, found := (mapKeys)[key]; found {
+
+		replacedValue := false
+		for _, mapentry := range mapentries {
+			valueSplit := strings.Split(mapentry, "=>")
+			if len(valueSplit) == 2 {
+				regexPattern := valueSplit[0]
+				targetValue := valueSplit[1]
+				r := regexp.MustCompile(regexPattern)
+				res := r.FindStringSubmatch((*v).(string))
+				for i, value := range res {
+					if i != 0 {
+						targetValue = strings.ReplaceAll(targetValue, "$"+strconv.Itoa(i), value)
+						replacedValue = true
+					}
+				}
+				if replacedValue {
+					*v = targetValue
+					break
+				}
+
+			}
+
+		}
+
+	}
+
+}

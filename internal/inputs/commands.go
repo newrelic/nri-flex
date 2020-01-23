@@ -267,7 +267,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, lines []s
 
 func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{}, dataOutput string, command load.Command) {
 	headerLine := 0
-	startLine := 1
+	startLine := 0
 
 	if command.RowHeader != 0 {
 		headerLine = command.RowHeader
@@ -286,6 +286,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	// set header keys
 	if len(command.SetHeader) > 0 {
 		keys = command.SetHeader
+		headerLine = -1
 	} else {
 		if command.HeaderRegexMatch {
 			keys = append(keys, formatter.RegMatch(header, command.HeaderSplitBy)...)
@@ -370,6 +371,11 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	err := json.Unmarshal([]byte(dataOutput), &f)
 	if err == nil {
 		return load.TypeJSON, f
+	}
+	// check xml
+	xmlSignature := `<?xml version=`
+	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
+		return load.TypeXML, nil
 	}
 
 	// default raw

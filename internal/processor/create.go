@@ -26,7 +26,8 @@ import (
 const regex = "regex"
 
 // CreateMetricSets creates metric sets
-func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
+// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{}) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
@@ -61,6 +62,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 			RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
 
+			RunValueMapper(api.ValueMapper, &currentSample, key, &v) // subParse key pairs (see redis example)
 			// do not rename a key again, this is to avoid continuous replacement loops
 			// eg. if you replace id with project.id
 			// this could then again attempt to replace id within project.id to project.project.id
@@ -115,12 +117,22 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 			addAttribute(currentSample, api.AddAttribute)
 
-			workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
-			if config.MetricAPI {
-				AutoSetMetricAPI(&currentSample, &api)
+			// hren: if it is not mergeMetric, it will proceed to puslish metric
+			if !mergeMetric {
+				workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
+				if config.MetricAPI {
+					AutoSetMetricAPI(&currentSample, &api)
+				} else {
+					AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
+				}
 			} else {
-				AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
+				// hren: it is mergeMetric, add the metric to mergeData, which will be published later
+				currentSample["_sampleNo"] = i
+				// hren overwrite event_type if it is merge operation
+				currentSample["event_type"] = config.APIs[i].Merge
+				(*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
 			}
+
 		}
 
 	}

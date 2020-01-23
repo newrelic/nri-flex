@@ -31,6 +31,7 @@ const (
 	Image              = "image"
 	TypeContainer      = "container"
 	TypeJSON           = "json"
+	TypeXML            = "xml"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )
@@ -191,6 +192,7 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
+	Joinkey           string            `yaml:"joinkey"`        // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
@@ -226,7 +228,7 @@ type API struct {
 	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
-
+	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -244,6 +246,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
+	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy   string   `yaml:"split_by"`   // character to split by
@@ -259,6 +263,7 @@ type API struct {
 	RemoveKeys   []string            `yaml:"remove_keys"`
 	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
 	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
+	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
 	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
@@ -290,6 +295,7 @@ type ArgumentList struct {
 	InsightsURL           string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
 	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
+	InsightBatchSize      int    `default:"5000" help:"Batch Size - number of metrics per post call to Insight endpoint"`
 	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
 	MetricAPIKey          string `default:"" help:"Set Metric API key"`
 	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
@@ -301,6 +307,11 @@ type ArgumentList struct {
 	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
+	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
+	EncryptPass          string `default:"" help:"Pass to be encypted"`
+	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
+	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
+	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
 }
 ```
 
@@ -559,6 +570,8 @@ type Global struct {
 	Headers    map[string]string `yaml:"headers"`
 	Jmx        JMX               `yaml:"jmx"`
 	TLSConfig  TLSConfig         `yaml:"tls_config"`
+	Passphrase string            `yaml:"pass_phrase"`
+	SSHPEMFile string            `yaml:"ssh_pem_file"`
 }
 ```
 
@@ -803,6 +816,22 @@ type RegMatch struct {
 ```
 
 RegMatch support for regex matches
+
+#### type SCP
+
+```go
+type SCP struct {
+	User       string `yaml:"user"`
+	Pass       string `yaml:"pass"`
+	Host       string `yaml:"host"`
+	Port       string `yaml:"port"`
+	RemoteFile string `yaml:"remote_file"`
+	Passphrase string `yaml:"pass_phrase"`
+	SSHPEMFile string `yaml:"ssh_pem_file"`
+}
+```
+
+SCP struct
 
 #### type SampleMerge
 

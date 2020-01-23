@@ -18,6 +18,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/newrelic/nri-flex/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -46,19 +47,46 @@ func RunFlex(mode string) {
 		}
 	default:
 		// running as default
-		config.SyncGitConfigs("")
-		if load.Args.ConfigFile != "" {
-			addSingleConfigFile(load.Args.ConfigFile, &configs)
+		if load.Args.EncryptPass != "" {
+			load.Logrus.Info(fmt.Sprintf("*****Encryption Result*****"))
+			ciphertext, err := utils.Encrypt([]byte(load.Args.EncryptPass), load.Args.PassPhrase)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{"err": err}).Error("EncryptPass: Failed to encrypt")
+			}
+			cleartext, err := utils.Decrypt(ciphertext, load.Args.PassPhrase)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{"err": err}).Error("EncryptPass: Failed to Decrypt")
+			}
+			load.Logrus.Info(fmt.Sprintf("   encrypt_pass: %s", cleartext))
+			load.Logrus.Info(fmt.Sprintf("    pass_phrase: %s", load.Args.PassPhrase))
+			load.Logrus.Info(fmt.Sprintf(" encrypted pass: %x", ciphertext))
+			os.Exit(0)
+
 		} else {
-			addConfigsFromPath(load.Args.ConfigDir, &configs)
+			config.SyncGitConfigs("")
+			if load.Args.ConfigFile != "" {
+				addSingleConfigFile(load.Args.ConfigFile, &configs)
+			} else {
+				addConfigsFromPath(load.Args.ConfigDir, &configs)
+			}
+			if load.Args.ContainerDiscovery || load.Args.Fargate {
+				discovery.Run(&configs)
+			}
 		}
-		if load.Args.ContainerDiscovery || load.Args.Fargate {
-			discovery.Run(&configs)
-		}
+
 	}
 
 	if load.ContainerID == "" && mode != "test" && mode != "lambda" && runtime.GOOS != "darwin" {
-		discovery.Processes()
+		switch runtime.GOOS {
+		case "windows":
+			if load.Args.DiscoverProcessWin {
+				discovery.Processes()
+			}
+		case "linux":
+			if load.Args.DiscoverProcessLinux {
+				discovery.Processes()
+			}
+		}
 	}
 
 	load.Logrus.Info(fmt.Sprintf("flex: config files loaded %d", len(configs)))
