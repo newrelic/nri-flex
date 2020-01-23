@@ -155,13 +155,13 @@ type Config struct {
 	Name               string
 	Global             Global
 	APIs               []API
-	Datastore          map[string][]interface{} `yaml:"datastore"`
-	LookupStore        map[string][]string      `yaml:"lookup_store"`
-	LookupFile         string                   `yaml:"lookup_file"`
-	VariableStore      map[string]string        `yaml:"variable_store"`
-	Secrets            map[string]Secret        `yaml:"secrets"`
-	CustomAttributes   map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
-	MetricAPI          bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+	Datastore          map[string][]interface{}       `yaml:"datastore"`
+	LookupStore        map[string]map[string]struct{} `yaml:"lookup_store"` // ensures uniqueness vs a slice
+	LookupFile         string                         `yaml:"lookup_file"`
+	VariableStore      map[string]string              `yaml:"variable_store"`
+	Secrets            map[string]Secret              `yaml:"secrets"`
+	CustomAttributes   map[string]string              `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI          bool                           `yaml:"metric_api"`        // enable use of the dimensional data models metric api
 }
 
 // Secret Struct

@@ -36,7 +36,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 		// init lookup store
 		if (&config.LookupStore) == nil {
-			config.LookupStore = map[string][]string{}
+			config.LookupStore = map[string]map[string]struct{}{}
 		}
 
 		// event limiter
@@ -467,7 +467,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string) {
 	value := fmt.Sprintf("%v", v)
 	parsed, err := strconv.ParseFloat(value, 64)
-	if err != nil || strings.EqualFold(value, "infinity") {
+	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "+Inf") || strings.EqualFold(value, "-Inf") || strings.EqualFold(value, "NaN") {
 		set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false

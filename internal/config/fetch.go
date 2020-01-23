@@ -121,14 +121,18 @@ func FetchLookups(cfg *load.Config, i int) bool {
 		sliceKeys := []string{}
 		sliceLookups := [][]string{}
 
-		// init stuff
-		for key, val := range cfg.LookupStore {
+		// init lookups
+		for key, values := range cfg.LookupStore {
 			// only create lookups for the found dimensions
 			for _, dimKey := range lookupDimensions {
 				if key == dimKey {
 					sliceIndexes = append(sliceIndexes, 0)
 					sliceKeys = append(sliceKeys, key)
-					sliceLookups = append(sliceLookups, val)
+					valueArray := []string{}
+					for a := range values {
+						valueArray = append(valueArray, a)
+					}
+					sliceLookups = append(sliceLookups, valueArray)
 					break
 				}
 			}
