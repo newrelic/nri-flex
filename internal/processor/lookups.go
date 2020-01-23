@@ -13,13 +13,17 @@ import (
 )
 
 // StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{}) {
+func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
 		if *key == lookupFindKey {
 			load.Logrus.WithFields(logrus.Fields{
 				"lookupFindKey": lookupFindKey,
 				lookupStoreKey:  fmt.Sprintf("%v", *v),
 			}).Debug("create: store lookup")
+
+			if (*lookupStore)[lookupStoreKey] == nil {
+				(*lookupStore)[lookupStoreKey] = make(map[string]struct{})
+			}
 
 			switch data := (*v).(type) {
 			case []interface{}:
@@ -28,10 +32,10 @@ func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[
 				}).Debug("splitting array")
 
 				for _, dataKey := range data {
-					(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", dataKey))
+					(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", dataKey)] = struct{}{}
 				}
 			default:
-				(*lookupStore)[lookupStoreKey] = append((*lookupStore)[lookupStoreKey], fmt.Sprintf("%v", *v))
+				(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", *v)] = struct{}{}
 			}
 		}
 	}

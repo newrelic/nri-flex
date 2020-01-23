@@ -16,14 +16,18 @@ func TestStoreLookups(t *testing.T) {
 		"blah": "abc",
 	}
 	key := "abc"
-	lookupStore := map[string][]string{}
+	lookupStore := map[string]map[string]struct{}{}
 	var v interface{}
 	v = "myStoredValue"
 
 	StoreLookups(storeLookups, &key, &lookupStore, &v)
+	valueArray := []string{}
+	for a := range lookupStore["blah"] {
+		valueArray = append(valueArray, a)
+	}
 
-	if fmt.Sprintf("%v", lookupStore["blah"][0]) != v {
-		t.Errorf("want: %v got: %v", v, lookupStore["blah"][0])
+	if fmt.Sprintf("%v", valueArray[0]) != v {
+		t.Errorf("want: %v got: %v", v, valueArray[0])
 	}
 }
 

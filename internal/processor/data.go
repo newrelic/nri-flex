@@ -36,7 +36,7 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 	ds := (*dataSet)
 
 	if cfg.LookupStore == nil {
-		cfg.LookupStore = map[string][]string{}
+		cfg.LookupStore = map[string]map[string]struct{}{}
 	}
 
 	// perform an early lookup store
