@@ -185,6 +185,15 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 					rowNo++
 				}
 			}
+			err = rows.Err()
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"configName": yml.Name,
+					"apiName":    api.Name,
+					"database":   api.Database,
+					"query":      query.Run,
+				}).Debug("database: rows return failed")
+			}
 		}
 	}
 }
