@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -62,10 +63,12 @@ func TestNetDial(t *testing.T) {
 					for key := range sample {
 						if recSample[key] != nil {
 							if key == "err" {
-								allowedErrors := []string{"dial tcp: lookup fake12311290.com: no such host", "context deadline exceeded", "dial tcp: i/o timeout"}
+								allowedErrors := []string{"dial tcp: lookup fake12311290.com(.*?): no such host", "context deadline exceeded", "dial tcp: i/o timeout"}
 								foundError := false
+
 								for _, allowedError := range allowedErrors {
-									if allowedError == fmt.Sprintf("%v", recSample[key]) {
+									p := regexp.MustCompile(allowedError)
+									if p.MatchString(fmt.Sprintf("%v", recSample[key])) {
 										foundError = true
 										break
 									}
