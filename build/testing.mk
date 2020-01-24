@@ -19,7 +19,7 @@ test-unit:
 test-integration:
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO_CMD) test -v -tags integration -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/integration.tmp $(GO_PKGS)
+	@sh ./integration-test/ci-test.sh
 
 cover-report:
 	@echo "=== $(PROJECT_NAME) === [ cover-report     ]: generating coverage results..."

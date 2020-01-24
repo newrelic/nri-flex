@@ -1,0 +1,19 @@
+version: "3.1"
+services:
+  nri-flex-src:
+    build:
+      context: ..
+      dockerfile: ./integration-test/Dockerfile
+    volumes:
+      - ../coverage:/go/src/github.com/newrelic/nri-flex/coverage
+    depends_on:
+      - postgres-db
+    links:
+      - postgres-db
+
+  # Containers/services that are used from the integration tests
+  postgres-db:
+    image: postgres:11.2
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: flex

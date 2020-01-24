@@ -37,7 +37,7 @@ all: build
 build: check-version clean lint test-unit coverage compile document
 
 # Build command for CI tooling
-build-ci: check-version clean lint test compile-only
+build-ci: check-version clean lint test-integration compile-only
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean            ]: removing binaries and coverage file..."
