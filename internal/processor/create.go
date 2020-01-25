@@ -479,7 +479,8 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string) {
 	value := fmt.Sprintf("%v", v)
 	parsed, err := strconv.ParseFloat(value, 64)
-	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "+Inf") || strings.EqualFold(value, "-Inf") || strings.EqualFold(value, "NaN") {
+
+	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") {
 		set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false
