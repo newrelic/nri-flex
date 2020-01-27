@@ -27,7 +27,7 @@ const regex = "regex"
 
 // CreateMetricSets creates metric sets
 // hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
-func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{}) {
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
@@ -130,7 +130,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 				currentSample["_sampleNo"] = i
 				// hren overwrite event_type if it is merge operation
 				currentSample["event_type"] = config.APIs[i].Merge
-				(*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
+				// (*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
+
+				samplesToMerge.SampleAppend(config.APIs[i].Merge, currentSample)
 			}
 
 		}

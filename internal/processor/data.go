@@ -11,7 +11,7 @@ import (
 )
 
 // RunDataHandler handles the data received for processing
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": cfg.Name,
 	}).Debug("processor: running data handler")
@@ -32,7 +32,7 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 }
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
-func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config) {
 	ds := (*dataSet)
 
 	if cfg.LookupStore == nil {

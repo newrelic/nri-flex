@@ -469,3 +469,16 @@ type Namespace struct {
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
+
+// SamplesToMerge keep merge sapmles
+type SamplesToMerge struct {
+	sync.RWMutex
+	Data map[string][]interface{}
+}
+
+// SampleAppend append sample with locking
+func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
+	s.Lock()
+	defer s.Unlock()
+	(s.Data)[key] = append((s.Data)[key], sample)
+}

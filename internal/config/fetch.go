@@ -187,7 +187,7 @@ func FetchLookups(cfg *load.Config, i int) bool {
 				lookupConfig.APIs = append(lookupConfig.APIs, API)
 			}
 		}
-		Run(lookupConfig)
+		RunAsync(lookupConfig)
 		return false
 	}
 

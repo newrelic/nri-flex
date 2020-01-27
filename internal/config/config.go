@@ -116,7 +116,9 @@ func ReadYML(yml string) (load.Config, error) {
 
 // Run Action each config file
 func Run(yml load.Config) {
-	samplesToMerge := map[string][]interface{}{}
+	// samplesToMerge := map[string][]interface{}{}
+	var samplesToMerge load.SamplesToMerge
+	samplesToMerge.Data = map[string][]interface{}{}
 	load.Logrus.WithFields(logrus.Fields{
 		"name": yml.Name,
 		"apis": len(yml.APIs),
@@ -136,6 +138,43 @@ func Run(yml load.Config) {
 		"name": yml.Name,
 		"apis": len(yml.APIs),
 	}).Debug("config: finished processing apis")
+
+	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
+	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
+	processor.ProcessSamplesMergeJoin(&samplesToMerge, &yml)
+}
+
+// RunAsync API in Async after lookup
+func RunAsync(yml load.Config) {
+	fmt.Println("here: 999", yml.Name)
+	// samplesToMerge := map[string][]interface{}{}
+	var samplesToMerge load.SamplesToMerge
+	samplesToMerge.Data = map[string][]interface{}{}
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: processing apis")
+
+	// load secrets
+	loadSecrets(&yml)
+
+	var wgapi sync.WaitGroup
+	wgapi.Add(len(yml.APIs))
+
+	for i := range yml.APIs {
+		go func(i int) {
+			fmt.Println("here: 777 async", i)
+			defer wgapi.Done()
+			dataSets := FetchData(i, &yml)
+			processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
+		}(i)
+	}
+	wgapi.Wait()
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: finished processing apis: Async")
 
 	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
 	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge

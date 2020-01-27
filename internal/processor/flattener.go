@@ -201,8 +201,8 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 }
 
 // hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
-func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config) {
-	for eventType, sampleSet := range *samplesToMerge {
+func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Config) {
+	for eventType, sampleSet := range samplesToMerge.Data {
 		newSample := map[string]interface{}{}
 		newSample["event_type"] = eventType
 		primaryEvent := -1
