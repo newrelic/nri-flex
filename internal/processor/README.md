@@ -200,7 +200,7 @@ SetEventType sets the metricSet's eventType
 #### func  StoreLookups
 
 ```go
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{})
+func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{})
 ```
 StoreLookups if key is found (using regex), store the values in the lookupStore
 as the defined lookupStoreKey for later use
