@@ -198,7 +198,7 @@ make
 # run all tests + linter
 make test
 
-# run integration tests
+# run integration tests (requires docker-compose)
 make test-integration
 
 # run unit tests
