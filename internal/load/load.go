@@ -120,6 +120,7 @@ const (
 	Img                = "img"
 	Image              = "image"
 	TypeContainer      = "container"
+	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
 	TypeColumns        = "columns"
