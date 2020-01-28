@@ -26,6 +26,7 @@ type ArgumentList struct {
 	ContainerDiscoveryDir   string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery      bool   `default:"false" help:"Enable container auto discovery"`
 	ContainerDiscoveryMulti bool   `default:"false" help:"Allow a container to be matched multiple times"`
+	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
 	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
