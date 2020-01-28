@@ -200,8 +200,12 @@ func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Com
 			processRaw(&sample, "", block, command)
 		}
 
-		sample["flex.commandTimeMs"] = makeTimestamp() - startTime
-		*dataStore = append(*dataStore, sample)
+		// do not add empty samples
+		if len(sample) > 0 {
+			sample["flex.commandTimeMs"] = makeTimestamp() - startTime
+			*dataStore = append(*dataStore, sample)
+		}
+
 	}
 }
 
