@@ -11,7 +11,9 @@ import (
 )
 
 // RunDataHandler handles the data received for processing
-func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config) {
+// The originalAPINo is to track the original API sequential No. in the Flex config file. This is to diffentiate the new API Seq No. created by StoreLookup.
+// The originalAPINo is used for Merge and Join operation
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": cfg.Name,
 	}).Debug("processor: running data handler")
@@ -19,10 +21,10 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge,
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
 			ds := dataSet
-			processDataSet(&ds, samplesToMerge, i, cfg)
+			processDataSet(&ds, samplesToMerge, i, cfg, originalAPINo)
 		case []interface{}:
 			nextDataSets := dataSet
-			RunDataHandler(nextDataSets, samplesToMerge, i, cfg)
+			RunDataHandler(nextDataSets, samplesToMerge, i, cfg, originalAPINo)
 		default:
 			load.Logrus.WithFields(logrus.Fields{
 				"name": cfg.Name,
@@ -32,7 +34,7 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge,
 }
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
-func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config) {
+func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
 	ds := (*dataSet)
 
 	if cfg.LookupStore == nil {
@@ -41,9 +43,9 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.Sample
 
 	// perform an early lookup store
 	// useful for arrays of data
-	for k, v := range ds {
-		StoreLookups(cfg.APIs[i].StoreLookups, &k, &cfg.LookupStore, &v)
-	}
+	// for k, v := range ds {
+	// 	StoreLookups(cfg.APIs[i].StoreLookups, &k, &cfg.LookupStore, &v)
+	// }
 
 	FindStartKey(&ds, cfg.APIs[i].StartKey, cfg.APIs[i].InheritAttributes) // start at a later part in the received data
 	StripKeys(&ds, cfg.APIs[i].StripKeys)                                  // remove before flattening
@@ -70,8 +72,8 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.Sample
 	// }
 
 	if cfg.APIs[i].Merge == "" {
-		CreateMetricSets(mergedData, cfg, i, false, nil)
+		CreateMetricSets(mergedData, cfg, i, false, nil, originalAPINo)
 	} else {
-		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge)
+		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge, originalAPINo)
 	}
 }

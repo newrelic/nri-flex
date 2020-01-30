@@ -18,7 +18,7 @@ import (
 
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
-func FetchData(apiNo int, yml *load.Config) []interface{} {
+func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge) []interface{} {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": yml.Name,
 	}).Debug("fetch: collect data")
@@ -30,7 +30,7 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 	doLoop := true
 	dataStore := []interface{}{}
 
-	continueProcessing := FetchLookups(yml, apiNo)
+	continueProcessing := FetchLookups(yml, apiNo, samplesToMerge)
 
 	if continueProcessing {
 		if file != "" {
@@ -78,8 +78,8 @@ func FetchData(apiNo int, yml *load.Config) []interface{} {
 }
 
 // FetchLookups x
-func FetchLookups(cfg *load.Config, i int) bool {
-	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[i])
+func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMerge) bool {
+	tmpCfgBytes, err := yaml.Marshal(&cfg.APIs[apiNo])
 
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
@@ -187,7 +187,15 @@ func FetchLookups(cfg *load.Config, i int) bool {
 				lookupConfig.APIs = append(lookupConfig.APIs, API)
 			}
 		}
-		RunAsync(lookupConfig)
+		// Run(lookupConfig)
+		// Please note:
+		//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrrent map write.
+		//          We will address this in the future if required. These two functions are probably not necessary for this use case.
+		if cfg.APIs[apiNo].RunAsync {
+			RunAsync(lookupConfig, samplesToMerge, apiNo)
+		} else {
+			RunSync(lookupConfig, samplesToMerge, apiNo)
+		}
 		return false
 	}
 
