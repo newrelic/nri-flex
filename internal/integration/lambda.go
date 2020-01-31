@@ -12,27 +12,27 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/newrelic/nri-flex/internal/load"
-	logrus "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
-// LambdaCheck check if Flex is running within a Lambda and insights url and api key has been supplied
-func LambdaCheck() bool {
-	if os.Getenv("LAMBDA_TASK_ROOT") == "" {
-		return false
-	}
+// IsLambda check if Flex is running within a Lambda.
+func IsLambda() bool {
+	return os.Getenv("LAMBDA_TASK_ROOT") != ""
+}
 
+// ValidateLambdaConfig: while running withing a Lambda insights url and api key are required.
+func ValidateLambdaConfig() error {
+	if load.Args.InsightsURL == "" || load.Args.InsightsAPIKey == "" {
+		return fmt.Errorf("lambda: missing insights URL and/or API key")
+	}
+	return nil
+}
+
+// HandleLambda handles lambda invocation
+func HandleLambda() {
 	load.LambdaName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME")
 	load.Logrus.SetFormatter(&logrus.JSONFormatter{})
 
-	if load.Args.InsightsURL == "" || load.Args.InsightsAPIKey == "" {
-		load.Logrus.Fatal("lambda: missing insights URL and/or API key")
-		return false
-	}
-	return true
-}
-
-// Lambda handles lambda invocation
-func Lambda() {
 	lambda.Start(HandleRequest)
 }
 
@@ -45,7 +45,7 @@ func HandleRequest(ctx context.Context, event interface{}) (string, error) {
 		load.IngestData = event
 	}
 
-	RunFlex("lambda")
+	RunFlex(FlexModeLambda)
 
-	return fmt.Sprintf("Flex Lambda Complete"), nil
+	return "Flex Lambda Complete", nil
 }

@@ -7,7 +7,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -127,7 +126,7 @@ func Run(yml load.Config) {
 
 	// intentionally handled synchronously
 	for i := range yml.APIs {
-		RunVariableProcessor(i, &yml)
+		RunVariableProcessor(&yml)
 		dataSets := FetchData(i, &yml)
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
@@ -190,10 +189,10 @@ func verifyConfig(cfg load.Config) bool {
 }
 
 // RunVariableProcessor substitute store variables into specific parts of config files
-func RunVariableProcessor(i int, cfg *load.Config) {
+func RunVariableProcessor(cfg *load.Config) {
 	// don't use variable processor if nothing exists in variable store
 	if len((*cfg).VariableStore) > 0 {
-		load.Logrus.Debug(fmt.Sprintf("running variable processor %d items in store", len((*cfg).VariableStore)))
+		load.Logrus.Debugf("running variable processor %d items in store", len((*cfg).VariableStore))
 		// to simplify replacement, convert to string, and convert back later
 		tmpCfgBytes, err := yaml.Marshal(&cfg)
 		if err != nil {

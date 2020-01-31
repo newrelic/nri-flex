@@ -6,7 +6,6 @@
 package config
 
 import (
-	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
@@ -32,7 +30,7 @@ func SyncGitConfigs(customDir string) bool {
 			load.Args.GitRepo = load.Args.GitRepo + "/"
 		}
 
-		load.Logrus.Debug(fmt.Sprintf("config: syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, syncDir))
+		load.Logrus.Debugf("config: syncing git configs %v %v into %v", load.Args.GitService, load.Args.GitRepo, syncDir)
 
 		u, err := url.Parse(load.Args.GitRepo)
 		if err != nil {

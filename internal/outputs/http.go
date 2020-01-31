@@ -8,7 +8,6 @@ package outputs
 import (
 	"bytes"
 	"compress/zlib"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -35,7 +34,7 @@ func postRequest(url string, key string, data []byte) {
 		return
 	}
 
-	load.Logrus.Debug(fmt.Sprintf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)))
+	load.Logrus.Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 	client := &http.Client{Transport: tr}

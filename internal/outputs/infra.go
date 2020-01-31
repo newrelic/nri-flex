@@ -16,19 +16,23 @@ import (
 
 // InfraIntegration Creates Infrastructure SDK Integration
 func InfraIntegration() {
-	load.Hostname, _ = os.Hostname() // set hostname
-
 	var err error
+	load.Hostname, err = os.Hostname() // set hostname
+	if err != nil {
+		load.Logrus.
+			WithFields(logrus.Fields{"err": err}).
+			Debug("flex: failed to get the hostname while creating integration")
+	}
+
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create integration")
+	}
 
 	// Accepts ConfigPath as alias for ConfigFile. This will allow the Infrastructure Agent
 	// passing an embedded config via the default CONFIG_PATH environment variable
 	if load.Args.ConfigPath != "" {
 		load.Args.ConfigFile = load.Args.ConfigPath
-	}
-
-	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create integration")
 	}
 
 	if load.Args.Local {

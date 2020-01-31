@@ -6,7 +6,7 @@
 package integration
 
 import (
-	"fmt"
+	"github.com/newrelic/nri-flex/internal/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,17 +18,24 @@ import (
 	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/newrelic/nri-flex/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 
-// RunFlex runs flex
-// if mode is "" run in default mode
-func RunFlex(mode string) {
-	verboseLogging := os.Getenv("VERBOSE")
-	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
-		load.Logrus.SetLevel(logrus.TraceLevel)
-	}
+// FlexRunMode is used to switch the mode of running flex.
+type FlexRunMode int
+
+const (
+	// FlexModeDefault is the usual way of running flex.
+	FlexModeDefault FlexRunMode = iota
+	// FlexModeLambda is used when flex is running withing a lambda.
+	FlexModeLambda
+	// FlexModeTest is used when running tests.
+	FlexModeTest
+)
+
+// RunFlex runs flex.
+func RunFlex(runMode FlexRunMode) {
+	setupLogger()
 
 	load.Logrus.WithFields(logrus.Fields{
 		"version": load.IntegrationVersion,
@@ -36,47 +43,33 @@ func RunFlex(mode string) {
 		"GOARCH":  runtime.GOARCH,
 	}).Info(load.IntegrationName)
 
-	// store config ymls
-	configs := []load.Config{}
+	// store config yml
+	var configs []load.Config
 
-	switch mode {
-	case "lambda":
+	switch runMode {
+	case FlexModeLambda:
 		addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
 		if config.SyncGitConfigs("/tmp/") {
 			addConfigsFromPath("/tmp/", &configs)
 		}
 	default:
-		// running as default
 		if load.Args.EncryptPass != "" {
-			load.Logrus.Info(fmt.Sprintf("*****Encryption Result*****"))
-			ciphertext, err := utils.Encrypt([]byte(load.Args.EncryptPass), load.Args.PassPhrase)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{"err": err}).Error("EncryptPass: Failed to encrypt")
-			}
-			cleartext, err := utils.Decrypt(ciphertext, load.Args.PassPhrase)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{"err": err}).Error("EncryptPass: Failed to Decrypt")
-			}
-			load.Logrus.Info(fmt.Sprintf("   encrypt_pass: %s", cleartext))
-			load.Logrus.Info(fmt.Sprintf("    pass_phrase: %s", load.Args.PassPhrase))
-			load.Logrus.Info(fmt.Sprintf(" encrypted pass: %x", ciphertext))
+			logEncryptPass()
 			os.Exit(0)
-
-		} else {
-			config.SyncGitConfigs("")
-			if load.Args.ConfigFile != "" {
-				addSingleConfigFile(load.Args.ConfigFile, &configs)
-			} else {
-				addConfigsFromPath(load.Args.ConfigDir, &configs)
-			}
-			if load.Args.ContainerDiscovery || load.Args.Fargate {
-				discovery.Run(&configs)
-			}
 		}
 
+		config.SyncGitConfigs("")
+		if load.Args.ConfigFile != "" {
+			addSingleConfigFile(load.Args.ConfigFile, &configs)
+		} else {
+			addConfigsFromPath(load.Args.ConfigDir, &configs)
+		}
+		if load.Args.ContainerDiscovery || load.Args.Fargate {
+			discovery.Run(&configs)
+		}
 	}
 
-	if load.ContainerID == "" && mode != "test" && mode != "lambda" && runtime.GOOS != "darwin" {
+	if load.ContainerID == "" && runMode == FlexModeDefault {
 		switch runtime.GOOS {
 		case "windows":
 			if load.Args.DiscoverProcessWin {
@@ -88,10 +81,8 @@ func RunFlex(mode string) {
 			}
 		}
 	}
-
-	load.Logrus.Info(fmt.Sprintf("flex: config files loaded %d", len(configs)))
-
 	config.RunFiles(&configs)
+
 	outputs.StatusSample()
 
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
@@ -99,7 +90,14 @@ func RunFlex(mode string) {
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		outputs.SendToMetricAPI()
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
-		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set", len(configs))
+		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
+	}
+}
+
+func setupLogger() {
+	verboseLogging := os.Getenv("VERBOSE")
+	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
 }
 
@@ -130,6 +128,21 @@ func addConfigsFromPath(path string, configs *[]load.Config) {
 		}).Fatal("config: failed to read")
 	}
 	config.LoadFiles(configs, files, configPath)
+}
+
+func logEncryptPass() {
+	load.Logrus.Info("*****Encryption Result*****")
+	cipherText, err := utils.Encrypt([]byte(load.Args.EncryptPass), load.Args.PassPhrase)
+	if err != nil {
+		load.Logrus.WithError(err).Error("EncryptPass: Failed to encrypt")
+	}
+	cleartext, err := utils.Decrypt(cipherText, load.Args.PassPhrase)
+	if err != nil {
+		load.Logrus.WithError(err).Error("EncryptPass: Failed to Decrypt")
+	}
+	load.Logrus.Infof("   encrypt_pass: %s", cleartext)
+	load.Logrus.Infof("    pass_phrase: %s", load.Args.PassPhrase)
+	load.Logrus.Infof(" encrypted pass: %x", cipherText)
 }
 
 // SetDefaults set flex defaults

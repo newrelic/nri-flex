@@ -140,7 +140,7 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 			} else {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
-				}).Error("processor: unable to lazy_flatten")
+				}).Error("processor-values: unable to lazy_flatten")
 			}
 		}
 	}
@@ -161,13 +161,13 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"err": err,
-			}).Error(fmt.Sprintf("processor: %v math exp failed %v", newMetric, finalFormula))
+			}).Errorf("processor-values: %v math exp failed %v", newMetric, finalFormula)
 		} else {
 			result, err := expression.Evaluate(nil)
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
-				}).Error(fmt.Sprintf("processor: %v math evalute failed %v", newMetric, finalFormula))
+				}).Errorf("processor-values: %v math evaluate failed %v", newMetric, finalFormula)
 			} else {
 				(*currentSample)[newMetric] = result
 			}

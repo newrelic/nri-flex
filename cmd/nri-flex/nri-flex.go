@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -17,16 +16,18 @@ func main() {
 	integration.SetEnvs()
 	outputs.InfraIntegration()
 
-	if integration.LambdaCheck() {
-		integration.Lambda()
+	if integration.IsLambda() {
+		if err := integration.ValidateLambdaConfig(); err != nil {
+			load.Logrus.WithError(err).Fatal("flex: failed to validate lambda required config")
+		}
+		integration.HandleLambda()
 	} else {
 		// default process
 		integration.SetDefaults()
-		integration.RunFlex("")
+		integration.RunFlex(integration.FlexModeDefault)
 	}
 
-	err := load.Integration.Publish()
-	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: unable to publish")
+	if err := load.Integration.Publish(); err != nil {
+		load.Logrus.WithError(err).Fatal("flex: unable to publish")
 	}
 }

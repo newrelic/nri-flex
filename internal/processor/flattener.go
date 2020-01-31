@@ -105,7 +105,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 					}
 					finalMergedSamples = append(finalMergedSamples, newSample)
 				default:
-					load.Logrus.Debug("processor: flattener - not sure what to do with this?")
+					load.Logrus.Debugf("processor-flattener: unsupported data type %T", sample)
 					load.Logrus.Debug(sample)
 				}
 			}
@@ -191,7 +191,7 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	for loopKey := range *unknown {
 		switch data := (*unknown)[loopKey].(type) {
 		case map[string]interface{}:
-			load.Logrus.Debug(fmt.Sprintf("processor: splitting object %v", loopKey))
+			load.Logrus.Debugf("processor-flattener: splitting object %v", loopKey)
 			data["split.id"] = loopKey
 			dataSamples = append(dataSamples, data)
 		}

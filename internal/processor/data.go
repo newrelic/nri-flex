@@ -14,7 +14,7 @@ import (
 func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": cfg.Name,
-	}).Debug("processor: running data handler")
+	}).Debug("processor-data: running data handler")
 	for _, dataSet := range dataSets {
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
@@ -26,7 +26,7 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 		default:
 			load.Logrus.WithFields(logrus.Fields{
 				"name": cfg.Name,
-			}).Debug("processor: not sure what to do with this?!")
+			}).Debugf("processor-data: unsupported data type %T", dataSet)
 		}
 	}
 }

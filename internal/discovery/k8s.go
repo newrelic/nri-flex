@@ -1,8 +1,6 @@
 package discovery
 
 import (
-	"fmt"
-
 	"github.com/newrelic/nri-flex/internal/load"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -43,6 +41,6 @@ func getK8Labels(podName string, podNamespace string) map[string]string {
 		load.Logrus.Debug("k8s: error getting pod: " + err.Error())
 		return nil
 	}
-	load.Logrus.Debug(fmt.Sprintf("k8s: namespace: %v, pods: %v, labels : %v ", podNamespace, podName, p.Labels))
+	load.Logrus.Debugf("k8s: namespace: %v, pods: %v, labels : %v ", podNamespace, podName, p.Labels)
 	return p.Labels
 }
