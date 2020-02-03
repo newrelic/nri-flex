@@ -6,27 +6,26 @@
 package outputs
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
-
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
-func InfraIntegration() {
+func InfraIntegration() error {
 	var err error
 	load.Hostname, err = os.Hostname() // set hostname
 	if err != nil {
 		load.Logrus.
-			WithFields(logrus.Fields{"err": err}).
+			WithError(err).
 			Debug("flex: failed to get the hostname while creating integration")
 	}
 
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create integration")
+		return fmt.Errorf("flex: failed to create integration %v", err)
 	}
 
 	// Accepts ConfigPath as alias for ConfigFile. This will allow the Infrastructure Agent
@@ -35,22 +34,21 @@ func InfraIntegration() {
 		load.Args.ConfigFile = load.Args.ConfigPath
 	}
 
-	if load.Args.Local {
-		load.Entity = load.Integration.LocalEntity()
-	} else {
-		InfraRemoteEntity()
+	load.Entity, err = createEntity(load.Args.Local, load.Args.Entity)
+	if err != nil {
+		return fmt.Errorf("flex: failed create remote entity: %v", err)
 	}
+	return nil
 }
 
-// InfraRemoteEntity Creates Infrastructure Remote Entity
-func InfraRemoteEntity() {
-	var err error
-	setEntity := load.Hostname // default hostname
-	if load.Args.Entity != "" {
-		setEntity = load.Args.Entity
+func createEntity(isLocalEntity bool, entityName string) (*Integration.Entity, error) {
+	if isLocalEntity {
+		return load.Integration.LocalEntity(), nil
 	}
-	load.Entity, err = load.Integration.Entity(setEntity, "nri-flex")
-	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: create remote entity")
+
+	if entityName == "" {
+		entityName = load.Hostname // default hostname
 	}
+
+	return load.Integration.Entity(entityName, "nri-flex")
 }

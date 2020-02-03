@@ -14,7 +14,10 @@ import (
 func main() {
 	load.StartTime = load.MakeTimestamp()
 	integration.SetEnvs()
-	outputs.InfraIntegration()
+
+	if err := outputs.InfraIntegration(); err != nil {
+		load.Logrus.WithError(err).Fatal("flex: failed to initialize integration")
+	}
 
 	if integration.IsLambda() {
 		if err := integration.ValidateLambdaConfig(); err != nil {
@@ -28,6 +31,6 @@ func main() {
 	}
 
 	if err := load.Integration.Publish(); err != nil {
-		load.Logrus.WithError(err).Fatal("flex: unable to publish")
+		load.Logrus.WithError(err).Fatal("flex: failed to publish")
 	}
 }

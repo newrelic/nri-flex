@@ -86,9 +86,15 @@ func RunFlex(runMode FlexRunMode) {
 	outputs.StatusSample()
 
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
-		outputs.SendToInsights()
+		for _, batch := range outputs.GetMetricBatches() {
+			if err := outputs.SendBatchToInsights(batch); err != nil {
+				load.Logrus.WithError(err).Error("flex: failed to send batch to insights")
+			}
+		}
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
-		outputs.SendToMetricAPI()
+		if err := outputs.SendToMetricAPI(); err != nil {
+			load.Logrus.WithError(err).Error("flex: failed to send metrics")
+		}
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
 		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
 	}

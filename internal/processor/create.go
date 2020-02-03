@@ -44,7 +44,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
 			if load.StatusCounterRead("EventDropCount") == 1 { // don't output the message more then once
-				load.Logrus.Error(fmt.Sprintf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit))
+				load.Logrus.Errorf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit)
 			}
 			break
 		}
@@ -52,7 +52,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		// modify existing sample before final processing
 		SkipProcessing := api.SkipProcessing
 
-		modifiedKeys := []string{}
+		var modifiedKeys []string
 		for k, v := range currentSample { // k == original key
 			key := k
 			RunKeyConversion(&key, api, v, &SkipProcessing)
@@ -307,7 +307,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 	}
 
 	// store numeric values, as metrics within Metrics
-	Metrics := []map[string]interface{}{}
+	var Metrics []map[string]interface{}
 	SummaryMetrics := map[string]map[string]float64{}
 
 	//add sample metrics

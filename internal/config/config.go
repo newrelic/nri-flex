@@ -6,7 +6,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -54,23 +54,23 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 	SubTimestamps(&ymlStr)
 	config, err := ReadYML(ymlStr)
 	if err != nil {
-		return err
+		return fmt.Errorf("config: failed to load config file, %v", err)
 	}
 	config.FileName = f.Name()
 	config.FilePath = path
 
-	if err != nil {
-		return err
-	}
 	if config.Name == "" {
-		return errors.New("config: flexConfig requires name")
+		return fmt.Errorf("config: flexConfig requires name: %s", config.FilePath)
 	}
 
 	checkIngestConfigs(&config)
 
 	// if lookup files exist we need to potentially create multiple config files
 	if config.LookupFile != "" {
-		SubLookupFileData(configs, config)
+		err := SubLookupFileData(configs, config)
+		if err != nil {
+			load.Logrus.WithError(err).Error("config: failed to sub lookup file data")
+		}
 	} else {
 		*configs = append(*configs, config)
 	}
@@ -78,20 +78,25 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 }
 
 func recurseDirectory(filePath string, configs *[]load.Config) {
-	if !strings.Contains(filePath, ".git") && !strings.Contains(filePath, "nr-integrations") { // do not recurse through .git or nr-integrations folder
-		load.Logrus.WithFields(logrus.Fields{
-			"path": filePath,
-		}).Debug("config: checking nested configs")
-		nextPath := filePath + "/"
-		files, err := ioutil.ReadDir(nextPath)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"path": nextPath,
-			}).Debug("config: failed to read")
-		} else {
-			LoadFiles(configs, files, nextPath)
-		}
+	// do not recurse through .git or nr-integrations folder.
+	if strings.Contains(filePath, ".git") ||
+		strings.Contains(filePath, "nr-integrations") {
+		return
 	}
+
+	load.Logrus.WithFields(logrus.Fields{
+		"path": filePath,
+	}).Debug("config: checking nested configs")
+
+	nextPath := filePath + "/"
+	files, err := ioutil.ReadDir(nextPath)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"path": nextPath,
+		}).Debug("config: failed to read")
+		return
+	}
+	LoadFiles(configs, files, nextPath)
 }
 
 func checkIngestConfigs(config *load.Config) {
@@ -126,7 +131,10 @@ func Run(yml load.Config) {
 
 	// intentionally handled synchronously
 	for i := range yml.APIs {
-		RunVariableProcessor(&yml)
+		if err := runVariableProcessor(&yml); err != nil {
+			load.Logrus.WithError(err).Error("config: variable processor error")
+		}
+
 		dataSets := FetchData(i, &yml)
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
 	}
@@ -188,35 +196,37 @@ func verifyConfig(cfg load.Config) bool {
 	return true
 }
 
-// RunVariableProcessor substitute store variables into specific parts of config files
-func RunVariableProcessor(cfg *load.Config) {
+// runVariableProcessor substitute store variables into specific parts of config files
+func runVariableProcessor(cfg *load.Config) error {
 	// don't use variable processor if nothing exists in variable store
-	if len((*cfg).VariableStore) > 0 {
-		load.Logrus.Debugf("running variable processor %d items in store", len((*cfg).VariableStore))
-		// to simplify replacement, convert to string, and convert back later
-		tmpCfgBytes, err := yaml.Marshal(&cfg)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{"err": err, "name": cfg.Name}).Error("config: variable processor marshal failed")
-		} else {
-			tmpCfgStr := string(tmpCfgBytes)
-			variableReplaces := regexp.MustCompile(`\${var:.*?}`).FindAllString(tmpCfgStr, -1)
-			replaceOccured := false
-			for _, variableReplace := range variableReplaces {
-				variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${var:")[1], "}") // eg. "channel"
-				if cfg.VariableStore[variableKey] != "" {
-					tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, cfg.VariableStore[variableKey], -1)
-					replaceOccured = true
-				}
-			}
-			// if replace occurred convert string to config yaml and reload
-			if replaceOccured {
-				newCfg, err := ReadYML(tmpCfgStr)
-				if err != nil {
-					load.Logrus.WithFields(logrus.Fields{"err": err, "name": cfg.Name}).Error("config: variable processor unmarshal failed")
-				} else {
-					*cfg = newCfg
-				}
-			}
+	if len((*cfg).VariableStore) == 0 {
+		return nil
+	}
+
+	load.Logrus.Debugf("running variable processor %d items in store", len((*cfg).VariableStore))
+	// to simplify replacement, convert to string, and convert back later
+	tmpCfgBytes, err := yaml.Marshal(&cfg)
+	if err != nil {
+		return fmt.Errorf("config %s: variable processor marshal failed, error: %v", cfg.Name, err)
+	}
+
+	tmpCfgStr := string(tmpCfgBytes)
+	variableReplaces := regexp.MustCompile(`\${var:.*?}`).FindAllString(tmpCfgStr, -1)
+	replaceOccurred := false
+	for _, variableReplace := range variableReplaces {
+		variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${var:")[1], "}") // eg. "channel"
+		if cfg.VariableStore[variableKey] != "" {
+			tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, cfg.VariableStore[variableKey], -1)
+			replaceOccurred = true
 		}
 	}
+	// if replace occurred convert string to config yaml and reload
+	if replaceOccurred {
+		newCfg, err := ReadYML(tmpCfgStr)
+		if err != nil {
+			return fmt.Errorf("config %s: variable processor read yml failed, error: %v", cfg.Name, err)
+		}
+		*cfg = newCfg
+	}
+	return nil
 }

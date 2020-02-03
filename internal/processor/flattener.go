@@ -20,7 +20,7 @@ const _sampleNo = "_sampleNo"
 func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string, api *load.API) map[string]interface{} {
 	switch unknown := unknown.(type) {
 	case []interface{}:
-		dataSamples := []interface{}{}
+		var dataSamples []interface{}
 		dataSamples = append(dataSamples, unknown...)
 		key = checkPluralSlice(key)
 		data[key+"FlexSamples"] = dataSamples
@@ -39,7 +39,7 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 				// Knowing the sampleKey itself isn't really needed as these get turned into samples
 				for _, sampleVal := range sampleKeys {
 					keys := strings.Split(sampleVal, ">")
-					flexSamples := []interface{}{}
+					var flexSamples []interface{}
 					// if one of the keys == the loopKey we know to create samples
 					if len(keys) > 0 && keys[0] == loopKey {
 						switch unknown[loopKey].(type) {
@@ -91,7 +91,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 		}
 	}
 
-	finalMergedSamples := []interface{}{}
+	var finalMergedSamples []interface{}
 	for sampleSet := range finalSampleSets {
 		switch ss := finalSampleSets[sampleSet].(type) {
 		case []interface{}:
@@ -147,7 +147,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 
 // processFlexSamples Processes Flex detected samples
 func processFlexSamples(dataKey string, dataSamples []interface{}, sampleKeys map[string]string, api *load.API) (string, []interface{}) {
-	newSamples := []interface{}{}
+	var newSamples []interface{}
 	for _, sample := range dataSamples {
 		sampleFlatten := FlattenData(sample, map[string]interface{}{}, "", sampleKeys, api)
 		if sampleFlatten["valuesPrometheusSamples"] != nil {
@@ -187,7 +187,7 @@ func checkPluralSlice(key string) string {
 // splitObjects splits a map string interface / object with nested objects
 // this will drop and ignore and slices/arrays that could exist
 func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} {
-	dataSamples := []interface{}{}
+	var dataSamples []interface{}
 	for loopKey := range *unknown {
 		switch data := (*unknown)[loopKey].(type) {
 		case map[string]interface{}:

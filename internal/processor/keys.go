@@ -100,7 +100,7 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 				storeParentAttributes(*mainDataset, parentAttributes, startKey, level, inheritAttributes)
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
-					nestedSlices := []interface{}{}
+					var nestedSlices []interface{}
 					for _, nested := range mainDs {
 						switch sample := nested.(type) {
 						case map[string]interface{}:
