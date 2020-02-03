@@ -64,10 +64,9 @@ func SubLookupFileData(configs *[]load.Config, config load.Config) error {
 
 					load.Logrus.WithFields(logrus.Fields{
 						"file":       config.LookupFile,
-						"err":        err,
 						"name":       config.Name,
 						"suggestion": "check for errors or run yaml lint against the below output",
-					}).Error("config: new lookup file unmarshal failed")
+					}).WithError(err).Error("config: new lookup file unmarshal failed")
 					load.Logrus.Error(tmpCfgStr)
 
 				} else {
@@ -187,9 +186,8 @@ func SubTimestamps(strConf *string) {
 				case "h", "hr", "hour":
 					durationType = time.Hour
 				default:
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
+					load.Logrus.WithError(err).
+						Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
 				}
 
 			} else {

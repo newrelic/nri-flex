@@ -33,7 +33,7 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
 func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
-	ds := (*dataSet)
+	ds := *dataSet
 
 	if cfg.LookupStore == nil {
 		cfg.LookupStore = map[string]map[string]struct{}{}

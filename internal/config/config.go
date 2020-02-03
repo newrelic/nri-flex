@@ -93,7 +93,7 @@ func recurseDirectory(filePath string, configs *[]load.Config) {
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"path": nextPath,
-		}).Debug("config: failed to read")
+		}).WithError(err).Debug("config: failed to read")
 		return
 	}
 	LoadFiles(configs, files, nextPath)
@@ -142,7 +142,7 @@ func Run(yml load.Config) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": yml.Name,
 		"apis": len(yml.APIs),
-	}).Debug("config: finished processing apis")
+	}).Debug("config: finished variable processing apis")
 
 	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
 	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
@@ -177,7 +177,7 @@ func RunFiles(configs *[]load.Config) {
 
 	load.Logrus.WithFields(logrus.Fields{
 		"configs": load.StatusCounterRead("ConfigsProcessed"),
-	}).Info("flex: completed processing")
+	}).Info("flex: completed processing configs")
 }
 
 // verifyConfig ensure the config file doesn't have anything it should not run

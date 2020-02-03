@@ -36,7 +36,7 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name":     yml.Name,
 		"database": api.Database,
-	}).Debug("database: finding flex container id")
+	}).Debug("database: process queries")
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)

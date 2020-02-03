@@ -35,13 +35,13 @@ func loadSecrets(config *load.Config) {
 		if secret.Kind == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Error("config: secret is missing kind")
+			}).Error("config: secret missing: 'kind'")
 			break
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Errorf("config: secret needs file, data or http parameter needs to be set")
+			}).Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
 			break
 		}
 
@@ -60,7 +60,7 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: secret missing region")
+				}).Error("config: secret missing: 'region'")
 				break
 			}
 			secretResult = awskmsDecrypt(name, tempSecret)
@@ -69,7 +69,7 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: vault secret requires http parameter to be set")
+				}).Error("config: vault secret requires 'http' parameter to be set")
 				break
 			}
 			vaultFetch(name, tempSecret, results)
@@ -79,7 +79,7 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: local secret requires Key parameter to be set")
+				}).Error("config: local secret requires 'key' parameter to be set")
 				break
 			}
 			secretResult = localDecrypt(name, tempSecret)
@@ -323,7 +323,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"err": err,
-			}).Error("config: secret failed to read ca")
+			}).Error("config: secret failed to read tls ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tlsConf.RootCAs = rootCAs
@@ -365,7 +365,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 // localDecrypt perform local decrypt and return plaintext if decrpyted successfully
 func localDecrypt(name string, secret load.Secret) string {
 	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: attempting to local decrypt secret")
-	secretData := []byte{}
+	var secretData []byte
 
 	if secret.File != "" {
 		var fileData []byte
@@ -375,15 +375,13 @@ func localDecrypt(name string, secret load.Secret) string {
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"name": name,
-					"err":  err,
-				}).Error("config: local secret hex decode failed")
+				}).WithError(err).Error("config: local secret hex decode failed")
 			}
 		} else {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
-				"err":  err,
 				"file": secret.File,
-			}).Error("config: local read file failed")
+			}).WithError(err).Error("config: local read file failed")
 		}
 	} else if secret.Data != "" {
 		var err error
@@ -391,8 +389,7 @@ func localDecrypt(name string, secret load.Secret) string {
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
-				"err":  err,
-			}).Error("config: local secret hex decode failed")
+			}).WithError(err).Error("config: local secret hex decode failed")
 		}
 	}
 

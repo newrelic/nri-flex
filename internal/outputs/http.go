@@ -33,7 +33,7 @@ func postRequest(url string, key string, data []byte) error {
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 	client := &http.Client{Transport: tr}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
 	if err != nil {
 		return fmt.Errorf("http: unable to create http.Request, %v", err)
 	}

@@ -110,7 +110,7 @@ func GitPull(dir string) error {
 
 	err = GitCheckout(w)
 	if err != nil {
-		return fmt.Errorf("failed to clone repo, error: %v", err)
+		return fmt.Errorf("failed to pull from repo, error: %v", err)
 	}
 
 	// Pull the latest changes from the origin remote and merge into the current branch
