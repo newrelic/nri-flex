@@ -98,7 +98,7 @@ func determineDynamicFargateConfigs(configs *[]load.Config, TaskMetadata load.Ta
 
 func checkContainerMatch(container load.Container, containerDiscovery load.ContainerDiscovery) bool {
 	switch containerDiscovery.Type {
-	case "cname", load.TypeContainer:
+	case load.TypeCname, load.TypeContainer:
 		if formatter.KvFinder(containerDiscovery.Mode, container.Name, containerDiscovery.Target) {
 			return true
 		}

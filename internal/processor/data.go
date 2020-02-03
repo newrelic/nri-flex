@@ -39,12 +39,6 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 		cfg.LookupStore = map[string]map[string]struct{}{}
 	}
 
-	// perform an early lookup store
-	// useful for arrays of data
-	for k, v := range ds {
-		StoreLookups(cfg.APIs[i].StoreLookups, &k, &cfg.LookupStore, &v)
-	}
-
 	FindStartKey(&ds, cfg.APIs[i].StartKey, cfg.APIs[i].InheritAttributes) // start at a later part in the received data
 	StripKeys(&ds, cfg.APIs[i].StripKeys)                                  // remove before flattening
 	RunLazyFlatten(&ds, cfg, i)                                            // perform lazy flatten if needed

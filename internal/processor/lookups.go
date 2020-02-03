@@ -12,6 +12,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func cleanValue(v *interface{}) string {
+	switch val := (*v).(type) {
+	case float32, float64:
+		return fmt.Sprintf("%f", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
 // StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
 func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
@@ -32,10 +41,10 @@ func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[
 				}).Debug("splitting array")
 
 				for _, dataKey := range data {
-					(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", dataKey)] = struct{}{}
+					(*lookupStore)[lookupStoreKey][cleanValue(&dataKey)] = struct{}{}
 				}
 			default:
-				(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", *v)] = struct{}{}
+				(*lookupStore)[lookupStoreKey][cleanValue(v)] = struct{}{}
 			}
 		}
 	}
@@ -48,7 +57,7 @@ func VariableLookups(variableLookups map[string]string, key *string, variableSto
 			if (*variableStore) == nil {
 				(*variableStore) = map[string]string{}
 			}
-			(*variableStore)[variableStoreKey] = fmt.Sprintf("%v", *v)
+			(*variableStore)[variableStoreKey] = cleanValue(v)
 		}
 	}
 }

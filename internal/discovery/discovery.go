@@ -316,8 +316,10 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 						if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
 
 							switch discoveryConfig["tt"].(string) {
-							case "cname", load.TypeContainer:
+
+							case load.TypeCname, load.TypeContainer:
 								load.Logrus.Debugf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Names, cd.Target, cd.FileName)
+
 							case load.Img, load.Image:
 								load.Logrus.Debugf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Image, cd.Target, cd.FileName)
 							}
@@ -612,7 +614,7 @@ func findContainerTarget(discoveryConfig map[string]interface{}, container types
 	switch discoveryConfig["tt"].(type) {
 	case string:
 		switch discoveryConfig["tt"].(string) {
-		case "cname", load.TypeContainer:
+		case load.TypeCname, load.TypeContainer:
 			for _, containerName := range container.Names {
 				checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
 				if checkContainerName != "" && formatter.KvFinder(discoveryConfig["tm"].(string), checkContainerName, discoveryConfig["t"].(string)) {

@@ -200,7 +200,7 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	return dataSamples
 }
 
-// hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
+// ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config) {
 	for eventType, sampleSet := range *samplesToMerge {
 		newSample := map[string]interface{}{}
@@ -208,7 +208,7 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 		primaryEvent := -1
 		mergeEvent := 0
 		primaryEventJoinKey := []string{""}
-		primaryEventJoinwith := map[int]string{}
+		primaryEventJoinWith := map[int]string{}
 		primaryEventSamples := map[int]interface{}{}
 		secondaryEventSamples := map[string]interface{}{}
 		mergeOperation := false
@@ -216,12 +216,12 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 		for rownum, sample := range sampleSet {
 
 			sampleNo := sample.(map[string]interface{})[_sampleNo].(int)
-			joinkey := yml.APIs[sample.(map[string]interface{})[_sampleNo].(int)].Joinkey
+			joinKey := yml.APIs[sample.(map[string]interface{})[_sampleNo].(int)].JoinKey
 			// merge or join operation
-			if joinkey != "" {
+			if joinKey != "" {
 				if primaryEvent == -1 {
 					primaryEvent = sampleNo
-					primaryEventJoinKey = strings.Split(joinkey, ",")
+					primaryEventJoinKey = strings.Split(joinKey, ",")
 					sort.Strings(primaryEventJoinKey)
 				}
 
@@ -229,10 +229,10 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 					primaryEventSamples[rownum] = sample
 				} else {
 					// keep track of what events and the joinkey to be joint
-					primaryEventJoinwith[sampleNo] = joinkey
+					primaryEventJoinWith[sampleNo] = joinKey
 					// keep joining events in a map using sampleNo+joinkey value as key for later lookup
 					for k, v := range sample.(map[string]interface{}) {
-						if k == joinkey {
+						if k == joinKey {
 							value := ""
 							switch (v).(type) {
 							case float32, float64:
@@ -285,8 +285,8 @@ func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load
 						// if k == primaryEventJoinKey {
 						// if the primary join key (from the first merge event)
 						// then will lookup the secondary events for the key, if found, then join the keys from secondary events
-						for kk := range primaryEventJoinwith {
-							// for kk, vv := range primaryEventJoinwith {
+						for kk := range primaryEventJoinWith {
+							// for kk, vv := range primaryEventJoinWith {
 							// we built the map with secondary event "_sampleNo" and join key earlier.
 							// the map for the secondary event sample assumes unique lookup key per event
 							if val, found := secondaryEventSamples[strconv.Itoa(kk)+value]; found {

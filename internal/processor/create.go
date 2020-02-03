@@ -150,7 +150,7 @@ func setInventory(entity *integration.Entity, inventory map[string]string, k str
 // setInventory sets infrastructure inventory metrics
 func setEvents(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		if inventory[k] != "default" {
 			checkError(entity.AddEvent(&event.Event{
 				Summary:  value,
@@ -238,7 +238,7 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 				}
 				if regVal != "" {
 					validateVal := regexp.MustCompile(regVal)
-					if validateVal.MatchString(fmt.Sprintf("%v", v)) {
+					if validateVal.MatchString(cleanValue(&v)) {
 						regValFound = true
 					}
 				}
@@ -253,7 +253,7 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 // RunEventFilter filters events generated
 func RunEventFilter(filters []load.Filter, createEvent *bool, k string, v interface{}) {
 	for _, filter := range filters {
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		filterMode := filter.Mode
 		if filterMode == "" {
 			filterMode = regex
@@ -314,7 +314,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 		if api.Prefix != "" && api.Merge == "" {
 			k = api.Prefix + k
 		}
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		parsed, err := strconv.ParseFloat(value, 64)
 		// any non numeric values, are stored as common attributes
 		if err != nil || strings.EqualFold(value, "infinity") {
@@ -368,7 +368,8 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 
 	// add summary metrics into final metrics for MetricsStore
 	for summaryName, metrics := range SummaryMetrics {
-		value := fmt.Sprintf("%v", (*api).MetricParser.Summaries[summaryName]["interval"])
+		v := (*api).MetricParser.Summaries[summaryName]["interval"]
+		value := cleanValue(&v)
 		intervalParsed, err := strconv.ParseFloat(value, 64)
 		if err == nil && len(metrics) == 4 { // should be 4 for min/max/value/count
 			currentMetric := map[string]interface{}{
@@ -415,10 +416,12 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 			finalValue := ""
 			for i, k := range api.MetricParser.Namespace.ExistingAttr {
 				if (*currentSample)[k] != nil {
+					v := (*currentSample)[k]
+					value := cleanValue(&v)
 					if i == 0 {
-						finalValue = fmt.Sprintf("%v", (*currentSample)[k])
+						finalValue = value
 					} else {
-						finalValue = finalValue + "-" + fmt.Sprintf("%v", (*currentSample)[k])
+						finalValue = finalValue + "-" + value
 					}
 				}
 			}
@@ -475,7 +478,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 
 // AutoSetMetricInfra parse to number
 func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string) {
-	value := fmt.Sprintf("%v", v)
+	value := cleanValue(&v)
 	parsed, err := strconv.ParseFloat(value, 64)
 
 	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") {
@@ -516,7 +519,8 @@ func addAttribute(currentSample map[string]interface{}, addAttribute map[string]
 			replaceKey := strings.TrimSuffix(strings.TrimPrefix(variableReplace, "${"), "}")
 
 			if currentSample[replaceKey] != nil {
-				replacementValue := fmt.Sprintf("%v", currentSample[replaceKey])
+				value := currentSample[replaceKey]
+				replacementValue := cleanValue(&value)
 				newAttributeValue = strings.Replace(newAttributeValue, variableReplace, replacementValue, -1)
 
 				// check if the replacement occurred
