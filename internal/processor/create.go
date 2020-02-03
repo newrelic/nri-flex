@@ -6,7 +6,6 @@
 package processor
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"

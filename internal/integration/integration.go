@@ -27,7 +27,7 @@ type FlexRunMode int
 const (
 	// FlexModeDefault is the usual way of running flex.
 	FlexModeDefault FlexRunMode = iota
-	// FlexModeLambda is used when flex is running withing a lambda.
+	// FlexModeLambda is used when flex is running within a lambda.
 	FlexModeLambda
 	// FlexModeTest is used when running tests.
 	FlexModeTest

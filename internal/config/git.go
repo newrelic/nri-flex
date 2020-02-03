@@ -45,15 +45,15 @@ func SyncGitConfigs(customDir string) (bool, error) {
 		return false, fmt.Errorf("config: git sync invalid url, repo: %s, error: %v ", load.Args.GitRepo, err)
 	}
 	repoDir := path.Join(syncDir, u.Path)
-	_, err = appFS.Stat(repoDir)
 
+	_, err = appFS.Stat(repoDir)
 	// If cannot access the repo dir, clone it.
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"repo": load.Args.GitRepo,
 		}).Debug("config: git sync cloning repo")
 
-		err := GitClone(repoDir, u)
+		err = GitClone(repoDir, u)
 		if err != nil {
 			return false, fmt.Errorf("config: git clone failed, repo: %s, error: %v ", load.Args.GitRepo, err)
 		}

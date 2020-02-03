@@ -20,7 +20,7 @@ func IsLambda() bool {
 	return os.Getenv("LAMBDA_TASK_ROOT") != ""
 }
 
-// ValidateLambdaConfig: while running withing a Lambda insights url and api key are required.
+// ValidateLambdaConfig: while running within a Lambda insights url and api key are required.
 func ValidateLambdaConfig() error {
 	if load.Args.InsightsURL == "" || load.Args.InsightsAPIKey == "" {
 		return fmt.Errorf("lambda: missing insights URL and/or API key")
