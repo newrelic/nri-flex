@@ -40,6 +40,19 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
 	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
+	if err != nil {
+
+		load.Logrus.WithFields(logrus.Fields{
+			"err":      err,
+			"name":     yml.Name,
+			"database": api.Database,
+		}).Debug("database: unable to connect")
+
+		if api.Logging.Open {
+			errorLogToInsights(err, api.Database, api.Name, "")
+		}
+		return
+	}
 
 	// wrapping dbPingWithTimeout out as db.Ping is not reliable currently
 	// https://stackoverflow.com/questions/41618428/golang-ping-succeed-the-second-time-even-if-database-is-down/41619206#41619206
@@ -48,65 +61,47 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		dbPingWithTimeout(db, &pingError)
 	}
 
-	if err != nil || pingError != nil {
-		if err != nil {
+	if pingError != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err":      err,
+			"name":     yml.Name,
+			"database": api.Database,
+		}).Debug("database: ping error")
 
-			load.Logrus.WithFields(logrus.Fields{
-				"err":      err,
-				"name":     yml.Name,
-				"database": api.Database,
-			}).Debug("database: unable to connect")
-
-			if api.Logging.Open {
-				errorLogToInsights(err, api.Database, api.Name, "")
-			}
+		if api.Logging.Open {
+			errorLogToInsights(pingError, api.Database, api.Name, "")
 		}
-		if pingError != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err":      err,
-				"name":     yml.Name,
-				"database": api.Database,
-			}).Debug("database: ping error")
+		return
+	}
 
-			if api.Logging.Open {
-				errorLogToInsights(pingError, api.Database, api.Name, "")
-			}
+	// execute queries async else do synchronously
+	if api.DbAsync {
+		var wg sync.WaitGroup
+		wg.Add(len(api.DbQueries))
+		for _, query := range api.DbQueries {
+			go func(query load.Command) {
+				defer wg.Done()
+				checkAndRunQuery(db, query, api, yml, dataStore)
+			}(query)
 		}
+		wg.Wait()
 	} else {
-		// execute queries async else do synchronously
-		if api.DbAsync {
-			var wg sync.WaitGroup
-			wg.Add(len(api.DbQueries))
-			for _, query := range api.DbQueries {
-				go func(query load.Command) {
-					defer wg.Done()
-					if query.Name == "" || query.Run == "" {
-						if query.Name == "" {
-							load.Logrus.WithFields(logrus.Fields{"query": query.Run}).Error("database: query missing name")
-						}
-						if query.Run == "" {
-							load.Logrus.WithFields(logrus.Fields{"query": query.Run, "name": yml.Name, "database": api.Database}).Error("database: run parameter not defined")
-						}
-					} else {
-						runQuery(db, query, api, yml, dataStore)
-					}
-				}(query)
-			}
-			wg.Wait()
-		} else {
-			for _, query := range api.DbQueries {
-				if query.Name == "" {
-					load.Logrus.WithFields(logrus.Fields{"query": query.Run}).Error("database: query missing name")
-					break
-				}
-				if query.Run == "" {
-					load.Logrus.WithFields(logrus.Fields{"query": query.Run, "name": yml.Name, "database": api.Database}).Error("database: run parameter not defined")
-					break
-				}
-				runQuery(db, query, api, yml, dataStore)
-			}
+		for _, query := range api.DbQueries {
+			checkAndRunQuery(db, query, api, yml, dataStore)
 		}
 	}
+}
+
+func checkAndRunQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, dataStore *[]interface{}) {
+	if query.Name == "" {
+		load.Logrus.WithFields(logrus.Fields{"query": query.Run}).Error("database: query missing name")
+		return
+	}
+	if query.Run == "" {
+		load.Logrus.WithFields(logrus.Fields{"name": yml.Name, "database": api.Database}).Error("database: run parameter not defined")
+		return
+	}
+	runQuery(db, query, api, yml, dataStore)
 }
 
 func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, dataStore *[]interface{}) {
@@ -120,81 +115,82 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 		}).Error("database: query failed")
 
 		errorLogToInsights(err, api.Database, api.Name, query.Name)
-	} else {
+		return
+	}
 
+	load.Logrus.WithFields(logrus.Fields{
+		"configName": yml.Name,
+		"database":   api.Database,
+		"query":      query.Run,
+	}).Debug("database: running query")
+
+	cols, err := rows.Columns()
+	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"configName": yml.Name,
+			"apiName":    api.Name,
 			"database":   api.Database,
 			"query":      query.Run,
-		}).Debug("database: running query")
+		}).Debug("database: column return failed")
 
-		cols, err := rows.Columns()
+		errorLogToInsights(err, api.Database, api.Name, query.Name)
+
+		return
+	}
+
+	// Use interface{} type instead of original sql.RawBytes, parsing the value ourselves instead of using sql scan convert routine,
+	// which does not hanlde sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64 conversion to sql.RawBytes.
+	values := make([]interface{}, len(cols))
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	// Fetch rows
+	rowNo := 1
+	for rows.Next() {
+		rowSet := map[string]interface{}{
+			"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
+			"queryLabel":    query.Name,
+			"event_type":    query.Name,
+		}
+		// apply event type override if set (this is useful to set if needing to group multiples under one event type)
+		if query.EventType != "" {
+			rowSet["event_type"] = query.EventType
+		}
+
+		// get RawBytes
+		err = rows.Scan(scanArgs...)
 		if err != nil {
-
 			load.Logrus.WithFields(logrus.Fields{
-				"configName": yml.Name,
-				"apiName":    api.Name,
-				"database":   api.Database,
-				"query":      query.Run,
-			}).Debug("database: column return failed")
-
-			errorLogToInsights(err, api.Database, api.Name, query.Name)
-		} else {
-			// Use interface{} type instead of original sql.RawBytes, parsing the value ourselves instead of using sql scan convert routine,
-			// which does not hanlde sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64 conversion to sql.RawBytes.
-			values := make([]interface{}, len(cols))
-			scanArgs := make([]interface{}, len(values))
-			for i := range values {
-				scanArgs[i] = &values[i]
-			}
-
-			// Fetch rows
-			rowNo := 1
-			for rows.Next() {
-				rowSet := map[string]interface{}{
-					"rowIdentifier": query.Name + "_" + strconv.Itoa(rowNo),
-					"queryLabel":    query.Name,
-					"event_type":    query.Name,
-				}
-				// apply event type override if set (this is useful to set if needing to group multiples under one event type)
-				if query.EventType != "" {
-					rowSet["event_type"] = query.EventType
-				}
-
-				// get RawBytes
-				err = rows.Scan(scanArgs...)
-				if err != nil {
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("database: row scan failed")
-				} else {
-					// Loop through each column
-					for i, col := range values {
-						// If value nil == null
-						if col == nil {
-							rowSet[cols[i]] = ""
-						} else {
-							rowSet[cols[i]] = asString(col)
-						}
-					}
-					queryEndTime := load.TimestampMs()
-					rowSet["flex.QueryStartMs"] = queryStartTime
-					rowSet["flex.QueryTimeMs"] = queryEndTime - queryStartTime
-					*dataStore = append(*dataStore, rowSet)
-					// load.StoreAppend(rowSet)
-					rowNo++
-				}
-			}
-			err = rows.Err()
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"configName": yml.Name,
-					"apiName":    api.Name,
-					"database":   api.Database,
-					"query":      query.Run,
-				}).Debug("database: rows return failed")
+				"err": err,
+			}).Error("database: row scan failed")
+			return
+		}
+		// Loop through each column
+		for i, col := range values {
+			// If value nil == null
+			if col == nil {
+				rowSet[cols[i]] = ""
+			} else {
+				rowSet[cols[i]] = asString(col)
 			}
 		}
+		queryEndTime := load.TimestampMs()
+		rowSet["flex.QueryStartMs"] = queryStartTime
+		rowSet["flex.QueryTimeMs"] = queryEndTime - queryStartTime
+		*dataStore = append(*dataStore, rowSet)
+		// load.StoreAppend(rowSet)
+		rowNo++
+	}
+	err = rows.Err()
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"configName": yml.Name,
+			"apiName":    api.Name,
+			"database":   api.Database,
+			"query":      query.Run,
+		}).Debug("database: rows return failed")
 	}
 }
 
@@ -225,12 +221,12 @@ func errorLogToInsights(err error, database, name, queryLabel string) {
 	load.StatusCounterIncrement("EventCount")
 	load.StatusCounterIncrement(database + "Error")
 
-	set(errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE))
+	checkError(errorMetricSet.SetMetric("errorMsg", err.Error(), metric.ATTRIBUTE))
 	if name != "" {
-		set(errorMetricSet.SetMetric("name", name, metric.ATTRIBUTE))
+		checkError(errorMetricSet.SetMetric("name", name, metric.ATTRIBUTE))
 	}
 	if queryLabel != "" {
-		set(errorMetricSet.SetMetric("queryLabel", queryLabel, metric.ATTRIBUTE))
+		checkError(errorMetricSet.SetMetric("queryLabel", queryLabel, metric.ATTRIBUTE))
 	}
 }
 
@@ -263,9 +259,9 @@ func pingWrapper(db *sql.DB, c chan struct{}, pingError *error) {
 	c <- struct{}{}
 }
 
-func set(err error) {
+func checkError(err error) {
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
+		load.Logrus.WithError(err).Error("flex: failed to set metric")
 	}
 }
 

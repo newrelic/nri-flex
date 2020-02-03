@@ -182,7 +182,7 @@ func vaultFetch(name string, secret load.Secret, results map[string]interface{})
 // awskmsDecrypt perform aws kms decrypt and return plaintext
 func awskmsDecrypt(name string, secret load.Secret) string {
 	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: attempting to aws kms decrypt secret")
-	secretData := []byte{}
+	var secretData []byte
 
 	if secret.File != "" {
 		var fileData []byte

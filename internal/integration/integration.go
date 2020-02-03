@@ -49,16 +49,25 @@ func RunFlex(runMode FlexRunMode) {
 	switch runMode {
 	case FlexModeLambda:
 		addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
-		if config.SyncGitConfigs("/tmp/") {
+
+		isSyncGitConfigured, err := config.SyncGitConfigs("/tmp/")
+		if err != nil {
+			logrus.WithError(err).Error("flex: failed to sync git configs")
+		} else if isSyncGitConfigured {
 			addConfigsFromPath("/tmp/", &configs)
 		}
+
 	default:
 		if load.Args.EncryptPass != "" {
 			logEncryptPass()
 			os.Exit(0)
 		}
 
-		config.SyncGitConfigs("")
+		_, err := config.SyncGitConfigs("")
+		if err != nil {
+			logrus.WithError(err).Error("flex: failed to sync git configs")
+		}
+
 		if load.Args.ConfigFile != "" {
 			addSingleConfigFile(load.Args.ConfigFile, &configs)
 		} else {
