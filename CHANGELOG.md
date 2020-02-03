@@ -1,3 +1,5 @@
+Dummy: remove me
+
 0.8.4-pre
 ------
 - Accepting `CONFIG_PATH` as an alias for `CONFIG_FILE`
