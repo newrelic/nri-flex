@@ -14,6 +14,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 

@@ -42,6 +42,7 @@ require (
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
+	github.com/stretchr/testify v1.4.0
 	github.com/vertica/vertica-sql-go v0.1.3
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 // indirect
