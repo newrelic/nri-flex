@@ -115,6 +115,9 @@ func TestSetJMXCommand(t *testing.T) {
 		},
 	}
 
+	_, err := Integration.New("test_parse_args", load.IntegrationVersion, Integration.Args(&load.Args))
+	assert.NoError(t, err)
+
 	for _, config := range configs {
 		runCommand := config.APIs[0].Commands[0].Run
 		dataStore := []interface{}{}
