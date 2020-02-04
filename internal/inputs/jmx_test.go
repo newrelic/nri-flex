@@ -7,6 +7,8 @@ package inputs
 
 import (
 	"fmt"
+	Integration "github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
 
