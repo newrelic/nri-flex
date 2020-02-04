@@ -51,6 +51,7 @@ type ArgumentList struct {
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
 	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	NRJMXToolPath        string `default:"./nrjmx/" help:"Set a custom path for nrjmx tool"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -107,7 +108,6 @@ const (
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
 	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
@@ -313,7 +313,7 @@ type API struct {
 	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
-	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!
+	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
