@@ -51,7 +51,7 @@ type ArgumentList struct {
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
 	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
-	NRJMXToolPath        string `default:"./nrjmx/" help:"Set a custom path for nrjmx tool"`
+	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 }
 
 // Args Infrastructure SDK Arguments List
