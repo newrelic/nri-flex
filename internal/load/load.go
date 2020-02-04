@@ -313,7 +313,7 @@ type API struct {
 	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
-	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
+	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
