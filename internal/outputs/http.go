@@ -8,7 +8,6 @@ package outputs
 import (
 	"bytes"
 	"compress/zlib"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -49,7 +48,7 @@ func postRequest(url string, key string, data []byte) error {
 	defer resp.Body.Close()
 
 	if resp == nil {
-		return errors.New("http: response nil")
+		return fmt.Errorf("http: response nil")
 	}
 
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {

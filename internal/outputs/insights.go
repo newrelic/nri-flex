@@ -14,9 +14,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
-// SendToInsights - Send processed events to insights
-// loop through integration entities as there could be multiple that have been set
-// when posted they are batched by entity
+// GetMetricBatches batch metrics by entity with a maximum batch size defined by 'InsightBatchSize' config.
 func GetMetricBatches() [][]*metric.Set {
 	var result [][]*metric.Set
 	for _, entity := range load.Integration.Entities {
@@ -41,7 +39,7 @@ func GetMetricBatches() [][]*metric.Set {
 	return result
 }
 
-// SendToMetricAPI - Send processed events to insights
+// SendBatchToInsights - Send processed events to insights.
 func SendBatchToInsights(metrics []*metric.Set) error {
 	jsonData, err := json.Marshal(metrics)
 	if err != nil {

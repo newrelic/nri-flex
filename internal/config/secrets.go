@@ -35,7 +35,7 @@ func loadSecrets(config *load.Config) {
 		if secret.Kind == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Error("config: secret missing: 'kind'")
+			}).Error("config: secret needs 'kind' parameter to be set")
 			break
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
@@ -60,7 +60,7 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: secret missing: 'region'")
+				}).Error("config: secret needs 'region' parameter to be set")
 				break
 			}
 			secretResult = awskmsDecrypt(name, tempSecret)
@@ -321,9 +321,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 		rootCAs := x509.NewCertPool()
 		ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
 		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("config: secret failed to read tls ca")
+			load.Logrus.WithError(err).Error("config: secret failed to read tls ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tlsConf.RootCAs = rootCAs

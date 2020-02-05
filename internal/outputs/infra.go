@@ -36,7 +36,7 @@ func InfraIntegration() error {
 
 	load.Entity, err = createEntity(load.Args.Local, load.Args.Entity)
 	if err != nil {
-		return fmt.Errorf("flex: failed create remote entity: %v", err)
+		return fmt.Errorf("flex: failed create entity: %v", err)
 	}
 	return nil
 }

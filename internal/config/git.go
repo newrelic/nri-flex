@@ -97,7 +97,7 @@ func GitClone(dir string, u *url.URL) error {
 
 // GitPull git pull
 func GitPull(dir string) error {
-	// instance\iate a new repository targeting the given path (the .git folder)
+	// instantiate a new repository targeting the given path (the .git folder)
 	r, err := git.PlainOpen(dir)
 	if err != nil {
 		return fmt.Errorf("failed to pull from repo, error: %v", err)

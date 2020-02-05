@@ -15,12 +15,14 @@ func main() {
 	load.StartTime = load.MakeTimestamp()
 	integration.SetEnvs()
 
-	if err := outputs.InfraIntegration(); err != nil {
+	err := outputs.InfraIntegration()
+	if err != nil {
 		load.Logrus.WithError(err).Fatal("flex: failed to initialize integration")
 	}
 
 	if integration.IsLambda() {
-		if err := integration.ValidateLambdaConfig(); err != nil {
+		err = integration.ValidateLambdaConfig()
+		if err != nil {
 			load.Logrus.WithError(err).Fatal("flex: failed to validate lambda required config")
 		}
 		integration.HandleLambda()
@@ -30,7 +32,8 @@ func main() {
 		integration.RunFlex(integration.FlexModeDefault)
 	}
 
-	if err := load.Integration.Publish(); err != nil {
+	err = load.Integration.Publish()
+	if err != nil {
 		load.Logrus.WithError(err).Fatal("flex: failed to publish")
 	}
 }
