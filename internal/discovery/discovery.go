@@ -53,12 +53,12 @@ func Run(configs *[]load.Config) {
 				if err != nil {
 					load.Logrus.WithFields(logrus.Fields{
 						"err": err,
-					}).Error("discovery: failed to read config dir: " + load.Args.ContainerDiscoveryDir)
+					}).Debug(fmt.Sprintf("discovery: %v directory unavailable or not used", load.Args.ContainerDiscoveryDir))
 				}
 
 				CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, configs)
 
-				if len(containerDiscoveryFiles) == 0 {
+				if err == nil && len(containerDiscoveryFiles) == 0 {
 					load.Logrus.WithFields(logrus.Fields{
 						"message": "if you are using v2 discovery then ignore",
 						"dir":     load.Args.ContainerDiscoveryDir,
@@ -134,6 +134,12 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 	}
 
 	load.Logrus.Debug(fmt.Sprintf("discovery: containers %d filtered containers %d", len(containers), len(filteredContainers)))
+
+	if load.Args.ContainerDump {
+		for _, container := range filteredContainers {
+			load.Logrus.Debug(fmt.Sprintf("container: %v %v %v", container.ID, container.Image, container.Names))
+		}
+	}
 
 	// flex config file container_discovery parameter -> container
 	runConfigLookup(cli, &filteredContainers, &inspectedContainers, &foundTargetContainerIds, ymls)
@@ -292,7 +298,7 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 		for _, container := range *containers {
 			go func(container types.Container) {
 				defer wg.Done()
-				// create discoveryConfigs - look for flex label and split
+				// create discoveryConfigs
 				for _, cd := range discoveryLoop {
 					discoveryConfig := map[string]interface{}{}
 					discoveryConfig["t"] = cd.Target
@@ -308,7 +314,14 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 						}).Error(fmt.Sprintf("discovery: %v cfg container inspect failed - %v", container.ID, cd.FileName))
 					} else {
 						if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
-							load.Logrus.Debug(fmt.Sprintf("discovery: %v cfg lookup matched %v - %v", container.ID, container.Names, cd.FileName))
+
+							switch discoveryConfig["tt"].(string) {
+							case load.TypeCname, load.TypeContainer:
+								load.Logrus.Debug(fmt.Sprintf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Names, cd.Target, cd.FileName))
+							case load.Img, load.Image:
+								load.Logrus.Debug(fmt.Sprintf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Image, cd.Target, cd.FileName))
+							}
+
 							*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
 							addDynamicConfig(ymls, discoveryConfig, ymls, container, reverseContainerInspect, "")
 						}
@@ -599,7 +612,7 @@ func findContainerTarget(discoveryConfig map[string]interface{}, container types
 	switch discoveryConfig["tt"].(type) {
 	case string:
 		switch discoveryConfig["tt"].(string) {
-		case "cname", load.TypeContainer:
+		case load.TypeCname, load.TypeContainer:
 			for _, containerName := range container.Names {
 				checkContainerName := strings.TrimPrefix(containerName, "/") // docker adds a / in front
 				if checkContainerName != "" && formatter.KvFinder(discoveryConfig["tm"].(string), checkContainerName, discoveryConfig["t"].(string)) {

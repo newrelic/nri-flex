@@ -26,6 +26,7 @@ type ArgumentList struct {
 	ContainerDiscoveryDir   string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery      bool   `default:"false" help:"Enable container auto discovery"`
 	ContainerDiscoveryMulti bool   `default:"false" help:"Allow a container to be matched multiple times"`
+	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
 	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
@@ -119,6 +120,7 @@ const (
 	Img                = "img"
 	Image              = "image"
 	TypeContainer      = "container"
+	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
 	TypeColumns        = "columns"
@@ -237,8 +239,8 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
-	Joinkey           string            `yaml:"join_key"`       // key to join the merged events
 	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`

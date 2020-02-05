@@ -208,19 +208,19 @@ func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Conf
 		primaryEvent := -1
 		mergeEvent := 0
 		primaryEventJoinKey := []string{""}
-		primaryEventJoinwith := map[int]string{}
+		primaryEventJoinWith := map[int]string{}
 		primaryEventSamples := map[int]interface{}{}
 		secondaryEventSamples := map[string]interface{}{}
 		mergeOperation := false
 
 		for rownum, sample := range sampleSet {
 			originalAPINo := sample.(map[string]interface{})[_originalAPINo].(int)
-			joinkey := yml.APIs[sample.(map[string]interface{})[_originalAPINo].(int)].Joinkey
+			joinKey := yml.APIs[sample.(map[string]interface{})[_originalAPINo].(int)].JoinKey
 			// merge or join operation
-			if joinkey != "" {
+			if joinKey != "" {
 				if primaryEvent == -1 {
 					primaryEvent = originalAPINo
-					primaryEventJoinKey = strings.Split(joinkey, ",")
+					primaryEventJoinKey = strings.Split(joinKey, ",")
 					sort.Strings(primaryEventJoinKey)
 				}
 				if primaryEvent == originalAPINo {
@@ -228,10 +228,10 @@ func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Conf
 					primaryEventSamples[rownum] = sample
 				} else {
 					// keep track of what events and the joinkey to be joint
-					primaryEventJoinwith[originalAPINo] = joinkey
+					primaryEventJoinWith[originalAPINo] = joinKey
 					// keep joining events in a map using sampleNo+joinkey value as key for later lookup
 					for k, v := range sample.(map[string]interface{}) {
-						if k == joinkey {
+						if k == joinKey {
 							value := ""
 							switch (v).(type) {
 							case float32, float64:
@@ -283,8 +283,8 @@ func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Conf
 					if contains(primaryEventJoinKey, k) {
 						// if the key is in the the primary join key list
 						// then will lookup the secondary events for the key, if found, then join the keys from secondary events
-						for kk := range primaryEventJoinwith {
-							// for kk, vv := range primaryEventJoinwith {
+						for kk := range primaryEventJoinWith {
+							// for kk, vv := range primaryEventJoinWith {
 							// we built the map with secondary event "_sampleNo" and join key earlier.
 							// the map for the secondary event sample assumes unique lookup key per event
 							if val, found := secondaryEventSamples[strconv.Itoa(kk)+value]; found {

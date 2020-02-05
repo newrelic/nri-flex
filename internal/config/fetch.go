@@ -189,7 +189,7 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 		}
 		// Run(lookupConfig)
 		// Please note:
-		//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrrent map write.
+		//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
 		//          We will address this in the future if required. These two functions are probably not necessary for this use case.
 		if cfg.APIs[apiNo].RunAsync {
 			RunAsync(lookupConfig, samplesToMerge, apiNo)
