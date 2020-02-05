@@ -5,49 +5,45 @@ import (
 )
 
 func TestDimensionalLookup(t *testing.T) {
-	lookupStore := map[string]map[string]struct{}{}
-	lookupStore["animal"] = map[string]struct{}{
-		"dog": struct{}{},
-		"cat": struct{}{},
-		"cow": struct{}{}}
-	lookupStore["gender"] = map[string]struct{}{
-		"m": struct{}{},
-		"f": struct{}{}}
-	lookupStore["numbers"] = map[string]struct{}{
-		"10": struct{}{},
-		"11": struct{}{}}
-
-	lookupDimensions := []string{}
-	for lookupVar := range lookupStore {
-		lookupDimensions = append(lookupDimensions, lookupVar)
+	lookupStore := map[string][]string{}
+	lookupStore["animal"] = []string{
+		"dog",
+		"cat",
+		"cow",
+	}
+	lookupStore["gender"] = []string{
+		"m",
+		"f",
+	}
+	lookupStore["numbers"] = []string{
+		"10",
+		"11",
 	}
 
-	sliceIndexes := []int{}
-	sliceKeys := []string{}
-	sliceLookups := [][]string{}
+	lookupDimensions := []string{
+		"animal",
+		"gender",
+		"numbers",
+	}
+
+	var sliceIndexes []int
+	var sliceKeys []string
+	var sliceLookups [][]string
 
 	// init lookups
-	for key, values := range lookupStore {
-		// only create lookups for the found dimensions
-		for _, dimKey := range lookupDimensions {
-			if key == dimKey {
-				sliceIndexes = append(sliceIndexes, 0)
-				sliceKeys = append(sliceKeys, key)
-				valueArray := []string{}
-				for a := range values {
-					valueArray = append(valueArray, a)
-				}
-				sliceLookups = append(sliceLookups, valueArray)
-				break
-			}
+	for _, dimKey := range lookupDimensions {
+		if value, found := lookupStore[dimKey]; found {
+			sliceIndexes = append(sliceIndexes, 0)
+			sliceKeys = append(sliceKeys, dimKey)
+			sliceLookups = append(sliceLookups, value)
 		}
 	}
 
 	loopNo := -1
-	combinations := [][]string{}
+	var combinations [][]string
 	loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
 
-	expected := map[int][]string{}
+	expected := make([][]string, 12)
 	expected[0] = []string{"dog", "m", "10"}
 	expected[1] = []string{"dog", "m", "11"}
 	expected[2] = []string{"dog", "f", "10"}
