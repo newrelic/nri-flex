@@ -17,7 +17,6 @@ const (
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
 	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
