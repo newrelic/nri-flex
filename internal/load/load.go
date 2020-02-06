@@ -239,6 +239,7 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
+	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
 	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
@@ -470,4 +471,17 @@ type Namespace struct {
 // MakeTimestamp creates timestamp in milliseconds
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// SamplesToMerge keep merge sapmles
+type SamplesToMerge struct {
+	sync.RWMutex
+	Data map[string][]interface{}
+}
+
+// SampleAppend append sample with locking
+func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
+	s.Lock()
+	defer s.Unlock()
+	(s.Data)[key] = append((s.Data)[key], sample)
 }

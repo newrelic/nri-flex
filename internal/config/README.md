@@ -8,7 +8,7 @@
 #### func  FetchData
 
 ```go
-func FetchData(apiNo int, yml *load.Config) []interface{}
+func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge) []interface{}
 ```
 FetchData fetches data from various inputs Also handles paginated responses for
 HTTP requests (tested against NR APIs)
@@ -16,7 +16,7 @@ HTTP requests (tested against NR APIs)
 #### func  FetchLookups
 
 ```go
-func FetchLookups(cfg *load.Config, i int) bool
+func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMerge) bool
 ```
 FetchLookups x
 
@@ -69,12 +69,26 @@ func Run(yml load.Config)
 ```
 Run Action each config file
 
+#### func  RunAsync
+
+```go
+func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int)
+```
+RunAsync API in Async mode after lookup
+
 #### func  RunFiles
 
 ```go
 func RunFiles(configs *[]load.Config)
 ```
 RunFiles Processes yml files
+
+#### func  RunSync
+
+```go
+func RunSync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int)
+```
+RunSync API in Sync mode after lookup
 
 #### func  RunVariableProcessor
 

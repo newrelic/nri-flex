@@ -29,7 +29,7 @@ AutoSetStandard x
 #### func  CreateMetricSets
 
 ```go
-func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{})
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int)
 ```
 CreateMetricSets creates metric sets hren added samplesToMerge parameter, moved
 merge operation to CreateMetricSets so that the "Run...." functions still apply
@@ -60,16 +60,19 @@ FlattenData flatten an interface
 #### func  ProcessSamplesMergeJoin
 
 ```go
-func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config)
+func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Config)
 ```
-hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
+ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 
 #### func  RunDataHandler
 
 ```go
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config)
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int)
 ```
-RunDataHandler handles the data received for processing
+RunDataHandler handles the data received for processing The originalAPINo is to
+track the original API sequential No. in the Flex config file. This is to
+diffentiate the new API Seq No. created by StoreLookup. The originalAPINo is
+used for Merge and Join operation
 
 #### func  RunEventFilter
 

@@ -27,7 +27,7 @@ const regex = "regex"
 
 // CreateMetricSets creates metric sets
 // hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
-func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{}) {
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
@@ -77,8 +77,20 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 				delete(currentSample, k)
 			}
 
-			StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
-			VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+			// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
+			// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
+			if !api.RunAsync {
+				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
+				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+			}
+			// else {
+			// 	load.Logrus.WithFields(logrus.Fields{
+			// 		"API name":  api.Name,
+			// 		"run_async": api.RunAsync,
+			// 		"key":       key,
+			// 	}).Debug("create: skipping StoreLookups VariableLookups due to run_async is true: ")
+
+			// }
 
 			// if keepkeys used will do inverse
 			RunKeepKeys(api.KeepKeys, &key, &currentSample)
@@ -127,10 +139,12 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 				}
 			} else {
 				// hren: it is mergeMetric, add the metric to mergeData, which will be published later
-				currentSample["_sampleNo"] = i
+				currentSample["_originalAPINo"] = originalAPINo
 				// hren overwrite event_type if it is merge operation
 				currentSample["event_type"] = config.APIs[i].Merge
-				(*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
+				// (*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
+
+				samplesToMerge.SampleAppend(config.APIs[i].Merge, currentSample)
 			}
 
 		}
