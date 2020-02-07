@@ -6,10 +6,8 @@
 package outputs
 
 import (
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // StatusSample creates flexStatusSample
@@ -55,6 +53,6 @@ func StatusSample() {
 
 func statusLog(err error) {
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("status: failed to set metric")
+		load.Logrus.WithError(err).Error("status: failed to set metric")
 	}
 }

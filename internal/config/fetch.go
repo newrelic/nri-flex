@@ -24,17 +24,23 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 	}).Debug("fetch: collect data")
 
 	api := yml.APIs[apiNo]
-	file := yml.APIs[apiNo].File
+	file := api.File
 	reqURL := api.URL
 
 	doLoop := true
-	dataStore := []interface{}{}
+	var dataStore []interface{}
 
 	continueProcessing := FetchLookups(yml, apiNo, samplesToMerge)
 
 	if continueProcessing {
 		if file != "" {
-			inputs.RunFile(&dataStore, yml, apiNo)
+			err := inputs.ProcessFile(&dataStore, yml, apiNo)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": yml.Name,
+					"file": file,
+				}).WithError(err).Error("fetch: failed to process file")
+			}
 		} else if api.Cache != "" {
 			if yml.Datastore[api.Cache] != nil {
 				dataStore = yml.Datastore[api.Cache]
@@ -50,7 +56,13 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 		} else if api.Database != "" && api.DbConn != "" {
 			inputs.ProcessQueries(&dataStore, yml, apiNo)
 		} else if api.Scp.Host != "" {
-			inputs.RunScpWithTimeout(&dataStore, yml, api, apiNo)
+			err := inputs.RunScpWithTimeout(&dataStore, yml, api)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": yml.Name,
+					"host": api.Scp.Host,
+				}).WithError(err).Error("fetch: failed to process remote file")
+			}
 		}
 	}
 
@@ -86,120 +98,119 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 			"name": cfg.Name,
 			"err":  err,
 		}).Error("fetch: lookup processor marshal failed")
-	} else {
-		tmpCfgStr := string(tmpCfgBytes)
-		lookupsFound := regexp.MustCompile(`\${lookup:.*?}`).FindAllString(tmpCfgStr, -1)
-
-		// if no lookups, do not continue running the processor
-		if len(lookupsFound) == 0 {
-			return true
-		}
-
-		// determine each unique lookup found
-		lookupDimensions := []string{}
-		for _, lookupVar := range lookupsFound {
-			lookupDimensionFound := false
-			// eg. ${lookup:consumers} -> consumers
-			currentLookupDimension := strings.TrimSuffix(strings.Split(lookupVar, "${lookup:")[1], "}")
-
-			for _, lookupDimension := range lookupDimensions {
-				if currentLookupDimension == lookupDimension {
-					lookupDimensionFound = true
-					break
-				}
-			}
-
-			// only if not found then append to ensure the slice is unique
-			if !lookupDimensionFound {
-				lookupDimensions = append(lookupDimensions, currentLookupDimension)
-			}
-		}
-
-		load.Logrus.WithFields(logrus.Fields{
-			"name": cfg.Name,
-		}).Debug(fmt.Sprintf("fetch: unique lookups found in api %v", (lookupDimensions)))
-
-		sliceIndexes := []int{}
-		sliceKeys := []string{}
-		sliceLookups := [][]string{}
-
-		// init lookups
-		for key, values := range cfg.LookupStore {
-			// only create lookups for the found dimensions
-			for _, dimKey := range lookupDimensions {
-				if key == dimKey {
-					sliceIndexes = append(sliceIndexes, 0)
-					sliceKeys = append(sliceKeys, key)
-					valueArray := []string{}
-					for a := range values {
-						valueArray = append(valueArray, a)
-					}
-					sliceLookups = append(sliceLookups, valueArray)
-					break
-				}
-			}
-		}
-
-		loopNo := -1
-		combinations := [][]string{}
-		if len(sliceLookups) > 0 {
-			loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
-		}
-
-		load.Logrus.WithFields(logrus.Fields{
-			"name": cfg.Name,
-		}).Debug(fmt.Sprintf("fetch: combinations found %v", (combinations)))
-
-		newAPIs := []string{}
-		for _, combo := range combinations {
-			tmpConfigWithLookupReplace := tmpCfgStr
-			if len(combo) == len(sliceKeys) {
-				for i, key := range sliceKeys {
-					tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
-				}
-				newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
-			} else {
-				load.Logrus.WithFields(logrus.Fields{
-					"name": cfg.Name,
-				}).Debug("fetch: invalid lookup, missing a replace")
-			}
-		}
-
-		lookupConfig := load.Config{
-			Name:             cfg.Name,
-			Global:           cfg.Global,
-			FileName:         cfg.FileName,
-			Datastore:        cfg.Datastore,
-			LookupStore:      cfg.LookupStore,
-			VariableStore:    cfg.VariableStore,
-			CustomAttributes: cfg.CustomAttributes,
-		}
-
-		for _, newAPI := range newAPIs {
-			API := load.API{}
-			err := yaml.Unmarshal([]byte(newAPI), &API)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"name": cfg.Name,
-					"err":  err,
-				}).Error("fetch: failed to unmarshal lookup config")
-			} else {
-				lookupConfig.APIs = append(lookupConfig.APIs, API)
-			}
-		}
-		// Run(lookupConfig)
-		// Please note:
-		//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
-		//          We will address this in the future if required. These two functions are probably not necessary for this use case.
-		if cfg.APIs[apiNo].RunAsync {
-			RunAsync(lookupConfig, samplesToMerge, apiNo)
-		} else {
-			RunSync(lookupConfig, samplesToMerge, apiNo)
-		}
-		return false
+		return true
 	}
 
-	return true
+	tmpCfgStr := string(tmpCfgBytes)
+	lookupsFound := regexp.MustCompile(`\${lookup:.*?}`).FindAllString(tmpCfgStr, -1)
+
+	// if no lookups, do not continue running the processor
+	if len(lookupsFound) == 0 {
+		return true
+	}
+
+	// determine each unique lookup found
+	var lookupDimensions []string
+	for _, lookupVar := range lookupsFound {
+		lookupDimensionFound := false
+		// eg. ${lookup:consumers} -> consumers
+		currentLookupDimension := strings.TrimSuffix(strings.Split(lookupVar, "${lookup:")[1], "}")
+
+		for _, lookupDimension := range lookupDimensions {
+			if currentLookupDimension == lookupDimension {
+				lookupDimensionFound = true
+				break
+			}
+		}
+
+		// only if not found then append to ensure the slice is unique
+		if !lookupDimensionFound {
+			lookupDimensions = append(lookupDimensions, currentLookupDimension)
+		}
+	}
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfg.Name,
+	}).Debugf("fetch: unique lookups found in api %v", lookupDimensions)
+
+	var sliceIndexes []int
+	var sliceKeys []string
+	var sliceLookups [][]string
+
+	// init lookups
+	for key, values := range cfg.LookupStore {
+		// only create lookups for the found dimensions
+		for _, dimKey := range lookupDimensions {
+			if key == dimKey {
+				sliceIndexes = append(sliceIndexes, 0)
+				sliceKeys = append(sliceKeys, key)
+				var valueArray []string
+				for a := range values {
+					valueArray = append(valueArray, a)
+				}
+				sliceLookups = append(sliceLookups, valueArray)
+				break
+			}
+		}
+	}
+
+	var combinations [][]string
+	if len(sliceLookups) > 0 {
+		loopNo := -1
+		loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
+	}
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name": cfg.Name,
+	}).Debugf("fetch: combinations found %v", combinations)
+
+	var newAPIs []string
+	for _, combo := range combinations {
+		tmpConfigWithLookupReplace := tmpCfgStr
+		if len(combo) == len(sliceKeys) {
+			for i, key := range sliceKeys {
+				tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup:%v}", key), combo[i])
+			}
+			newAPIs = append(newAPIs, tmpConfigWithLookupReplace)
+		} else {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+			}).Debug("fetch: invalid lookup, missing a replace")
+		}
+	}
+
+	lookupConfig := load.Config{
+		Name:             cfg.Name,
+		Global:           cfg.Global,
+		FileName:         cfg.FileName,
+		Datastore:        cfg.Datastore,
+		LookupStore:      cfg.LookupStore,
+		VariableStore:    cfg.VariableStore,
+		CustomAttributes: cfg.CustomAttributes,
+	}
+
+	for _, newAPI := range newAPIs {
+		API := load.API{}
+		err := yaml.Unmarshal([]byte(newAPI), &API)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+				"err":  err,
+			}).Error("fetch: failed to unmarshal lookup config")
+		} else {
+			lookupConfig.APIs = append(lookupConfig.APIs, API)
+		}
+	}
+	// Run(lookupConfig)
+	// Please note:
+	//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
+	//          We will address this in the future if required. These two functions are probably not necessary for this use case.
+	if cfg.APIs[apiNo].RunAsync {
+		RunAsync(lookupConfig, samplesToMerge, apiNo)
+	} else {
+		RunSync(lookupConfig, samplesToMerge, apiNo)
+	}
+	return false
 }
 
 func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combinations *[][]string) {
@@ -210,7 +221,7 @@ func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combin
 
 		// this indicates we are in the inner most loop, else do another loop
 		if loopNo+1 == len(sliceLookups) {
-			keys := []string{}
+			var keys []string
 			for x := 0; x <= loopNo; x++ {
 				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
 			}

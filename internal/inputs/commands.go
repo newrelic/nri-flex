@@ -8,7 +8,6 @@ package inputs
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -70,7 +69,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			}
 
 			// Create the command with our context
-			cmd := exec.CommandContext(ctx, commandShell, secondParameter, fmt.Sprintf("%v", runCommand))
+			cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
 			output, err := cmd.CombinedOutput()
 
 			if err != nil {
@@ -220,14 +219,14 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 				cmd = "cache - " + command.Cache
 			}
 
-			load.Logrus.Debug(fmt.Sprintf("command: running %v", cmd))
+			load.Logrus.Debugf("command: running %v", cmd)
 
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
 				processRaw(dataSample, dataOutput, []string{}, command)
 			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
 				if *processType == load.TypeColumns {
-					load.Logrus.Debug(fmt.Sprintf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name))
+					load.Logrus.Debugf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name)
 				} else {
 					*processType = "columns"
 					processRawCol(dataStore, dataSample, dataOutput, command)
@@ -258,7 +257,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, lines []s
 	for i, line := range lines {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
+				load.Logrus.Debugf("command: reached line limit %d", lineEnd)
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -302,7 +301,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", command.LineEnd))
+				load.Logrus.Debugf("command: reached line limit %d", command.LineEnd)
 				break
 			}
 

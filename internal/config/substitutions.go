@@ -22,74 +22,62 @@ import (
 )
 
 // SubLookupFileData substitutes data from lookup files into config
-func SubLookupFileData(configs *[]load.Config, config load.Config) {
+func SubLookupFileData(configs *[]load.Config, config load.Config) error {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": config.Name,
 	}).Debug("config: running lookup files")
 
 	tmpCfgBytes, err := yaml.Marshal(&config)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"name": config.Name,
-			"err":  err,
-		}).Error("config: sub lookup file data marshal failed")
-	} else {
+		return fmt.Errorf("config name: %s: sub lookup file data marshal failed, error: %v", config.Name, err)
+	}
 
-		b, err := ioutil.ReadFile(config.LookupFile)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"file": config.LookupFile,
-				"err":  err,
-			}).Error("config: failed to read lookup file")
-			return
-		}
+	b, err := ioutil.ReadFile(config.LookupFile)
+	if err != nil {
+		return fmt.Errorf("config name: %s: failed to read lookup file, error: %v", config.LookupFile, err)
+	}
 
-		jsonOut := []interface{}{}
-		jsonErr := json.Unmarshal(b, &jsonOut)
-		if jsonErr != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"file": config.LookupFile,
-				"err":  jsonErr,
-			}).Error("config: failed to unmarshal lookup file")
-			return
-		}
+	var jsonOut []interface{}
+	jsonErr := json.Unmarshal(b, &jsonOut)
+	if jsonErr != nil {
+		return fmt.Errorf("config name: %s: failed to unmarshal lookup file, error: %v", config.LookupFile, err)
+	}
 
-		// create a new config file per
-		for _, item := range jsonOut {
-			switch obj := item.(type) {
-			case map[string]interface{}:
-				tmpCfgStr := string(tmpCfgBytes)
-				variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(tmpCfgStr, -1)
-				replaceOccured := false
-				for _, variableReplace := range variableReplaces {
-					variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
-					if obj[variableKey] != nil {
-						tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, fmt.Sprintf("%v", obj[variableKey]), -1)
-						replaceOccured = true
-					}
+	// create a new config file per
+	for _, item := range jsonOut {
+		switch obj := item.(type) {
+		case map[string]interface{}:
+			tmpCfgStr := string(tmpCfgBytes)
+			variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(tmpCfgStr, -1)
+			replaceOccurred := false
+			for _, variableReplace := range variableReplaces {
+				variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
+				if obj[variableKey] != nil {
+					tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, fmt.Sprintf("%v", obj[variableKey]), -1)
+					replaceOccurred = true
 				}
-				// if replace occurred convert string to config yaml and reload
-				if replaceOccured {
-					newCfg, err := ReadYML(tmpCfgStr)
-					if err != nil {
-
-						load.Logrus.WithFields(logrus.Fields{
-							"file":       config.LookupFile,
-							"err":        err,
-							"name":       config.Name,
-							"suggestion": "check for errors or run yaml lint against the below output",
-						}).Error("config: new lookup file unmarshal failed")
-						load.Logrus.Error(tmpCfgStr)
-
-					} else {
-						*configs = append(*configs, newCfg)
-					}
-				}
-			default:
-				load.Logrus.Debug("config: lookup file needs to contain an array of objects")
 			}
+			// if replace occurred convert string to config yaml and reload
+			if replaceOccurred {
+				newCfg, err := ReadYML(tmpCfgStr)
+				if err != nil {
+
+					load.Logrus.WithFields(logrus.Fields{
+						"file":       config.LookupFile,
+						"name":       config.Name,
+						"suggestion": "check for errors or run yaml lint against the below output",
+					}).WithError(err).Error("config: new lookup file unmarshal failed")
+					load.Logrus.Error(tmpCfgStr)
+
+				} else {
+					*configs = append(*configs, newCfg)
+				}
+			}
+		default:
+			load.Logrus.Debug("config: lookup file needs to contain an array of objects")
 		}
 	}
+	return nil
 }
 
 // SubEnvVariables substitutes environment variables into config
@@ -198,9 +186,8 @@ func SubTimestamps(strConf *string) {
 				case "h", "hr", "hour":
 					durationType = time.Hour
 				default:
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
+					load.Logrus.WithError(err).
+						Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
 				}
 
 			} else {

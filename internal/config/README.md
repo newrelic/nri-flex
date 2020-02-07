@@ -23,7 +23,7 @@ FetchLookups x
 #### func  GitCheckout
 
 ```go
-func GitCheckout(w *git.Worktree)
+func GitCheckout(w *git.Worktree) error
 ```
 GitCheckout git checkout
 
@@ -90,14 +90,6 @@ func RunSync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo
 ```
 RunSync API in Sync mode after lookup
 
-#### func  RunVariableProcessor
-
-```go
-func RunVariableProcessor(i int, cfg *load.Config)
-```
-RunVariableProcessor substitute store variables into specific parts of config
-files
-
 #### func  SubEnvVariables
 
 ```go
@@ -110,7 +102,7 @@ config file Can be useful with kubernetes service environment variables
 #### func  SubLookupFileData
 
 ```go
-func SubLookupFileData(configs *[]load.Config, config load.Config)
+func SubLookupFileData(configs *[]load.Config, config load.Config) error
 ```
 SubLookupFileData substitutes data from lookup files into config
 
@@ -125,6 +117,6 @@ optional adjustment in various format
 #### func  SyncGitConfigs
 
 ```go
-func SyncGitConfigs(customDir string) bool
+func SyncGitConfigs(customDir string) (bool, error)
 ```
 SyncGitConfigs Clone git repo if already exists, else pull latest version

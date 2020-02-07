@@ -13,38 +13,28 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 // postRequest wraps request and attaches needed headers and zlib compression
-func postRequest(url string, key string, data []byte) {
+func postRequest(url string, key string, data []byte) error {
 	var zlibCompressedPayload bytes.Buffer
 	w := zlib.NewWriter(&zlibCompressedPayload)
 	_, err := w.Write(data)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: failed to compress payload")
-		return
+		return fmt.Errorf("http: failed to compress payload, %v", err)
 	}
 	err = w.Close()
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: failed to close zlib writer")
-		return
+		return fmt.Errorf("http: failed to close zlib writer, %v", err)
 	}
 
-	load.Logrus.Debug(fmt.Sprintf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics)))
+	load.Logrus.Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
 	client := &http.Client{Transport: tr}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: unable to create http.Request")
-		return
+		return fmt.Errorf("http: unable to create http.Request, %v", err)
 	}
 
 	req.Header.Set("Content-Encoding", "deflate")
@@ -53,20 +43,16 @@ func postRequest(url string, key string, data []byte) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: failed to send")
+		load.Logrus.WithError(err).Error("http: failed to send")
 	}
 	defer resp.Body.Close()
 
-	if resp != nil {
-		if resp.StatusCode > 299 || resp.StatusCode < 200 {
-			load.Logrus.WithFields(logrus.Fields{
-				"code": resp.StatusCode,
-			}).Error("http: post failed")
-		}
-	} else {
-		load.Logrus.Error("http: response nil")
+	if resp == nil {
+		return fmt.Errorf("http: response nil")
 	}
 
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		err = fmt.Errorf("http: post failed, status code: %d", resp.StatusCode)
+	}
+	return err
 }

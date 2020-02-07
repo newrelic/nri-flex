@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 
@@ -23,7 +24,8 @@ func TestConfigPath_Override(t *testing.T) {
 		}
 	}()
 
-	InfraIntegration()
+	err := InfraIntegration()
+	assert.NoError(t, err)
 
 	if load.Args.ConfigPath != expectedPath ||
 		load.Args.ConfigFile != expectedPath {

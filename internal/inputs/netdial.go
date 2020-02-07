@@ -43,7 +43,7 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 	var data string
 	// Run dial via a goroutine
 	go func() {
-		load.Logrus.Debug(fmt.Sprintf("commands: dialling %v : %v", addr, netw))
+		load.Logrus.Debugf("commands: dialling %v : %v", addr, netw)
 		dialConn, err := net.DialTimeout(netw, addr, time.Duration(timeout)*time.Millisecond)
 		if err != nil {
 			dialError = err
@@ -86,6 +86,6 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 		} else if command.Run != "" && dialError == nil && data != "" {
 			processOutput(dataStore, data, dataSample, command, api, processType)
 		}
-		load.Logrus.Debug(fmt.Sprintf("commands: finished dial %v : %v", command.Dial, netw))
+		load.Logrus.Debugf("commands: finished dial %v : %v", command.Dial, netw)
 	}
 }

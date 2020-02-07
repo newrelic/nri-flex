@@ -6,7 +6,6 @@
 package processor
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,8 +13,6 @@ import (
 	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/data/event"
-	"github.com/sirupsen/logrus"
-
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 
@@ -44,7 +41,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
 			if load.StatusCounterRead("EventDropCount") == 1 { // don't output the message more then once
-				load.Logrus.Error(fmt.Sprintf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit))
+				load.Logrus.Errorf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit)
 			}
 			break
 		}
@@ -52,7 +49,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		// modify existing sample before final processing
 		SkipProcessing := api.SkipProcessing
 
-		modifiedKeys := []string{}
+		var modifiedKeys []string
 		for k, v := range currentSample { // k == original key
 			key := k
 			RunKeyConversion(&key, api, v, &SkipProcessing)
@@ -156,9 +153,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
 		if inventory[k] == "value" {
-			set(entity.SetInventoryItem(k, "value", v))
+			checkError(entity.SetInventoryItem(k, "value", v))
 		} else {
-			set(entity.SetInventoryItem(inventory[k], k, v))
+			checkError(entity.SetInventoryItem(inventory[k], k, v))
 		}
 	}
 }
@@ -168,12 +165,12 @@ func setEvents(entity *integration.Entity, inventory map[string]string, k string
 	if inventory[k] != "" {
 		value := cleanValue(&v)
 		if inventory[k] != "default" {
-			set(entity.AddEvent(&event.Event{
+			checkError(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: inventory[k],
 			}))
 		} else {
-			set(entity.AddEvent(&event.Event{
+			checkError(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: k,
 			}))
@@ -208,10 +205,10 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 	// if event_type is set use this, else attempt to autoset
 	if (*currentSample)["event_type"] != nil && (*currentSample)["event_type"].(string) == "flexError" {
 		*eventType = (*currentSample)["event_type"].(string)
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	} else if apiEventType != "" && apiMerge == "" {
 		*eventType = apiEventType
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	} else {
 		// pull out the event name, and remove if "Samples" is plural
 		// if event_type not set, auto create via api name
@@ -223,7 +220,7 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 		} else {
 			*eventType = apiName + "Sample"
 		}
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	}
 	*eventType = cleanEvent(*eventType)
 }
@@ -321,7 +318,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 	}
 
 	// store numeric values, as metrics within Metrics
-	Metrics := []map[string]interface{}{}
+	var Metrics []map[string]interface{}
 	SummaryMetrics := map[string]map[string]float64{}
 
 	//add sample metrics
@@ -449,7 +446,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 		}
 
 		if useDefaultNamespace {
-			load.Logrus.Debug(fmt.Sprintf("flex: defaulting a namespace for:%v", api.Name))
+			load.Logrus.Debugf("flex: defaulting a namespace for:%v", api.Name)
 			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
 		}
 	} else {
@@ -457,8 +454,8 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 	}
 
 	// set default attribute(s)
-	set(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
-	set(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
+	checkError(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
+	checkError(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
 
 	//add sample metrics
 	for k, v := range *currentSample {
@@ -498,28 +495,28 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	parsed, err := strconv.ParseFloat(value, 64)
 
 	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "nan") {
-		set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
+		checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
 			if (k == metricKey) || (autoSet && formatter.KvFinder(regex, k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
-					set(metricSet.SetMetric(k, parsed, metric.RATE))
+					checkError(metricSet.SetMetric(k, parsed, metric.RATE))
 					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
-					set(metricSet.SetMetric(k, parsed, metric.DELTA))
+					checkError(metricSet.SetMetric(k, parsed, metric.DELTA))
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
-					set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
+					checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 					break
 				}
 			}
 		}
 		if !foundKey {
-			set(metricSet.SetMetric(k, parsed, metric.GAUGE))
+			checkError(metricSet.SetMetric(k, parsed, metric.GAUGE))
 		}
 	}
 }
@@ -562,9 +559,9 @@ func sliceContains(s []string, e string) bool {
 	return false
 }
 
-func set(err error) {
+func checkError(err error) {
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
+		load.Logrus.WithError(err).Error("flex: failed to set")
 	}
 }
 

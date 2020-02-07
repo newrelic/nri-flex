@@ -53,7 +53,7 @@ func Run(configs *[]load.Config) {
 				if err != nil {
 					load.Logrus.WithFields(logrus.Fields{
 						"err": err,
-					}).Debug(fmt.Sprintf("discovery: %v directory unavailable or not used", load.Args.ContainerDiscoveryDir))
+					}).Debugf("discovery: %v directory unavailable or not used", load.Args.ContainerDiscoveryDir)
 				}
 
 				CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, configs)
@@ -133,11 +133,11 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 		filteredContainers = append(filteredContainers, container)
 	}
 
-	load.Logrus.Debug(fmt.Sprintf("discovery: containers %d filtered containers %d", len(containers), len(filteredContainers)))
+	load.Logrus.Debugf("discovery: containers %d filtered containers %d", len(containers), len(filteredContainers))
 
 	if load.Args.ContainerDump {
 		for _, container := range filteredContainers {
-			load.Logrus.Debug(fmt.Sprintf("container: %v %v %v", container.ID, container.Image, container.Names))
+			load.Logrus.Debugf("container: %v %v %v", container.ID, container.Image, container.Names)
 		}
 	}
 
@@ -219,7 +219,7 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 					for key, val := range discoveryLoop {
 						if strings.Contains(key, "flexDiscovery") {
 
-							load.Logrus.Debug(fmt.Sprintf("discovery: fwd lookup for %v", key))
+							load.Logrus.Debugf("discovery: fwd lookup for %v", key)
 
 							discoveryConfig := map[string]interface{}{}
 							parseFlexDiscoveryLabel(discoveryConfig, key, val)
@@ -311,15 +311,17 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 					if err != nil {
 						load.Logrus.WithFields(logrus.Fields{
 							"err": err,
-						}).Error(fmt.Sprintf("discovery: %v cfg container inspect failed - %v", container.ID, cd.FileName))
+						}).Errorf("discovery: %v cfg container inspect failed - %v", container.ID, cd.FileName)
 					} else {
 						if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
 
 							switch discoveryConfig["tt"].(string) {
+
 							case load.TypeCname, load.TypeContainer:
-								load.Logrus.Debug(fmt.Sprintf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Names, cd.Target, cd.FileName))
+								load.Logrus.Debugf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Names, cd.Target, cd.FileName)
+
 							case load.Img, load.Image:
-								load.Logrus.Debug(fmt.Sprintf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Image, cd.Target, cd.FileName))
+								load.Logrus.Debugf("discovery: %v cfg lookup matched %v %v - %v", container.ID, container.Image, cd.Target, cd.FileName)
 							}
 
 							*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
@@ -395,10 +397,10 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 						if err != nil {
 							load.Logrus.WithFields(logrus.Fields{
 								"err": err,
-							}).Error(fmt.Sprintf("discovery: rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val))
+							}).Errorf("discovery: rev container inspect failed on cid:%v key:%v val:%v", container.ID, key, val)
 						} else {
 							if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
-								load.Logrus.Debug(fmt.Sprintf("discovery: rev lookup matched %v: %v - %v", container.ID, key, val))
+								load.Logrus.Debugf("discovery: rev lookup matched %v: %v - %v", container.ID, key, val)
 								*inspectedContainers = append(*inspectedContainers, reverseContainerInspect)
 								addDynamicConfig(containerYmls, discoveryConfig, ymls, container, reverseContainerInspect, path)
 							}
@@ -422,17 +424,17 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 				configName = configName + ".yml"
 			}
 		default:
-			load.Logrus.Error(fmt.Sprintf("discovery: config file error %v", (discoveryConfig["c"])))
+			load.Logrus.Errorf("discovery: config file error %v", (discoveryConfig["c"]))
 		}
 
 		if containerYml.FileName == configName {
-			load.Logrus.Debug(fmt.Sprintf("discovery: %v matched %v", targetContainer.ID, containerYml.FileName))
+			load.Logrus.Debugf("discovery: %v matched %v", targetContainer.ID, containerYml.FileName)
 			if path == "" {
 				path = containerYml.FilePath
 			}
 			b, err := ioutil.ReadFile(path + containerYml.FileName)
 			if err != nil {
-				load.Logrus.Error(fmt.Sprintf("discovery: unable to read flex config: " + path + containerYml.FileName))
+				load.Logrus.Error("discovery: unable to read flex config: " + path + containerYml.FileName)
 			} else {
 				ymlString := string(b)
 				config.SubEnvVariables(&ymlString)
@@ -516,15 +518,15 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 					portFallback(targetContainer, targetContainerInspect, &ymlString, &discoveryPort)
 				}
 
-				load.Logrus.Debug(fmt.Sprintf("discovery: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort))
+				load.Logrus.Debugf("discovery: %v %v - %v - %v:%v", targetContainer.ID, containerYml.FileName, ipMode, discoveryIPAddress, discoveryPort)
 
 				if strings.Contains(ymlString, "${auto:host}") || strings.Contains(ymlString, "${auto:ip}") || strings.Contains(ymlString, "${auto:port}") {
 					containerName := ""
 					if len(targetContainer.Names) > 0 {
 						containerName = targetContainer.Names[0]
 					}
-					load.Logrus.Debug(fmt.Sprintf("discovery: %v %v couldn't build dynamic cfg", targetContainer.ID, containerName))
-					load.Logrus.Debug(fmt.Sprintf("discovery: %v %v missing variable unable to create dynamic cfg ip:%v - port:%v", targetContainer.ID, containerName, discoveryIPAddress, discoveryPort))
+					load.Logrus.Debugf("discovery: %v %v couldn't build dynamic cfg", targetContainer.ID, containerName)
+					load.Logrus.Debugf("discovery: %v %v missing variable unable to create dynamic cfg ip:%v - port:%v", targetContainer.ID, containerName, discoveryIPAddress, discoveryPort)
 				} else {
 					yml, err := config.ReadYML(ymlString)
 					if err != nil {
@@ -547,7 +549,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 							// Get the pod name & namespace from labels above
 							podName := targetContainer.Labels["io.kubernetes.pod.name"]
 							podNamespace := targetContainer.Labels["io.kubernetes.pod.namespace"]
-							load.Logrus.Debug(fmt.Sprintf("discovery: fetching k8 labels for  %v in namespace  %v ", podName, podNamespace))
+							load.Logrus.Debugf("discovery: fetching k8 labels for  %v in namespace  %v ", podName, podNamespace)
 							kubeLabels := getK8Labels(podName, podNamespace)
 							for key, val := range kubeLabels {
 								yml.CustomAttributes[key] = val
@@ -573,7 +575,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 			}
 
 		} else {
-			load.Logrus.Debug(fmt.Sprintf("discovery: %v container containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName))
+			load.Logrus.Debugf("discovery: %v container containerFileName %v did not match configName %v", targetContainer.ID, containerYml.FileName, configName)
 		}
 	}
 }
@@ -646,7 +648,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int, containerID string) 
 	if *discoveryIPAddress == "" {
 		// targetContainerInspect.State.Pid
 		// cat /host/proc/<pid>/net/fib_trie | awk '/32 host/ { print f } {f=$2}' | grep -v 127.0.0.1 | sort -u
-		load.Logrus.Debug(fmt.Sprintf("discovery: %v attempting low level ip fetch", containerID))
+		load.Logrus.Debugf("discovery: %v attempting low level ip fetch", containerID)
 		target := "/host/proc"
 		if load.ContainerID == "" {
 			target = "/proc"
@@ -662,11 +664,11 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int, containerID string) 
 				}
 			}
 			if len(ipMatches) > 0 {
-				load.Logrus.Debug(fmt.Sprintf("discovery: %v container ip addresses found %v", containerID, ipMatches))
+				load.Logrus.Debugf("discovery: %v container ip addresses found %v", containerID, ipMatches)
 				*discoveryIPAddress = ipMatches[0]
 				return ipMatches
 			}
-			load.Logrus.Error(fmt.Sprintf("discovery: %v container low level ip fetch failed", containerID))
+			load.Logrus.Errorf("discovery: %v container low level ip fetch failed", containerID)
 		} else {
 			load.Logrus.WithFields(logrus.Fields{
 				"err": err,
@@ -708,14 +710,14 @@ func portFallback(container types.Container, containerInspect types.ContainerJSO
 func execHostnameFallback(discoveryIPAddress *string, containerID string, ymlString *string) {
 	// fall back if IP is not discovered
 	// attempt to directly fetch IP from container
-	load.Logrus.Debug(fmt.Sprintf("discovery: %v attempting hostname -i fallback", containerID))
+	load.Logrus.Debugf("discovery: %v attempting hostname -i fallback", containerID)
 	ip, err := ExecContainerCommand(containerID, []string{"hostname", "-i"})
 	ipv4 := strings.TrimSpace(ip)
 	re := regexp.MustCompile(`\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b`)
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"err": err,
-		}).Debug(fmt.Sprintf("discovery: %v container secondary fetch container ip failed", containerID))
+		}).Debugf("discovery: %v container secondary fetch container ip failed", containerID)
 	} else if ip != "" && re.Match([]byte(ipv4)) && !strings.Contains(ip, "exec failed") {
 		*discoveryIPAddress = ipv4
 		*ymlString = strings.Replace(*ymlString, "${auto:host}", ipv4, -1)
@@ -764,7 +766,7 @@ func fallbackFindFlexContainerID(containers *[]types.Container) {
 	if load.ContainerID == "" {
 		load.Logrus.Debug("discovery: unable to find flex container id")
 	} else {
-		load.Logrus.Debug(fmt.Sprintf("discovery: flex container id %v", load.ContainerID))
+		load.Logrus.Debugf("discovery: flex container id %v", load.ContainerID)
 	}
 }
 

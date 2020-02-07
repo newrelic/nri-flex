@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -26,7 +27,7 @@ import (
 
 // RunHTTP Executes HTTP Requests
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
-	load.Logrus.Debug(fmt.Sprintf("%v - running http requests", yml.Name))
+	load.Logrus.Debugf("%v - running http requests", yml.Name)
 	for *doLoop {
 		request := gorequest.New()
 
@@ -43,10 +44,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 		handlePagination(reqURL, &api.Pagination, nil, nil, 200)
 		*reqURL = yml.Global.BaseURL + *reqURL
 		switch {
-		case api.Method == "POST" && api.Payload != "":
+		case api.Method == http.MethodPost && api.Payload != "":
 			request = request.Post(*reqURL)
 			request = request.Send(api.Payload)
-		case api.Method == "PUT" && api.Payload != "":
+		case api.Method == http.MethodPut && api.Payload != "":
 			request = request.Put(*reqURL)
 			request = request.Send(api.Payload)
 		default:
@@ -54,7 +55,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 		}
 
 		request = setRequestOptions(request, *yml, api)
-		load.Logrus.Debug(fmt.Sprintf("sending %v request to %v", request.Method, *reqURL))
+		load.Logrus.Debugf("sending %v request to %v", request.Method, *reqURL)
 		resp, _, errors := request.End()
 		load.StatusCounterIncrement("HttpRequests")
 		if resp != nil {
@@ -64,7 +65,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				for _, link := range headerLinks {
 					if strings.Contains(link, "next") {
 						theLink := strings.Split(link, ";")
-						nextLink = strings.Replace((strings.Replace(theLink[0], "<", "", -1)), ">", "", -1)
+						nextLink = strings.Replace(strings.Replace(theLink[0], "<", "", -1), ">", "", -1)
 						nextLink = strings.TrimPrefix(nextLink, " ")
 					}
 				}
@@ -73,7 +74,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			contentType := resp.Header.Get("Content-Type")
 			responseError := ""
 
-			load.Logrus.Debug(fmt.Sprintf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode))
+			load.Logrus.Debugf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode)
 
 			switch {
 			case api.Prometheus.Enable:
@@ -82,7 +83,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				body, _ := ioutil.ReadAll(resp.Body)
 				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
 				if api.Debug {
-					load.Logrus.Debug(fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body)))
+					load.Logrus.Debugf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, string(body))
 				}
 				// if not using pagination handle json for any response, if using pagination check the status code before storing
 				if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
@@ -96,11 +97,11 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				if err != nil {
 					load.Logrus.WithFields(logrus.Fields{
 						"err": err,
-					}).Error(fmt.Sprintf("http: URL %v failed to read resp.Body", *reqURL))
+					}).Errorf("http: URL %v failed to read resp.Body", *reqURL)
 				} else {
 					strBody := string(body)
 					if api.Debug {
-						load.Logrus.Debug(fmt.Sprintf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, strBody))
+						load.Logrus.Debugf("HTTP Debug:\nURL: %v\nBody:\n%v\n", *reqURL, strBody)
 					}
 					output, _ := detectCommandOutput(strBody, "")
 					switch output {
@@ -117,15 +118,15 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						if err != nil {
 							load.Logrus.WithFields(logrus.Fields{
 								"err": err,
-							}).Error(fmt.Sprintf("http: URL %v failed to convert XML to Json resp.Body", *reqURL))
+							}).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 						} else {
 							if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
 								handleJSON(dataStore, jsonbody.Bytes(), &resp, doLoop, reqURL, nextLink)
 							}
 						}
 					default:
-						load.Logrus.Debug(fmt.Sprintf("%v - Not sure how to handle this payload? ContentType: %v", api.URL, contentType))
-						load.Logrus.Debug(fmt.Sprintf("%v - storing unknown http output into datastore", api.URL))
+						load.Logrus.Debugf("%v - unsupported payload format: ContentType: %v", api.URL, contentType)
+						load.Logrus.Debugf("%v - storing unknown http output into datastore", api.URL)
 
 						if yml.Datastore == nil {
 							yml.Datastore = map[string][]interface{}{}
@@ -197,9 +198,7 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 	if yml.Global.TLSConfig.Ca != "" {
 		ca, err := ioutil.ReadFile(yml.Global.TLSConfig.Ca)
 		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("http: failed to read ca")
+			load.Logrus.WithError(err).Error("http: failed to read ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tmpGlobalTLSConfig.RootCAs = rootCAs
@@ -218,9 +217,7 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		if api.TLSConfig.Ca != "" {
 			ca, err := ioutil.ReadFile(api.TLSConfig.Ca)
 			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Error("http: failed to read ca")
+				load.Logrus.WithError(err).Error("http: failed to read ca")
 			} else {
 				rootCAs.AppendCertsFromPEM(ca)
 				tmpAPITLSConfig.RootCAs = rootCAs
@@ -237,9 +234,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: failed to unmarshal json")
+		load.Logrus.WithError(err).Error("http: failed to unmarshal json")
 	} else {
 		switch f := f.(type) {
 		case []interface{}:
@@ -258,7 +253,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 					// load.StoreAppend(strSample)
 					*dataStore = append(*dataStore, strSample)
 				default:
-					load.Logrus.Debug(fmt.Sprintf("http: not sure how to handle this %v", sample))
+					load.Logrus.Debugf("http: unsupported sample type: %T %v", sample, sample)
 				}
 			}
 
@@ -269,7 +264,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 			*dataStore = append(*dataStore, theSample)
 
 			if theSample["error"] != nil && fmt.Sprintf("%v", theSample["error"]) != "false" {
-				load.Logrus.Debug(fmt.Sprintf("http: request failed %v", theSample["error"]))
+				load.Logrus.Debugf("http: request failed %v", theSample["error"])
 			}
 
 			if theSample["error"] == nil && nextLink != "" {
@@ -291,14 +286,14 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 		}
 		*url = strings.Replace(*url, "${page}", fmt.Sprintf("%d", Pagination.PageStart), -1)
 		*url = strings.Replace(*url, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
-		load.Logrus.Debug(fmt.Sprintf("URL: %v begin pagination handling", *url))
+		load.Logrus.Debugf("URL: %v begin pagination handling", *url)
 	} else if Pagination.OriginalURL != "" && nextLink != nil && (code >= 200 && code <= 299) {
 		if Pagination.MaxPages == 0 && Pagination.PageLimitKey == "" && Pagination.PayloadKey == "" {
 			link := ""
 			if url != nil {
 				link = *url
 			}
-			load.Logrus.Debug(fmt.Sprintf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link))
+			load.Logrus.Debugf("URL: %v not walking next link, max_pages and/or payload_key, and/or page_limit_key has not been set", link)
 		} else {
 			continueRequest := true
 			customPageMarker := false
@@ -319,9 +314,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								load.Logrus.WithFields(logrus.Fields{
-									"err": nerr,
-								}).Error("http: pagination failed to convert to int")
+								load.Logrus.WithError(nerr).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.PageLimit = no
 							}
@@ -332,9 +325,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								load.Logrus.WithFields(logrus.Fields{
-									"err": nerr,
-								}).Error("http: pagination failed to convert to int")
+								load.Logrus.WithError(nerr).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.MaxPages = no
 							}
@@ -345,9 +336,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						if len(matches) >= 2 {
 							no, nerr := strconv.Atoi(matches[1])
 							if nerr != nil {
-								load.Logrus.WithFields(logrus.Fields{
-									"err": nerr,
-								}).Error("http: pagination failed to convert to int")
+								load.Logrus.WithError(nerr).Error("http: pagination failed to convert to int")
 							} else {
 								Pagination.PageMarker = no
 								customPageMarker = true
@@ -374,7 +363,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 								*nextLink = ""
 								continueRequest = false
 								payloadEmpty = true
-								load.Logrus.Debug(fmt.Sprintf("URL: %v walk payload %v %v empty", *nextLink, Pagination.PayloadKey, matches[1]))
+								load.Logrus.Debugf("URL: %v walk payload %v %v empty", *nextLink, Pagination.PayloadKey, matches[1])
 							}
 						}
 					}
@@ -382,7 +371,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 			}
 
 			if (Pagination.PageMarker >= Pagination.MaxPages && Pagination.PayloadKey == "" && payloadKeyFound) || (Pagination.PayloadKey != "" && payloadKeyFound && payloadEmpty) {
-				load.Logrus.Debug(fmt.Sprintf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty))
+				load.Logrus.Debugf("URL: %v max pages reached %d or payload empty %v", *nextLink, Pagination.MaxPages, payloadEmpty)
 				*nextLink = ""
 				return false
 			}
@@ -398,11 +387,11 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 				if page != "" && Pagination.NextLinkKey == "" {
 					*nextLink = strings.Replace((*Pagination).OriginalURL, "${page}", page, -1)
 					*nextLink = strings.Replace(*nextLink, "${limit}", fmt.Sprintf("%d", Pagination.PageLimit), -1)
-					load.Logrus.Debug(fmt.Sprintf("URL: %v walking next link", *nextLink))
+					load.Logrus.Debugf("URL: %v walking next link", *nextLink)
 				}
 				if manualNextLink != "" {
 					*nextLink = manualNextLink
-					load.Logrus.Debug(fmt.Sprintf("URL: %v walking next link", *nextLink))
+					load.Logrus.Debugf("URL: %v walking next link", *nextLink)
 				}
 			}
 		}
@@ -414,9 +403,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 func paginationRegex(regexKey string, jsonString string, nextLink *string) []string {
 	re, err := regexp.Compile(regexKey)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error(fmt.Sprintf("http: URL %v regex compile failed %v", *nextLink, regexKey))
+		load.Logrus.WithError(err).Errorf("http: URL %v regex compile failed %v", *nextLink, regexKey)
 	} else {
 		return re.FindStringSubmatch(jsonString)
 	}

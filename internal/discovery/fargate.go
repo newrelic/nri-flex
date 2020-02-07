@@ -7,7 +7,6 @@ package discovery
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -46,7 +45,7 @@ func runFargateDiscovery(configs *[]load.Config) {
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
-				}).Error("discovery: fargate responde body unmarshal fail")
+				}).Error("discovery: fargate response body unmarshal fail")
 			} else {
 				determineDynamicFargateConfigs(configs, TaskMetadata)
 			}
@@ -78,15 +77,15 @@ func determineDynamicFargateConfigs(configs *[]load.Config, TaskMetadata load.Ta
 					// do not target the flex container
 					if container.DockerID != load.ContainerID {
 						if checkContainerMatch(container, currentConfig.ContainerDiscovery) {
-							load.Logrus.Debug(fmt.Sprintf("discovery: fargate lookup matched %v - file %v", container.DockerID, currentConfig.FileName))
+							load.Logrus.Debugf("discovery: fargate lookup matched %v - file %v", container.DockerID, currentConfig.FileName)
 							if len(container.Networks) > 0 {
 								if len(container.Networks[0].IPv4Addresses) > 0 {
 									addDynamicFargateConfig(configs, currentConfig, container)
 								} else {
-									load.Logrus.Debug(fmt.Sprintf("discovery: fargate container %v file %v - does not have any IPv4 Addresses configured", container.DockerID, currentConfig.FileName))
+									load.Logrus.Debugf("discovery: fargate container %v file %v - does not have any IPv4 Addresses configured", container.DockerID, currentConfig.FileName)
 								}
 							} else {
-								load.Logrus.Debug(fmt.Sprintf("discovery: fargate container %v file %v - does not have any networks configured", container.DockerID, currentConfig.FileName))
+								load.Logrus.Debugf("discovery: fargate container %v file %v - does not have any networks configured", container.DockerID, currentConfig.FileName)
 							}
 						}
 					}

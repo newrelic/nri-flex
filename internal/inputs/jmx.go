@@ -92,7 +92,7 @@ func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Co
 		*runCommand = *runCommand + " -uriPath " + config.Global.Jmx.URIPath
 	}
 
-	load.Logrus.Debug(fmt.Sprintf("commands: completed jmx command: %v", *runCommand))
+	load.Logrus.Debugf("commands: completed jmx command: %v", *runCommand)
 }
 
 // ParseJMX Processes JMX Data

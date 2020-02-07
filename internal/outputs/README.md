@@ -5,33 +5,32 @@
 
 ## Usage
 
+#### func  GetMetricBatches
+
+```go
+func GetMetricBatches() [][]*metric.Set
+```
+GetMetricBatches batch metrics by entity with a maximum batch size defined by
+'InsightBatchSize' config.
+
 #### func  InfraIntegration
 
 ```go
-func InfraIntegration()
+func InfraIntegration() error
 ```
 InfraIntegration Creates Infrastructure SDK Integration
 
-#### func  InfraRemoteEntity
+#### func  SendBatchToInsights
 
 ```go
-func InfraRemoteEntity()
+func SendBatchToInsights(metrics []*metric.Set) error
 ```
-InfraRemoteEntity Creates Infrastructure Remote Entity
-
-#### func  SendToInsights
-
-```go
-func SendToInsights()
-```
-SendToInsights - Send processed events to insights loop through integration
-entities as there could be multiple that have been set when posted they are
-batched by entity
+SendBatchToInsights - Send processed events to insights.
 
 #### func  SendToMetricAPI
 
 ```go
-func SendToMetricAPI()
+func SendToMetricAPI() error
 ```
 SendToMetricAPI - Send processed events to insights
 
