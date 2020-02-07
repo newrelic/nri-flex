@@ -1,8 +1,6 @@
 package config
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestDimensionalLookup(t *testing.T) {
 	lookupStore := map[string][]string{}

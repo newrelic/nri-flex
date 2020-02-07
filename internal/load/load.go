@@ -51,6 +51,7 @@ type ArgumentList struct {
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
 	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -107,7 +108,6 @@ const (
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
 	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
@@ -239,6 +239,7 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
+	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
 	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
@@ -470,4 +471,17 @@ type Namespace struct {
 // MakeTimestamp creates timestamp in milliseconds
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// SamplesToMerge keep merge sapmles
+type SamplesToMerge struct {
+	sync.RWMutex
+	Data map[string][]interface{}
+}
+
+// SampleAppend append sample with locking
+func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
+	s.Lock()
+	defer s.Unlock()
+	(s.Data)[key] = append((s.Data)[key], sample)
 }

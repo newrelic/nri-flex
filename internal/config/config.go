@@ -120,7 +120,9 @@ func ReadYML(yml string) (load.Config, error) {
 
 // Run Action each config file
 func Run(yml load.Config) {
-	samplesToMerge := map[string][]interface{}{}
+	// samplesToMerge := map[string][]interface{}{}
+	var samplesToMerge load.SamplesToMerge
+	samplesToMerge.Data = map[string][]interface{}{}
 	load.Logrus.WithFields(logrus.Fields{
 		"name": yml.Name,
 		"apis": len(yml.APIs),
@@ -134,9 +136,8 @@ func Run(yml load.Config) {
 		if err := runVariableProcessor(&yml); err != nil {
 			load.Logrus.WithError(err).Error("config: variable processor error")
 		}
-
-		dataSets := FetchData(i, &yml)
-		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml)
+		dataSets := FetchData(i, &yml, &samplesToMerge)
+		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml, i)
 	}
 
 	load.Logrus.WithFields(logrus.Fields{
@@ -145,8 +146,66 @@ func Run(yml load.Config) {
 	}).Debug("config: finished variable processing apis")
 
 	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
-	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
+	// hren MergeAndJoin processing - replacing processor.ProcessSamplesToMerge
 	processor.ProcessSamplesMergeJoin(&samplesToMerge, &yml)
+}
+
+// RunAsync API in Async mode after lookup
+func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: processing apis: ASYNC mode. Will skip StoreLookups VariableLookups for: ")
+
+	// load secrets
+	loadSecrets(&yml)
+	var wgapi sync.WaitGroup
+	wgapi.Add(len(yml.APIs))
+
+	for i := range yml.APIs {
+		go func(originalAPINo int, i int) {
+			defer wgapi.Done()
+			dataSets := FetchData(i, &yml, samplesToMerge)
+			processor.RunDataHandler(dataSets, samplesToMerge, i, &yml, originalAPINo)
+		}(originalAPINo, i)
+	}
+	wgapi.Wait()
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: finished processing apis: ASYNC Mode")
+
+	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
+	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
+	// ProcessSamplesMergeJoin will be processed in the run() function for the whole config
+	// processor.ProcessSamplesMergeJoin(&samplesToMerge, &yml)
+}
+
+// RunSync API in Sync mode after lookup
+func RunSync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: processing apis: Sync Mode")
+
+	// load secrets
+	loadSecrets(&yml)
+
+	for i := range yml.APIs {
+		dataSets := FetchData(i, &yml, samplesToMerge)
+		processor.RunDataHandler(dataSets, samplesToMerge, i, &yml, originalAPINo)
+	}
+
+	load.Logrus.WithFields(logrus.Fields{
+		"name": yml.Name,
+		"apis": len(yml.APIs),
+	}).Debug("config: finished processing apis: Sync Mode")
+
+	// processor.ProcessSamplesToMerge(&samplesToMerge, &yml)
+	// hren joinAndMerge processing - replacing processor.ProcessSamplesToMerge
+	// ProcessSamplesMergeJoin will be processed in the run() function for the whole config
+	// processor.ProcessSamplesMergeJoin(&samplesToMerge, &yml)
 }
 
 // RunFiles Processes yml files

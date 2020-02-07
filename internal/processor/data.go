@@ -11,7 +11,9 @@ import (
 )
 
 // RunDataHandler handles the data received for processing
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+// The originalAPINo is to track the original API sequential No. in the Flex config file. This is to diffentiate the new API Seq No. created by StoreLookup.
+// The originalAPINo is used for Merge and Join operation
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": cfg.Name,
 	}).Debug("processor-data: running data handler")
@@ -19,10 +21,10 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
 			ds := dataSet
-			processDataSet(&ds, samplesToMerge, i, cfg)
+			processDataSet(&ds, samplesToMerge, i, cfg, originalAPINo)
 		case []interface{}:
 			nextDataSets := dataSet
-			RunDataHandler(nextDataSets, samplesToMerge, i, cfg)
+			RunDataHandler(nextDataSets, samplesToMerge, i, cfg, originalAPINo)
 		default:
 			load.Logrus.WithFields(logrus.Fields{
 				"name": cfg.Name,
@@ -32,8 +34,8 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interfa
 }
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
-func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
-	ds := *dataSet
+func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
+	ds := (*dataSet)
 
 	if cfg.LookupStore == nil {
 		cfg.LookupStore = map[string]map[string]struct{}{}
@@ -64,8 +66,8 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 	// }
 
 	if cfg.APIs[i].Merge == "" {
-		CreateMetricSets(mergedData, cfg, i, false, nil)
+		CreateMetricSets(mergedData, cfg, i, false, nil, originalAPINo)
 	} else {
-		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge)
+		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge, originalAPINo)
 	}
 }
