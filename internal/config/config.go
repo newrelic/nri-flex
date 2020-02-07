@@ -148,7 +148,6 @@ func Run(yml load.Config) {
 func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name":     yml.Name,
-		"API Name": yml.APIs[originalAPINo].Name,
 		"apis":     len(yml.APIs),
 	}).Debug("config: processing apis: ASYNC mode. Will skip StoreLookups VariableLookups for: ")
 
