@@ -29,9 +29,11 @@ AutoSetStandard x
 #### func  CreateMetricSets
 
 ```go
-func CreateMetricSets(samples []interface{}, config *load.Config, i int)
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int)
 ```
-CreateMetricSets creates metric sets
+CreateMetricSets creates metric sets hren added samplesToMerge parameter, moved
+merge operation to CreateMetricSets so that the "Run...." functions still apply
+before merge
 
 #### func  FinalMerge
 
@@ -55,19 +57,22 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 ```
 FlattenData flatten an interface
 
-#### func  ProcessSamplesToMerge
+#### func  ProcessSamplesMergeJoin
 
 ```go
-func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config)
+func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Config)
 ```
-ProcessSamplesToMerge used to merge multiple samples together
+ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 
 #### func  RunDataHandler
 
 ```go
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config)
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int)
 ```
-RunDataHandler handles the data received for processing
+RunDataHandler handles the data received for processing The originalAPINo is to
+track the original API sequential No. in the Flex config file. This is to
+diffentiate the new API Seq No. created by StoreLookup. The originalAPINo is
+used for Merge and Join operation
 
 #### func  RunEventFilter
 
@@ -79,7 +84,7 @@ RunEventFilter filters events generated
 #### func  RunKeepKeys
 
 ```go
-func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{}, k *string)
+func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{})
 ```
 RunKeepKeys Removes all other keys/attributes and keep only those defined in
 keep_keys
@@ -101,7 +106,7 @@ RunKeyFilter filters keys generated
 #### func  RunKeyRemover
 
 ```go
-func RunKeyRemover(removeKeys []string, key *string, progress *bool, currentSample *map[string]interface{})
+func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string)
 ```
 RunKeyRemover Remove unwanted keys with regex
 
@@ -138,7 +143,7 @@ RunPluckNumbers pluck numbers out automatically with ValueParser eg.
 #### func  RunSampleFilter
 
 ```go
-func RunSampleFilter(sampleFilters []map[string]string, createSample *bool, key string, v interface{})
+func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
 ```
 RunSampleFilter Filters samples generated
 
@@ -165,6 +170,14 @@ func RunValConversion(v *interface{}, api load.API, key *string)
 ```
 RunValConversion performs percentage to decimal & nano second to millisecond
 
+#### func  RunValueMapper
+
+```go
+func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{})
+```
+RunValueMapper map the value using regex grouping for keys e.g. "*.?\s(Service
+Status)=>$1-Good" -> "Service Status-Good"
+
 #### func  RunValueParser
 
 ```go
@@ -190,7 +203,7 @@ SetEventType sets the metricSet's eventType
 #### func  StoreLookups
 
 ```go
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{})
+func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{})
 ```
 StoreLookups if key is found (using regex), store the values in the lookupStore
 as the defined lookupStoreKey for later use

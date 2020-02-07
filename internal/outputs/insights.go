@@ -9,37 +9,55 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-flex/internal/load"
 )
 
-// SendToInsights - Send processed events to insights
-// loop through integration entities as there could be multiple that have been set
-// when posted they are batched by entity
-func SendToInsights() {
+// GetMetricBatches batch metrics by entity with a maximum batch size defined by 'InsightBatchSize' config.
+func GetMetricBatches() [][]*metric.Set {
+	var result [][]*metric.Set
 	for _, entity := range load.Integration.Entities {
+		// split the payload into smaller batches so that the payload size does not exceed the Insight endpoint size limit
+		batchSize := load.Args.InsightBatchSize
+		sizeMetrics := len(entity.Metrics)
+		batches := sizeMetrics/batchSize + 1
+
 		modifyEventType(entity)
-		jsonData, err := json.Marshal(entity.Metrics)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("insights: failed to marshal json")
-		} else {
-			load.Logrus.Info(fmt.Sprintf("posting %d events to insights", len(entity.Metrics)))
-			postRequest(load.Args.InsightsURL, load.Args.InsightsAPIKey, jsonData)
-			if load.Args.InsightsOutput {
-				fmt.Println(string(jsonData))
+
+		for i := 0; i < batches; i++ {
+			start := i * batchSize
+			end := start + batchSize
+			if end > sizeMetrics {
+				end = sizeMetrics
 			}
-			// empty the infrastructure entity metrics by default
-			entity.Metrics = []*metric.Set{}
-			// if !load.Args.InsightsOutput {
-			// 	load.Entity.Metrics = []*metric.Set{}
-			// }
+			result = append(result, (entity.Metrics)[start:end])
 		}
+		// empty the infrastructure entity metrics by default
+		entity.Metrics = []*metric.Set{}
 	}
+	return result
+}
+
+// SendBatchToInsights - Send processed events to insights.
+func SendBatchToInsights(metrics []*metric.Set) error {
+	jsonData, err := json.Marshal(metrics)
+	if err != nil {
+		return fmt.Errorf("insights: failed to marshal json, %v", err)
+	}
+
+	load.Logrus.Debugf("posting %d events to insights", len(metrics))
+
+	if load.Args.InsightsOutput {
+		fmt.Println(string(jsonData))
+	}
+
+	err = postRequest(load.Args.InsightsURL, load.Args.InsightsAPIKey, jsonData)
+	if err != nil {
+		return fmt.Errorf("insights: sending events failed, %v", err)
+	}
+
+	return nil
 }
 
 // modifyEventType insights uses eventType key in camel case whereas infrastructure uses event_type

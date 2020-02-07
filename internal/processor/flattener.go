@@ -7,16 +7,20 @@ package processor
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
+const _originalAPINo = "_originalAPINo"
+
 // FlattenData flatten an interface
 func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string, api *load.API) map[string]interface{} {
 	switch unknown := unknown.(type) {
 	case []interface{}:
-		dataSamples := []interface{}{}
+		var dataSamples []interface{}
 		dataSamples = append(dataSamples, unknown...)
 		key = checkPluralSlice(key)
 		data[key+"FlexSamples"] = dataSamples
@@ -35,7 +39,7 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 				// Knowing the sampleKey itself isn't really needed as these get turned into samples
 				for _, sampleVal := range sampleKeys {
 					keys := strings.Split(sampleVal, ">")
-					flexSamples := []interface{}{}
+					var flexSamples []interface{}
 					// if one of the keys == the loopKey we know to create samples
 					if len(keys) > 0 && keys[0] == loopKey {
 						switch unknown[loopKey].(type) {
@@ -87,7 +91,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 		}
 	}
 
-	finalMergedSamples := []interface{}{}
+	var finalMergedSamples []interface{}
 	for sampleSet := range finalSampleSets {
 		switch ss := finalSampleSets[sampleSet].(type) {
 		case []interface{}:
@@ -101,7 +105,7 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 					}
 					finalMergedSamples = append(finalMergedSamples, newSample)
 				default:
-					load.Logrus.Debug("processor: flattener - not sure what to do with this?")
+					load.Logrus.Debugf("processor-flattener: unsupported data type %T", sample)
 					load.Logrus.Debug(sample)
 				}
 			}
@@ -124,25 +128,26 @@ func FinalMerge(data map[string]interface{}) []interface{} {
 }
 
 // ProcessSamplesToMerge used to merge multiple samples together
-func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config) {
-	for eventType, sampleSet := range *samplesToMerge {
-		newSample := map[string]interface{}{}
-		newSample["event_type"] = eventType
-		for _, sample := range sampleSet {
-			prefix := yml.APIs[sample.(map[string]interface{})["_sampleNo"].(int)].Prefix
-			for k, v := range sample.(map[string]interface{}) {
-				if k != "_sampleNo" {
-					newSample[prefix+k] = v
-				}
-			}
-		}
-		CreateMetricSets([]interface{}{newSample}, yml, 0)
-	}
-}
+// hren: this function is replaced by ProcessSamplesMergeJoin
+// func ProcessSamplesToMerge(samplesToMerge *map[string][]interface{}, yml *load.Config) {
+// 	for eventType, sampleSet := range *samplesToMerge {
+// 		newSample := map[string]interface{}{}
+// 		newSample["event_type"] = eventType
+// 		for _, sample := range sampleSet {
+// 			prefix := yml.APIs[sample.(map[string]interface{})[_sampleNo].(int)].Prefix
+// 			for k, v := range sample.(map[string]interface{}) {
+// 				if k != _sampleNo {
+// 					newSample[prefix+k] = v
+// 				}
+// 			}
+// 		}
+// 		CreateMetricSets([]interface{}{newSample}, yml, 0)
+// 	}
+// }
 
 // processFlexSamples Processes Flex detected samples
 func processFlexSamples(dataKey string, dataSamples []interface{}, sampleKeys map[string]string, api *load.API) (string, []interface{}) {
-	newSamples := []interface{}{}
+	var newSamples []interface{}
 	for _, sample := range dataSamples {
 		sampleFlatten := FlattenData(sample, map[string]interface{}{}, "", sampleKeys, api)
 		if sampleFlatten["valuesPrometheusSamples"] != nil {
@@ -182,15 +187,127 @@ func checkPluralSlice(key string) string {
 // splitObjects splits a map string interface / object with nested objects
 // this will drop and ignore and slices/arrays that could exist
 func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} {
-	dataSamples := []interface{}{}
+	var dataSamples []interface{}
 	for loopKey := range *unknown {
 		switch data := (*unknown)[loopKey].(type) {
 		case map[string]interface{}:
-			load.Logrus.Debug(fmt.Sprintf("processor: splitting object %v", loopKey))
+			load.Logrus.Debugf("processor-flattener: splitting object %v", loopKey)
 			data["split.id"] = loopKey
 			dataSamples = append(dataSamples, data)
 		}
 	}
 	(*api).SplitObjects = false // only allow this to be run once
 	return dataSamples
+}
+
+// ProcessSamplesMergeJoin used to merge/join multiple samples together hren
+func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Config) {
+	for eventType, sampleSet := range samplesToMerge.Data {
+		newSample := map[string]interface{}{}
+		newSample["event_type"] = eventType
+		primaryEvent := -1
+		mergeEvent := 0
+		primaryEventJoinKey := []string{""}
+		primaryEventJoinWith := map[int]string{}
+		primaryEventSamples := map[int]interface{}{}
+		secondaryEventSamples := map[string]interface{}{}
+		mergeOperation := false
+
+		for rownum, sample := range sampleSet {
+			originalAPINo := sample.(map[string]interface{})[_originalAPINo].(int)
+			joinKey := yml.APIs[sample.(map[string]interface{})[_originalAPINo].(int)].JoinKey
+			// merge or join operation
+			if joinKey != "" {
+				if primaryEvent == -1 {
+					primaryEvent = originalAPINo
+					primaryEventJoinKey = strings.Split(joinKey, ",")
+					sort.Strings(primaryEventJoinKey)
+				}
+				if primaryEvent == originalAPINo {
+					// key track of samples for primary event
+					primaryEventSamples[rownum] = sample
+				} else {
+					// keep track of what events and the joinkey to be joint
+					primaryEventJoinWith[originalAPINo] = joinKey
+					// keep joining events in a map using sampleNo+joinkey value as key for later lookup
+					for k, v := range sample.(map[string]interface{}) {
+						if k == joinKey {
+							value := ""
+							switch (v).(type) {
+							case float32, float64:
+								// For float numbers, use decimal point format instead of scientific notation (e.g. 2026112.000000 vs 2.026112e+06 )
+								// to allow the parser to process the original float number 2026112.000000 rather than 2.026112e+06
+								value = fmt.Sprintf("%f", v)
+							default:
+								value = fmt.Sprintf("%v", v)
+							}
+							secondaryEventSamples[strconv.Itoa(originalAPINo)+value] = sample
+						}
+					}
+				}
+			} else {
+				// doing merge processing if joinkey is empty
+				mergeOperation = true
+				mergeEvent = originalAPINo
+				prefix := yml.APIs[sample.(map[string]interface{})[_originalAPINo].(int)].Prefix
+				for k, v := range sample.(map[string]interface{}) {
+					if k != _originalAPINo {
+						newSample[prefix+k] = v
+					}
+				}
+			}
+
+		}
+
+		if mergeOperation {
+			CreateMetricSets([]interface{}{newSample}, yml, mergeEvent, false, nil, mergeEvent)
+		}
+
+		// if primary join event has samples
+		for _, sample := range primaryEventSamples {
+			newJoinSample := map[string]interface{}{}
+			newJoinSample["event_type"] = eventType
+			prefix := yml.APIs[sample.(map[string]interface{})[_originalAPINo].(int)].Prefix
+			for k, v := range sample.(map[string]interface{}) {
+				if k != _originalAPINo {
+					newJoinSample[prefix+k] = v
+					value := ""
+					switch (v).(type) {
+					case float32, float64:
+						// For float numbers, use decimal point format instead of scientific notation (e.g. 2026112.000000 vs 2.026112e+06 )
+						// to allow the parser to process the original float number 2026112.000000 rather than 2.026112e+06
+						value = fmt.Sprintf("%f", v)
+					default:
+						value = fmt.Sprintf("%v", v)
+					}
+					if contains(primaryEventJoinKey, k) {
+						// if the key is in the the primary join key list
+						// then will lookup the secondary events for the key, if found, then join the keys from secondary events
+						for kk := range primaryEventJoinWith {
+							// for kk, vv := range primaryEventJoinWith {
+							// we built the map with secondary event "_sampleNo" and join key earlier.
+							// the map for the secondary event sample assumes unique lookup key per event
+							if val, found := secondaryEventSamples[strconv.Itoa(kk)+value]; found {
+								// use secondary's prefix to overwrite primary's
+								prefix := yml.APIs[val.(map[string]interface{})[_originalAPINo].(int)].Prefix
+								for kkk, vvv := range val.(map[string]interface{}) {
+									if kkk != _originalAPINo {
+										newJoinSample[prefix+kkk] = vvv
+									}
+								}
+
+							}
+						}
+					}
+				}
+			}
+			CreateMetricSets([]interface{}{newJoinSample}, yml, primaryEvent, false, nil, primaryEvent)
+		}
+
+	}
+}
+
+func contains(s []string, searchterm string) bool {
+	i := sort.SearchStrings(s, searchterm)
+	return i < len(s) && s[i] == searchterm
 }

@@ -47,9 +47,9 @@ func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]inter
 func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string) {
 	for _, removeKey := range removeKeys {
 		for key := range *currentSample {
-			if formatter.KvFinder("regex", key, removeKey) {
+			// ignore case of key to remove
+			if formatter.KvFinder("regex", key, "(?i)"+removeKey) {
 				delete(*currentSample, key)
-				break
 			}
 		}
 	}
@@ -101,7 +101,7 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 				storeParentAttributes(*mainDataset, parentAttributes, startKey, level, inheritAttributes)
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
-					nestedSlices := []interface{}{}
+					var nestedSlices []interface{}
 					for _, nested := range mainDs {
 						switch sample := nested.(type) {
 						case map[string]interface{}:

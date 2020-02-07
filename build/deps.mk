@@ -10,16 +10,17 @@ GOTOOLS       = github.com/axw/gocov/gocov \
                 github.com/golangci/golangci-lint/cmd/golangci-lint
 
 # Determine package dep manager
-ifneq ("$(wildcard Gopkg.toml)","")
+ifneq (,"$(wildcard go.mod)")
+	VENDOR     = ${GO_CMD}
+	VENDOR_CMD = ${VENDOR} mod download
+else ifneq (,"$(wildcard Gopkg.toml)")
 	VENDOR     = dep
 	VENDOR_CMD = ${VENDOR} ensure
 	GOTOOLS    += github.com/golang/dep
-	GO         = ${GO_CMD}
 else
 	VENDOR     = govendor
 	VENDOR_CMD = ${VENDOR} sync
 	GOTOOLS    += github.com/kardianos/govendor
-	GO         = ${VENDOR}
 endif
 
 tools: check-version
@@ -34,6 +35,6 @@ deps: tools deps-only
 
 deps-only:
 	@echo "=== $(PROJECT_NAME) === [ deps             ]: Installing package dependencies required by the project..."
-	@echo "=== $(PROJECT_NAME) === [ deps             ]: Detected '$(VENDOR)'"
+	@echo "=== $(PROJECT_NAME) === [ deps             ]: Using '$(VENDOR_CMD)'"
 	@$(VENDOR_CMD)
 

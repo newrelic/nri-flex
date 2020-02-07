@@ -12,7 +12,7 @@ compile-only: deps-only
 	@for b in $(BINS); do \
 		echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)$(GOOS)/$$b"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		$(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
+		$(GO_CMD) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
 
 build-linux: compile-linux
@@ -23,7 +23,7 @@ compile-linux: deps-only
 		OUTPUT_FILE="$(BUILD_DIR)linux/$$b" ; \
 		echo "=== $(PROJECT_NAME) === [ compile-linux    ]:     $$OUTPUT_FILE"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		GOOS=linux $(GO) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
+		GOOS=linux $(GO_CMD) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
 build-darwin: compile-darwin
@@ -34,7 +34,7 @@ compile-darwin: deps-only
 		OUTPUT_FILE="$(BUILD_DIR)darwin/$$b" ; \
 		echo "=== $(PROJECT_NAME) === [ compile-darwin   ]:     $$OUTPUT_FILE"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		GOOS=darwin $(GO) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
+		GOOS=darwin $(GO_CMD) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
 build-windows: compile-windows
@@ -45,6 +45,6 @@ compile-windows: deps-only
 		OUTPUT_FILE="$(BUILD_DIR)windows/$$b.exe" ; \
 		echo "=== $(PROJECT_NAME) === [ compile-windows  ]:     $$OUTPUT_FILE"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		GOOS=windows $(GO) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
+		GOOS=windows $(GO_CMD) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 

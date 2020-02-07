@@ -15,7 +15,6 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 // RunValConversion performs percentage to decimal & nano second to millisecond
@@ -138,9 +137,7 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 				delete((*ds), flattenKey)
 				(*ds)[flattenKey] = flat
 			} else {
-				load.Logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Error("processor: unable to lazy_flatten")
+				load.Logrus.WithError(err).Error("processor-values: unable to lazy_flatten")
 			}
 		}
 	}
@@ -159,18 +156,46 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		}
 		expression, err := govaluate.NewEvaluableExpression(finalFormula)
 		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error(fmt.Sprintf("processor: %v math exp failed %v", newMetric, finalFormula))
+			load.Logrus.WithError(err).Errorf("processor-values: %v math exp failed %v", newMetric, finalFormula)
 		} else {
 			result, err := expression.Evaluate(nil)
 			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Error(fmt.Sprintf("processor: %v math evalute failed %v", newMetric, finalFormula))
+				load.Logrus.WithError(err).Errorf("processor-values: %v math evaluate failed %v", newMetric, finalFormula)
 			} else {
 				(*currentSample)[newMetric] = result
 			}
 		}
 	}
+}
+
+// RunValueMapper map the value using regex grouping for keys e.g.  "*.?\s(Service Status)=>$1-Good" -> "Service Status-Good"
+func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{}) {
+
+	if mapentries, found := (mapKeys)[key]; found {
+
+		replacedValue := false
+		for _, mapentry := range mapentries {
+			valueSplit := strings.Split(mapentry, "=>")
+			if len(valueSplit) == 2 {
+				regexPattern := valueSplit[0]
+				targetValue := valueSplit[1]
+				r := regexp.MustCompile(regexPattern)
+				res := r.FindStringSubmatch((*v).(string))
+				for i, value := range res {
+					if i != 0 {
+						targetValue = strings.ReplaceAll(targetValue, "$"+strconv.Itoa(i), value)
+						replacedValue = true
+					}
+				}
+				if replacedValue {
+					*v = targetValue
+					break
+				}
+
+			}
+
+		}
+
+	}
+
 }

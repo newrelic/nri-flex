@@ -27,6 +27,13 @@ func ParseReader(in io.Reader, ch chan<- *dto.MetricFamily) error
 ParseReader consumes an io.Reader and pushes it to the MetricFamily channel. It
 returns when all MetricFamilies are parsed and put on the channel.
 
+#### func  ProcessFile
+
+```go
+func ProcessFile(dataStore *[]interface{}, cfg *load.Config, apiNo int) error
+```
+ProcessFile read and process the file into data collection.
+
 #### func  ProcessQueries
 
 ```go
@@ -48,19 +55,19 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int)
 ```
 RunCommands executes the given commands to create one merged sampled
 
-#### func  RunFile
-
-```go
-func RunFile(dataStore *[]interface{}, cfg *load.Config, apiNo int)
-```
-RunFile runs file read data collection
-
 #### func  RunHTTP
 
 ```go
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string)
 ```
 RunHTTP Executes HTTP Requests
+
+#### func  RunScpWithTimeout
+
+```go
+func RunScpWithTimeout(dataStore *[]interface{}, cfg *load.Config, api load.API) error
+```
+RunScpWithTimeout performs scp with timeout to gather data from a remote file.
 
 #### func  SetJMXCommand
 

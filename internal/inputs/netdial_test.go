@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
@@ -31,7 +34,13 @@ func TestNetDial(t *testing.T) {
 	}
 
 	var jsonOut interface{}
-	expectedOutput, _ := ioutil.ReadFile("../../test/payloadsExpected/portTestSingle.json")
+	expectedOutput := []byte{}
+	if strings.Contains(runtime.Version(), "go1.13") {
+		expectedOutput, _ = ioutil.ReadFile("../../test/payloadsExpected/portTestSingle-go113.json")
+	} else {
+		expectedOutput, _ = ioutil.ReadFile("../../test/payloadsExpected/portTestSingle.json")
+	}
+
 	json.Unmarshal(expectedOutput, &jsonOut)
 	expectedDatastore := jsonOut.([]interface{})
 
@@ -52,8 +61,24 @@ func TestNetDial(t *testing.T) {
 				switch recSample := rSample.(type) {
 				case map[string]interface{}:
 					for key := range sample {
-						if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
-							t.Errorf("dbSample %v want %v, got %v", key, sample[key], recSample[key])
+						if recSample[key] != nil {
+							if key == "err" {
+								allowedErrors := []string{"dial tcp: lookup fake12311290.com(.*?): no such host", "context deadline exceeded", "dial tcp: i/o timeout"}
+								foundError := false
+
+								for _, allowedError := range allowedErrors {
+									p := regexp.MustCompile(allowedError)
+									if p.MatchString(fmt.Sprintf("%v", recSample[key])) {
+										foundError = true
+										break
+									}
+								}
+								if !foundError {
+									t.Errorf("expected one of these errors %v", allowedErrors)
+								}
+							} else if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
+								t.Errorf("%v want %v, got %v", key, sample[key], recSample[key])
+							}
 						}
 					}
 				}

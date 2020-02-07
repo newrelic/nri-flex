@@ -6,7 +6,6 @@
 package processor
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,8 +13,6 @@ import (
 	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/data/event"
-	"github.com/sirupsen/logrus"
-
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 
@@ -26,7 +23,8 @@ import (
 const regex = "regex"
 
 // CreateMetricSets creates metric sets
-func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
+// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
 	for _, sample := range samples {
@@ -36,14 +34,14 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 		// init lookup store
 		if (&config.LookupStore) == nil {
-			config.LookupStore = map[string][]string{}
+			config.LookupStore = map[string]map[string]struct{}{}
 		}
 
 		// event limiter
 		if (load.StatusCounterRead("EventCount") > load.Args.EventLimit) && load.Args.EventLimit != 0 {
 			load.StatusCounterIncrement("EventDropCount")
 			if load.StatusCounterRead("EventDropCount") == 1 { // don't output the message more then once
-				load.Logrus.Error(fmt.Sprintf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit))
+				load.Logrus.Errorf("flex: event limit %d has been reached, please increase if required", load.Args.EventLimit)
 			}
 			break
 		}
@@ -51,7 +49,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 		// modify existing sample before final processing
 		SkipProcessing := api.SkipProcessing
 
-		modifiedKeys := []string{}
+		var modifiedKeys []string
 		for k, v := range currentSample { // k == original key
 			key := k
 			RunKeyConversion(&key, api, v, &SkipProcessing)
@@ -61,6 +59,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 			RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
 			RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
 
+			RunValueMapper(api.ValueMapper, &currentSample, key, &v) // subParse key pairs (see redis example)
 			// do not rename a key again, this is to avoid continuous replacement loops
 			// eg. if you replace id with project.id
 			// this could then again attempt to replace id within project.id to project.project.id
@@ -75,17 +74,35 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 				delete(currentSample, k)
 			}
 
-			StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
-			VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+			// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
+			// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
+			if !api.RunAsync {
+				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
+				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
+			}
+			// else {
+			// 	load.Logrus.WithFields(logrus.Fields{
+			// 		"API name":  api.Name,
+			// 		"run_async": api.RunAsync,
+			// 		"key":       key,
+			// 	}).Debug("create: skipping StoreLookups VariableLookups due to run_async is true: ")
+
+			// }
 
 			// if keepkeys used will do inverse
 			RunKeepKeys(api.KeepKeys, &key, &currentSample)
 			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
 
-		// check if this contains any key pair values to filter out
 		createSample := true
-		RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+		// check if we should ignore this output completely
+		// useful when requests are made to generate a lookup, but the data is not needed
+		if api.IgnoreOutput {
+			createSample = false
+		} else {
+			// check if this contains any key pair values to filter out
+			RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+		}
 
 		if createSample {
 			// remove keys from sample
@@ -109,12 +126,24 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 
 			addAttribute(currentSample, api.AddAttribute)
 
-			workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
-			if config.MetricAPI {
-				AutoSetMetricAPI(&currentSample, &api)
+			// hren: if it is not mergeMetric, it will proceed to puslish metric
+			if !mergeMetric {
+				workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
+				if config.MetricAPI {
+					AutoSetMetricAPI(&currentSample, &api)
+				} else {
+					AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
+				}
 			} else {
-				AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
+				// hren: it is mergeMetric, add the metric to mergeData, which will be published later
+				currentSample["_originalAPINo"] = originalAPINo
+				// hren overwrite event_type if it is merge operation
+				currentSample["event_type"] = config.APIs[i].Merge
+				// (*samplesToMerge)[config.APIs[i].Merge] = append((*samplesToMerge)[config.APIs[i].Merge], currentSample)
+
+				samplesToMerge.SampleAppend(config.APIs[i].Merge, currentSample)
 			}
+
 		}
 
 	}
@@ -124,9 +153,9 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int) {
 func setInventory(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
 		if inventory[k] == "value" {
-			set(entity.SetInventoryItem(k, "value", v))
+			checkError(entity.SetInventoryItem(k, "value", v))
 		} else {
-			set(entity.SetInventoryItem(inventory[k], k, v))
+			checkError(entity.SetInventoryItem(inventory[k], k, v))
 		}
 	}
 }
@@ -134,14 +163,14 @@ func setInventory(entity *integration.Entity, inventory map[string]string, k str
 // setInventory sets infrastructure inventory metrics
 func setEvents(entity *integration.Entity, inventory map[string]string, k string, v interface{}) {
 	if inventory[k] != "" {
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		if inventory[k] != "default" {
-			set(entity.AddEvent(&event.Event{
+			checkError(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: inventory[k],
 			}))
 		} else {
-			set(entity.AddEvent(&event.Event{
+			checkError(entity.AddEvent(&event.Event{
 				Summary:  value,
 				Category: k,
 			}))
@@ -176,10 +205,10 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 	// if event_type is set use this, else attempt to autoset
 	if (*currentSample)["event_type"] != nil && (*currentSample)["event_type"].(string) == "flexError" {
 		*eventType = (*currentSample)["event_type"].(string)
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	} else if apiEventType != "" && apiMerge == "" {
 		*eventType = apiEventType
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	} else {
 		// pull out the event name, and remove if "Samples" is plural
 		// if event_type not set, auto create via api name
@@ -191,7 +220,7 @@ func SetEventType(currentSample *map[string]interface{}, eventType *string, apiE
 		} else {
 			*eventType = apiName + "Sample"
 		}
-		delete((*currentSample), "event_type")
+		delete(*currentSample, "event_type")
 	}
 	*eventType = cleanEvent(*eventType)
 }
@@ -222,7 +251,7 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 				}
 				if regVal != "" {
 					validateVal := regexp.MustCompile(regVal)
-					if validateVal.MatchString(fmt.Sprintf("%v", v)) {
+					if validateVal.MatchString(cleanValue(&v)) {
 						regValFound = true
 					}
 				}
@@ -237,7 +266,7 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 // RunEventFilter filters events generated
 func RunEventFilter(filters []load.Filter, createEvent *bool, k string, v interface{}) {
 	for _, filter := range filters {
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		filterMode := filter.Mode
 		if filterMode == "" {
 			filterMode = regex
@@ -289,7 +318,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 	}
 
 	// store numeric values, as metrics within Metrics
-	Metrics := []map[string]interface{}{}
+	var Metrics []map[string]interface{}
 	SummaryMetrics := map[string]map[string]float64{}
 
 	//add sample metrics
@@ -298,7 +327,7 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 		if api.Prefix != "" && api.Merge == "" {
 			k = api.Prefix + k
 		}
-		value := fmt.Sprintf("%v", v)
+		value := cleanValue(&v)
 		parsed, err := strconv.ParseFloat(value, 64)
 		// any non numeric values, are stored as common attributes
 		if err != nil || strings.EqualFold(value, "infinity") {
@@ -352,7 +381,8 @@ func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
 
 	// add summary metrics into final metrics for MetricsStore
 	for summaryName, metrics := range SummaryMetrics {
-		value := fmt.Sprintf("%v", (*api).MetricParser.Summaries[summaryName]["interval"])
+		v := (*api).MetricParser.Summaries[summaryName]["interval"]
+		value := cleanValue(&v)
 		intervalParsed, err := strconv.ParseFloat(value, 64)
 		if err == nil && len(metrics) == 4 { // should be 4 for min/max/value/count
 			currentMetric := map[string]interface{}{
@@ -399,10 +429,12 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 			finalValue := ""
 			for i, k := range api.MetricParser.Namespace.ExistingAttr {
 				if (*currentSample)[k] != nil {
+					v := (*currentSample)[k]
+					value := cleanValue(&v)
 					if i == 0 {
-						finalValue = fmt.Sprintf("%v", (*currentSample)[k])
+						finalValue = value
 					} else {
-						finalValue = finalValue + "-" + fmt.Sprintf("%v", (*currentSample)[k])
+						finalValue = finalValue + "-" + value
 					}
 				}
 			}
@@ -414,7 +446,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 		}
 
 		if useDefaultNamespace {
-			load.Logrus.Debug(fmt.Sprintf("flex: defaulting a namespace for:%v", api.Name))
+			load.Logrus.Debugf("flex: defaulting a namespace for:%v", api.Name)
 			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
 		}
 	} else {
@@ -422,8 +454,8 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 	}
 
 	// set default attribute(s)
-	set(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
-	set(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
+	checkError(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
+	checkError(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
 
 	//add sample metrics
 	for k, v := range *currentSample {
@@ -459,31 +491,32 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 
 // AutoSetMetricInfra parse to number
 func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics map[string]string, autoSet bool, mode string) {
-	value := fmt.Sprintf("%v", v)
+	value := cleanValue(&v)
 	parsed, err := strconv.ParseFloat(value, 64)
-	if err != nil || strings.EqualFold(value, "infinity") {
-		set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
+
+	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "nan") {
+		checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false
 		for metricKey, metricVal := range metrics {
 			if (k == metricKey) || (autoSet && formatter.KvFinder(regex, k, metricKey)) || (mode != "" && formatter.KvFinder(mode, k, metricKey)) {
 				if metricVal == "RATE" {
 					foundKey = true
-					set(metricSet.SetMetric(k, parsed, metric.RATE))
+					checkError(metricSet.SetMetric(k, parsed, metric.RATE))
 					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
-					set(metricSet.SetMetric(k, parsed, metric.DELTA))
+					checkError(metricSet.SetMetric(k, parsed, metric.DELTA))
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
-					set(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
+					checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 					break
 				}
 			}
 		}
 		if !foundKey {
-			set(metricSet.SetMetric(k, parsed, metric.GAUGE))
+			checkError(metricSet.SetMetric(k, parsed, metric.GAUGE))
 		}
 	}
 }
@@ -499,7 +532,8 @@ func addAttribute(currentSample map[string]interface{}, addAttribute map[string]
 			replaceKey := strings.TrimSuffix(strings.TrimPrefix(variableReplace, "${"), "}")
 
 			if currentSample[replaceKey] != nil {
-				replacementValue := fmt.Sprintf("%v", currentSample[replaceKey])
+				value := currentSample[replaceKey]
+				replacementValue := cleanValue(&value)
 				newAttributeValue = strings.Replace(newAttributeValue, variableReplace, replacementValue, -1)
 
 				// check if the replacement occurred
@@ -525,9 +559,9 @@ func sliceContains(s []string, e string) bool {
 	return false
 }
 
-func set(err error) {
+func checkError(err error) {
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Error("flex: failed to set")
+		load.Logrus.WithError(err).Error("flex: failed to set")
 	}
 }
 

@@ -7,6 +7,8 @@ package inputs
 
 import (
 	"fmt"
+	Integration "github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
 
@@ -115,11 +117,14 @@ func TestSetJMXCommand(t *testing.T) {
 		},
 	}
 
+	_, err := Integration.New("test_parse_args", load.IntegrationVersion, Integration.Args(&load.Args))
+	assert.NoError(t, err)
+
 	for _, config := range configs {
 		runCommand := config.APIs[0].Commands[0].Run
 		dataStore := []interface{}{}
 		SetJMXCommand(&dataStore, &runCommand, config.APIs[0].Commands[0], config.APIs[0], &config)
-		expectedString := `echo 'Catalina:type=ThreadPool,name=*' | java -jar ./nrjmx/nrjmx.jar` +
+		expectedString := `echo 'Catalina:type=ThreadPool,name=*' | java -jar /usr/lib/nrjmx/nrjmx.jar` +
 			` -hostname 127.0.0.1 -port 9001 -username batman -password robin ` +
 			`-keyStore abc -keyStorePassword def -trustStore abc -trustStorePassword def`
 		if runCommand != expectedString {

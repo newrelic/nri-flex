@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -23,6 +24,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/utils"
 )
 
 // loadSecrets if secrets configured fetch, store and substitute secrets
@@ -33,13 +35,13 @@ func loadSecrets(config *load.Config) {
 		if secret.Kind == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Error("config: secret is missing kind")
+			}).Error("config: secret needs 'kind' parameter to be set")
 			break
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Error(fmt.Sprintf("config: secret needs file, data or http parameter needs to be set"))
+			}).Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
 			break
 		}
 
@@ -58,7 +60,7 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: secret missing region")
+				}).Error("config: secret needs 'region' parameter to be set")
 				break
 			}
 			secretResult = awskmsDecrypt(name, tempSecret)
@@ -67,10 +69,20 @@ func loadSecrets(config *load.Config) {
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: vault secret requires http parameter to be set")
+				}).Error("config: vault secret requires 'http' parameter to be set")
 				break
 			}
 			vaultFetch(name, tempSecret, results)
+			// decrypt secret locally using simpleEncrypDecryp module
+		case "local":
+			if secret.Key == "" {
+				load.Logrus.WithFields(logrus.Fields{
+					"secret": name,
+					"kind":   secret.Kind,
+				}).Error("config: local secret requires 'key' parameter to be set")
+				break
+			}
+			secretResult = localDecrypt(name, tempSecret)
 		}
 
 		if secretResult != "" || len(results) > 0 {
@@ -170,7 +182,7 @@ func vaultFetch(name string, secret load.Secret, results map[string]interface{})
 // awskmsDecrypt perform aws kms decrypt and return plaintext
 func awskmsDecrypt(name string, secret load.Secret) string {
 	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: attempting to aws kms decrypt secret")
-	secretData := []byte{}
+	var secretData []byte
 
 	if secret.File != "" {
 		var fileData []byte
@@ -309,9 +321,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 		rootCAs := x509.NewCertPool()
 		ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
 		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("config: secret failed to read ca")
+			load.Logrus.WithError(err).Error("config: secret failed to read tls ca")
 		} else {
 			rootCAs.AppendCertsFromPEM(ca)
 			tlsConf.RootCAs = rootCAs
@@ -348,4 +358,52 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("http fetch failed %v %v", resp.StatusCode, string(bytes))
+}
+
+// localDecrypt perform local decrypt and return plaintext if decrpyted successfully
+func localDecrypt(name string, secret load.Secret) string {
+	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: attempting to local decrypt secret")
+	var secretData []byte
+
+	if secret.File != "" {
+		var fileData []byte
+		fileData, err := ioutil.ReadFile(secret.File)
+		if err == nil {
+			secretData, err = hex.DecodeString(string(fileData))
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"name": name,
+				}).WithError(err).Error("config: local secret hex decode failed")
+			}
+		} else {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+				"file": secret.File,
+			}).WithError(err).Error("config: local read file failed")
+		}
+	} else if secret.Data != "" {
+		var err error
+		secretData, err = hex.DecodeString(secret.Data)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+			}).WithError(err).Error("config: local secret hex decode failed")
+		}
+	}
+
+	if len(secretData) > 0 {
+		if secret.Key != "" {
+			result, err := utils.Decrypt(secretData, secret.Key)
+			if err == nil {
+				return string(result)
+			}
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+				"key":  secret.Key,
+			}).Error("config: local unable to decrypt using key provided, return encrypted data as is")
+
+		}
+
+	}
+	return string(secretData)
 }

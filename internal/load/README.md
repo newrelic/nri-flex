@@ -17,7 +17,6 @@ const (
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
 	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
@@ -30,7 +29,9 @@ const (
 	Img                = "img"
 	Image              = "image"
 	TypeContainer      = "container"
+	TypeCname          = "cname"
 	TypeJSON           = "json"
+	TypeXML            = "xml"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )
@@ -128,6 +129,13 @@ var StartTime int64
 ```
 StartTime time Flex starts in Nanoseconds
 
+#### func  MakeTimestamp
+
+```go
+func MakeTimestamp() int64
+```
+MakeTimestamp creates timestamp in milliseconds
+
 #### func  MetricsStoreAppend
 
 ```go
@@ -184,6 +192,8 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
+	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
@@ -219,7 +229,7 @@ type API struct {
 	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
-
+	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -237,6 +247,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
+	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
 	SplitBy   string   `yaml:"split_by"`   // character to split by
@@ -252,6 +264,7 @@ type API struct {
 	RemoveKeys   []string            `yaml:"remove_keys"`
 	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
 	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
+	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
 
 	// Debug Options
 	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
@@ -268,31 +281,41 @@ API YAML Struct
 ```go
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	ForceLogEvent         bool   `default:"false" help:"Force create an event for everything - useful for testing"`
-	OverrideIPMode        string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
-	Local                 bool   `default:"true" help:"Collect local entity info"`
-	ConfigFile            string `default:"" help:"Set a specific config file - not usable for container discovery"`
-	ConfigDir             string `default:"flexConfigs/" help:"Set directory of config files"`
-	ContainerDiscoveryDir string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
-	ContainerDiscovery    bool   `default:"false" help:"Enable container auto discovery"`
-	Fargate               bool   `default:"false" help:"Enable Fargate discovery"`
-	DockerAPIVersion      string `default:"" help:"Force Docker client API version"`
-	EventLimit            int    `default:"500" help:"Event limiter - max amount of events per execution"`
-	Entity                string `default:"" help:"Manually set a remote entity name"`
-	InsightsURL           string `default:"" help:"Set Insights URL"`
-	InsightsAPIKey        string `default:"" help:"Set Insights API key"`
-	InsightsOutput        bool   `default:"false" help:"Output the events generated to standard out"`
-	MetricAPIUrl          string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
-	MetricAPIKey          string `default:"" help:"Set Metric API key"`
-	GitFlexDir            string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
-	GitService            string `default:"github" help:"Set git service"`
-	GitToken              string `default:"" help:"Set git token"`
-	GitUser               string `default:"" help:"Set git user"`
-	GitRepo               string `default:"" help:"Set git repository to sync"`
-	GitURL                string `default:"" help:"Set alternate git url"`
-	GitBranch             string `default:"master" help:"Checkout to specified git branch"`
-	GitCommit             string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
-	ProcessConfigsSync    bool   `default:"false" help:"Process configs synchronously rather then async"`
+	ForceLogEvent           bool   `default:"false" help:"Force create an event for everything - useful for testing"`
+	OverrideIPMode          string `default:"" help:"Force override ipMode used for container discovery set as private or public - useful for testing"`
+	Local                   bool   `default:"true" help:"Collect local entity info"`
+	ConfigPath              string `default:"" help:"Set a specific config file."`
+	ConfigFile              string `default:"" help:"(deprecated) Set a specific config file. Alias for config_path"`
+	ConfigDir               string `default:"flexConfigs/" help:"Set directory of config files"`
+	ContainerDiscoveryDir   string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
+	ContainerDiscovery      bool   `default:"false" help:"Enable container auto discovery"`
+	ContainerDiscoveryMulti bool   `default:"false" help:"Allow a container to be matched multiple times"`
+	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
+	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
+	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
+	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	Entity                  string `default:"" help:"Manually set a remote entity name"`
+	InsightsURL             string `default:"" help:"Set Insights URL"`
+	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
+	InsightsOutput          bool   `default:"false" help:"Output the events generated to standard out"`
+	InsightBatchSize        int    `default:"5000" help:"Batch Size - number of metrics per post call to Insight endpoint"`
+	MetricAPIUrl            string `default:"https://metric-api.newrelic.com/metric/v1" help:"Set Metric API URL"`
+	MetricAPIKey            string `default:"" help:"Set Metric API key"`
+	GitFlexDir              string `default:"flexGitConfigs/" help:"Set directory to store configs from git repository"`
+	GitService              string `default:"github" help:"Set git service"`
+	GitToken                string `default:"" help:"Set git token"`
+	GitUser                 string `default:"" help:"Set git user"`
+	GitRepo                 string `default:"" help:"Set git repository to sync"`
+	GitURL                  string `default:"" help:"Set alternate git url"`
+	GitBranch               string `default:"master" help:"Checkout to specified git branch"`
+	GitCommit               string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
+	ProcessConfigsSync      bool   `default:"false" help:"Process configs synchronously rather then async"`
+	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
+	EncryptPass          string `default:"" help:"Pass to be encypted"`
+	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
+	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
+	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 }
 ```
 
@@ -440,13 +463,13 @@ type Config struct {
 	Name               string
 	Global             Global
 	APIs               []API
-	Datastore          map[string][]interface{} `yaml:"datastore"`
-	LookupStore        map[string][]string      `yaml:"lookup_store"`
-	LookupFile         string                   `yaml:"lookup_file"`
-	VariableStore      map[string]string        `yaml:"variable_store"`
-	Secrets            map[string]Secret        `yaml:"secrets"`
-	CustomAttributes   map[string]string        `yaml:"custom_attributes"` // set additional custom attributes
-	MetricAPI          bool                     `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+	Datastore          map[string][]interface{}       `yaml:"datastore"`
+	LookupStore        map[string]map[string]struct{} `yaml:"lookup_store"` // ensures uniqueness vs a slice
+	LookupFile         string                         `yaml:"lookup_file"`
+	VariableStore      map[string]string              `yaml:"variable_store"`
+	Secrets            map[string]Secret              `yaml:"secrets"`
+	CustomAttributes   map[string]string              `yaml:"custom_attributes"` // set additional custom attributes
+	MetricAPI          bool                           `yaml:"metric_api"`        // enable use of the dimensional data models metric api
 }
 ```
 
@@ -551,6 +574,8 @@ type Global struct {
 	Headers    map[string]string `yaml:"headers"`
 	Jmx        JMX               `yaml:"jmx"`
 	TLSConfig  TLSConfig         `yaml:"tls_config"`
+	Passphrase string            `yaml:"pass_phrase"`
+	SSHPEMFile string            `yaml:"ssh_pem_file"`
 }
 ```
 
@@ -796,6 +821,22 @@ type RegMatch struct {
 
 RegMatch support for regex matches
 
+#### type SCP
+
+```go
+type SCP struct {
+	User       string `yaml:"user"`
+	Pass       string `yaml:"pass"`
+	Host       string `yaml:"host"`
+	Port       string `yaml:"port"`
+	RemoteFile string `yaml:"remote_file"`
+	Passphrase string `yaml:"pass_phrase"`
+	SSHPEMFile string `yaml:"ssh_pem_file"`
+}
+```
+
+SCP struct
+
 #### type SampleMerge
 
 ```go
@@ -806,6 +847,24 @@ type SampleMerge struct {
 ```
 
 SampleMerge merge multiple samples into one (will remove previous samples)
+
+#### type SamplesToMerge
+
+```go
+type SamplesToMerge struct {
+	sync.RWMutex
+	Data map[string][]interface{}
+}
+```
+
+SamplesToMerge keep merge sapmles
+
+#### func (*SamplesToMerge) SampleAppend
+
+```go
+func (s *SamplesToMerge) SampleAppend(key string, sample interface{})
+```
+SampleAppend append sample with locking
 
 #### type Secret
 

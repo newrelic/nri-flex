@@ -14,22 +14,22 @@ test-only: test-unit test-integration
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
+	@$(GO_CMD) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
 test-integration:
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO) test -v -tags integration -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/integration.tmp $(GO_PKGS)
+	@sh ./integration-test/ci-test.sh
 
 cover-report:
 	@echo "=== $(PROJECT_NAME) === [ cover-report     ]: generating coverage results..."
 	@mkdir -p $(COVERAGE_DIR)
 	@echo 'mode: $(COVERMODE)' > $(COVERAGE_DIR)/coverage.out
 	@cat $(COVERAGE_DIR)/*.tmp | grep -v 'mode: $(COVERMODE)' >> $(COVERAGE_DIR)/coverage.out || true
-	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
+	@$(GO_CMD) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
 	@echo "=== $(PROJECT_NAME) === [ cover-report     ]:     $(COVERAGE_DIR)coverage.html"
 
 cover-view: cover-report
-	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out
+	@$(GO_CMD) tool cover -html=$(COVERAGE_DIR)/coverage.out
 
 

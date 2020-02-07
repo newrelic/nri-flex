@@ -8,7 +8,6 @@ package inputs
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -70,7 +69,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			}
 
 			// Create the command with our context
-			cmd := exec.CommandContext(ctx, commandShell, secondParameter, fmt.Sprintf("%v", runCommand))
+			cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
 			output, err := cmd.CombinedOutput()
 
 			if err != nil {
@@ -150,6 +149,9 @@ func splitOutput(dataStore *[]interface{}, output string, command load.Command, 
 		for i, line := range lines {
 			if formatter.KvFinder("regex", line, command.SplitOutput) {
 				if startSplit == -1 {
+					startSplit = 0
+					endSplit = i
+					outputBlocks = append(outputBlocks, lines[startSplit:endSplit])
 					startSplit = i
 				} else {
 					endSplit = i
@@ -171,27 +173,38 @@ func splitOutput(dataStore *[]interface{}, output string, command load.Command, 
 func processBlocks(dataStore *[]interface{}, blocks [][]string, command load.Command, startTime int64) {
 	for _, block := range blocks {
 		sample := map[string]interface{}{}
-		regmatchCount := 0
-		for _, regmatch := range command.RegexMatches {
-			for _, line := range block {
-				matches := formatter.RegMatch(line, regmatch.Expression)
-				if len(matches) > 0 {
-					for i, match := range matches {
-						if len(regmatch.Keys) > 0 {
-							key := regmatch.Keys[i]
-							if len(regmatch.KeysMulti) > 0 {
-								key = regmatch.KeysMulti[regmatchCount] + key
+
+		if len(command.RegexMatches) > 0 {
+			regmatchCount := 0
+			for _, regmatch := range command.RegexMatches {
+				for _, line := range block {
+					matches := formatter.RegMatch(line, regmatch.Expression)
+					if len(matches) > 0 {
+						for i, match := range matches {
+							if len(regmatch.Keys) > 0 {
+								key := regmatch.Keys[i]
+								if len(regmatch.KeysMulti) > 0 {
+									key = regmatch.KeysMulti[regmatchCount] + key
+								}
+								sample[key] = match
 							}
-							sample[key] = match
 						}
+						regmatchCount++
 					}
-					regmatchCount++
 				}
+				regmatchCount = 0
 			}
-			regmatchCount = 0
+
+		} else {
+			processRaw(&sample, "", block, command)
 		}
-		sample["flex.commandTimeMs"] = makeTimestamp() - startTime
-		*dataStore = append(*dataStore, sample)
+
+		// do not add empty samples
+		if len(sample) > 0 {
+			sample["flex.commandTimeMs"] = makeTimestamp() - startTime
+			*dataStore = append(*dataStore, sample)
+		}
+
 	}
 }
 
@@ -206,14 +219,14 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 				cmd = "cache - " + command.Cache
 			}
 
-			load.Logrus.Debug(fmt.Sprintf("command: running %v", cmd))
+			load.Logrus.Debugf("command: running %v", cmd)
 
 			if command.Split == "" { // default vertical split
 				applyCustomAttributes(dataSample, &command.CustomAttributes)
-				processRaw(dataSample, dataOutput, command.SplitBy, command.LineStart, command.LineEnd)
+				processRaw(dataSample, dataOutput, []string{}, command)
 			} else if command.Split == load.TypeColumns || command.Split == "horizontal" {
 				if *processType == load.TypeColumns {
-					load.Logrus.Debug(fmt.Sprintf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name))
+					load.Logrus.Debugf("command: horizontal split only allowed once per command set %v %v", api.Name, command.Name)
 				} else {
 					*processType = "columns"
 					processRawCol(dataStore, dataSample, dataOutput, command)
@@ -230,12 +243,21 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 }
 
 // processRaw processes a raw data output
-func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy string, lineStart int, lineEnd int) {
+func processRaw(dataSample *map[string]interface{}, dataOutput string, lines []string, command load.Command) {
+	splitBy := command.SplitBy
+	lineStart := command.LineStart
+	lineEnd := command.LineEnd
+
+	// if no lines exist, check the dataOutput to split lines from
+	if len(lines) == 0 && dataOutput != "" {
+		lines = strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n")
+	}
+
 	// SplitBy key is required else we cannot easily distinguish between keys and values
-	for i, line := range strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n") {
+	for i, line := range lines {
 		if i >= lineStart {
 			if i >= lineEnd && lineEnd != 0 {
-				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", lineEnd))
+				load.Logrus.Debugf("command: reached line limit %d", lineEnd)
 				break
 			}
 			key, val, success := formatter.SplitKey(line, splitBy)
@@ -248,7 +270,7 @@ func processRaw(dataSample *map[string]interface{}, dataOutput string, splitBy s
 
 func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{}, dataOutput string, command load.Command) {
 	headerLine := 0
-	startLine := 1
+	startLine := 0
 
 	if command.RowHeader != 0 {
 		headerLine = command.RowHeader
@@ -267,6 +289,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	// set header keys
 	if len(command.SetHeader) > 0 {
 		keys = command.SetHeader
+		headerLine = -1
 	} else {
 		if command.HeaderRegexMatch {
 			keys = append(keys, formatter.RegMatch(header, command.HeaderSplitBy)...)
@@ -278,7 +301,7 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	for i, line := range lines {
 		if (i != headerLine && i >= startLine) || len(lines) == 1 {
 			if i >= command.LineEnd && command.LineEnd != 0 {
-				load.Logrus.Debug(fmt.Sprintf("command: reached line limit %d", command.LineEnd))
+				load.Logrus.Debugf("command: reached line limit %d", command.LineEnd)
 				break
 			}
 
@@ -351,6 +374,11 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	err := json.Unmarshal([]byte(dataOutput), &f)
 	if err == nil {
 		return load.TypeJSON, f
+	}
+	// check xml
+	xmlSignature := `<?xml version=`
+	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
+		return load.TypeXML, nil
 	}
 
 	// default raw

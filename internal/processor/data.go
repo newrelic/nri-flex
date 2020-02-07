@@ -11,29 +11,35 @@ import (
 )
 
 // RunDataHandler handles the data received for processing
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+// The originalAPINo is to track the original API sequential No. in the Flex config file. This is to diffentiate the new API Seq No. created by StoreLookup.
+// The originalAPINo is used for Merge and Join operation
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": cfg.Name,
-	}).Debug("processor: running data handler")
+	}).Debug("processor-data: running data handler")
 	for _, dataSet := range dataSets {
 		switch dataSet := dataSet.(type) {
 		case map[string]interface{}:
 			ds := dataSet
-			processDataSet(&ds, samplesToMerge, i, cfg)
+			processDataSet(&ds, samplesToMerge, i, cfg, originalAPINo)
 		case []interface{}:
 			nextDataSets := dataSet
-			RunDataHandler(nextDataSets, samplesToMerge, i, cfg)
+			RunDataHandler(nextDataSets, samplesToMerge, i, cfg, originalAPINo)
 		default:
 			load.Logrus.WithFields(logrus.Fields{
 				"name": cfg.Name,
-			}).Debug("processor: not sure what to do with this?!")
+			}).Debugf("processor-data: unsupported data type %T", dataSet)
 		}
 	}
 }
 
 // processDataSet performs the core flattening on the map[string]interface then executes createMetricSets finally
-func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config) {
+func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int) {
 	ds := (*dataSet)
+
+	if cfg.LookupStore == nil {
+		cfg.LookupStore = map[string]map[string]struct{}{}
+	}
 
 	FindStartKey(&ds, cfg.APIs[i].StartKey, cfg.APIs[i].InheritAttributes) // start at a later part in the received data
 	StripKeys(&ds, cfg.APIs[i].StripKeys)                                  // remove before flattening
@@ -47,17 +53,21 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *map[string]
 	}
 
 	mergedData := FinalMerge(flattenedData)
-	mergedSample := false
 
-	if len(mergedData) == 1 {
-		if cfg.APIs[i].Merge != "" {
-			mergedData[0].(map[string]interface{})["_sampleNo"] = i
-			(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergedData[0])
-			mergedSample = true
-		}
-	}
+	// hren: moved this portion to CreateMetricSets
+	// if cfg.APIs[i].Merge != "" {
+	// 	for _, mergeItem := range mergedData {
+	// 		mergeItem.(map[string]interface{})["_sampleNo"] = i
+	// 		// hren overwrite event_type if it is merge operation
+	// 		mergeItem.(map[string]interface{})["event_type"] = cfg.APIs[i].Merge
+	// 		(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergeItem)
+	// 	}
+	// 	mergedSample = true
+	// }
 
-	if !mergedSample {
-		CreateMetricSets(mergedData, cfg, i)
+	if cfg.APIs[i].Merge == "" {
+		CreateMetricSets(mergedData, cfg, i, false, nil, originalAPINo)
+	} else {
+		CreateMetricSets(mergedData, cfg, i, true, samplesToMerge, originalAPINo)
 	}
 }
