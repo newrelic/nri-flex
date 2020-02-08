@@ -50,7 +50,7 @@ require (
 	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.12.0
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.2.8
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/api v0.17.2 // indirect
 	k8s.io/apimachinery v0.17.2

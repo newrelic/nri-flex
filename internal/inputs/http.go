@@ -149,11 +149,21 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			}
 
 		} else {
-			for _, err := range errors {
+			httpErrorSample := map[string]interface{}{}
+
+			for i, err := range errors {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
 				}).Debug("http: error")
+
+				if i == 0 {
+					httpErrorSample["error"] = err
+				} else {
+					httpErrorSample[fmt.Sprintf("error.%d", i)] = err
+				}
 			}
+
+			*dataStore = append(*dataStore, httpErrorSample)
 			*doLoop = false
 		}
 	}
