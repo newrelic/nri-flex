@@ -1,10 +1,10 @@
 package gofile
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Run executes the go source file (which must contain a main() function) with the
@@ -35,7 +35,7 @@ func Run(filePath string, args ...string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Info(string(stderr))
+	fmt.Fprint(os.Stderr, string(stderr))
 
 	stdout, err := ioutil.ReadAll(so)
 	if err != nil {

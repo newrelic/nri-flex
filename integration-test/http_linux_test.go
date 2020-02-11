@@ -1,3 +1,5 @@
+// +build integration
+
 package integration
 
 import (
@@ -10,7 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/newrelic/nri-flex/integration-test/ijson"
+	"github.com/newrelic/nri-flex/integration-test/integration"
 
 	"github.com/newrelic/nri-flex/integration-test/gofile"
 
@@ -20,6 +22,7 @@ import (
 var flexMain = filepath.Join("..", "cmd", "nri-flex", "nri-flex.go")
 
 func TestHTTP(t *testing.T) {
+	// GIVEN a NGINX HTTP status endpoint
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte(`Active connections: 43
 server accepts handled requests
@@ -28,16 +31,16 @@ Reading: 0 Writing: 5 Waiting: 38
 `))
 	}))
 	defer server.Close()
-
 	configPath, err := replaceDiscoveryPort(filepath.Join("configs", "http-test.yml"), server)
 	require.NoError(t, err)
 
-	stdout, err := gofile.Run(flexMain, "-config_path="+configPath)
+	// WHEN executing nri flex with the provided http-test.yml configuration
+	stdout, err := gofile.Run(flexMain, "-verbose", "-config_path="+configPath)
 	require.NoError(t, err)
-
-	payload := ijson.Payload{}
+	payload := integration.JSON{}
 	require.NoError(t, json.Unmarshal(stdout, &payload))
 
+	// THEN an NgingSample is received with the metrics properly extracted
 	require.NotEmpty(t, payload.Data)
 	found := false
 	for _, data := range payload.Data {
@@ -63,6 +66,43 @@ Reading: 0 Writing: 5 Waiting: 38
 		require.InDelta(t, m["net.connectionsDroppedPerSecond"], 8000-7368, 0.1)
 	}
 	require.Truef(t, found, "did not find any 127.0.0.1 nginx instance in the integration %s", string(stdout))
+}
+
+func TestHTTPS(t *testing.T) {
+	// GIVEN a Nginx HTTPS server (already running in the Dockerfile_https container)
+
+	// WHEN executing Flex with the provided http-test.yml configuration
+	stdout, err := gofile.Run(flexMain, "-verbose", "-config_path="+filepath.Join("configs", "https-test.yml"))
+	require.NoError(t, err)
+	payload := integration.JSON{}
+	require.NoError(t, json.Unmarshal(stdout, &payload))
+
+	// THEN an NgingSample is received with the metrics properly extracted
+	require.NotEmpty(t, payload.Data)
+	found := false
+	for _, data := range payload.Data {
+		if data.Entity == nil {
+			continue
+		}
+		found = true
+		require.Equal(t, "https-server", data.Entity.Name)
+		require.Equal(t, "instance", data.Entity.Type)
+		require.Len(t, data.Metrics, 1)
+		m := data.Metrics[0]
+		require.Equal(t, "NginxSample", m["event_type"])
+		require.Contains(t, m, "flex.commandTimeMs")
+		require.Equal(t, "com.newrelic.nri-flex", m["integration_name"])
+		require.Contains(t, m, "integration_version")
+		require.InDelta(t, m["net.connectionsActive"], 43, 0.1)
+		require.InDelta(t, m["net.connectionsReading"], 0, 0.1)
+		require.InDelta(t, m["net.connectionsWaiting"], 38, 0.1)
+		require.InDelta(t, m["net.connectionsWriting"], 5, 0.1)
+		require.InDelta(t, m["net.connectionsAcceptedPerSecond"], 8000, 0.1)
+		require.InDelta(t, m["net.handledPerSecond"], 7368, 0.1)
+		require.InDelta(t, m["net.requestsPerSecond"], 10993, 0.1)
+		require.InDelta(t, m["net.connectionsDroppedPerSecond"], 8000-7368, 0.1)
+	}
+	require.Truef(t, found, "did not find any 'https-server' nginx instance in the integration %s", string(stdout))
 }
 
 // returns the path of a temporary config file loaded from the provided file path, replacing the

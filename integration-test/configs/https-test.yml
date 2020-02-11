@@ -1,12 +1,16 @@
+# The https-server runs in a docker-compose container as it requires its own CA configuration
 name: nginxFlex
 apis:
   - name: nginxStub
-    url: http://127.0.0.1:${discovery.port}/nginx_status # get stub status output
+    url: https://https-server:4444/nginx_status
+    tls_config:
+      enable: true
+      ca: ./https-server/cabundle/cert.pem
   - name: nginx
-    entity: 127.0.0.1
+    entity: https-server
     event_type: NginxSample
     commands:
-      - cache: http://127.0.0.1:${discovery.port}/nginx_status # use commands to parse the response
+      - cache: https://https-server:4444/nginx_status
         split_output: Active
         regex_matches:
           - expression: Active connections:\s(\S+)
