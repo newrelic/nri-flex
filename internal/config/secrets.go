@@ -28,20 +28,22 @@ import (
 )
 
 // loadSecrets if secrets configured fetch, store and substitute secrets
-func loadSecrets(config *load.Config) {
+func loadSecrets(config *load.Config) error {
 	var ymlStr string
-
+	var err error
 	for name, secret := range config.Secrets {
 		if secret.Kind == "" {
+			err = fmt.Errorf("config: secret needs 'kind' parameter to be set")
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Error("config: secret needs 'kind' parameter to be set")
+			}).Error(err.Error())
 			break
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
+			err = fmt.Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
+			}).Errorf(err.Error())
 			break
 		}
 
@@ -57,29 +59,32 @@ func loadSecrets(config *load.Config) {
 		switch secret.Kind {
 		case "aws-kms":
 			if secret.Region == "" {
+				err = fmt.Errorf("config: secret needs 'region' parameter to be set")
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: secret needs 'region' parameter to be set")
+				}).Error(err.Error())
 				break
 			}
 			secretResult = awskmsDecrypt(name, tempSecret)
 		case "vault":
 			if secret.HTTP.URL == "" {
+				err = fmt.Errorf("config: vault secret requires 'http' parameter to be set")
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: vault secret requires 'http' parameter to be set")
+				}).Error(err.Error())
 				break
 			}
 			vaultFetch(name, tempSecret, results)
 			// decrypt secret locally using simpleEncrypDecryp module
 		case "local":
 			if secret.Key == "" {
+				err = fmt.Errorf("config: local secret requires 'key' parameter to be set")
 				load.Logrus.WithFields(logrus.Fields{
 					"secret": name,
 					"kind":   secret.Kind,
-				}).Error("config: local secret requires 'key' parameter to be set")
+				}).Error(err.Error())
 				break
 			}
 			secretResult = localDecrypt(name, tempSecret)
@@ -88,13 +93,14 @@ func loadSecrets(config *load.Config) {
 		if secretResult != "" || len(results) > 0 {
 			// convert config to string, only the first time
 			if ymlStr == "" {
-				ymlBytes, err := yaml.Marshal(config)
-				if err != nil {
+				ymlBytes, e := yaml.Marshal(config)
+				if e != nil {
+					err = fmt.Errorf("config: secret marshal failed")
 					load.Logrus.WithFields(logrus.Fields{
 						"secret": name,
 						"kind":   secret.Kind,
-						"err":    err,
-					}).Error("config: secret marshal failed")
+						"err":    e,
+					}).Error(err.Error())
 					break
 				}
 				ymlStr = string(ymlBytes)
@@ -115,7 +121,6 @@ func loadSecrets(config *load.Config) {
 	// if ymlStr has a value it means a secret was successfully retrieved, decrypted, and substitutions were attempted
 	// we can then attempt to read and overwrite the config
 	if ymlStr != "" {
-		var err error
 		*config, err = ReadYML(ymlStr)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
@@ -124,6 +129,7 @@ func loadSecrets(config *load.Config) {
 			}).Error("config: secret unmarshal failed")
 		}
 	}
+	return err
 }
 
 // subSecrets substitute secrets into yml str and return

@@ -6,6 +6,7 @@
 package integration
 
 import (
+	"fmt"
 	"github.com/newrelic/nri-flex/internal/utils"
 	"io/ioutil"
 	"os"
@@ -34,7 +35,7 @@ const (
 )
 
 // RunFlex runs flex.
-func RunFlex(runMode FlexRunMode) {
+func RunFlex(runMode FlexRunMode) error {
 	setupLogger()
 
 	load.Logrus.WithFields(logrus.Fields{
@@ -48,31 +49,48 @@ func RunFlex(runMode FlexRunMode) {
 
 	switch runMode {
 	case FlexModeLambda:
-		addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
+		errors := addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
+		if len(errors) > 0 {
+			return fmt.Errorf("flex: failed to read some configuration files. please review them before continuing")
+		}
 
 		isSyncGitConfigured, err := config.SyncGitConfigs("/tmp/")
 		if err != nil {
-			logrus.WithError(err).Error("flex: failed to sync git configs")
+			logrus.WithError(err).Warn("flex: failed to sync git configs")
 		} else if isSyncGitConfigured {
-			addConfigsFromPath("/tmp/", &configs)
+			errors = addConfigsFromPath("/tmp/", &configs)
+			if len(errors) > 0 {
+				logrus.WithError(err).Warn("flex: failed to load git sync configuration files. ignoring and continuing")
+			}
 		}
 
 	default:
 		if load.Args.EncryptPass != "" {
-			logEncryptPass()
-			os.Exit(0)
+			err := logEncryptPass()
+			if err != nil {
+				return err
+			}
 		}
 
 		_, err := config.SyncGitConfigs("")
 		if err != nil {
-			logrus.WithError(err).Error("flex: failed to sync git configs")
+			logrus.WithError(err).Warn("flex: failed to sync git configs")
 		}
 
+		var errors []error
 		if load.Args.ConfigFile != "" {
-			addSingleConfigFile(load.Args.ConfigFile, &configs)
+			err = addSingleConfigFile(load.Args.ConfigFile, &configs)
+			if err != nil {
+				return err
+			}
 		} else {
-			addConfigsFromPath(load.Args.ConfigDir, &configs)
+			errors = addConfigsFromPath(load.Args.ConfigDir, &configs)
+			if len(errors) > 0 {
+				return fmt.Errorf("flex: failed to load configurations files")
+			}
 		}
+
+		// should we stop if this fails??
 		if load.Args.ContainerDiscovery || load.Args.Fargate {
 			discovery.Run(&configs)
 		}
@@ -90,7 +108,10 @@ func RunFlex(runMode FlexRunMode) {
 			}
 		}
 	}
-	config.RunFiles(&configs)
+	errors := config.RunFiles(&configs)
+	if len(errors) > 0 {
+		return fmt.Errorf("flex: failed to run configuration files")
+	}
 
 	outputs.StatusSample()
 
@@ -107,6 +128,7 @@ func RunFlex(runMode FlexRunMode) {
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
 		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
 	}
+	return nil
 }
 
 func setupLogger() {
@@ -116,48 +138,50 @@ func setupLogger() {
 	}
 }
 
-func addSingleConfigFile(configFile string, configs *[]load.Config) {
+func addSingleConfigFile(configFile string, configs *[]load.Config) error {
 	file, err := os.Stat(configFile)
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
 			"err":  err,
 			"file": configFile,
 		}).Fatal("config: failed to read")
+		return err
 	}
 	path := strings.Replace(filepath.FromSlash(configFile), file.Name(), "", -1)
-	if err := config.LoadFile(configs, file, path); err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err":  err,
-			"file": configFile,
-		}).Error("config: failed to load file")
-	}
+	err = config.LoadFile(configs, file, path)
+	return err
 }
 
-func addConfigsFromPath(path string, configs *[]load.Config) {
+func addConfigsFromPath(path string, configs *[]load.Config) []error {
 	configPath := filepath.FromSlash(path)
 	files, err := ioutil.ReadDir(configPath)
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
 			"dir": path,
-		}).Fatal("config: failed to read")
+		}).WithError(err).Fatal("config: failed to read confguration folder")
+		return []error{err}
 	}
-	config.LoadFiles(configs, files, configPath)
+
+	return config.LoadFiles(configs, files, configPath)
 }
 
-func logEncryptPass() {
+func logEncryptPass() error {
 	load.Logrus.Info("*****Encryption Result*****")
 	cipherText, err := utils.Encrypt([]byte(load.Args.EncryptPass), load.Args.PassPhrase)
 	if err != nil {
 		load.Logrus.WithError(err).Error("EncryptPass: Failed to encrypt")
+		return err
 	}
 	cleartext, err := utils.Decrypt(cipherText, load.Args.PassPhrase)
 	if err != nil {
 		load.Logrus.WithError(err).Error("EncryptPass: Failed to Decrypt")
+		return err
 	}
 	load.Logrus.Infof("   encrypt_pass: %s", cleartext)
 	load.Logrus.Infof("    pass_phrase: %s", load.Args.PassPhrase)
 	load.Logrus.Infof(" encrypted pass: %x", cipherText)
+
+	return nil
 }
 
 // SetDefaults set flex defaults
