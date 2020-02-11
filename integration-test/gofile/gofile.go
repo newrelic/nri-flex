@@ -28,7 +28,7 @@ func Run(filePath string, args ...string) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := cmd.Start(); err != nil {
+	if err = cmd.Start(); err != nil {
 		return nil, err
 	}
 	stderr, err := ioutil.ReadAll(sp)
