@@ -79,7 +79,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			switch {
 			case api.Prometheus.Enable:
 				Prometheus(dataStore, resp.Body, yml, &api)
-			case strings.Contains(contentType, "application/json"):
+			case contentType == "application/json":
 				body, _ := ioutil.ReadAll(resp.Body)
 				addPage := handlePagination(nil, &api.Pagination, &nextLink, body, resp.StatusCode)
 				if api.Debug {
@@ -88,6 +88,17 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				// if not using pagination handle json for any response, if using pagination check the status code before storing
 				if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
 					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
+				}
+			case contentType == "text/xml" || contentType == "application/xml":
+				jsonBody, err := xj.Convert(resp.Body)
+				if err != nil {
+					load.Logrus.WithFields(logrus.Fields{
+						"err": err,
+					}).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
+				} else {
+					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink)
+					}
 				}
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
@@ -112,8 +123,8 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						}
 						// if it is XML, convert XML to JSON and process it
 					case load.TypeXML:
-						xmlbody := strings.NewReader(strBody)
-						jsonbody, err := xj.Convert(xmlbody)
+						xmlBody := strings.NewReader(strBody)
+						jsonBody, err := xj.Convert(xmlBody)
 
 						if err != nil {
 							load.Logrus.WithFields(logrus.Fields{
@@ -121,7 +132,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 							}).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 						} else {
 							if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
-								handleJSON(dataStore, jsonbody.Bytes(), &resp, doLoop, reqURL, nextLink)
+								handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink)
 							}
 						}
 					default:
