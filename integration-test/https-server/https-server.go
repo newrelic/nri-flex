@@ -14,7 +14,7 @@ const collectorKeyFile = "/cabundle/key.pem"
 // endpoints to be controlled and monitored from the tests.
 // It stores in a queue all the events that it receives from the agent.
 func main() {
-	logrus.Info("Runing fake HTTPS server...")
+	logrus.Info("Running fake HTTPS server...")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/nginx_status", func(w http.ResponseWriter, req *http.Request) {
@@ -39,9 +39,9 @@ Reading: 0 Writing: 5 Waiting: 38
 		Addr:         ":4444",
 		Handler:      mux,
 		TLSConfig:    cfg,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
-	if err := srv.ListenAndServeTLS(collectorCertFile, collectorKeyFile) ; err != nil {
+	if err := srv.ListenAndServeTLS(collectorCertFile, collectorKeyFile); err != nil {
 		logrus.WithError(err).Error("Running fake https server")
 	}
 }
