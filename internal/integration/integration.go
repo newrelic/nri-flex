@@ -136,6 +136,10 @@ func setupLogger() {
 	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
 		load.Logrus.SetLevel(logrus.TraceLevel)
 	}
+
+	if load.Args.StructuredLogs {
+		load.Logrus.SetFormatter(&logrus.JSONFormatter{})
+	}
 }
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) error {

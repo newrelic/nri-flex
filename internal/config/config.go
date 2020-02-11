@@ -242,12 +242,9 @@ func RunFiles(configs *[]load.Config) []error {
 		errorChannel := make(chan error)
 		// listen for errors coming from the verification of the configs and store them for later
 		go func() {
-			for {
-				select {
-				case err := <-errorChannel:
-					if err != nil {
-						errors = append(errors, err)
-					}
+			for err := range errorChannel {
+				if err != nil {
+					errors = append(errors, err)
 				}
 			}
 		}()
