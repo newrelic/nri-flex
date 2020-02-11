@@ -18,7 +18,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/nginx_status", func(w http.ResponseWriter, req *http.Request) {
-		w.Write([]byte(`Active connections: 43
+		_, _ = w.Write([]byte(`Active connections: 43
 server accepts handled requests
 8000 7368 10993
 Reading: 0 Writing: 5 Waiting: 38
