@@ -1,9 +1,10 @@
 package outputs
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
