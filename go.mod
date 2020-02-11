@@ -14,6 +14,7 @@ require (
 	github.com/aws/aws-sdk-go v1.21.10
 	github.com/axw/gocov v1.0.0 // indirect
 	github.com/basgys/goxml2json v1.1.0
+	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible // indirect

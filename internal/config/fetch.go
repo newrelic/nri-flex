@@ -189,6 +189,10 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 		CustomAttributes: cfg.CustomAttributes,
 	}
 
+	if err := runVariableProcessor(cfg); err != nil {
+		load.Logrus.WithError(err).Error("config: variable processor error")
+	}
+
 	for _, newAPI := range newAPIs {
 		API := load.API{}
 		err := yaml.Unmarshal([]byte(newAPI), &API)
@@ -201,6 +205,7 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 			lookupConfig.APIs = append(lookupConfig.APIs, API)
 		}
 	}
+
 	// Run(lookupConfig)
 	// Please note:
 	//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
