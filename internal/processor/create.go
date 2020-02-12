@@ -23,7 +23,7 @@ import (
 const regex = "regex"
 
 // CreateMetricSets creates metric sets
-// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
+// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." wiki_draft still apply before merge
 func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
@@ -75,7 +75,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			}
 
 			// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
-			// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
+			// we will address this in the future. However, for run_async=true usecase, we do not expect these two wiki_draft to be used.
 			if !api.RunAsync {
 				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
 				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
