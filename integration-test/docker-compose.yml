@@ -8,8 +8,10 @@ services:
       - ../coverage:/go/src/github.com/newrelic/nri-flex/coverage
     depends_on:
       - postgres-db
+      - https-server
     links:
       - postgres-db
+      - https-server
 
   # Containers/services that are used from the integration tests
   postgres-db:
@@ -17,3 +19,11 @@ services:
     restart: always
     environment:
       POSTGRES_PASSWORD: flex
+
+  https-server:
+    build:
+      context: ..
+      dockerfile: ./integration-test/Dockerfile_https
+    image: https-server
+    ports:
+      - "4444:4444"
