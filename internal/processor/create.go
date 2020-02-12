@@ -23,7 +23,7 @@ import (
 const regex = "regex"
 
 // CreateMetricSets creates metric sets
-// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." wiki_draft still apply before merge
+// hren added samplesToMerge parameter, moved merge operation to CreateMetricSets so that the "Run...." functions still apply before merge
 func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int) {
 	api := config.APIs[i]
 	// as it stands we know that this always receives map[string]interface{}'s
