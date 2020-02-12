@@ -75,7 +75,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			}
 
 			// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
-			// we will address this in the future. However, for run_async=true usecase, we do not expect these two wiki_draft to be used.
+			// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
 			if !api.RunAsync {
 				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
 				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
