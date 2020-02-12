@@ -92,7 +92,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			case contentType == "text/xml" || contentType == "application/xml":
 				jsonBody, err := xj.Convert(resp.Body)
 				if err != nil {
-					load.Logrus.WithError(err).Error("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
+					load.Logrus.WithError(err).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 				} else {
 					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
 						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink)
