@@ -8,7 +8,7 @@ integrations:
         - name: dig
           commands:
             - name: google
-              run: dig google.com | egrep '^google|Query' | tr '\n' ' ' | awk '{print "domain:"substr($1,1,length($1)-1)" recordip:"$5" responsetime:"$9" unit:"$10}' | tr ' ' '\n'
+              run: dig google.com | egrep '^google|Query|status' | tr '\n' ' ' | awk '{print "status:"substr($6,1,length($6)-1)" domain:"substr($9,1,length($9)-1)" recordip:"$13" responsetime:"$17" unit:"$18}' | tr ' ' '\n'
               split_by: ":"
           custom_attributes:
-            url: google.com
+            myVar: someValue
