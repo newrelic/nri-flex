@@ -34,11 +34,13 @@ const (
 	FlexModeTest
 )
 
+var log = load.Logrus
+
 // RunFlex runs flex.
 func RunFlex(runMode FlexRunMode) error {
 	setupLogger()
 
-	load.Logrus.WithFields(logrus.Fields{
+	log.WithFields(logrus.Fields{
 		"version": load.IntegrationVersion,
 		"GOOS":    runtime.GOOS,
 		"GOARCH":  runtime.GOARCH,
@@ -51,16 +53,16 @@ func RunFlex(runMode FlexRunMode) error {
 	case FlexModeLambda:
 		errors := addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
 		if len(errors) > 0 {
-			return fmt.Errorf("flex: failed to read some configuration files. please review them before continuing")
+			log.Error("flex: failed to read some configuration files, please review them")
 		}
 
 		isSyncGitConfigured, err := config.SyncGitConfigs("/tmp/")
 		if err != nil {
-			logrus.WithError(err).Warn("flex: failed to sync git configs")
+			log.WithError(err).Warn("flex: failed to sync git configs")
 		} else if isSyncGitConfigured {
 			errors = addConfigsFromPath("/tmp/", &configs)
 			if len(errors) > 0 {
-				logrus.WithError(err).Warn("flex: failed to load git sync configuration files. ignoring and continuing")
+				log.Error("flex: failed to load git sync configuration files, ignoring and continuing")
 			}
 		}
 
@@ -74,7 +76,7 @@ func RunFlex(runMode FlexRunMode) error {
 
 		_, err := config.SyncGitConfigs("")
 		if err != nil {
-			logrus.WithError(err).Warn("flex: failed to sync git configs")
+			log.WithError(err).Warn("flex: failed to sync git configs")
 		}
 
 		var errors []error
@@ -118,15 +120,15 @@ func RunFlex(runMode FlexRunMode) error {
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		for _, batch := range outputs.GetMetricBatches() {
 			if err := outputs.SendBatchToInsights(batch); err != nil {
-				load.Logrus.WithError(err).Error("flex: failed to send batch to insights")
+				log.WithError(err).Error("flex: failed to send batch to insights")
 			}
 		}
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		if err := outputs.SendToMetricAPI(); err != nil {
-			load.Logrus.WithError(err).Error("flex: failed to send metrics")
+			log.WithError(err).Error("flex: failed to send metrics")
 		}
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
-		load.Logrus.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
+		log.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
 	}
 	return nil
 }
@@ -134,18 +136,18 @@ func RunFlex(runMode FlexRunMode) error {
 func setupLogger() {
 	verboseLogging := os.Getenv("VERBOSE")
 	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
-		load.Logrus.SetLevel(logrus.TraceLevel)
+		log.SetLevel(logrus.TraceLevel)
 	}
 
 	if load.Args.StructuredLogs {
-		load.Logrus.SetFormatter(&logrus.JSONFormatter{})
+		log.SetFormatter(&logrus.JSONFormatter{})
 	}
 }
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) error {
 	file, err := os.Stat(configFile)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"err":  err,
 			"file": configFile,
 		}).Fatal("config: failed to read")
@@ -160,9 +162,9 @@ func addConfigsFromPath(path string, configs *[]load.Config) []error {
 	configPath := filepath.FromSlash(path)
 	files, err := ioutil.ReadDir(configPath)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"dir": path,
-		}).WithError(err).Fatal("config: failed to read confguration folder")
+		}).WithError(err).Fatal("config: failed to read configuration folder")
 		return []error{err}
 	}
 
@@ -170,27 +172,27 @@ func addConfigsFromPath(path string, configs *[]load.Config) []error {
 }
 
 func logEncryptPass() error {
-	load.Logrus.Info("*****Encryption Result*****")
+	log.Info("*****Encryption Result*****")
 	cipherText, err := utils.Encrypt([]byte(load.Args.EncryptPass), load.Args.PassPhrase)
 	if err != nil {
-		load.Logrus.WithError(err).Error("EncryptPass: Failed to encrypt")
+		log.WithError(err).Error("EncryptPass: Failed to encrypt")
 		return err
 	}
 	cleartext, err := utils.Decrypt(cipherText, load.Args.PassPhrase)
 	if err != nil {
-		load.Logrus.WithError(err).Error("EncryptPass: Failed to Decrypt")
+		log.WithError(err).Error("EncryptPass: Failed to Decrypt")
 		return err
 	}
-	load.Logrus.Infof("   encrypt_pass: %s", cleartext)
-	load.Logrus.Infof("    pass_phrase: %s", load.Args.PassPhrase)
-	load.Logrus.Infof(" encrypted pass: %x", cipherText)
+	log.Infof("   encrypt_pass: %s", cleartext)
+	log.Infof("    pass_phrase: %s", load.Args.PassPhrase)
+	log.Infof(" encrypted pass: %x", cipherText)
 
 	return nil
 }
 
 // SetDefaults set flex defaults
 func SetDefaults() {
-	load.Logrus.Out = os.Stderr
+	log.Out = os.Stderr
 	load.FlexStatusCounter.M = make(map[string]int)
 	load.FlexStatusCounter.M["EventCount"] = 0
 	load.FlexStatusCounter.M["EventDropCount"] = 0
