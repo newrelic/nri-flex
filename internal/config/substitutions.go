@@ -119,32 +119,30 @@ func SubEnvVariables(strConf *string) {
 // ${timestamp:datetimeutctz} - datetime in date and time format utc timezone: 2006-01-02T15:04:05Z07:00
 
 // SubTimestamps - return timestamp/date/datetime of current date/time with optional adjustment in various format
-func SubTimestamps(strConf *string) {
-
-	current := time.Now()
-	currentUTC := time.Now().UTC()
+func SubTimestamps(strConf *string, currentTime time.Time) {
+	currentUTC := currentTime.UTC()
 
 	// date and datetime output format
 	dateFormat := "2006-01-02"
 	datetimeFormat := "2006-01-02T15:04:05"
 	datetimeFormatTZ := "2006-01-02T15:04:05Z07:00"
-	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(current.UnixNano()/1e+6), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(current.UnixNano()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(current.Unix()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(currentTime.UnixNano()/1e+6), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(currentTime.UnixNano()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(currentTime.Unix()), -1)
 
-	*strConf = strings.Replace(*strConf, "${timestamp:date}", fmt.Sprint(current.Format(dateFormat)), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:datetime}", fmt.Sprint(current.Format(datetimeFormat)), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:datetimetz}", fmt.Sprint(current.Format(datetimeFormatTZ)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:date}", fmt.Sprint(currentTime.Format(dateFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetime}", fmt.Sprint(currentTime.Format(datetimeFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetimetz}", fmt.Sprint(currentTime.Format(datetimeFormatTZ)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:dateutc}", fmt.Sprint(currentUTC.Format(dateFormat)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutc}", fmt.Sprint(currentUTC.Format(datetimeFormat)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutctz}", fmt.Sprint(currentUTC.Format(datetimeFormatTZ)), -1)
 
-	*strConf = strings.Replace(*strConf, "${timestamp:year}", strconv.Itoa(current.Year()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:month}", strconv.Itoa(int(current.Month())), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:day}", strconv.Itoa(current.Day()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:hour}", strconv.Itoa(current.Hour()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:minute}", strconv.Itoa(current.Minute()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:second}", strconv.Itoa(current.Second()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:year}", strconv.Itoa(currentTime.Year()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:month}", strconv.Itoa(int(currentTime.Month())), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:day}", strconv.Itoa(currentTime.Day()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:hour}", strconv.Itoa(currentTime.Hour()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:minute}", strconv.Itoa(currentTime.Minute()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:second}", strconv.Itoa(currentTime.Second()), -1)
 
 	*strConf = strings.Replace(*strConf, "${timestamp:utcyear}", strconv.Itoa(currentUTC.Year()), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:utcmonth}", strconv.Itoa(int(currentUTC.Month())), -1)
@@ -157,7 +155,7 @@ func SubTimestamps(strConf *string) {
 	for _, timestamp := range timestamps {
 
 		durationType := time.Millisecond
-		timestampCurrent := current
+		timestampCurrent := currentTime
 		timestampUTC := currentUTC
 		timestampReturn := ""
 		defaultTimestamp := "${timestamp:ms}"
