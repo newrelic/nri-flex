@@ -45,7 +45,7 @@ func HandleRequest(ctx context.Context, event interface{}) (string, error) {
 		load.IngestData = event
 	}
 
-	RunFlex(FlexModeLambda)
+	_ = RunFlex(FlexModeLambda)
 
 	return "Flex Lambda Complete", nil
 }

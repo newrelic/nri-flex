@@ -29,7 +29,10 @@ func main() {
 	} else {
 		// default process
 		integration.SetDefaults()
-		integration.RunFlex(integration.FlexModeDefault)
+		err = integration.RunFlex(integration.FlexModeDefault)
+		if err != nil {
+			load.Logrus.WithError(err).Fatal("flex: failed to run integration")
+		}
 	}
 
 	err = load.Integration.Publish()
