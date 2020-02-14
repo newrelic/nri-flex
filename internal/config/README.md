@@ -109,7 +109,7 @@ SubLookupFileData substitutes data from lookup files into config
 #### func  SubTimestamps
 
 ```go
-func SubTimestamps(strConf *string)
+func SubTimestamps(strConf *string, currentTime time.Time)
 ```
 SubTimestamps - return timestamp/date/datetime of current date/time with
 optional adjustment in various format

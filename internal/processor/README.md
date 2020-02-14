@@ -86,8 +86,7 @@ RunEventFilter filters events generated
 ```go
 func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{})
 ```
-RunKeepKeys Removes all other keys/attributes and keep only those defined in
-keep_keys
+RunKeepKeys will remove the key if is not defined in keep_keys.
 
 #### func  RunKeyConversion
 
@@ -113,7 +112,7 @@ RunKeyRemover Remove unwanted keys with regex
 #### func  RunKeyRenamer
 
 ```go
-func RunKeyRenamer(renameKeys map[string]string, key *string, originalKey string)
+func RunKeyRenamer(renameKeys map[string]string, key *string)
 ```
 RunKeyRenamer find keys with regex, and replace the value
 
@@ -211,7 +210,7 @@ as the defined lookupStoreKey for later use
 #### func  StripKeys
 
 ```go
-func StripKeys(ds *map[string]interface{}, stripKeys []string)
+func StripKeys(dataSet *map[string]interface{}, stripKeys []string)
 ```
 StripKeys strip defined keys out
 

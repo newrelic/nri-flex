@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/processor"
@@ -51,7 +52,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 	}
 	ymlStr := string(b)
 	SubEnvVariables(&ymlStr)
-	SubTimestamps(&ymlStr)
+	SubTimestamps(&ymlStr, time.Now())
 	config, err := ReadYML(ymlStr)
 	if err != nil {
 		return fmt.Errorf("config: failed to load config file, %v", err)

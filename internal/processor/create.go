@@ -64,8 +64,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			// eg. if you replace id with project.id
 			// this could then again attempt to replace id within project.id to project.project.id
 			if !sliceContains(modifiedKeys, k) {
-				RunKeyRenamer(api.RenameKeys, &key, k)  // use key renamer if key replace hasn't occurred
-				RunKeyRenamer(api.ReplaceKeys, &key, k) // kept for backwards compatibility with replace_keys
+				RunKeyRenamer(api.RenameKeys, &key)  // use key renamer if key replace hasn't occurred
+				RunKeyRenamer(api.ReplaceKeys, &key) // kept for backwards compatibility with replace_keys
 			}
 
 			currentSample[key] = v

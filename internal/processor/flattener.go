@@ -7,6 +7,7 @@ package processor
 
 import (
 	"fmt"
+	"github.com/jeremywohl/flatten"
 	"sort"
 	"strconv"
 	"strings"
@@ -310,4 +311,56 @@ func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Conf
 func contains(s []string, searchterm string) bool {
 	i := sort.SearchStrings(s, searchterm)
 	return i < len(s) && s[i] == searchterm
+}
+
+// RunLazyFlatten lazy flattens the payload
+func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
+	// perform lazy flatten
+	for _, flattenKey := range cfg.APIs[api].LazyFlatten {
+		if strings.Contains(flattenKey, ">") {
+			flatSplit := strings.Split(flattenKey, ">")
+			if len(flatSplit) == 2 {
+				if (*ds)[flatSplit[0]] != nil {
+					switch (*ds)[flatSplit[0]].(type) {
+					case map[string]interface{}:
+						flat, err := flatten.Flatten((*ds)[flatSplit[0]].(map[string]interface{}), "", flatten.DotStyle)
+						if err == nil {
+							delete((*ds)[flatSplit[0]].(map[string]interface{}), flatSplit[1])
+							(*ds)[flatSplit[0]].(map[string]interface{})[flatSplit[1]] = flat
+						}
+					case []interface{}:
+						for i := range (*ds)[flatSplit[0]].([]interface{}) {
+							switch (*ds)[flatSplit[0]].([]interface{})[i].(type) {
+							case map[string]interface{}:
+								// we need to flatten top level, then loop through and find the new keys and add back into the sample
+								flat, err := flatten.Flatten((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), "", flatten.DotStyle)
+								if err == nil {
+									// delete old data
+									delete((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), flatSplit[1])
+									// depending if nested it may not be targeted correctly so auto set something in remove_keys - hacky workaround
+									cfg.APIs[api].RemoveKeys = append(cfg.APIs[api].RemoveKeys, flatSplit[1]+"Samples")
+
+									// add back into the datasample
+									for k, v := range flat {
+										if strings.Contains(k, flatSplit[1]) {
+											(*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{})[k] = v
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			tmp := map[string]interface{}{"flat": (*ds)[flattenKey]}
+			flat, err := flatten.Flatten(tmp, "", flatten.DotStyle)
+			if err == nil {
+				delete((*ds), flattenKey)
+				(*ds)[flattenKey] = flat
+			} else {
+				load.Logrus.WithError(err).Error("processor-values: unable to lazy_flatten")
+			}
+		}
+	}
 }

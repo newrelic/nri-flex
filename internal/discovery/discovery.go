@@ -438,7 +438,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 			} else {
 				ymlString := string(b)
 				config.SubEnvVariables(&ymlString)
-				config.SubTimestamps(&ymlString)
+				config.SubTimestamps(&ymlString, time.Now())
 				discoveryIPAddress := "" // we require IP at least
 				discoveryPort := ""      // we don't require port
 				networkIPAddress := ""
