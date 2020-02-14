@@ -1,6 +1,7 @@
 # `commands`
 
-The `commands` API allows retrieving information from any application or shell command executed. 
+The `commands` API allows retrieving information from any application or shell command executed. It can accept multiple commands that are executed sequentially.
+
 
 ## Basic usage
 
@@ -17,9 +18,31 @@ apis:
         split_by: (\d+)\s+(.*)
 ```
 
-The above Flex configuration retrieves the raw output provided by the command, containing a pair of values, the directory size and the directory name. 
+The above Flex configuration retrieves the raw output provided by the command defined in the `run` directive, which outputs a pair of values, the directory size and the directory name. 
 It also informs Flex that the output is horizontally formatted and has 2 columns as defined by the `set_header` directive.
 Finally it extract the values via a regex match, using the regex expression defined in the `split_by` directive, and assignes them in order to each of the columns defined in the `set_header` directive.
+
+
+## Configuration properties
+
+The following table defines the properties of the `commands` API. The API accepts a list of **command**, each requiring the `run` directive, and accepting one of more directives described in the following table.
+
+| Name | Type | Default | Description |
+|---:|:---:|:---:|---|
+| `run` | string | n.a. | Set it to the shell command (or application) that you want to run. It accepts any valid shell command. You can also use environment variables with the format $$ENV_VAR_NAME |
+| `shell` | string | "/bin/sh" (linux)  "cmd"(windows) | Specifies the shell to use when executing the command defined in `run` |
+| `split`| string | vertical | Defines the way the result of the command should be processed, either vertically with 1 value per line, or horizontally with more than 1 value per line (table like format). Only used when `ignore_output` is false (default)|
+| `split_by` | string | | Defines the regular expression used to process "metric" data |
+| `regex_match` | string | | Defines if the regular expression defined in `split_by` should be interpreted as match expression (true) or a split expression (false) |  
+| `row_header` | int | 0 | Specifies which line contains the header. Only applies if != `row_header` and >= 1 otherwise ignored. |
+| `row_start` | int | 0 | Specifies where the line number where Flex will start processing "metric" data. If `split` is set to `horizontal`, `row_start` will only be used if `row_start` != `row_header` and `row_start` >= 1 |
+| `line_start` | int | 0 | Specifies the line number where Flex will start processing data. If `split` is set to `horizontal` and `row_start` is defined, `line_start` will only be used if `line_start` != `row_header` and `line_start` >= 1. If both `row_start` and `line_start` are defined, `line_start` has precedence |
+| `line_end` | int | 0 | Specified the line number (exclusive) at which Flex will stop processing data. Only applies if `split` != `horizontal`|
+| `set_header` | array of string | [] | Defines the name (and number) of columns Flex should extract data from. Only applies if `split` = `horizontal` | 
+| `header_regex_match` | bool | false | Defines whether the regular expression in `header_split_by` should be interpreted as a match expression (true) or a split expression (false). Applies only if `split` = `horizontal` |
+| `header_split_by` | string | | Defines the regular expression that will be applied to the header line. Applies only if `split` = `horizontal` |
+|`split_output` | string | | Defines the regular expression that is used to split the output into blocks of data. |
+| `timeout` | int | 10 | Defines the time to wait for the command to execute. If the command takes longer Flex will ignore the output and return an error. Note that Flex will not forcefully stop the command, after the timeout, it will still wait for it to stop by itself| 
 
 ## Advanced usage
 
@@ -27,7 +50,7 @@ The `commands` api allows for more format directives to be defined to help Flex 
 
 ### Raw data parsing
 
-In the example below, the command being executed, `df`, outputs in a table-like [example](#du-example) format that includes a header defined by the directive `set_header`, and so the values start at `row_start`, which tells Flex the values start at row 1. 
+In the example below, the command being executed, `df`, outputs in a table-like format that includes a header defined by the directive `set_header`, and so the values start at `row_start`, which tells Flex the values start at row 1. 
 We also inform Flex to extract the values via simple regex split expression. In this particular case, the expression tells Flex that the values are separated by spaces. Each value is assigned in order each key defined by the `set_header` directive.
 
 
@@ -143,7 +166,7 @@ Using the `split_output` command as defined above, you will get 2 blocks of data
 The above example results in 2 metric samples similar to the example below.
 
 ```json
-{
+[{
   "event_type": "splitOutputSample",
   "integration_name": "com.newrelic.nri-flex",
   "value": "value"
@@ -152,7 +175,35 @@ The above example results in 2 metric samples similar to the example below.
   "event_type": "splitOutputSample",
   "integration_name": "com.newrelic.nri-flex",
   "value": "otherValue"
-},
+}]
 
 ```
 
+### Manually specifying block of data to process
+
+If you know at which line the relevant data starts and optionally where it end you can use the directives `line_start` and `line_end` to limit the data processing to a specific number of lines of output.
+
+```yml
+name: example
+apis:
+  - name: lineStart
+    commands:
+      - run: echo "this is noise" && echo "key:value"
+        line_start: 1
+        split_by: ":"
+```
+
+In the example above, we ony want to process data after the first (0) line, so we set `line_start` to 1. 
+If we know that after some line, the data is not useful, we can limit the set of lines Flex will process, ass exemplified in the next example.
+
+```yml
+name: example
+apis:
+  - name: lineStart
+    commands:
+      - run: echo "this is noise" && echo "key:value" && echo "otherKey:otherValue" && echo "more noise"
+        line_start: 1
+        line_end: 3      
+        split_by: ":"
+```
+Note that `line_end` is exclusive, meaning that you have to use +1 (0 indexed) on the actual line you want to stop being processed.
