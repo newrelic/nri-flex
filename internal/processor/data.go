@@ -54,17 +54,6 @@ func processDataSet(dataSet *map[string]interface{}, samplesToMerge *load.Sample
 
 	mergedData := FinalMerge(flattenedData)
 
-	// hren: moved this portion to CreateMetricSets
-	// if cfg.APIs[i].Merge != "" {
-	// 	for _, mergeItem := range mergedData {
-	// 		mergeItem.(map[string]interface{})["_sampleNo"] = i
-	// 		// hren overwrite event_type if it is merge operation
-	// 		mergeItem.(map[string]interface{})["event_type"] = cfg.APIs[i].Merge
-	// 		(*samplesToMerge)[cfg.APIs[i].Merge] = append((*samplesToMerge)[cfg.APIs[i].Merge], mergeItem)
-	// 	}
-	// 	mergedSample = true
-	// }
-
 	if cfg.APIs[i].Merge == "" {
 		CreateMetricSets(mergedData, cfg, i, false, nil, originalAPINo)
 	} else {
