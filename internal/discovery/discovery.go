@@ -544,18 +544,6 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						for key, val := range targetContainer.Labels {
 							yml.CustomAttributes[key] = val
 						}
-						// If Kubernetes, find the labels in metadata
-						if load.IsKubernetes {
-							// Get the pod name & namespace from labels above
-							podName := targetContainer.Labels["io.kubernetes.pod.name"]
-							podNamespace := targetContainer.Labels["io.kubernetes.pod.namespace"]
-							load.Logrus.Debugf("discovery: fetching k8 labels for  %v in namespace  %v ", podName, podNamespace)
-							kubeLabels := getK8Labels(podName, podNamespace)
-							for key, val := range kubeLabels {
-								yml.CustomAttributes[key] = val
-								//load.Logrus.Debug(fmt.Sprintf("discovery: adding kubeLabels:  %v : %v ", key, val))
-							}
-						}
 
 						yml.CustomAttributes["containerId"] = targetContainer.ID
 						yml.CustomAttributes["imageId"] = targetContainer.Image
