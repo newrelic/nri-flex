@@ -1,7 +1,12 @@
 0.9.7
 ------
-- Improved unit testing
+- Improved unit testing and logging
+- NRJMX tool path is now parameterized
+- Added run_async option for API segment to support async with store_lookups
+- Removekeys i snow case-insensitive
+- Http connection errors is written to sample
 - Removed K8s discovery support. K8s discovery should be handled by [`New Relic K8s discovery`](https://github.com/newrelic/nri-discovery-kubernetes)
+- 
 
 0.8.4-pre
 ------
