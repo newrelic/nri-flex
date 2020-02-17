@@ -1,5 +1,9 @@
 ### Secret Management
 
+> ⚠️ **Notice** ⚠️: this document contains a deprecated functionality that is still
+> provided for backwards compatibility. However, we encourage you to
+> use the improved, fully-supported [secrets management functionality for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/secrets-management). 
+
 Flex Secret Management supports:
 * Hashicorp Vault
 * AWS KMS

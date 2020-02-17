@@ -1,5 +1,9 @@
 ## Lab 2 - Adding Configs
 
+> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
+are still provided for backwards compatibility. However, an updated version of this
+document is in progress. 
+
 * Flex allows you to add as many configs which are essentially integrations into the "flexConfigs" folder, unless you have specific a different location in the nri-flex-config.yml file.
 * Note that:
     * you do not need to restart Flex when adding new Flex Config files/integrations

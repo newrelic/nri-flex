@@ -1,5 +1,9 @@
 ## Lab 0 - Installing Flex
 
+> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
+are provided for backwards compatibility. However, an updated version of this
+document is in progress. 
+
 If you've followed the prereqs, and have a linux instance with the infrastructure Agent installed with some services to test against, you're ready to roll.
 * Downloading the darwin(mac) release for local testing can also be quite helpful.
 
