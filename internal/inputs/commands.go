@@ -275,9 +275,14 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 	if command.RowHeader != 0 {
 		headerLine = command.RowHeader
 	}
+	// this is buggy? If we set RowHeader to 10, RowStart should be after RowHeader, no?
+	// ie, RowStart > RowHeader, always?
 	if command.RowStart != headerLine && command.RowStart >= 1 {
 		startLine = command.RowStart
 	}
+
+	// same comment as above. but why not just ignore LineStart and use only RowStart?
+	// this is a bit confusing to have different options for the same thing.
 	if command.LineStart != headerLine && command.LineStart >= 1 {
 		startLine = command.LineStart
 	}
