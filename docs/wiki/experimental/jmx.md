@@ -50,7 +50,7 @@ global:
   jmx:
       host: "127.0.0.1"
       port: "9001"
-apis: 
+apis:
   - name: tomcatThreads
     event_type: tomcatThreadSample
     ### note "keep_keys" will do the inverse, if you want all metrics remove the keep keys blocks completely
@@ -60,7 +60,7 @@ apis:
       - bean
       - maxThreads
       - connectionCount
-    commands: 
+    commands:
       - run: Catalina:type=ThreadPool,name=*
         output: jmx
   - name: tomcatRequest
@@ -80,7 +80,7 @@ apis:
       - bean
       - errorCount
       - requestCount
-    commands: 
+    commands:
       - run: Catalina:type=GlobalRequestProcessor,name=*
         output: jmx
   - name: datasource

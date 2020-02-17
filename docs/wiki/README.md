@@ -23,7 +23,13 @@ the APIs.
 Flex implements the following functionalities, but they are still experimental. This means
 that New Relic does not (yet) provides customer support for them.
 
+- [Dial](experimental/dial.md)
+- [JMX](experimental/jmx.md)
 - [Database queries](experimental/db.md)
+- [SCP](experimental/scp.md)
+- [Git configuration synchronization](experimental/git_sync.md)
+
+
 - [Git configuration synchronization](experimental/git_sync.md)
 - [JMX](experimental/jmx.md)
 
