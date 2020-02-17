@@ -1,7 +1,7 @@
 ### Flex Auto Container Discovery 
 
 > ⚠️ **Notice** ⚠️: this document contains a deprecated functionality that is still
-> provided backwards compatibility. However, we encourage you to
+> provided for backwards compatibility. However, we encourage you to
 > use the improved, fully-supported [container auto-discovery mechanism for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/container-auto-discovery). 
 
 - Flex has the capability to auto discovery containers in your surrounding environment, and dynamically monitor them regardless of changing IP addresses and ports
