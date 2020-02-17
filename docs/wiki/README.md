@@ -2,7 +2,7 @@
 
 ## Basics
 
-- [OHI layout](basics/ohi_layout.md)
+- [Flex files layout](basics/file_layout.md)
 - [Creating configs](basics/creating_configs.md)
 - [Order of operations](basics/order_of_operations.md)
 
@@ -40,7 +40,4 @@ as linked in the right column of the following table.
 | [Secrets management](deprecated/secrets.md) | [Secrets management for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/secrets-management) |
 | [Prometheus](deprecated/prometheus.md) | [New Relic Prometheus OpenMetrics integration for Docker and Kubernetes](https://docs.newrelic.com/docs/integrations/prometheus-integrations) |
 
-## Flex workshop
-
-* [Flex Workshop](workshop/workshop.md)
 

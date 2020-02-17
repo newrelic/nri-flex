@@ -18,25 +18,8 @@ Requirements:
 
 ## Install
 
-You can download Flex for Windows and Linux from the [Flex releases page](https://github.com/newrelic/nri-flex/releases).
-
-The Flex package comes with an installer script (`install_linux.sh` or `install_windows.bat`).
-It is aimed at installing all the required files for older versions of the Agent, and also
-start/stopping the Agent service so the changes take effect.
-
-From the Infrastructure Agent version 1.8.0 and later, you just need manually copy the `nri-flex` executable from the
-tarball into the `/var/db/newrelic-infra/newrelic-integrations/` folder:
-
-Steps (from a command-line):
-```
-$ wget https://github.com/newrelic/nri-flex/releases/download/v0.8.5/nri-flex-linux-0.8.5.tar.gz
-$ tar xzf nri-flex-linux-0.8.5.tar.gz
-$ sudo cp nri-flex-linux-0.8.5/nri-flex /var/db/newrelic-infra/newrelic-integrations/
-```
-
-> Windows users: copy the `nri-flex.exe` file into `C:\Program Files\New Relic\newrelic-infra\newrelic-integrations`. 
-
-Flex is now installed and ready to work with the agent.
+✅ Since New Relic Infrastructure agent version 1.10.0, Flex is bundled with the agent package, so you don't
+need to perform any extra step for its installation.
 
 ## Checking that Flex is up and running
 
