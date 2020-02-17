@@ -1,5 +1,9 @@
 ## Flex OHI Config Options
 
+> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
+are still supported by New Relic for backwards compatibility. However, an updated version of this
+document is in progress. 
+
 # update status sample examples
 
 * Note this config file `nri-flex-config.yml` is a config file required by the New Relic Infrastructure Agent, to run integrations. 

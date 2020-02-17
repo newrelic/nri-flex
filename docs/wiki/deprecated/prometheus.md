@@ -1,5 +1,9 @@
 # Prometheus Integrations (Exporters)
 
+> ⚠️ **Notice** ⚠️: this document contains a deprecated functionality that is still
+> supported by New Relic for backwards compatibility. However, we encourage you to
+> use the improved, fully-supported [New Relic Prometheus OpenMetrics integration for Docker and Kubernetes](https://docs.newrelic.com/docs/integrations/prometheus-integrations). 
+
 Prometheus Support - [Exporters](https://prometheus.io/docs/instrumenting/exporters/)
 
 - Supports all Prometheus exporters
