@@ -11,6 +11,7 @@ Index
 * Flex APIs
     - [Functions for data manipulation](apis/functions.md)
     - [`url`](apis/url.md)
+    - [`commands`](apis/commands.md)
 * Experimental functionalities
     - [Git configuration synchronization](experimental/git_sync.md)
 * Deprecated functionalities
