@@ -1,7 +1,7 @@
 # Flex Workshop Overview
 
 > ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still supported by New Relic for backwards compatibility. However, an updated version of this
+are still provided for backwards compatibility. However, an updated version of this
 document is in progress. 
 
 ## Under Development

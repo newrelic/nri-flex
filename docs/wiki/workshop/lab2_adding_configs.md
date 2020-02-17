@@ -1,7 +1,7 @@
 ## Lab 2 - Adding Configs
 
 > ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still supported by New Relic for backwards compatibility. However, an updated version of this
+are still provided for backwards compatibility. However, an updated version of this
 document is in progress. 
 
 * Flex allows you to add as many configs which are essentially integrations into the "flexConfigs" folder, unless you have specific a different location in the nri-flex-config.yml file.

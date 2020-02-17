@@ -1,7 +1,7 @@
 ## Lab 0 - Installing Flex
 
 > ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still supported by New Relic for backwards compatibility. However, an updated version of this
+are provided for backwards compatibility. However, an updated version of this
 document is in progress. 
 
 If you've followed the prereqs, and have a linux instance with the infrastructure Agent installed with some services to test against, you're ready to roll.
