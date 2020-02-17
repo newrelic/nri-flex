@@ -1,6 +1,7 @@
 0.9.7
 ------
--Improved unit testing
+- Improved unit testing
+- Removed K8s discovery support. K8s discovery should be handled by [`New Relic K8s discovery`](https://github.com/newrelic/nri-discovery-kubernetes)
 
 0.8.4-pre
 ------
