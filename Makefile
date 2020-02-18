@@ -57,7 +57,7 @@ release/deps: $(GORELEASER_BIN)
 
 release: release/deps
 	@echo "=== $(PROJECT) === [ release ]: Releasing new version..."
-	@$(GORELEASER_BIN) release --skip-publish --rm-dist
+	@$(GORELEASER_BIN) release
 
 # Import fragments
 include build/deps.mk
