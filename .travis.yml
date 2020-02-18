@@ -7,3 +7,15 @@ services:
   - docker
 
 script: make clean build-ci
+
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: make release
+  on:
+    tags: true
+
+env:
+  global:
+  # github token
+  - secure: wf1l15Mvuvys7zkHFkHhhU/VZSx//mTleSFEcSx+luVgmuuZfdEgSiCsVNrnhxW2EQZkJjQKGTuteEmR5EqKu5RSvxw4VXOG4YV6jQYGnpmKS1cimgRqCT+Y+8c5BVlVOcXFGaZjgic6mYUeKY7Ku740N++hUJqvfGGTab4CEfTuDyrVU2yGIpIAO/ER9yjiEWqVt+4EtWxMyVUtiY4ouXar3wRqPwskTV7o0B37kyLfSxNvfc38eWRxl2xDSVcpdvZb0gX+xTDtO0K9b5pwx76pjxmWMWNRyRohVq+/qj2biOq0usqRIaVSjzAY/GPkrmgQ5jMZUZfFxHZqQceMMCgs6hNtPQQDGAo/CDr0l1NUrvCk/dseMH74Sd3jfndi0mUdUdC3WfTibcGYgdpqbz0IHJb+sLi1097Jro9Ll3hyy+atD3rssfzsK1aGFyetecWoLHhQyphGjKhySMUqtPyCTt+Osp94DpAEV1AZJ2HcVrnsRVu1HKP5NYmJ3tPLN+NlMHqRv/8WVLauURD4OJd7e0K+h8usdJyHYtHGGJj1INKo0YZ4Qko4Denrp2YSnVbdotVAhgsRNc6Hm6VgxuJ48C/BFZ6J5+9LoExZPsM8gsZ+FqLgwurO73QxIewMnXiL+g4J1cjGEqEtM0rsqD1qTZlQjXU8zZ5sj5/U2Aw=
