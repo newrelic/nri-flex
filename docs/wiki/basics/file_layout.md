@@ -15,14 +15,14 @@ need to perform any extra step for its installation.
 ## Flex & OHI joint configuration
 
 Flex can be configured in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180):
-`/etc/newrelic-infra/`.
+`/etc/newrelic-infra/integrations.d`.
 
 You need to put there a YAML file that may have two parts: the main document is used by the Infrastructure agent to
 execute Flex as any other on-host integration (user, interval, label decoration, etc...); in the `config` section
 of the main document, you can write your Flex configuration contents, which is exclusively used by Flex for its
 proper operation.
 
-For example, let a `/etc/newrelic-infra/my-flex-config.yml` text file contain:
+For example, let a `/etc/newrelic-infra/integrations.d/my-flex-config.yml` text file contain:
 
 ```yaml
 integrations:
@@ -52,10 +52,10 @@ You may feel more comfortable keeping on one side the configuration of Flex as a
 how the agent must execute flex), and on the other side the configuration of what Flex has to do, in two separate
 files.
 
-The agent allows linking the Flex file path from the configuration YML in `/etc/newrelic-infra`, by replacing
+The agent allows linking the Flex file path from the configuration YML in `/etc/newrelic-infra/integrations.d`, by replacing
 the `config` property contents by the `config_template_path` property containing the path of the Flex file.
 
-This way, the equivalent `/etc/newrelic-infra/my-flex-config.yml` from the previous section would contain:
+This way, the equivalent `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
 
 ```yaml
 integrations:
