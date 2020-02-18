@@ -1,6 +1,6 @@
 # New Relic - Flex
 
-[![Build Status](https://travis-ci.com/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
+[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
 
 -   Flex is an agnostic AIO New Relic Integration, that can:
     -   Abstract the need for end users to write any code other then to define a configuration yml, allowing you to consume metrics from practically anywhere!
