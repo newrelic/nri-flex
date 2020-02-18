@@ -37,7 +37,8 @@ as linked in the right column of the following table.
 | Deprecated functionality | New Relic supported equivalent |
 |---|---|
 | [Discovery](deprecated/discovery.md) | [Container auto-discovery for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/container-auto-discovery) |
-| [Secrets management](deprecated/secrets.md) | [Secrets management for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/secrets-management) |
+| [JMX](deprecated/jmx.md) | [nri-jmx On-Host Integration](http://github.com/newrelic/nri-jmx) |
 | [Prometheus](deprecated/prometheus.md) | [New Relic Prometheus OpenMetrics integration for Docker and Kubernetes](https://docs.newrelic.com/docs/integrations/prometheus-integrations) |
+| [Secrets management](deprecated/secrets.md) | [Secrets management for On-Host Integrations](https://docs.newrelic.com/docs/integrations/host-integrations/installation/secrets-management) |
 
 
