@@ -17,7 +17,7 @@ document is in progress.
 # Lab Content
 
 - [Setup and Prerequisites](setup_prerequisites.md)
-- [Typical OHI file/directory structure](../basics/ohi_layout.md)
+- [Typical OHI file/directory structure](../basics/file_layout.md)
 - [Lab 0: Installing Flex](lab0_installing.md)
 - [Lab 1: Flex OHI Config Options](lab1_configuration.md)
 - [Lab 2: Adding Flex Config(s)](lab2_adding_configs.md)
