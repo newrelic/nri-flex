@@ -1,3 +1,4 @@
+---
 language: go
 
 go:
@@ -9,13 +10,15 @@ services:
 script: make clean build-ci
 
 deploy:
-- provider: script
-  skip_cleanup: true
-  script: make release
-  on:
-    tags: true
+  - provider: script
+    skip_cleanup: true
+    script: make release
+    on:
+      tags: true
 
 env:
   global:
-  # github token
-  - secure: wf1l15Mvuvys7zkHFkHhhU/VZSx//mTleSFEcSx+luVgmuuZfdEgSiCsVNrnhxW2EQZkJjQKGTuteEmR5EqKu5RSvxw4VXOG4YV6jQYGnpmKS1cimgRqCT+Y+8c5BVlVOcXFGaZjgic6mYUeKY7Ku740N++hUJqvfGGTab4CEfTuDyrVU2yGIpIAO/ER9yjiEWqVt+4EtWxMyVUtiY4ouXar3wRqPwskTV7o0B37kyLfSxNvfc38eWRxl2xDSVcpdvZb0gX+xTDtO0K9b5pwx76pjxmWMWNRyRohVq+/qj2biOq0usqRIaVSjzAY/GPkrmgQ5jMZUZfFxHZqQceMMCgs6hNtPQQDGAo/CDr0l1NUrvCk/dseMH74Sd3jfndi0mUdUdC3WfTibcGYgdpqbz0IHJb+sLi1097Jro9Ll3hyy+atD3rssfzsK1aGFyetecWoLHhQyphGjKhySMUqtPyCTt+Osp94DpAEV1AZJ2HcVrnsRVu1HKP5NYmJ3tPLN+NlMHqRv/8WVLauURD4OJd7e0K+h8usdJyHYtHGGJj1INKo0YZ4Qko4Denrp2YSnVbdotVAhgsRNc6Hm6VgxuJ48C/BFZ6J5+9LoExZPsM8gsZ+FqLgwurO73QxIewMnXiL+g4J1cjGEqEtM0rsqD1qTZlQjXU8zZ5sj5/U2Aw=
+    # github token
+    - secure: "Wjy5IQ0of0OFpE91AgVqBQA6a52X5OYKEWH+ijNER8lHfwXJPQ7G/mbRBeSIpB9UmsN6+uzXBkpgyRB5860/6Y9DvXrl5j2vK/UWtcoh8tiXWOlHBy3V1ggJvpK+4vq8RXs9ns9KV0t+zCUflCS65HImmd4scN0l+gU+wgUBGr5GlylDh2ArecJ3/g90OrrMMClzg5A+GO9/pnhHGaDrKp/ErcI5RnvE6Pe5BsObl1R5eEs+36DTNp9H14wu17b1xFKL5iliL+71Dp6XE3g4jardX/9Ne9QqpstqyUHoeZN6AvzGtM4aVLsnMwNByJkdF00Z4P5AVtGCc/jkK/QrokeJMeQ9l7t8n0dVNp+ZRnGuXt7mGufbyJhc7sXqB/l3yXjzlFWaKP8NZWoPJ9q4QxcNm/Jrc2pIKqBVtfAlxn1hmReBEdbAhQnNgMHzOEE7R5F3VPcS1ErX6b8jYCwgZIQNq6ajW0WOVLsBTDizq/LUW40ffUyeSbA5jpd71ekMWFQHkmiE52UuwTuwNkgf4UsXOB1X5NmAqh4XBqmNNiKNQGDD2+ZymlHh+J3bb6yPNHPZ+XvUHy0BnfMdCe4MOn8MqtbXacqHHh7kOeWA1e6DaTFQsAlutTu9A65BwVcoKEKdLuD3otdD/f04t38nN2v1g73kY76FqVVWZjVvWFQ="
+    # Snyk token
+    - secure: "atoHiaSRDySQp/MRaj0PJCLsXrtpb5bDR3SglIrIx7K5qnY+8knxBbEUzE8r1+WRPil5evJIB4P/UeNZO8waW0sM1Hkxdq7ZKLR99gYQa15O9BEMU06/3ggAaVx48r4jDrjS6tvNwmUtu6JB3AS6ZO5PSOFkHV5/PbCodnZt73WvIwYXX6xPMZvyqA+bCD1RIEReLVKQ08dmRWa+xyuL+HmW5h98ScAq+nd0mmdUMW2VYU00yD0tfAhIuBrBjp5EDSHc3hyVo2l0MKV5Li5VmCYJUOdQZccUpr6cE+6No2Xv+9xg5Qw1YV+cCGqla3ve+kFn8I/a987lUgKFTiVt8aNC3y9zTQyvdFOG7tWMYt84agudhojNfSNOiarRCeU1P8W6nZTsQ2QWaKqKvRLs+Mh24/XlB4hy8RDYMU0P1xRFGqEpa2s/yHFs5DKCqVLD/gVviQ3F8kMIikL6/lHUbaeP+E1Ch224q+5V7Si1Y8CcVy+O9HiO+1y7xAuNhc9a9hgceRbpkDNB1EBMuqLpCrzKGqogruIFihhEN5avJVH3gPFDEDIqbCoNewszNgsU0PQyQo4t5hW8NWLMVQTH9WjwunnNpdHApuK0Z0yoh5Lh4mFG5YcKPt/oSBQhYUWUk4p5K71mEvx1GaEQZDDCiwlpYKuXMCqqmqc7L0QPtZ4="
