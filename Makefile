@@ -12,7 +12,7 @@ GO_CMD        = go
 GODOC         = godocdown
 GOLINTER      = golangci-lint
 
-GORELEASER_VERSION := v0.123.3
+GORELEASER_VERSION := v0.126.0
 GORELEASER_SHA256 := cad997014e5c6a462488757087db4145c2ae7d7d73a29cb62bbfd41f18ccea30
 GORELEASER_BIN ?= bin/goreleaser
 
