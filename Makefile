@@ -13,7 +13,7 @@ GODOC         = godocdown
 GOLINTER      = golangci-lint
 
 GORELEASER_VERSION := v0.126.0
-GORELEASER_SHA256 := cad997014e5c6a462488757087db4145c2ae7d7d73a29cb62bbfd41f18ccea30
+GORELEASER_SHA256 := 6c0145df61140ec1bffe4048b9ef3e105e18a89734816e7a64f342d3f9267691
 GORELEASER_BIN ?= bin/goreleaser
 
 # Determine packages by looking into pkg/*
