@@ -23,11 +23,97 @@ it can be written in two different ways:
    ```
    And the YAML file in `/path/to/flex-config.yml` would contain the actual Flex configuration file.
 
+An example of Flex configuration file (embedded in the OHI configuration) would be like:
+
+```yaml
+integrations: # OHI configuration starts here  
+  - name: nri-flex
+    config:
+      # Flex configuration starts here
+      name: linuxDirectorySize
+      apis:
+        - name: linuxDirectorySize
+          commands:
+            - run: du -c $$DIR
+              split: horizontal
+              set_header: [dirSizeBytes,dirName]
+              regex_match: true
+              split_by: (\d+)\s+(.*)
+```
 
 This document page focus on the Flex configuration YAML sections. For the OHI configuration options, please
 read the [OHI configuration file specification](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).
 
-* 
+The following schema depicts the overall structure of a Flex configuration (the one that should go inside the `config`
+OHI configuration, or the file referenced from the `config_template_path` property).
+
+```
++----------------------+
+| name                 |
+| global?              |
+| +--------------+     |
+| | <properties> |     |   Suffixes:
+| +--------------|     |       ? optional
+| custom_attributes?   |       * multiple repetitions 
+| +----------------+   |
+| | <key>: <value> | * |
+| +----------------+   |
+| apis                 |
+| +---------------+    |
+| |  name?        |    |
+| |  event_type?  | *  |
+| |  <api>        |    |
+| |  <functions>* |    |
+| +---------------+    |
++----------------------+
+```
+
+The rest of this document describes the above sections of the Flex configuration.
+
+## name
+
+The name of the Flex configuration. It should be something short and meaningful.
+
+## global
+
+Set of global properties that would apply to the overall file. The aim of this section
+is to avoid repeating some values (e.g. URLs, user credentials...) when they need to be
+used from multiple places.
+
+**TODO**: describe each entry or link to the proper documents.
+
+```go
+type Global struct {
+	BaseURL    string `yaml:"base_url"`
+	User, Pass string
+	Proxy      string
+	Timeout    int
+	Headers    map[string]string `yaml:"headers"`
+	Jmx        JMX               `yaml:"jmx"`          // Don't explain here. Link to the JMX doc
+	TLSConfig  TLSConfig         `yaml:"tls_config"`   // Not explaining here. Link to the url api doc
+	Passphrase string            `yaml:"pass_phrase"`
+	SSHPEMFile string            `yaml:"ssh_pem_file"`
+}
+```
+
+## custom_attributes
+
+The `custom_attributes` accepts any key/values map, and allows decorating the samples with the
+contained values. Example:
+
+```yaml
+custom_attributes:
+  environment: production
+  role: database
+```
+
+Custom attributes can be defined nearly anywhere in your configuration. E.g. under `global`, or `api`,
+or further nested under each command. The lowest level defined attribute will take precedence.
+
+## apis
+
+The `apis` section allows you defining multiple entries for data acquisition and processing. Each
+
 
 
 ### Options
@@ -131,14 +217,4 @@ jmx:
 * key_store_pass
 * trust_store
 * trust_store_pass
-```
-
-### Custom Attributes
-Custom attributes can be defined nearly anywhere in your configuration.
-eg. under Global, or API, or further nested under each command. The lowest level defined attribute will take precedence.
-
-A standard key:pair structure is used.
-```
-custom_attributes:
- greeting: hello
 ```
