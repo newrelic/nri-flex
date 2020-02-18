@@ -11,7 +11,7 @@ script: make clean build-ci
 
 deploy:
   - provider: script
-    cleanup: true
+    cleanup: false
     script: make release
     on:
       tags: true

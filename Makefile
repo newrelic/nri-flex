@@ -1,6 +1,4 @@
 PROJECT_NAME := $(shell basename $(shell pwd))
-PROJECT_VER  := $(shell git describe --tags --always --dirty | sed -e '/^v/s/^v\(.*\)$$/\1/g') # Strip leading 'v' if found
-GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
 SRCDIR       ?= .
@@ -27,8 +25,6 @@ endif
 # Determine commands by looking into cmd/*
 COMMANDS = $(wildcard ${SRCDIR}/cmd/*)
 
-GO_FILES := $(shell find $(COMMANDS) $(PACKAGES) -type f -name "*.go")
-
 # Determine binary names by stripping out the dir names
 BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
@@ -46,6 +42,9 @@ build-ci: check-version clean lint test-integration compile-only
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean            ]: removing binaries and coverage file..."
 	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_DIR)/*
+
+bin:
+	@mkdir -p bin
 
 $(GORELEASER_BIN): bin
 	@echo "=== $(PROJECT) === [ release/deps ]: Installing goreleaser"
