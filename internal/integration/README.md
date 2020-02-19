@@ -29,7 +29,7 @@ IsLambda check if Flex is running within a Lambda.
 #### func  RunFlex
 
 ```go
-func RunFlex(runMode FlexRunMode)
+func RunFlex(runMode FlexRunMode) error
 ```
 RunFlex runs flex.
 
