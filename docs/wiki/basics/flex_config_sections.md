@@ -23,24 +23,6 @@ it can be written in two different ways:
    ```
    And the YAML file in `/path/to/flex-config.yml` would contain the actual Flex configuration file.
 
-An example of Flex configuration file (embedded in the OHI configuration) would be like:
-
-```yaml
-integrations: # OHI configuration starts here  
-  - name: nri-flex
-    config:
-      # Flex configuration starts here
-      name: linuxDirectorySize
-      apis:
-        - name: linuxDirectorySize
-          commands:
-            - run: du -c $$DIR
-              split: horizontal
-              set_header: [dirSizeBytes,dirName]
-              regex_match: true
-              split_by: (\d+)\s+(.*)
-```
-
 This document page focus on the Flex configuration YAML sections. For the OHI configuration options, please
 read the [OHI configuration file specification](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).
 
@@ -112,109 +94,40 @@ or further nested under each command. The lowest level defined attribute will ta
 
 ## apis
 
-The `apis` section allows you defining multiple entries for data acquisition and processing. Each
+The `apis` section allows you defining multiple entries for data acquisition and processing. Each enty needs to have
+a `name` or `event_type` entry, which will be used to provide the name of the event type in infrastructure:
 
+* `event_type` provides a name for each sample, which will be used as table name for querying the metrics
+  in the New Relic UI. `event_type` would usually have names like `MySQLSample`, `MyRemoteSample`, `FolderSample`...
+* If `event_type` is not defined and `name` is, the submitted event type will be the `name`
+  with the `Sample` prefix concatenated.
+    - E.g. `name: FolderSize` would make Flex creating events named with `event_type: FolderSizeSample`
 
+In addition to the fields that define the name of the sample, each `apis` entry will require the type of API to
+parse data from, and optionally a list of [functions](../apis/functions.md) for processing the data from the API.
 
-### Options
-- [commands](#commands) Run any standard commands
-- [net dial](#net-dial) Can be used for port testing or sending messages and processing the response
-- [http](#http) General http requests
-- [database queries](#database-queries)
-- [using prometheus exporters](https://github.com/newrelic/nri-flex/wiki/Prometheus-Integrations-(Exporters))
+Currently supported APIs are:
 
-### Further Configuration
+* [`commands`](../apis/commands.md) to execute a shell command and use its standard output as source
+  of metrics (usually to be processed by a list of [functions](../apis/functions.md). 
+* [`url`](../apis/url.md) to retrieve data from an HTTP or HTTPS endpoint.
 
-#### [Functions available for things like pagination, manipulating the output, secret mgmt etc.](https://github.com/newrelic/nri-flex/wiki/Functions)
-#### [Metric Parser for Rate & Delta Support](https://github.com/newrelic/nri-flex/wiki/Functions#metric_parser)
-#### [Global Config](#global-config-that-is-passed-down)
-#### [Setting Custom Attributes](#custom-attributes)
-#### Environment variables can be used throughout any Flex config files by simply using a double dollar sign eg. $$MY_ENVIRONMENT_VAR.
+## Example
 
-***
+An example of Flex configuration file (embedded in the OHI configuration) would be like:
 
-
-### Commands
-
-With the below example, we can create a redis integration in 6 lines, by simply running a command and parsing it.
-
-```
----
-name: redisFlex
-apis: 
-  - name: redis
-    commands: 
-      - run: (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379 ### remove -q0 if testing on mac
-        split_by: ":"
-```
-
-
-#### Run Command Specific Options
-```
-"shell"             // command shell
-"run"               // command to run
-"split"             // default "vertical", can be "horizontal" useful for outputs that look like a table
-"split_by"          // character to split by
-"set_header"        // manually set header column names (used when split is is set to horizontal)
-"group_by"          // group by character
-"regex"             // process SplitBy as regex (true/false)
-"line_limit"        // stop processing at this line number
-"row_header"        // start the row header at a different line (integer, used when split is horizontal)
-"row_start"         // start creating samples from this line number, to be used with SplitBy
-"ignore_output"     // ignore command output - useful chaining commands together
-"custom_attributes" // set additional custom attributes
-"line_end"          // stop processing at this line number
-"timeout"           // when to timeout command in milliseconds (default 10s)
-"dial"              // address to dial
-"network"           // network to use (default tcp) (currently only used for dial)
-
-```
-See the redis example for a typical split, and look at the "df" command example for a horizontal split by example.
-
-***
-
-### Net Dial
-
-Dial is a parameter used under commands.
-
-port test eg.
-```
-name: portTestFlex
-apis: 
-  - timeout: 1000 ### default 1000 ms increase if you'd like
-    commands:
-    - dial: "google.com:80"
-```
-
-sending a message and processing the output eg.
-```
----
-name: redisFlex
-apis: 
-  - name: redis
-    commands: 
-      - dial: 127.0.0.1:6379
-        run: "info\r\n"
-        split_by: ":"
-```
-
-#### Global Config that is passed down
-```
-base_url
-user
-pass
-proxy
-timeout
-headers:
- headerX: valueX
-jmx:
-* domain
-* user
-* pass
-* host
-* port
-* key_store
-* key_store_pass
-* trust_store
-* trust_store_pass
+```yaml
+integrations:                                    # OHI configuration starts here  
+  - name: nri-flex                               # OHI to be executed by the Agent
+    config:                                      # OHI configuration to be parsed by Flex
+      # Actual Flex configuration starts here
+      name: linuxDirectorySize                   # Flex configuration name
+      apis:                                       
+        - name: DirectorySize                    # Event type will be DirectorySizeSample
+          commands:                              # Selecting the API `commands`
+            - run: du -c $$DIR                   # Running a shell command
+              split: horizontal                  # Post-processing function: split horizontally
+              set_header: [dirSizeBytes,dirName] # Names for the headers of the table resulting from split
+              regex_match: true                  # Split horizontally matching a regular expression
+              split_by: (\d+)\s+(.*)             # Capture the regexpes between parentheses as the headers above   
 ```
