@@ -316,6 +316,7 @@ type ArgumentList struct {
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
 	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
+	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
 }
 ```
 

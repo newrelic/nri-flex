@@ -51,7 +51,7 @@ LoadFile loads a single Flex config file
 #### func  LoadFiles
 
 ```go
-func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string)
+func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error
 ```
 LoadFiles Loads Flex config files
 
@@ -79,7 +79,7 @@ RunAsync API in Async mode after lookup
 #### func  RunFiles
 
 ```go
-func RunFiles(configs *[]load.Config)
+func RunFiles(configs *[]load.Config) []error
 ```
 RunFiles Processes yml files
 

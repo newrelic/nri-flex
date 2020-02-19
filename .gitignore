@@ -16,3 +16,4 @@ dump*
 LATEST
 .vendor-new*
 .idea
+dist
