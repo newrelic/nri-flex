@@ -1,4 +1,4 @@
-# Sections of a Flex configuration file
+# Anatomy of a Flex configuration file
 
 This document describes the sections that compose a Flex configuration file. To get a quick, first picture of
 a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md).
@@ -62,21 +62,31 @@ Set of global properties that would apply to the overall file. The aim of this s
 is to avoid repeating some values (e.g. URLs, user credentials...) when they need to be
 used from multiple places.
 
-**TODO**: describe each entry or link to the proper documents.
+Example:
 
-```go
-type Global struct {
-	BaseURL    string `yaml:"base_url"`
-	User, Pass string
-	Proxy      string
-	Timeout    int
-	Headers    map[string]string `yaml:"headers"`
-	Jmx        JMX               `yaml:"jmx"`          // Don't explain here. Link to the JMX doc
-	TLSConfig  TLSConfig         `yaml:"tls_config"`   // Not explaining here. Link to the url api doc
-	Passphrase string            `yaml:"pass_phrase"`
-	SSHPEMFile string            `yaml:"ssh_pem_file"`
-}
+```yaml
+global:
+  base_url: http://localhost:9200/
+  user: elastic
+  pass: 3l4st1c
+  headers:
+    accept: application/json
 ```
+
+The following table enumerated all the possible global properties:
+
+| Property | Description |
+|---|---|
+| `base_url` | See [specifying a common base URL](../apis/url.md#specifying-a-common-base-url-with-base_url) |
+| `user` | If you are using an API that requires user and password authentication, the user name |
+| `password` | If you are using an API that requires user and password authentication, the password |
+| `proxy` | If your chosen API requires connecting through a proxy, the URL of the actual proxy |
+| `timeout` | Timeout for the API connections, in milliseconds |
+| `headers` | Key/value map of headers for the HTTP/HTTPS connections. |
+| `tls_config` | See [configuring your HTTPS connections](../apis/url.md#configuring-your-https-connections-with-tls_config) |
+| `JMX` | See [JMX](../experimental/jmx.md) (experimental) |
+| `pass_phrase` | If the above `password` property is ciphered, a pass phrase to decipher it |
+| `ssh_pem_file` | Path to a PEM file to enable SSH authentication. |  
 
 ## custom_attributes
 

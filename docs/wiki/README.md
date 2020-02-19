@@ -3,7 +3,7 @@
 ## Basics
 
 - [Flex files layout](basics/file_layout.md)
-- [Creating configs](basics/flex_config_sections.md)
+- [Anatomy of a Flex configuration file](basics/flex_config_sections.md)
 - [Order of operations](basics/order_of_operations.md)
 
 ## APIs
