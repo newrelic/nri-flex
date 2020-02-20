@@ -1,19 +1,26 @@
-integration_name: com.newrelic.nri-flex
-
-instances:
+integrations:
   - name: nri-flex
-    command: metrics
-    arguments:
-      # git_repo: https://github.com/userName/repoName
-      # git_user: userName
-      # git_token: abcd
-      # container_discovery: true ## default false
-      # container_discovery_dir: "anotherDir" default "flexContainerDiscovery" 
-      # config_file: "../myConfigFile.yml" ## default "" - run only a single specific config file
-      # config_dir: "anotherConfigDir/" ## default "flexConfigs/"
-      # event_limit: 500 ## default 500
-      # insights_api_key: abc
-      # insights_url: https://insights...
-      # insights_output: output the payload to stdout
+    # embedded Flex configuration.
+    # config:
+    #   - name: example
+    #     apis:
+    #      - name: status 
+    #        commands:
+    #          - run: echo "hello:world"
+    #            split_by: ":"
+    
+    # external configuration file (single file support only)
+    # config_template_path: C:\Program Files\New Relic\newrelic-infra\integrations.d\flex.yml
+
+    #env:
+      # for multiple file external file configuration support uncomment below 
+      # CONFIG_DIR: C:\Program Files\New Relic\newrelic-infra\integrations.d\flexConfigs
+      # GIT_REPO: https://github.com/userName/repoName
+      # GIT_USER: userName
+      # GIT_TOKEN: abcd
+      # EVENT_LIMIT: 500 ## default 500
+      # INSIGHTS_API_KEY: abc
+      # INISGHTS_URL: https://insights...
+      # INSIGHTS_OUTPUT: false ## output the payload to stdout (default false)
     # labels:
       # owner: cloud

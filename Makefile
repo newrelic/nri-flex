@@ -29,9 +29,6 @@ COMMANDS = $(wildcard ${SRCDIR}/cmd/*)
 # Determine binary names by stripping out the dir names
 BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
-# LDFLAGS='-X main.Version=$(PROJECT_VER)'
-LDFLAGS='-X github.com/newrelic/nri-flex/internal/load.IntegrationVersion=$(PROJECT_VER)'
-
 all: build
 
 # Humans running make:
@@ -63,9 +60,8 @@ release: release/deps
 include build/deps.mk
 include build/compile.mk
 include build/testing.mk
-include build/package.mk
 include build/util.mk
 include build/document.mk
 include build/docker.mk
 
-.PHONY: all build build-ci package
+.PHONY: all build build-ci
