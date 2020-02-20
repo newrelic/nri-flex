@@ -3,7 +3,7 @@
 ## Basics
 
 - [Flex files layout](basics/file_layout.md)
-- [Creating configs](basics/creating_configs.md)
+- [Anatomy of a Flex configuration file](basics/flex_config_sections.md)
 - [Order of operations](basics/order_of_operations.md)
 
 ## APIs
@@ -23,6 +23,7 @@ the APIs.
 Flex implements the following functionalities, but they are still experimental. This means
 that New Relic does not (yet) provides customer support for them.
 
+- [Database queries](experimental/db.md)
 - [Git configuration synchronization](experimental/git_sync.md)
 - [JMX](experimental/jmx.md)
 

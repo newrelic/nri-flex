@@ -16,7 +16,23 @@ apis:
 
 The above Flex configuration retrieves a JSON from the provided URL, containing a set of metrics.
 Please notice that the `url` API may be followed by a `headers` section, which allows specifying
-the HTTP headers. 
+the HTTP headers.
+
+## `POST` / `PUT` HTTP methods
+
+You can use the `method` and `payload` properties to specify a `POST` or `PUT` request with its
+body. 
+
+```
+---
+name: httpPostExample 
+apis: 
+  - name: httpPost
+    url: https://jsonplaceholder.typicode.com/posts
+    method: POST
+    payload: > 
+      {"title": "foo","body": "bar","userId": 1}
+```
 
 ## Configuring your HTTPS connections with `tls_config`
 
