@@ -7,10 +7,11 @@ package processor
 
 import (
 	"fmt"
-	"github.com/jeremywohl/flatten"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/jeremywohl/flatten"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
@@ -21,10 +22,15 @@ const _originalAPINo = "_originalAPINo"
 func FlattenData(unknown interface{}, data map[string]interface{}, key string, sampleKeys map[string]string, api *load.API) map[string]interface{} {
 	switch unknown := unknown.(type) {
 	case []interface{}:
-		var dataSamples []interface{}
-		dataSamples = append(dataSamples, unknown...)
-		key = checkPluralSlice(key)
-		data[key+"FlexSamples"] = dataSamples
+		if api.SplitArray {
+			dataSamples := splitArrays(&unknown, data, key, api, &[]interface{}{})
+			data[key+"FlexSamples"] = dataSamples
+		} else {
+			dataSamples := []interface{}{}
+			dataSamples = append(dataSamples, unknown...)
+			key = checkPluralSlice(key)
+			data[key+"FlexSamples"] = dataSamples
+		}
 	case map[string]interface{}:
 		if api.SplitObjects { // split objects can only be used once
 			dataSamples := splitObjects(&unknown, api)
@@ -72,7 +78,6 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 			delete(data, dataKey)
 		}
 	}
-
 	return data
 }
 
@@ -181,6 +186,41 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	}
 	(*api).SplitObjects = false // only allow this to be run once
 	return dataSamples
+}
+
+// splitArrays splits an array interface with nested arrays
+// this will drop and ignore and slices/arrays that could exist
+func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key string, api *load.API, dataSamples *[]interface{}) []interface{} {
+	keys := []string{}
+	if len(api.SetHeader) > 0 {
+		keys = api.SetHeader
+	}
+	for index := range *unknown {
+		switch data := (*unknown)[index].(type) {
+		case []interface{}:
+			splitArrays(&data, map[string]interface{}{}, key, api, dataSamples)
+		default:
+			value := ""
+			switch (data).(type) {
+			case float32, float64:
+				// For float numbers, use decimal point format instead of scientific notation (e.g. 2026112.000000 vs 2.026112e+06 )
+				// to allow the parser to process the original float number 2026112.000000 rather than 2.026112e+06
+				value = fmt.Sprintf("%f", data)
+			default:
+				value = fmt.Sprintf("%v", data)
+			}
+			keyName := key + strconv.Itoa(index)
+			if (index + 1) <= len(keys) {
+				keyName = keys[index]
+			}
+			newSample[keyName] = value
+		}
+	}
+	if len(newSample) != 0 {
+		*dataSamples = append(*dataSamples, newSample)
+	}
+
+	return *dataSamples
 }
 
 // ProcessSamplesMergeJoin used to merge/join multiple samples together hren

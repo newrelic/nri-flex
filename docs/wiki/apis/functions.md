@@ -24,6 +24,7 @@ The below functions are available under each defined api:
 * [math](#math) Perform math operations with or without the current data set
 * [timestamp](#timestamp) Apply timestamps anywhere in configs, and add or subtract to timestamps as well
 * [split_objects](#split_objects) Split an object that has nested objects
+* [split_array](#split_array) Split an array that has nested arrays
 * [lookup_file](#lookup_file) Supply a json file containing an array of objects, to dynamically substitute into config(s)
 * [pagination](#pagination) Handle Pagination for HTTP URLs
 * [inherit_attributes](#inherit_attributes) Inherits attributes from parent of payload
@@ -603,6 +604,133 @@ Output:
       "events": []
     }
   ]
+}
+```
+
+#### split_array
+
+Split an array that has nested arrays.
+eg. You receive a payload that looks like below
+```json
+{
+  "status": 1,
+  "appstatus": -128,
+  "statusstring": null,
+  "appstatusstring": null,
+  "results": [
+    {
+      "status": -128,
+      "schema": [
+        {
+          "name": "TIMESTAMP",
+          "type": 6
+        },
+        {
+          "name": "HOST_ID",
+          "type": 5
+        },
+        {
+          "name": "HOSTNAME",
+          "type": 9
+        },
+        {
+          "name": "PERCENT_USED",
+          "type": 6
+        }
+      ],
+      "data": [
+        [
+          1582159853733,
+          0,
+          "7605f6bec898",
+          0
+        ],
+        [
+          1582159853733,
+          2,
+          "067ea6fc4c22",
+          0
+        ],
+        [
+          1582159853733,
+          1,
+          "62a10d3f45e3",
+          0
+        ]
+      ]
+    }
+  ]
+}
+```
+The following config can split these neatly for you.
+
+```yaml
+apis:
+  - name: voltdb_cpu
+    event_type: voltdb
+    # url: <voltdb json api - CPU URL > e.g. http://127.0.0.1:32952/api/1.0/?Procedure=@Statistics&Parameters=["CPU"]
+    url: http://127.0.0.1:32952/api/1.0/?Procedure=@Statistics&Parameters=["CPU"]
+    split_array: true
+    set_header:  [TIMESTAMP,HOST_ID,HOSTNAME,PERCENT_USED]
+    start_key:
+      - results>data
+```
+
+Output:
+
+```json
+{
+	"name": "com.newrelic.nri-flex",
+	"protocol_version": "3",
+	"integration_version": "Unknown-SNAPSHOT",
+	"data": [
+		{
+			"metrics": [
+				{
+					"HOSTNAME": "7605f6bec898",
+					"HOST_ID": 0,
+					"PERCENT_USED": 4,
+					"TIMESTAMP": 1582161013979,
+					"event_type": "voltdb",
+					"integration_name": "com.newrelic.nri-flex",
+					"integration_version": "Unknown-SNAPSHOT"
+				},
+				{
+					"HOSTNAME": "067ea6fc4c22",
+					"HOST_ID": 2,
+					"PERCENT_USED": 4,
+					"TIMESTAMP": 1582161013978,
+					"event_type": "voltdb",
+					"integration_name": "com.newrelic.nri-flex",
+					"integration_version": "Unknown-SNAPSHOT"
+				},
+				{
+					"HOSTNAME": "62a10d3f45e3",
+					"HOST_ID": 1,
+					"PERCENT_USED": 4,
+					"TIMESTAMP": 1582161013980,
+					"event_type": "voltdb",
+					"integration_name": "com.newrelic.nri-flex",
+					"integration_version": "Unknown-SNAPSHOT"
+				},
+				{
+					"event_type": "flexStatusSample",
+					"flex.Hostname": "C02W60KWHTD8",
+					"flex.IntegrationVersion": "Unknown-SNAPSHOT",
+					"flex.counter.ConfigsProcessed": 1,
+					"flex.counter.EventCount": 3,
+					"flex.counter.EventDropCount": 0,
+					"flex.counter.HttpRequests": 1,
+					"flex.counter.voltdb": 3,
+					"flex.time.elaspedMs": 15,
+					"flex.time.endMs": 1582161013969,
+					"flex.time.startMs": 1582161013954
+				}
+			],
+			"inventory": {},
+			"events": []
+		}
+	]
 }
 ```
 

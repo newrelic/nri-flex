@@ -115,7 +115,7 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 								case map[string]interface{}:
 									nestedSlices = append(nestedSlices, nestedSample)
 								case []interface{}:
-									nestedSlices = append(nestedSlices, nestedSample[0])
+									nestedSlices = append(nestedSlices, nestedSample)
 								}
 							}
 						}
