@@ -15,8 +15,7 @@ apis:
 ```
 
 The above Flex configuration retrieves a JSON from the provided URL, containing a set of metrics.
-Please notice that the `url` API may be followed by a `headers` section, which allows specifying
-the HTTP headers.
+Please notice that the `url` API may be followed by a `headers` section, which allows specifying the HTTP headers.
 
 ## `POST` / `PUT` HTTP methods
 
@@ -74,7 +73,7 @@ global:
     base_url: http://consul-host/v1/
     headers:
       X-Consul-Token: my-root-consul-token
-apis: 
+apis:
   - event_type: ConsulHealthSample
     url: health/service/consul
   - event_type: ConsulCheckSample
@@ -109,5 +108,5 @@ apis:
           - expression: Reading:\s(\d+)\s\S+\s(\d+)\s\S+\s(\d+)
             keys: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
     math:
-      net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond} 
+      net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond}
 ```
