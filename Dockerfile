@@ -17,7 +17,7 @@ RUN mkdir -p /var/db/newrelic-infra/custom-integrations/flexContainerDiscovery/
 # ADD flexConfigs /var/db/newrelic-infra/custom-integrations/flexConfigs/
 
 # copy config/definition/binary over
-COPY ./configs/nri-flex-config.yml /etc/newrelic-infra/integrations.d/
+COPY ./configs/nri-flex-config-linux.yml /etc/newrelic-infra/integrations.d/
 COPY ./configs/nri-flex-def-linux.yml /var/db/newrelic-infra/custom-integrations/nri-flex-definition.yml
 COPY ./bin/linux/nri-flex /var/db/newrelic-infra/custom-integrations/nri-flex
 
