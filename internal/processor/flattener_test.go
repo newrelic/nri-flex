@@ -62,7 +62,6 @@ func TestSplitObjects(t *testing.T) {
 func TestSplitArrays(t *testing.T) {
 	getAPI := func() *load.API {
 		return &load.API{
-			SplitObjects: true,
 			SetHeader: []string{
 				"TIMESTAMP", "HOST_ID", "HOSTNAME", "PERCENT_USED",
 			},
