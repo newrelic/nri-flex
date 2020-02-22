@@ -20,10 +20,8 @@ COPY ./bin/linux/nri-flex /var/db/newrelic-infra/newrelic-integrations/bin/
 # # add netcat if needed
 # RUN apk add --update netcat-openbsd && rm -rf /var/cache/apk/*
 
-# add your configuration files here
+# add your configuration file here
 # ADD ./examples/flexConfigs/some-configuration-file.yml /etc/newrelic-infra/integrations.d/flexConfigs/
 
-# run Flex in isolation mode (no Infrastructure agent)
-ENTRYPOINT ["/var/db/newrelic-infra/newrelic-integrations/bin/nri-flex"]
-# use this to pass arguments to flex in isolation mode
-CMD [ "-verbose", "-config_dir", "/etc/newrelic-infra/integrations.d/flexConfigs/"]
+# run Flex via Infrastructure agent
+ENTRYPOINT ["/usr/bin/newrelic-infra"]
