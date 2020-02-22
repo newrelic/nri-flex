@@ -1,6 +1,7 @@
 PROJECT_NAME := $(shell basename $(shell pwd))
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
+GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
 SRCDIR       ?= .
 BUILD_DIR    := ./bin/
 COVERAGE_DIR := ./coverage/

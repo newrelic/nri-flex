@@ -9,7 +9,7 @@ TEST_CMD := go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 LINE_BREAK := "--------------------------------------------------------------------"
 
 docker-image: compile-linux
-	$(DOCKER) build -t $(IMAGE_NAME):$(PROJECT_VER) .
+	$(DOCKER) build -t $(IMAGE_NAME):latest .
 
 docker-clean:
 	@echo "### Removing $(PROJECT_NAME) containers..."
@@ -20,7 +20,7 @@ docker-clean:
 docker-run:
 	@echo "### Running via docker-compose..."
 	@read -p "Enter any CLI arguments, else hit enter to skip:" args; \
-	$(DOCKER_COMPOSE) run golang sh -c "$(TEST_CMD) && $(GO) run cmd/flex/nri-flex.go $$args"
+	$(DOCKER_COMPOSE) run golang sh -c "$(TEST_CMD) && $(GO_CMD) run cmd/nri-flex/nri-flex.go $$args"
 
 
 #

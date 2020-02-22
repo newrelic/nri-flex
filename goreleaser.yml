@@ -22,6 +22,9 @@ archives:
       - README.md 
       - CHANGELOG.md
       - examples/*
+    format_overrides:
+      - goos: windows
+        format: zip
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -32,3 +35,5 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^chore:'
+      - '^Merge'

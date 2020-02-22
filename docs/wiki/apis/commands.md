@@ -2,7 +2,6 @@
 
 The `commands` API allows retrieving information from any application or shell command executed. It can accept multiple commands that are executed sequentially.
 
-
 ## Basic usage
 
 ```yaml
@@ -22,7 +21,6 @@ The above Flex configuration retrieves the raw output provided by the command de
 It also informs Flex that the output is horizontally formatted and has 2 columns as defined by the `set_header` directive.
 Finally it extract the values via a regex match, using the regex expression defined in the `split_by` directive, and assignes them in order to each of the columns defined in the `set_header` directive.
 
-
 ## Configuration properties
 
 The following table defines the properties of the `commands` API. The API accepts a list of **command**, each requiring the `run` directive, and accepting one of more directives described in the following table.
@@ -38,7 +36,7 @@ The following table defines the properties of the `commands` API. The API accept
 | `row_start` | int | 0 | Specifies where the line number where Flex will start processing "metric" data. If `split` is set to `horizontal`, `row_start` will only be used if `row_start` != `row_header` and `row_start` >= 1 |
 | `line_start` | int | 0 | Specifies the line number where Flex will start processing data. If `split` is set to `horizontal` and `row_start` is defined, `line_start` will only be used if `line_start` != `row_header` and `line_start` >= 1. If both `row_start` and `line_start` are defined, `line_start` has precedence |
 | `line_end` | int | 0 | Specified the line number (exclusive) at which Flex will stop processing data. Only applies if `split` != `horizontal`|
-| `set_header` | array of string | [] | Defines the name (and number) of columns Flex should extract data from. Only applies if `split` = `horizontal` | 
+| `set_header` | array of string | [] | Defines the name (and number) of columns Flex should extract data from. Only applies if `split` = `horizontal` |
 | `header_regex_match` | bool | false | Defines whether the regular expression in `header_split_by` should be interpreted as a match expression (true) or a split expression (false). Applies only if `split` = `horizontal` |
 | `header_split_by` | string | | Defines the regular expression that will be applied to the header line. Applies only if `split` = `horizontal` |
 | `split_output` | string | | Defines the regular expression that is used to split the output into blocks of data. |
@@ -52,7 +50,6 @@ The `commands` api allows for more format directives to be defined to help Flex 
 
 In the example below, the command being executed, `df`, outputs in a table-like format that includes a header defined by the directive `set_header`, and so the values start at `row_start`, which tells Flex the values start at row 1. 
 We also inform Flex to extract the values via simple regex split expression. In this particular case, the expression tells Flex that the values are separated by spaces. Each value is assigned in order each key defined by the `set_header` directive.
-
 
 ```yaml
 ---
@@ -83,12 +80,11 @@ apis:
         split: horizontal
         regex_match: true
         split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)
-        
 ```
 
 ### Specifying the shell
 
-By default, all commands are run with the shell `/bin/sh` (or `cmd` under windows). If for some reason you want to use a different shell, you case do so either by specifying it at the API level, which will apply equally to each command or you can specify it at the command level, which will apply to that command only, and as expected overrides any value set at the API level. 
+By default, all commands are run with the shell `/bin/sh` (or `cmd` under windows). If for some reason you want to use a different shell, you case do so either by specifying it at the API level, which will apply equally to each command or you can specify it at the command level, which will apply to that command only, and as expected overrides any value set at the API level.
 
 In the example below the shell `/bin/zsh` will apply only to the second command, even if it's declared at the API level, becuase the first command overwrites it, with `/bin/bash`.
 
@@ -107,7 +103,6 @@ apis:
         split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)
       - run: some_other_command
         split_by: \s+
-        
 ```
 
 ## Specifying a timeout
@@ -141,7 +136,6 @@ In case the output of the command is not a sequential list of lines/values you c
 The directive accepts a regex expression that it uses to split the output into blocks.
 Then it can either use a list of regex expressions to extract data from each block, or it can try and process it "raw" with a simple `split_by` directive.
 
-
 ```yml
 name: example
 apis:
@@ -155,7 +149,8 @@ apis:
 ```
 
 If you run the command defined in the `run` directive you get the following result:
-```
+
+```text
 key:value
 ---
 other_key:otherValue
@@ -203,7 +198,8 @@ apis:
     commands:
       - run: echo "this is noise" && echo "key:value" && echo "otherKey:otherValue" && echo "more noise"
         line_start: 1
-        line_end: 3      
+        line_end: 3
         split_by: ":"
 ```
+
 Note that `line_end` is exclusive, meaning that you have to use +1 (0 indexed) on the actual line you want to stop being processed.

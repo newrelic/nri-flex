@@ -53,19 +53,19 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 			defer cancel() // The cancel should be deferred so resources are cleaned up
 
-			if api.Shell != "" {
-				commandShell = api.Shell
-			}
-			if command.Shell != "" {
-				commandShell = command.Shell
-			}
-
 			secondParameter := "-c"
 
 			// windows commands are untested currently
 			if runtime.GOOS == "windows" {
 				commandShell = "cmd"
 				secondParameter = "/C"
+			}
+
+			if api.Shell != "" {
+				commandShell = api.Shell
+			}
+			if command.Shell != "" {
+				commandShell = command.Shell
 			}
 
 			// Create the command with our context
