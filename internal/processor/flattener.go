@@ -23,8 +23,8 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 	switch unknown := unknown.(type) {
 	case []interface{}:
 		if api.SplitArray {
-			dataSamples := splitArrays(&unknown, data, key, api, &[]interface{}{})
-			data[key+"FlexSamples"] = dataSamples
+			// dataSamples := splitArrays(&unknown, data, key, api, &[]interface{}{})
+			// data[key+"FlexSamples"] = dataSamples
 		} else {
 			dataSamples := []interface{}{}
 			dataSamples = append(dataSamples, unknown...)

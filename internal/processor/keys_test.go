@@ -7,8 +7,9 @@ package processor
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
@@ -261,8 +262,7 @@ func TestStripKeys(t *testing.T) {
 		},
 		"ChangesOnSubMapUnknownKey": {
 			sample: map[string]interface{}{
-				"abc": map[string]interface{}{
-				},
+				"abc": map[string]interface{}{},
 				"xyz": map[string]interface{}{
 					"zyx": 2,
 				},
@@ -410,8 +410,8 @@ func TestStartKeys(t *testing.T) {
 				},
 			},
 			startKeys: []string{"def>def2"},
-			// TODO: shouldn't here contain also def4?
-			expected:     `{"def2":["def3"]}`,
+			// TODO: should this be in a nested array?
+			expected:     `{"def2":[["def3","def4"]]}`,
 			inheritAttrs: true,
 		},
 	}
