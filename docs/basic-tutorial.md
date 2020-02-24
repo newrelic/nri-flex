@@ -1,57 +1,52 @@
-# FLEX step-by-step basic tutorial
+# Flex step-by-step tutorial
 
-Requirements:
+Follow this tutorial to get started with Flex!
 
-* Infrastructure Agent version 1.8.x or higher.
-  - Flex can also work with older versions, but this tutorial relies on the
-    latest integrations engine, which has been added in the version 1.8.0.
-  - [Please check the documentation to learn more](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180)       
-* Run the Infrastructure Agent in Root/Administrator mode. 
-  - It is the user that executes the Agent by default.  
-  - Current versions of Flex require administrator permissions for the
-    management of temporary files.
+## Requirements
+
+* Infrastructure agent version 1.8 or higher.
+  - Flex can also work with older versions, but this tutorial relies on the latest integrations engine which has been added in the [version 1.8.0](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).  
+* Run the Infrastructure agent in root/administrator mode. 
+  - Current versions of Flex require administrator permissions for the management of temporary files.
 * Flex 0.8.5 or higher.
-  - This version is prepared to easily work with the new integrations system of
-    the Infrastructure Agent 1.8.0, as used in this tutorial.
-  - Previous versions of Flex also work, but would require few extra configuration
-    steps that are not addressed in this tutorial.
+  - This version is prepared to work with the new integrations system introduced by the Infrastructure agent 1.8.0, which is used in this tutorial.
+  - Previous versions of Flex also work, but require few extra configuration steps that are not addressed by this tutorial.
 
-## Install
+## Installation
 
-✅ Since New Relic Infrastructure agent version 1.10.0, Flex is bundled with the agent package, so you don't
-need to perform any extra step for its installation.
+Starting from New Relic Infrastructure agent version 1.10.0, Flex is bundled with the agent in the same package, so you don't need to perform any extra step for its installation.
 
-## Checking that Flex is up and running
+## Check that Flex is up and running
 
-1. Create a file named `my-flex-configs.yml` (or any other name of your choose) into the
-   `/etc/newrelic-infra/integrations.d` folder. 
-    - Windows users: `C:\Program Files\New Relic\newrelic-infra\integrations.d` folder.
-2. Set the following contents for the previously created file:
+1. Create a file named `my-flex-configs.yml` (or similar) in this folder:
+    * Linux: `/etc/newrelic-infra/integrations.d`
+    * Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d`
+2. Edit the file and add this snippet:
    ```yaml
    integrations:
      - name: nri-flex
        config:
          name: just-testing
    ```
-3. Go to Insights and run the following query:
+3. Go to New Relic and run the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
 
 ```sql
-from flexStatusSample select * LIMIT 1
+FROM flexStatusSample SELECT * LIMIT 1
 ```
 
-The query should show a table similar to this:
+The query should produce a table similar to this:
 
 ![](./img/basic-table.png)
 
 ### What happened behind the scenes
 
-1. The Infrastructure Agent detected that a new integration, named `nri-flex`, has been added.
-2. The Agent looks for an executable named `nri-flex` in `/var/db/newrelic-infra/newrelic-integrations/`.
-3. A temporary text configuration file is created with the following contents:
+1. The Infrastructure agent detected that a new integration, `nri-flex`, has been added.
+2. The agent looks for an executable named `nri-flex` in `/var/db/newrelic-infra/newrelic-integrations/`.
+3. A temporary configuration file is created with this content:
    ```yaml
    name: just-testing
    ```
-4. `nri-flex` is executed receiving the path of the above YAML file via the `CONFIG_PATH` environment
+4. `nri-flex` is executed and gets the path of the config file via the `CONFIG_PATH` environment
    variable.
 5. Flex recognizes a configuration named `just-testing`, but since it does not provide extra information
    it just returns a `flexStatusSample` with some internal status of the Flex integration.

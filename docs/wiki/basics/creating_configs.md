@@ -1,62 +1,62 @@
-# Creating Flex Configs
-
-Flex configurations are all defined by a yaml file.
-The easiest way to kick start learning is to check the existing configs under [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
+# Create Flex configurations
 
 Flex allows you to define multiple APIs or data sources so you can monitor multiple services with just one Flex configuration file.
 
-Each API outputs it's resulting data into a single sample. A sample is a data structure that contains a name, some metadata and metric attributes. This data structure is then serialized and sent to New Relic.
+Flex configuration files are in YAML format. The easiest way to start learning how to configure Flex is by checking existing config files under [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
-Some APIs, like [commands](#commands), allow you to define multiple sequential entries that work in conjuction to process data.
+* [Officially supported APIs](#OfficiallysupportedAPIs)
+* [Alpha APIs](#AlphaAPIs)
+* [Data parsing and transformation functions](#Dataparsingandtransformationfunctions)
+* [Custom attributes](#Customattributes)
+* [Environment variables](#Environmentvariables)
+* [Global configuration options](#Globalconfigurationoptions)
 
-## Officially supported APIs
+##  <a name='OfficiallysupportedAPIs'></a>Officially supported APIs
 
-Althoug Flex supports a variety of APIs, the following APIs are considered officially supported by New Relic. More APIs will be gaining GA status in the not so distant future.
+Althoug Flex supports a variety of APIs, the following APIs are officially supported by New Relic.
 
-- [shell commands](../apis/commands.md) Run any standard shell command or application
-- [http requests](../apis/url.md) Query any standard http(s) endpoint returning JSON or XML
+- [Shell commands](../apis/commands.md): Run any standard shell command or application (Linux or Windows).
+- [HTTP requests](../apis/url.md): Query any standard HTTP/HTTPS endpoint returning JSON or XML.
 
-## Alpha APIs
+More APIs will be added in the future.
 
-The following APIs are considered Alpha status and while they may work for your use-case, New Relic does not at the moment offer official support for them.
+## <a name='AlphaAPIs'></a>Alpha APIs
 
-- [net dial](#net-dial) Can be used for port testing or sending messages and processing the response.
-- [database queries](#database-queries)
-- [jmx queries](#jmx-queries) Uses nrjmx to send JMX requests which will be processed further.
+The following APIs are in alpha status, and while they may work for your usecase, New Relic does not yet support them. 
 
-## Data parsing and transformation functions
+- [Net dial](#net-dial): Can be used for port testing or for sending messages and processing responses.
+- [Database queries](#database-queries)
+- [JMX queries](#jmx-queries): Uses nrjmx to send JMX requests to be processed.
 
-Data parsing and transformation functions available for features like `key renaming`, `key removal`, `output splitting` and others, see [Functions](../apis/functions.md).
+##  <a name='Dataparsingandtransformationfunctions'></a>Data parsing and transformation functions
 
-## Custom Attributes
+For data parsing and transformation functions like key renaming, key removal, output splitting, and others, see [Functions](../apis/functions.md).
 
-Flex allows you to add your own custom attributes to the resulting sample of an API. You can add custom attributes under the `Global` directive and at the API level, by declaring an array named `custom_attributes`.
+##  <a name='Customattributes'></a>Custom attributes
 
-Custom attributes defined at the Config level will be added to all samples, and custom attributes defined at the API level will be added only in the specific API where they are defined.
-
-Custom attributes can also be added for the in the `commands` API in each declared command.
-
-A standard key:pair structure is used.
+With Flex you can add your own custom attributes to samples. Add any custom attribute using key-value pairs under the `global` directive, and at the API level by declaring an array named `custom_attributes`.
 
 ```yaml
 custom_attributes:
   greeting: hello
 ```
 
-## Environment variables
+Custom attributes defined at the config level are added to all samples, while custom attributes defined at the API level are added only at the level of the API where they are defined. Custom attributes can also be added for each command declared under `commands`.
 
-Flex allows you to inject environment variable values throughout any Flex config file. Simply use a double dollar sign before the name of the environment value you want injected (ex: $$MY_ENVIRONMENT_VAR)
+##  <a name='Environmentvariables'></a>Environment variables
 
-## Global configuration options
+You can inject values for environment variables anywhere in a Flex config file. To inject the value for an environment variable, use a double dollar sign before the name of the variable (for example `$$MY_ENVIRONMENT_VAR`).
 
-Flex allows you to configure some properties at the a global level. These properties  will overwrite the defaults (if applicable) and some can also be overwritten at the API level.
+##  <a name='Globalconfigurationoptions'></a>Global configuration options
 
-| Name | Type | Default | Applies to | Description |
-|---:|:---:|:---:|:---:|:---|
-|`base_url`| string | n.a. | `url` | Set it to define the base `url` used for  http requests. If using a `base_url` you can then use just the path of the endpoint when doing HTTP requests |
-|`user`| string | n.a. | `url` | Set it do define the default `user` to use for Basic authentication when doing HTTP requests |
-|`pass`| string | n.a. | `url` | Set it do define the default `password` to use for Basic authentication when doing HTTP requests |
-|`proxy`| string | n.a. | `url` | Set it do define the default `proxy` to use when doing HTTP requests |
-|`timeout`| string | n.a. | `url` | Set it do define the default `timeout` to use when doing HTTP requests |
-|`headers`| map of string to string | n.a. | `url` | Set it do define the default `headers` to send when doing HTTP requests |
-|`tls_config`| structure | n.a. | `url` | Set it do define the TLS configuration to use whe nding HTTP request. See [http requests](../apis/url.md) for more information |
+Flex allows you to configure some properties at global level. These properties overwrites any default (if applicable) and some can also be overwritten at API level.
+
+| Name | Type | Applies to | Description |
+|---:|:---:|:---:|:---|
+|`base_url`| string | `url` | Base URL for HTTP requests. Allows to define URLs using just path segments |
+|`user`| string | `url` | Default user for Basic authentication when doing HTTP requests |
+|`pass`| string | `url` | Default password for Basic authentication when doing HTTP requests |
+|`proxy`| string | `url` | Default proxy to use when doing HTTP requests |
+|`timeout`| string | `url` | Default timeout for HTTP requests |
+|`headers`| string to string map | `url` | Default headers to send when doing HTTP requests |
+|`tls_config`| structure | `url` | TLS configuration to use whe sending HTTP request. See [http requests](../apis/url.md) for more information |

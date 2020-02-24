@@ -1,8 +1,14 @@
-# `url`
+# url API
 
 The `url` API allows retrieving information from an HTTP endpoint. 
 
-## Basic usage
+* [Basic usage](#Basicusage)
+* [Use POST/PUT methods with a body](#UsePOSTPUTmethodswithabody)
+* [Configure your HTTPS connections](#ConfigureyourHTTPSconnections)
+* [Specify a common base URL](#SpecifyacommonbaseURL)
+* [URL with cache for later processing](#URLwithcacheforlaterprocessing)
+
+##  <a name='Basicusage'></a>Basic usage
 
 ```yaml
 ---
@@ -14,15 +20,13 @@ apis:
       accept: application/json
 ```
 
-The above Flex configuration retrieves a JSON from the provided URL, containing a set of metrics.
-Please notice that the `url` API may be followed by a `headers` section, which allows specifying the HTTP headers.
+The above Flex configuration retrieves a JSON file containing a set of metrics from the provided URL. Notice that the `url` key can be followed by a `headers` section, which allows specifying HTTP headers.
 
-## `POST` / `PUT` HTTP methods
+##  <a name='UsePOSTPUTmethodswithabody'></a>Use POST/PUT methods with a body
 
-You can use the `method` and `payload` properties to specify a `POST` or `PUT` request with its
-body. 
+To specify a `POST` or `PUT` request with a body, use the `method` and `payload` properties.
 
-```
+```yaml
 ---
 name: httpPostExample 
 apis: 
@@ -33,18 +37,17 @@ apis:
       {"title": "foo","body": "bar","userId": 1}
 ```
 
-## Configuring your HTTPS connections with `tls_config`
+##  <a name='ConfigureyourHTTPSconnections'></a>Configure your HTTPS connections
 
-If you are using TLS endpoints with self-signed certificates, you may need to specify a `tls_config`
-section with any of the following items:
+When using TLS endpoints with self-signed certificates, define a `tls_config` section with any of the following items:
 
 | Name | Type | Default | Description |
 |---:|:---:|:---:|---|
-| `enable` | Bool | `false` | Set it to `true` to enable a custom TLS configuration for your HTTPS connection. It is used in conjunction with the rest of properties in this table |
-| `insecure_skip_verify` | Bool | false | Set to `true` to skip the verification of TLS certificates for your HTTPS endpoint |
-| `ca` | string | _empty_ | Provide the Certificate Authority PEM certificate, in case your HTTPS endpoint has self-signed certificates. |  
+| `enable` | bool | `false` | Set to `true` to enable custom TLS configuration. Requires `ca` to be defined if enabled. |
+| `insecure_skip_verify` | bool | `false` | Set to `true` to skip the verification of TLS certificates. |
+| `ca` | string | _Empty_ | The Certificate Authority PEM certificate, in case your HTTPS endpoint has self-signed certificates. |  
 
-Example:
+### TLS configuration example:
 
 ```yaml
 ---
@@ -59,13 +62,11 @@ apis:
       ca: /etc/bundles/my-ca-cert.pem
 ```
 
-## Specifying a common base URL with `base_url`
+##  <a name='SpecifyacommonbaseURL'></a>Specify a common base URL
 
-If you have to query the same host multiple times, you may want to set up a common
-`base_url` global field. Then you only have to provide the URL path in the rest of
-`url` sections.
+When you have to query several different URLs, specifying a `base_url` under `global` can be quite helpful, as it allows you to provide URL path segment in `url` fields instead of full URLs.
 
-Example
+###  Base URL example
 
 ```yaml
 name: consulFlex
@@ -82,13 +83,11 @@ apis:
     url: agent/members
 ```
 
-## `url` with `cache` for later processing
+##  <a name='URLwithcacheforlaterprocessing'></a>URL with cache for later processing
 
-The URL invocations are cached, so you can process them later without having to query it
-repeatedly.
+URL invocations are cached to avoid having to query them repeatedly. Use `cache` under `command` to read cached data.
 
-In the following example, the NGINX status endpoint is invoked, and its output is
-retrieved from the cache for its later extraction of meaningful data:
+In this example, the NGINX status endpoint is invoked, and the output is retrieved from the cache for later processing:
 
 ```yaml
 name: nginxFlex

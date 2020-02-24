@@ -1,28 +1,22 @@
-# Files Layout
+#  File and directory structure
 
-When using Flex with the New Relic Infrastructure Agent, this is the file/directory structure that
-should appear for Linux.
+The following file/directory structure applies when using Flex with the New Relic Infrastructure Agent for Linux.
 
-Within the OHI Config File, we could spawn multiple instances of Flex with different configurations if needed.
+Note that within the OHI Config File, you can spawn multiple instances of Flex with different configurations if needed.
 
 ## Flex executable
 
-The Flex executable will be available in the path `/var/db/newrelic-infra/newrelic-integrations/bin/nri-flex`.
+New Relic Infrastructure version 1.10.0 or higher already bundles Flex with the agent in the same package.
 
-New Relic Infrastructure agent version 1.10.0 and higher bundles Flex within the agent package, so you don't
-need to perform any extra step for its installation.
+The Flex executable is in `/var/db/newrelic-infra/newrelic-integrations/bin/nri-flex`.
 
-## Flex & OHI joint configuration
+## Flex and OHI - Joint configuration
 
-Flex can be configured in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180):
-`/etc/newrelic-infra/integrations.d`.
+Flex is configured in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): `/etc/newrelic-infra/integrations.d`.
 
-You need to put there a YAML file that may have two parts: the main document is used by the Infrastructure agent to
-execute Flex as any other on-host integration (user, interval, label decoration, etc...); in the `config` section
-of the main document, you can write your Flex configuration contents, which is exclusively used by Flex for its
-proper operation.
+The main section of the configuration YAML file is used by the Infrastructure agent to execute Flex like any other on-host integration; under `config`, you can add your Flex configuration, which is only used by Flex.
 
-For example, let a `/etc/newrelic-infra/integrations.d/my-flex-config.yml` text file contain:
+For example, a `/etc/newrelic-infra/integrations.d/my-flex-config.yml` file could contain:
 
 ```yaml
 integrations:
@@ -36,26 +30,14 @@ integrations:
           url: https://my-host:8443/admin/metrics.json
 ```
 
-* **On-Host Integration Configuration**: the first 5 lines are read by the Agent to know that it must execute the `nri-flex` executable every 60 seconds,
-  canceling the execution if it lasts more than 5 seconds.
-    - Please refer to the [on-host integrations configuration documentation](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180)
-      for more details about the contents of the on-host integrations' configuration file.
-* **Flex configuration**: the Agent writes the 4 last lines into a temporary YAML file that is read by the `nri-flex`
-  command (receiving the file path via the `CONFIG_PATH` environment variable), containing the actions
-  that need to be taken.
-    - Please refer to the [APIs](../README.md#apis) reference for more examples and details of the contents of the
-      a Flex configuration.
+* **On-Host Integration Configuration**: the first 5 lines are read by the agent to execute the `nri-flex` binary every 60 seconds, canceling the execution if it lasts more than 5 seconds. Refer to [Integration configuration file specifications](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180) for more details about the contents of the on-host integrations configuration file.
+* **Flex configuration**: the agent writes the four last lines into a temporary YAML file that is read by the `nri-flex` command (the file being set in the `CONFIG_PATH` environment variable). It contains the actions to be taken. Refer to the [APIs](../README.md#apis) reference for examples and details.
 
-## Flex & OHI separate configuration
+## Flex and OHI - Separate configuration
 
-You may feel more comfortable keeping on one side the configuration of Flex as an on-host integration (this is,
-how the agent must execute flex), and on the other side the configuration of what Flex has to do, in two separate
-files.
+The agent allows linking the Flex file path from `/etc/newrelic-infra/integrations.d` by replacing the `config` contents of the `config_template_path` property, which contains the path of the Flex config file.
 
-The agent allows linking the Flex file path from the configuration YML in `/etc/newrelic-infra/integrations.d`, by replacing
-the `config` property contents by the `config_template_path` property containing the path of the Flex file.
-
-This way, the equivalent `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
+This way, the equivalent of `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
 
 ```yaml
 integrations:
@@ -75,3 +57,4 @@ apis:
     url: https://my-host:8443/admin/metrics.json
 ```
 
+> We recommend splitting the configuration of Flex as an on-host integration (that is, how the Infrastructure agent must execute Flex) and the actual Flex configuration in two separate files.
