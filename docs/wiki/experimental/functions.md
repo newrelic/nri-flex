@@ -1,25 +1,21 @@
 # Experimental functions
 
-Experimental functions are functions that although present and available for use we currently don't recommend using them (unless critical for your use-case) due to either missing documentation, unintuitive results, very specific use-cases, or even unexpected results based on specific configurations.
+Experimental functions are available for use but currently not recommend for use in production environments (unless critical for your use case). They are not officially supported by New Relic.
 
-As such we currently don't offer official support.
-
-- [Experimental functions](#experimental-functions)
-  - [inherit_attributes](#inheritattributes)
-  - [sample_keys](#samplekeys)
-  - [rename_samples](#renamesamples)
-  - [sub_parse](#subparse)
-  - [store_variables](#storevariables)
-  - [pluck_numbers](#plucknumbers)
-  - [metric_parser](#metricparser)
-  - [pagination](#pagination)
+- [inherit_attributes](#inheritattributes)
+- [metric_parser](#metricparser)
+- [pagination](#pagination)
+- [pluck_numbers](#plucknumbers)
+- [rename_samples](#renamesamples)
+- [sample_keys](#samplekeys)
+- [store_variables](#storevariables)
+- [sub_parse](#subparse)
 
 ## inherit_attributes
 
-When you use `start_key` to start processing nested payload, you may want to inherit the attributes above it as well.
-Note: currently only supported when start_key is used.
+When you use `start_key` to start processing a nested payload, you may want to inherit the attributes above it as well. That's what `inherit_attributes`is for. **Note**:  only supported when `start_key` is used.
 
-Given a service that returns the following payload
+Consider a service that returns the following payload:
 
 ```json
 {
@@ -37,7 +33,7 @@ Given a service that returns the following payload
 }
 ```
 
-you can include the top-level attributes in the sample
+You could include the top-level attributes in the sample:
 
 ```yaml
 name: example
@@ -48,7 +44,7 @@ apis:
         - leaderInfo>abc
 ```
 
-which would give you a result similar to
+Which would give you a result similar to:
 
 ```json
 "metrics": [{
@@ -63,192 +59,13 @@ which would give you a result similar to
 }]
 ```
 
-## sample_keys
-
-Creates different samples based on a key from a larger object.
-There can be cases where you can receive a payload where you have sub-objects identified by a key (like a map), and you want to extract them as different sample. We can easily target a nested key and split them out into samples.
-
-Given the following payload
-
-```json 
-{
-    "followers": {
-        "6e3bd23ae5f1eae0": {
-            "counts": {
-                "fail": 0,
-                "success": 745
-            },
-            "latency": {
-                "average": 0.017039507382550306,
-                "current": 0.000138,
-                "maximum": 1.007649,
-                "minimum": 0,
-                "standardDeviation": 0.05289178277920594
-            }
-        },
-        "a8266ecf031671f3": {
-            "counts": {
-                "fail": 0,
-                "success": 735
-            },
-            "latency": {
-                "average": 0.012124141496598642,
-                "current": 0.000559,
-                "maximum": 0.791547,
-                "minimum": 0,
-                "standardDeviation": 0.04187900156583733
-            }
-        }
-    },
-    "leader": "924e2e83e93f2560"
-}
-```
-
-you can create samples based on each of the `followers`
-
-```yaml
-name: example
-apis:
-  - name: startKey
-    url: http//some-service.com/status
-    sample_keys:
-      # create samples distinguished by the follower id
-      followerSample: followers>follower.id
-```
-
-## rename_samples
-
-Use a regular expression to rename a sample (event_type attribute) if the current sample has a key that matches.
-As below eg. if "db" key is found, rename to redisDbSample, if "cmd" is found, rename to redisCmdSample.
-
-```yaml
----
-name: redis
-apis:
-  - name: redis
-    url: http://127.0.0.1:8887/metrics
-    prometheus:
-      enable: true
-    rename_samples:
-      db: redisDbSample
-      cmd: redisCmdSample
-```
-
-## sub_parse
-
-Splits nested values out from one line
-eg. db0:keys=1,expires=0,avg_ttl=0
-to db0.keys = 1, db0.expires = 0, db0.avg_ttl = 0
-
-```yaml
-apis:
-  - name: redis
-    commands:
-      - run: (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
-        split_by: ":"
-    sub_parse:
-      - type: prefix
-        key: db
-        split_by:
-          - ","
-          - "="
-```
-
-## store_variables
-
-Stores variables from any API result that can be accessed anywhere in any subsequent API.
-
-Given the following payload
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc":{
-            "def":123,
-            "hij":234
-        }
-    },
-    "name": "node3"
-}
-```
-
-you could store the value of key `id` to be used in the next API
-
-```yaml
-name: example
-apis:
-  - name: storeVariables
-    url: http://some-service.com/status
-    store_variables:
-      nodeId: id
-  - name: useVariables
-    url: http://some-service.com/${var:nodeId}/status
-```
-
-```yaml
----
-name: dummyFlex
-apis:
-  - name: todo
-    url: https://jsonplaceholder.typicode.com/todos/2
-    store_variables:
-      storedId: userId ### store the userId from this response into storedId
-  - name: user
-    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
-```
-
-## pluck_numbers
-
-Retrive any attribute with a number value and assign it to another attribute
-//Any values that contain numbers, are automatically plucked out. If no number found, the value is left as is.
-
-Given the following payload
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc":{
-            "def":123,
-            "hij":234
-        }
-    },
-    "name": "node3"
-}
-```
-
-you can retrieve the values from `leaderInfo.abc.def` and `leaderInfo.abc.hij`
-
-```yaml
-name: squidFlex
-apis:
-  - name: squidMgrUtilization
-    commands:
-      - run: squidclient -v mgr:utilization
-        split_by: " = "
-        line_limit: 88 # stop processing at this line as we only care about last 5 minute metrics
-    pluck_numbers: true # find any numbers within a string and pluck them out
-    value_parser:
-      time: "[0-9]+" # use regex to find any time values, and pluck the first found integer out with the value_parser
-```
-
 ## metric_parser
 
-Setting rates and deltas can be performed by the metric_parser.
+`metric_parser` allows setting rates and deltas. It expects an exact match to avoid any conflicts, though the `mode` attribute can be set as shown below to automatically match multiple keys. `mode` supports `regex`, `suffix`, `prefix` and `contains` for matching.
 
-By default it expects an exact match to avoid any conflicts, however the "mode" attribute can be set as shown below to automatically match many keys. The "mode" option supports "regex", "suffix", "prefix" & "contains" for matching.
+Flex automatically attempts to set a namespace as required for your attributes; else you can namespace based on existing attributes or a custom attributes.
 
-Flex will automatically attempt to set a namespace as required for your attributes, else you can namespace based on existing attributes or a custom attributes.
-
-eg. see metric_parser options further below
-set either RATE or DELTA
+See the `metric_parser` example below:
 
 ```yaml
 name: redisFlex
@@ -284,7 +101,7 @@ apis:
 
 ## pagination
 
-See below inline comments on how to use pagination.
+See the inline comments on how to use pagination.
 
 ```yaml
 ---
@@ -306,4 +123,174 @@ apis:
       # next_link_key: nextLink ### look for specified key to navigate to next
       ############################# you will need to also set a ?flex=${page} query parameter for tracking eg. https://reqres.in/api/users?flex=${page}
       payload_key: data ### select a key in the payload to check if there is still content being returned
+```
+## pluck_numbers
+
+Retrieves any attribute with a number value and assigns it to another attribute. Any value that contains numbers is automatically plucked out. If no number is found, the value is left as is.
+
+Consider the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def": 123,
+            "hij": 234
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could retrieve the values from `leaderInfo.abc.def` and `leaderInfo.abc.hij`:
+
+```yaml
+name: squidFlex
+apis:
+  - name: squidMgrUtilization
+    commands:
+      - run: squidclient -v mgr:utilization
+        split_by: " = "
+        line_limit: 88 # stop processing at this line as we only care about last 5 minute metrics
+    pluck_numbers: true # find any numbers within a string and pluck them out
+    value_parser:
+      time: "[0-9]+" # use regex to find any time values, and pluck the first found integer out with the value_parser
+```
+
+## rename_samples
+
+Uses a regular expression to rename a sample (`event_type` attribute) if the current sample has a key that matches. In the example below, if the `db` key is found, it's renamed `redisDbSample`; if `cmd` is found, rename to `redisCmdSample`.
+
+```yaml
+---
+name: redis
+apis:
+  - name: redis
+    url: http://127.0.0.1:8887/metrics
+    prometheus:
+      enable: true
+    rename_samples:
+      db: redisDbSample
+      cmd: redisCmdSample
+```
+
+## sample_keys
+
+Creates different samples based on a key from a larger object. There can be cases where you can receive a payload where you have subobjects identified by a key (like a map), and you want to extract them as a different sample. You can target a nested key and split them out into samples.
+
+Consider the following payload:
+
+```json 
+{
+    "followers": {
+        "6e3bd23ae5f1eae0": {
+            "counts": {
+                "fail": 0,
+                "success": 745
+            },
+            "latency": {
+                "average": 0.017039507382550306,
+                "current": 0.000138,
+                "maximum": 1.007649,
+                "minimum": 0,
+                "standardDeviation": 0.05289178277920594
+            }
+        },
+        "a8266ecf031671f3": {
+            "counts": {
+                "fail": 0,
+                "success": 735
+            },
+            "latency": {
+                "average": 0.012124141496598642,
+                "current": 0.000559,
+                "maximum": 0.791547,
+                "minimum": 0,
+                "standardDeviation": 0.04187900156583733
+            }
+        }
+    },
+    "leader": "924e2e83e93f2560"
+}
+```
+
+You could create samples based on each of the `followers`:
+
+```yaml
+name: example
+apis:
+  - name: startKey
+    url: http//some-service.com/status
+    sample_keys:
+      # create samples distinguished by the follower id
+      followerSample: followers>follower.id
+```
+
+## store_variables
+
+Stores variables from any API result that can be accessed anywhere in any subsequent API.
+
+Consider the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc":{
+            "def":123,
+            "hij":234
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could store the value of key `id` to be used in the next API:
+
+```yaml
+name: example
+apis:
+  - name: storeVariables
+    url: http://some-service.com/status
+    store_variables:
+      nodeId: id
+  - name: useVariables
+    url: http://some-service.com/${var:nodeId}/status
+```
+
+```yaml
+---
+name: dummyFlex
+apis:
+  - name: todo
+    url: https://jsonplaceholder.typicode.com/todos/2
+    store_variables:
+      storedId: userId ### store the userId from this response into storedId
+  - name: user
+    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
+```
+
+## sub_parse
+
+Splits nested values out from one line. For example, `db0:keys=1,expires=0,avg_ttl=0` to `db0.keys = 1, db0.expires = 0, db0.avg_ttl = 0`.
+
+```yaml
+apis:
+  - name: redis
+    commands:
+      - run: (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
+        split_by: ":"
+    sub_parse:
+      - type: prefix
+        key: db
+        split_by:
+          - ","
+          - "="
 ```

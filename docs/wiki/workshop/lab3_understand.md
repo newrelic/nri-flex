@@ -1,8 +1,6 @@
 ## Understanding What Flex Is Doing
 
-> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still provided for backwards compatibility. However, an updated version of this
-document is in progress. 
+> ⚠️ **Notice**: the following documents may contain deprecated functionalities that are still provided for backwards compatibility. However, an updated version of this document is in progress. 
 
 
 So you've added some configs, but now you need to know:

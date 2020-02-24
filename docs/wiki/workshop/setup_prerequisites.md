@@ -1,8 +1,6 @@
-## Setup and Prerequisites
+## Prerequisites and setup
 
-> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still provided for backwards compatibility. However, an updated version of this
-document is in progress. 
+> ⚠️ **Notice**: the following documents may contain deprecated functionalities that are still provided for backwards compatibility. However, an updated version of this document is in progress. 
 
 ## Web Server for Chrome
 * Install [Web Server for Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb?hl=en)

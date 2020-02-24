@@ -1,16 +1,14 @@
-# Database Queries
+# Database queries
 
-**Disclaimer**: this function is bundled in Alpha status. That means that it is not yet supported by New Relic.
+> **Disclaimer**: this function is bundled as alpha. That means that it is not yet supported by New Relic.
 
 Flex has several database drivers available, to help you run any arbitrary/custom queries against those databases.
 
-* https://github.com/denisenkom/go-mssqldb //mssql | sql-server
-* https://github.com/go-sql-driver/mysql   //mysql
-* https://github.com/lib/pq                //postgres
+* https://github.com/denisenkom/go-mssqldb (MSSQL/SQL Server)
+* https://github.com/go-sql-driver/mysql (MySQL)
+* https://github.com/lib/pq (PostgreSQL)
 
-The below example shows us being able to run multiple queries against one database. 
-But also being able to define another database to send queries too. 
-It is perfectly fine to use multiple database types in a single config file if you wish to do so.
+The below example shows how to run multiple queries against one database (and also how to define another database to send queries to). Using multiple database types in a single config file is totally fine.
 
 ```
 name: postgresDbFlex

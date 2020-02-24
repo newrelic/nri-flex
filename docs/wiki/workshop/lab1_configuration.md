@@ -1,8 +1,6 @@
-## Flex OHI Config Options
+## Flex OHI config options
 
-> ⚠️ **Notice** ⚠️: the following documents may contain some deprecated functionalities that
-are still provided for backwards compatibility. However, an updated version of this
-document is in progress. 
+> ⚠️ **Notice**: the following documents may contain deprecated functionalities that are still provided for backwards compatibility. However, an updated version of this document is in progress. 
 
 # update status sample examples
 

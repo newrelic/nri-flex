@@ -1,8 +1,6 @@
 # JMX Queries
 
-> ⚠️ **Notice** ⚠️: this document contains a deprecated functionality that is still
-> provided for backwards compatibility. However, we encourage you to
-> use the improved, fully-supported [nri-jmx On-Host Integration](http://github.com/newrelic/nri-jmx). 
+> ⚠️ **Note**: this is deprecated functionality that is still provided for backwards compatibility. We encourage you to use the improved, fully-supported [nri-jmx On-Host Integration](http://github.com/newrelic/nri-jmx). 
 
 Flex can uses [nrjmx](http://github.com/newrelic/nrjmx) to send JMX requests that can be processed later.
 
