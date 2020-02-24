@@ -409,9 +409,8 @@ func TestStartKeys(t *testing.T) {
 					},
 				},
 			},
-			startKeys: []string{"def>def2"},
-			// TODO: should this be in a nested array?
-			expected:     `{"def2":[["def3","def4"]]}`,
+			startKeys:    []string{"def>def2"},
+			expected:     `{"def2":["def3","def4"]}`,
 			inheritAttrs: true,
 		},
 	}
