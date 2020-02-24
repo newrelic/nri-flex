@@ -277,6 +277,7 @@ type API struct {
 	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
+	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.

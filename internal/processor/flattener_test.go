@@ -6,9 +6,10 @@ package processor
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestSplitObjects(t *testing.T) {
@@ -56,6 +57,30 @@ func TestSplitObjects(t *testing.T) {
 			assert.Equal(t, testCase.expectedData, string(got2))
 		})
 	}
+}
+
+func TestSplitArrays(t *testing.T) {
+	getAPI := func() *load.API {
+		return &load.API{
+			SetHeader: []string{
+				"TIMESTAMP", "HOST_ID", "HOSTNAME", "PERCENT_USED",
+			},
+		}
+	}
+
+	inputArray := []interface{}{
+		[]interface{}{1582159853733, 1, "host1", 10},
+		[]interface{}{1582159853733, 2, "host2", 20},
+		[]interface{}{1582159853733, 3, "host3", 30},
+	}
+
+	expectedResult := `[{"HOSTNAME":"host1","HOST_ID":"1","PERCENT_USED":"10","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host2","HOST_ID":"2","PERCENT_USED":"20","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host3","HOST_ID":"3","PERCENT_USED":"30","TIMESTAMP":"1582159853733"}]`
+
+	api := getAPI()
+	result := splitArrays(&inputArray, map[string]interface{}{}, "", api, &[]interface{}{})
+	got, _ := json.Marshal(result)
+	assert.Equal(t, expectedResult, string(got))
+
 }
 
 func TestRunLazyFlatten(t *testing.T) {
