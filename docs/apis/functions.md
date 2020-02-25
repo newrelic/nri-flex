@@ -54,11 +54,11 @@ Flex applies data parsing and transformation functions in a specific order, rega
 
 ## Flex supported functions
 
-Here is a list of supported functions. Be aware that while all the examples use JSON payloads for conveniency, source data can be in a variety of different formats.
+Here is a list of supported functions. Be aware that while all the examples use JSON payloads for conveniency, source data can be in a variety of formats.
 
 ### add_attribute
 
-| Applies to &nbsp; &nbsp;  | Description |
+| Applies to  | Description |
 | :---------- | :---------- |
 | `API` | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
 
@@ -112,7 +112,7 @@ Which would return the following:
 
 ### cache
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | `API`, `Command` | Allows reusing the cached output from a previous API as the result of the current API. For `url` APIs, the cache **key** is the URL; for the `commands` APIs, it's the name of the API. |
 
@@ -177,7 +177,7 @@ apis:
 
 ### convert_space
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Replaces spaces in key names with other characters. |
 
@@ -226,7 +226,7 @@ Which would return the following:
 
 ### custom_attributes
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | Config, API | Adds extra attributes to the resulting sample. |
 
@@ -281,7 +281,7 @@ Which would return the following:
 
 ### ignore_output
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions. |
 
@@ -322,7 +322,7 @@ apis:
 
 ### keep_keys
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
 
@@ -359,7 +359,7 @@ apis:
 
 ### lazy_flatten
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name. |
 
@@ -464,7 +464,7 @@ The same configuration gives the following Which would return the following:
 
 ### lookup_file
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Dynamically inject values into configurations using a JSON file containing an array of objects.  |
 
@@ -545,7 +545,7 @@ Which would return the following:
 
 ### math
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers. |
 
@@ -596,7 +596,7 @@ Which would return the following:
 
 ### perc_to_decimal
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Converts any percentage formatted value into its decimal representation. |
 
@@ -645,7 +645,7 @@ Which would return the following:
 
 ### remove_keys
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Uses a regular expression to remove selected keys (attributes) from your data: |
 
@@ -699,7 +699,7 @@ Be aware that the value of `remove_keys` matches at any level, meaning that it c
 
 ### rename_keys / replace_keys
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Uses a regex to find and rename keys |
 
@@ -755,7 +755,7 @@ Which would return the following:
 
 ### sample_filter
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Skips creating the sample if both a key and value is found in the sample |
 
@@ -797,7 +797,7 @@ Which would return the following:
 
 ### snake_to_camel
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Converts all snake-cased attributes into camelCased formatted names. |
 
@@ -965,7 +965,7 @@ Which would return the following:
 
 ### split_objects
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Splits an object that has nested objects into an array. |
 
@@ -1034,7 +1034,7 @@ Which would return the following:
 
 ### start_key
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Starts processing data at a different point in your payload. |
 
@@ -1109,7 +1109,7 @@ Which would mean processing only this data:
 
 ### store_lookups
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Stores attributes from a API that you could use in a subsequent API. |
 
@@ -1148,7 +1148,7 @@ apis:
 
 ### strip_keys
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API      | Removes entire keys or objects from the output. |
 
@@ -1229,7 +1229,7 @@ Note that Flex strips all keys that match the payload. This means that if the pa
 
 ### timestamp
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | Anywhere | Injects timestamps anywhere in your config and also performs additions or subtractions on them. |
 
@@ -1273,7 +1273,7 @@ ${timestamp:datetime+60min} add 60 minutes to current datetime, return datetime
 
 ### to_lower
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Converts all keys to lowercase. |
 
@@ -1322,7 +1322,7 @@ The result would be similar to the following (notice all keys are lowercase, inc
 
 ### value_parser
 
-| Applies to &nbsp; &nbsp; | Description |
+| Applies to | Description |
 | :------- | :---------- |
 | API | Finds keys using a regular expression and applies another regular expresion  to extract the first value found. |
 

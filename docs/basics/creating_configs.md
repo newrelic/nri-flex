@@ -2,7 +2,7 @@
 
 Flex allows you to define multiple APIs or data sources so you can monitor multiple services with just one Flex configuration file.
 
-Flex configuration files are in YAML format. The easiest way to start learning how to configure Flex is by checking existing config files under [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
+Flex configuration files are in YAML format. The easiest way to start learning how to configure Flex is by checking existing config files under [/examples](../../examples).
 
 * [Officially supported APIs](#OfficiallysupportedAPIs)
 * [Alpha APIs](#AlphaAPIs)
@@ -13,7 +13,7 @@ Flex configuration files are in YAML format. The easiest way to start learning h
 
 ##  <a name='OfficiallysupportedAPIs'></a>Officially supported APIs
 
-Althoug Flex supports a variety of APIs, the following APIs are officially supported by New Relic.
+Althoug Flex supports a variety of APIs, the following APIs are the only ones officially supported by New Relic:
 
 - [Shell commands](../apis/commands.md): Run any standard shell command or application (Linux or Windows).
 - [HTTP requests](../apis/url.md): Query any standard HTTP/HTTPS endpoint returning JSON or XML.
@@ -22,7 +22,7 @@ More APIs will be added in the future.
 
 ## <a name='AlphaAPIs'></a>Alpha APIs
 
-The following APIs are in alpha status, and while they may work for your usecase, New Relic does not yet support them. 
+The following APIs are in alpha status, and while they may work for your use case, New Relic does not yet support them. 
 
 - [Net dial](#net-dial): Can be used for port testing or for sending messages and processing responses.
 - [Database queries](#database-queries)
