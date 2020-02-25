@@ -6,11 +6,10 @@
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Getting started](#getting-started)
-  - [Documentation](#documentation)
-  - [Flex Manager](#flex-manager)
-  - [Local development](#local-development)
   - [Example integrations](#example-integrations)
   - [Experimental features](#experimental-features)
+  - [Development](#development)
+  - [Documentation](#documentation)
   - [Support](#support)
   - [License](#license)
 
@@ -37,59 +36,11 @@ Flex now comes bundled with the New Relic Infrastructure agent. To install the I
 
 The Flex [step-by-step tutorial](./docs/basic-tutorial.md) is a great starting point.
 
-## Documentation
-
-- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/readme.md)
-- [File and directory structure](https://github.com/newrelic/nri-flex/tree/master/docs/basics/file_layout.md)
-- [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/basics/creating_configs.md)
-- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md)
-- [Experimental functions](https://github.com/newrelic/nri-flex/tree/master/docs/experimental/functions.md)
-
-## Flex Manager
-
-Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Relic One to visualize Flex data and manage the Flex integration.
-
-## Local development
-
-If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](./development.md).
-
 ## Example integrations
 
-All examples are located in <https://github.com/newrelic/nri-flex/tree/master/examples>.
+All examples are located in [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
-Some of these examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental), and may be removed in the future.
-
-- AlertOps (shows `lazy_flatten` functionality)
-- All Prometheus Exporters
-- Bamboo
-- bind9
-- Cassandra (via JMX)
-- CircleCI
-- Consul
-- Elasticsearch (shows built-in URL cache functionality)
-- etcd (shows custom sample keys functionality)
-- HTTP/s testing and request performance via curl
-- JMX via nrjmx (nrjmx is targetted to work with Java 7+, see Cassandra and Tomcat examples)
-- Kong
-- Linux disk usage and inode info (shows horizontal split functionality)
-- MariaDB Custom Querying
-- MSSQL Server Custom Querying
-- MySQL Custom Querying
-- New Relic Alert Ingestion (provides similar output to `nri-alerts-pipe`)
-- New Relic App Status Health Ingestion (`appSample` to present your app health, language, and aggregated summary)
-- OpsGenie
-- PagerDuty (shows `lazy_flatten` functionality)
-- Percona Server, Google CloudSQL or Sphinx (2.2.3+) Custom Querying
-- Postgres Custom Querying
-- RabbitMQ (shows metric parser, and lookup store functionality)
-- Redis (more metrics, multi instance support, multi db support) (shows snake to camel, perc to decimal, replace keys, rename keys and sub parse functionality)
-- Teamcity
-- Tomcat - via JMX
-- Traefik
-- Varnish
-- Vault (shows merge functionality)
-- VictorOps
-- Zookeeper
+Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental), and may be removed in the future.
 
 ## Experimental features
 
@@ -104,6 +55,22 @@ Experimental features include, but are not limited to:
 - Support for Windows Hosts, Kubernetes, ECS, Fargate, and other container based platforms.
 - Send data via New Relic Insights Event API. Should be used only in development mode.
 
+### Flex Manager
+
+Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Relic One to visualize Flex data and manage the Flex integration.
+
+## Development
+
+If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](./development.md).
+
+## Documentation
+
+- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/readme.md)
+- [File and directory structure](https://github.com/newrelic/nri-flex/tree/master/docs/basics/file_layout.md)
+- [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/basics/creating_configs.md)
+- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md)
+- [Experimental functions](https://github.com/newrelic/nri-flex/tree/master/docs/experimental/functions.md)
+
 ## Support
 
 You can find more detailed documentation [on our website](http://newrelic.com/docs).
@@ -115,7 +82,7 @@ Found a bug? Contact us at [support.newrelic.com](http://support.newrelic.com/),
 ### Community
 
 New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
-​
+
 https://discuss.newrelic.com/c/support-products-agents/new-relic-infrastructure
 
 ### Issues / Enhancement Requests
