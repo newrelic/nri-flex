@@ -1,25 +1,23 @@
 ## Prerequisites and setup
 
-> ⚠️ **Notice**: the following documents may contain deprecated functionalities that are still provided for backwards compatibility. However, an updated version of this document is in progress. 
+> ⚠️ **Notice**: the following documents may contain deprecated functionalities that are still provided for backwards compatibility.
 
 ## Web Server for Chrome
-* Install [Web Server for Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb?hl=en)
-* This is useful for testing sample payloads to see how to process data locally before deploying.
+Install [Web Server for Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb?hl=en). It's useful for testing sample payloads and see how to process data locally before deploying.
 
 ## AWS Setup
-* Log in to the AWS Console and Launch Instance
-* Select "Amazon Linux 2 AMI (HVM), SSD Volume Type" (current version as of writing ami-04481c741a0311bbb)
-* Select your instance size, t2 micro is fine -> Next: Configure Instance Details
-* No need to configure anything more here -> Next: Add Storage
-* Set 12GiB (8GiB is probably fine, but when your installing, testing, and logging the additional storage can be handy)
-* Next: Add Tags, continue to Next: Configure Security Group
-* Name the security group Flex Demo, or something equally meaningful -> Review and Launch
-* Launch -> Choose an existing keypair, or create one now, and continue
-* Your instance should spin up shortly
+1. Login to the AWS Console and select **Launch Instance**.
+2. Select **Amazon Linux 2 AMI (HVM), SSD Volume Type**.
+3. Select your instance size, **t2 micro** is fine.
+4. Set the memory to **12GiB**.
+5. Add tags.
+6. Name the security group **Flex Demo** or similar.
+7. Launch, then choose an existing keypair, or create one.
+8. Your instance should spin up shortly.
 
 ## SSH Setup
-* To simplify ssh'ing into your AWS Instance
-* Modify your ~/.ssh/config to include the following, modify the IP to your AWS instance and IdentityFile, to where you have stored the key
+
+To simplify SSHing into your AWS Instance, edit your `~/.ssh/config` file to include the following.
 
 #### example ~/.ssh/config
 ```
@@ -28,17 +26,19 @@ Host flexdemo
  User ec2-user
  IdentityFile ~/.ssh/flexDemo.pem
 ```
-* You will likely need to give your key the correct permissions eg.
+Modify the IP to your AWS instance, and point IdentityFile to where you have stored the key. You need to give your key the correct permissions:
 ```
 chmod 400 ~/.ssh/flexDemo.pem
 ```
 
-## Installing Services for Testing
-* `ssh flexdemo` enter "yes" if prompted
-* Follow the steps here to install the Infrastructure Agent
+## Installing services for testing
+1. Run `ssh flexdemo`. Enter "Yes" if prompted.
+2. Follow the steps here to install the Infrastructure Agent
+
 https://infrastructure.newrelic.com/accounts/YOUR_ACCOUNT_ID/install
-* Ensure you use the command for Amazon Linux 2
-* Ensure the agent is reporting data back to New Relic
+
+3. Make sure that you use the command for Amazon Linux 2.
+4. Ensure that the agent is reporting data back to New Relic.
 
 ```
 ### install redis & netcat
@@ -93,21 +93,21 @@ curl http://localhost:9121/metrics
 
 ## Kubernetes Setup
 
-- For the K8s setup, you can use whatever you like. Below provides instructions for using minikube or kops with aws.
+For the K8s setup, you can use whatever you like. Below are the instructions for using minikube or kops with AWS.
 
 ### Minikube for Local Setup (mac instructions)
 
-* Download the latest mac release
-* Install [homebrew](https://brew.sh/) and check it's there: `brew -v`
-* `brew install redis`
-* Redis Exporter Download for local testing darwin release -> https://github.com/oliver006/redis_exporter/releases
-* `brew cask install minikube`
+1. Download the latest macos release of Minikube.
+2. Install [homebrew](https://brew.sh/) and check it's there: `brew -v`.
+3. Run `brew install redis`.
+4. [Download the Redis Exporter](https://github.com/oliver006/redis_exporter/releases) for local testing (darwin release)
+5. Run `brew cask install minikube`.
 
 ### KOPS
 
-- Note that you will be billed by AWS for having this environment running, so clean up and delete the environment once you are done.
+Note that you will be billed by AWS for having the following environment running, so clean up and delete the environment once you are done.
 
-#### Creating
+#### Create the cluster
 ```
 # setup variables
 export KOPS_CLUSTER_NAME=imesh.k8s.local
@@ -124,7 +124,7 @@ kops update cluster --name ${KOPS_CLUSTER_NAME} --yes
 kops validate cluster
 ```
 
-#### Delete Cluster
+#### Delete the cluster
 ```
 kops delete cluster --state s3://kops-flex-kav --name imesh.k8s.local --yes
 ```
