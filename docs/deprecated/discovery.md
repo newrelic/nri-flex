@@ -18,7 +18,7 @@ This requires access to `/var/run/docker.sock`, same as the New Relic Infrastruc
 
 ## Versions
 - [V2 Container Discovery](#V2-Container-Discovery)
-- [V1 Container Discovery](V1-Container-Discovery)
+- [V1 Container Discovery](#V1-Container-Discovery)
 
 
 ### V2 Container Discovery

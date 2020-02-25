@@ -18,7 +18,7 @@ Flex is an application-agnostic, all-in-one [New Relic integration](https://docs
 
 Flex works in two steps:
   1. It runs any HTTP request or shell command, with or without parameters.
-  2. It generates metric samples using [functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
+  2. It generates metric samples using [functions](/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
 
 Only Linux is officially supported at the moment. As updates and upgrades are made, all Flex Integrations reap the benefits.
 
