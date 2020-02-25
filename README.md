@@ -61,7 +61,7 @@ Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Reli
 
 ## Development
 
-If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](./development.md).
+If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](/docs/development.md).
 
 ## Documentation
 

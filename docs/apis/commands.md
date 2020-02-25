@@ -5,11 +5,6 @@ The `commands` API allows retrieving information from any application or shell c
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
 * [Advanced usage](#Advancedusage)
-	* [Raw data parsing](#Rawdataparsing)
-	* [Specify the shell](#Specifytheshell)
-* [Specify a timeout](#Specifyatimeout)
-* [Split the output](#Splittheoutput)
-	* [Manually specify blocks of data to process](#Manuallyspecifyblocksofdatatoprocess)
 
 ##  <a name='Basicusage'></a>Basic usage
 
@@ -26,7 +21,11 @@ apis:
         split_by: (\d+)\s+(.*)
 ```
 
-This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values, the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
+This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. 
+
+It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. 
+
+Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
@@ -55,7 +54,7 @@ The `commands` API accepts additional format directives to better parse the outp
 
 ###  <a name='Rawdataparsing'></a>Raw data parsing
 
-In the example below, the output from the `df` command is treated as a table with a header. We instruct Flex to extract values using a regex split expression; in this particular case, the regex expression tells Flex that the values are separated by spaces. Value are assigned in order of appearance to the corresponding keys.
+In the example below, the output from the `df` command is treated as a table with a header. We instruct Flex to extract values using a regex split expression; in this particular case, the regex expression tells Flex that the values are separated by spaces. Value are then assigned in order of appearance to the corresponding keys.
 
 ```yaml
 ---
@@ -70,7 +69,7 @@ apis:
         split_by: \s+
 ```
 
-In this next example, we don't specify the keys to which the values will be assigned and instead use a regex expression to extract the keys from the header. Since we are not specifying the header row number neither the values start row, Flex assumes the first row is the header and the next lines are the values rows.
+In this next example, we don't specify the keys to which the values will be assigned and instead use a regex expression to extract the keys from the header. Since we are not specifying the header row number neither the values start row, Flex assumes the first row is the header and the next lines are the value rows.
 
 
 ```yaml
@@ -89,7 +88,7 @@ To extract the values we use a regex expression in `split_by`. Note that in this
 
 ###  <a name='Specifytheshell'></a>Specify the shell
 
-All commands are run with `/bin/sh` (Linux) or `cmd` (Windows) by default. If you want to use a different shell, you can specify it at API level for all commands, or at command level, which overrides any value set at the API level.
+All commands are executed using `/bin/sh` (Linux) or `cmd` (Windows). If you want to use a different shell, you can specify it at API level for all commands, or at command level, which overrides values set at the API level.
 
 In the example below, `/bin/zsh` applies only to `some_other_command`, since `shell: /bin/bash` overrides the API level statement for `df -T`.
 
@@ -110,7 +109,7 @@ apis:
         split_by: \s+
 ```
 
-##  <a name='Specifyatimeout'></a>Specify a timeout
+###  <a name='Specifyatimeout'></a>Specify a timeout
 
 Flex defines a 10 seconds timeout for each command by default. If the command does not complete within the timeout period, Flex stops processing the current command and moves to the next. You can change the timeout at both API and command levels. Timeout values are specified in milliseconds (for example, 15 second are specified as `15000`).
 
@@ -130,11 +129,15 @@ apis:
         timeout: 15000        
 ```
 
-In the example above we declare three commands. The timeout value of `5000` declared at the API level applies to all commands except `alsoDoesNotTimeout`, which has its own `timeout` statement. Note that Flex will return an error for the first command (`command: timed out err="context deadline exceeded" exec="sleep 10"`).
+In the example above we declare three commands. The timeout value of `5000` declared at the API level applies to all commands except `alsoDoesNotTimeout`, which has its own `timeout` statement. Note that Flex will return an error for the first command:
 
-##  <a name='Splittheoutput'></a>Split the output
+```
+command: timed out err="context deadline exceeded" exec="sleep 10"`)
+```
 
-In case the output of the command is not a sequential list of lines/values, use `split_output` to separate the results into blocks that are processed sequentially. The directive accepts a regex expression for splitting the output into blocks. You can either use a list of regex expressions to extract data from each block, or try raw processing using `split_by`.
+###  <a name='Splittheoutput'></a>Split the output
+
+In case the output of the command is not a sequential list of lines/values, use `split_output` to separate results into blocks that are to be processed sequentially. The directive accepts a regex expression for splitting the output into blocks. You can either use a list of regex expressions to extract data from each block, or try raw processing using `split_by`:
 
 ```yaml
 name: example
@@ -156,7 +159,7 @@ key:value
 other_key:otherValue
 ```
 
-The `split_output` command as defined above gets two blocks of data to which Flex then applies the `regex_matches` expressions for extracting the values. This example results in two metric samples similar to the example below.
+The `split_output` command as defined above gets two blocks of data to which Flex then applies the `regex_matches` expressions for extracting the values. This example results in two metric samples:
 
 ```json
 [{
@@ -186,7 +189,7 @@ apis:
         split_by: ":"
 ```
 
-In the example above, we only want to process data after the first (`0`) line, so we set `line_start` to `1`. If we know that after some line the data is not useful, we can limit the set of lines Flex processes:
+In the example above, we only want to process data after the first (`0`) line, so we set `line_start` to `1`. If we know that after a specific line the data is not useful, we can limit the set of lines Flex processes by adding `line_end`:
 
 ```yml
 name: example
