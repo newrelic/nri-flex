@@ -26,7 +26,7 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc --># Development mode
 
-Flex can run in isolation while you're developing and testing your configuration files; these instructions below apply only when running in this mode. For instructions on running Flex with the New Relic Infrastructure agent, see the [docs](./docs/wiki/README.md).
+Flex can run in isolation while you're developing and testing your configuration files; these instructions below apply only when running in this mode. For instructions on running Flex with the New Relic Infrastructure agent, see the [docs](./docs/README.md).
 
 
 
@@ -76,7 +76,7 @@ See the [Serverless README](examples/lambdaExample/README.md).
 ##  6. <a name='Kubernetes'></a>Kubernetes
 
 - Build your Docker Image, and deploy as a daemonset, see an example in [examples/nri-flex-k8s.yml](examples/nri-flex-k8s.yml)
-- See the docs for more information on how to use [service discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery)
+- See the docs for more information on how to use [service discovery](https://github.com/newrelic/nri-flex/Service-Discovery)
 
 ##  7. <a name='Testing'></a>Testing
 
@@ -258,7 +258,7 @@ docker run -it -p 9696:6379 --label flexDiscoveryRedis="t=redis,c=redis,tt=img,t
 -   LookUp Store - save attributes from previously generated samples to use in requests later (see rabbit example)
 -   LazyFlatten - for arrays
 -   Inbuilt data caching - useful for processing samples at different points
--   [+more here](https://github.com/newrelic/nri-flex/wiki/Functions)
+-   [+more here](https://github.com/newrelic/nri-flex/Functions)
 
 ##  12. <a name='Integrations'></a>Integrations
 

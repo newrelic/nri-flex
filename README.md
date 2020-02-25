@@ -1,54 +1,63 @@
-# New Relic - Flex
+# New Relic Flex
 
 [![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
 
 - [New Relic Flex](#new-relic---flex)
   - [Requirements](#requirements)
-  - [Tutorial](#tutorial)
   - [Installation](#installation)
-  - [Visualizing and managing Flex](#visualize-and-manage-flex)
+  - [Getting started](#getting-started)
+  - [Documentation](#documentation)
+  - [Flex Manager](#flex-manager)
   - [Local development](#local-development)
   - [Example integrations](#example-integrations)
   - [Experimental features](#experimental-features)
-  - [Further documentation](#further-documentation)
-  - [Disclaimer](#disclaimer)
+  - [Support](#support)
+  - [License](#license)
 
 
-Flex is an agnostic AIO New Relic Integration, that allows you to consume metrics from a wide variety of services, removing the need for end users to write any code other then to define a configuration YAML.
+Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) that allows you to collect metric data from a wide variety of services. You can instrument any app that outputs to the terminal: you create a [config file](/docs/basics/creating_configs.md), start the Infrastructure agent, and data starts pouring into New Relic - see the [200+ example integrations](#example-integrations)!
 
-Among other things, Flex can:
-  - Run any HTTP request or shell command.
-  - Generate New Relic metric samples automatically via [useful helper functions](https://github.com/newrelic/nri-flex/tree/master/docs/wiki/apis/functions.md) that parse and tidy up the output.
+Flex works in two steps:
+  1. It runs any HTTP request or shell command, with or without parameters.
+  2. It generates metric samples using [functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
 
-Only Linux is officially supported at the moment. As updates and upgrades are made, all Flex Integrations reap the benefits. See the examples for over [200+ Integrations](#integrations)!
+Only Linux is officially supported at the moment. As updates and upgrades are made, all Flex Integrations reap the benefits.
 
 ## Requirements
 
 - Linux
 - Windows (experimental support)
-- New Relic Infrastructure
-
-## Tutorial
-
-- [Flex step-by-step tutorial](./docs/basic-tutorial.md)
+- New Relic [Infrastructure Pro](https://newrelic.com/infrastructure/pricing) subscription or trial
 
 ## Installation
 
-Flex now comes bundled with the New Relic Infrastructure agent. See [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
+Flex now comes bundled with the New Relic Infrastructure agent. To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
 
-## Visualize and manage Flex
+## Getting started
+
+The Flex [step-by-step tutorial](./docs/basic-tutorial.md) is a great starting point.
+
+## Documentation
+
+- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/readme.md)
+- [File and directory structure](https://github.com/newrelic/nri-flex/tree/master/docs/basics/file_layout.md)
+- [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/basics/creating_configs.md)
+- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md)
+- [Experimental functions](https://github.com/newrelic/nri-flex/tree/master/docs/experimental/functions.md)
+
+## Flex Manager
 
 Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Relic One to visualize Flex data and manage the Flex integration.
 
 ## Local development
 
-If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. See [Development](./development.md) for more information.
+If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](./development.md).
 
 ## Example integrations
 
 All examples are located in <https://github.com/newrelic/nri-flex/tree/master/examples>.
 
-Some of these examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/wiki/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/wiki/experimental), and may me removed in the future.
+Some of these examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental), and may be removed in the future.
 
 - AlertOps (shows `lazy_flatten` functionality)
 - All Prometheus Exporters
@@ -59,7 +68,7 @@ Some of these examples may use features that are [experimental](https://github.c
 - Consul
 - Elasticsearch (shows built-in URL cache functionality)
 - etcd (shows custom sample keys functionality)
-- HTTP/s testing & request performance via curl
+- HTTP/s testing and request performance via curl
 - JMX via nrjmx (nrjmx is targetted to work with Java 7+, see Cassandra and Tomcat examples)
 - Kong
 - Linux disk usage and inode info (shows horizontal split functionality)
@@ -84,25 +93,36 @@ Some of these examples may use features that are [experimental](https://github.c
 
 ## Experimental features
 
-Flex implements other features apart from those that we officially support. While you can use them if you need to solve your specific use cases, we can't guarantee that they'll work as expected, and we don't support them officially.
+Flex implements more features than those that New Relic officially supports. While you can use them to solve specific use cases, we can't guarantee that they'll work as expected, and New Relic does not support them officially.
 
 Experimental features include, but are not limited to:
 
-- Consume metrics from any Prometheus Exporter.
-- Consume metrics from database queries.
-- Consume metrics metrics from JMX queries (Java 7+ is required for JMX to work).
-- Consume metrics from csv and json files.
-- Windows Hosts, Kubernetes, ECS, Fargate, and other container based platforms.
-- [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in. This feature is deprecated in favour of the New Relic Infrastructure agent discovery support, and kept for backwards compatibility and may be removed in the future.
+- Collect metrics from any Prometheus Exporter.
+- Collect metrics from database queries.
+- Collect metrics metrics from JMX queries (Java 7+ required).
+- Collect metrics from CSV and JSON files.
+- Support for Windows Hosts, Kubernetes, ECS, Fargate, and other container based platforms.
 - Send data via New Relic Insights Event API. Should be used only in development mode.
 
-## Further Documentation
+## Support
 
-- [NRI-Flex Docs](https://github.com/newrelic/nri-flex/tree/master/docs/wiki)
-- [Example Integrations](#exampleintegrations)
-- [Available Functions](https://github.com/newrelic/nri-flex/tree/master/docs/wiki/apis/functions.md)
-- [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/wiki/basics/creating_configs.md)
+You can find more detailed documentation [on our website](http://newrelic.com/docs).
 
-## Disclaimer
+If you can't find what you're looking for there, reach out to us on our [support site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com) and we'll be happy to help you.
 
-New Relic has open-sourced this integration to enable monitoring of various technologies. This integration is provided AS-IS WITHOUT WARRANTY OR SUPPORT, although you can report issues and contribute to this integration via GitHub. Support for this integration is available with an Expert Services subscription.
+Found a bug? Contact us at [support.newrelic.com](http://support.newrelic.com/), or email support@newrelic.com.
+
+### Community
+
+New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
+​
+https://discuss.newrelic.com/c/support-products-agents/new-relic-infrastructure
+
+### Issues / Enhancement Requests
+
+Issues and enhancement requests can be submitted in the [Issues tab of this repository](../../issues). Please search for and review the existing open issues before submitting a new issue.
+
+
+## License
+
+The project is released under version 2.0 of the [Apache license](http://www.apache.org/licenses/LICENSE-2.0).

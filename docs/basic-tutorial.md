@@ -14,7 +14,7 @@ Follow this tutorial to get started with Flex!
 
 ## Installation
 
-Starting from New Relic Infrastructure agent version 1.10.0, Flex is bundled with the agent in the same package, so you don't need to perform any extra step for its installation.
+Starting from New Relic Infrastructure agent version 1.10.0, Flex comes bundled with the agent in the same package, so you don't need to perform any extra step for its installation.
 
 ## Check that Flex is up and running
 
