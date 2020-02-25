@@ -1,20 +1,20 @@
-# Config Sync with Git (Experimental)
+# Config sync with git
 
-**Disclaimer**: this function is bundled in Alpha status. That means that it is not yet supported by New Relic.
+> **Disclaimer**: this function is bundled as alpha. That means that it is not yet supported by New Relic.
 
-To dynamically sync integrations with github several methods are available.
+There's several methods to dynamically sync integrations with GitHub.
 
-- CLI Flags
+## CLI Flags
 ```
 ./nri-flex -verbose -git_user myUser -git_token 13nasdasj13jadf -git_repo https://github.com/myUser/my-config-repo
 ```
-- Environment Variables
+## Environment Variables
 ```
 GIT_REPO=https://github.com/myUser/my-config-repo
 GIT_USER=myUser
 GIT_TOKEN=13nasdasj13jadf
 ```
-- Setting in nri-flex-config.yml
+## Setting in nri-flex-config.yml
 ```yaml
 ### /etc/newrelic-infra/integrations.d/nri-flex-config.yml
 integration_name: com.newrelic.nri-flex

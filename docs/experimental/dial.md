@@ -1,9 +1,11 @@
-### Net Dial
+### Net dial
 
-Dial is a parameter used under commands.
+> **Disclaimer**: this function is bundled as alpha. That means that it is not yet supported by New Relic.
 
-port test eg.
-```
+Dial is a parameter used under `commands`.
+
+Example of a port test:
+```yaml
 name: portTestFlex
 apis: 
   - timeout: 1000 ### default 1000 ms increase if you'd like
@@ -11,8 +13,8 @@ apis:
     - dial: "google.com:80"
 ```
 
-sending a message and processing the output eg.
-```
+Example of sending a message and processing the output:
+```yaml
 ---
 name: redisFlex
 apis: 

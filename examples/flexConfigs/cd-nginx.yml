@@ -1,5 +1,4 @@
 ### Nginx V2 Container Discovery Config
-### https://github.com/newrelic/nri-flex/wiki/Service-Discovery#V2-Container-Discovery
 name: nginxFlex
 apis:
   - name: nginxStub
