@@ -4,10 +4,8 @@ Flex has many useful functions, which can be combined in different ways to help 
 
 -   [Function precedence order](#function-precedence-order)
 -   [Supported functions](#supported-functions)
-    -   [add_attribute](#add_attribute)
-    -   [cache](#cache)
+    -   [add_attribute](#add_attribute)    
     -   [convert_space](#convert_space)
-    -   [custom_attributes](#custom_attributes)
     -   [ignore_output](#ignore_output)
     -   [keep_keys](#keep_keys)
     -   [lazy_flatten](#lazy_flatten)
@@ -32,35 +30,40 @@ Flex has many useful functions, which can be combined in different ways to help 
 
 Flex applies data parsing and transformation functions in a specific order, regardless of where in the configuration files you declare them. Keep the functions precedence order in mind to avoid unexpected or empty results.
 
-1. start_key
-2. strip_keys*
-3. lazy_flatten
-4. Standard flatten
-5. remove_keys
-6. strip_keys (second round)
-7. Merge (if used)
-8. to_lower
-9. convert_space
-10. snake_to_camel
-11. value_parser
-12. Pluck numbers
-13. Subparse
-14. value_transformer
-15. rename_keys
-16. store_lookups
-17. keep_keys
+1. [lookup_file](#lookup_file)
+2. [start_key](#start_key)
+3. [strip_keys](#strip_keys) *
+4. [lazy_flatten](#lazy_flatten)
+5. [split_array](#split_array)
+6. [split_objects](#split_objects)
+7. Standard flatten (auto-flattening)
+8. [to_lower](#to_lower)
+9. [convert_space](#convert_space)
+10. [snake_to_camel](#snake_to_camel)
+11. [perc_to_decimal](#perc_to_decimal)
+12. [value_parser](#value_parser)
+13. [value_transformer](#value_transformer)
+14. [rename_keys / replace_keys](#rename_keys--replace_keys)
+15. [store_lookups](#store_lookups)
+16. [keep_keys](#keep_keys)
+17. [ignore_output](#ignore_output)
+18. [sample_filter](#sample_filter)
+18. [remove_keys](#remove_keys)
+20. [math](#math)
+21. [add_attribute](#add_attribute)
+
 
 *Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
 
 ## Flex supported functions
 
-Here is a list of supported functions. Be aware that while all the examples use JSON payloads for conveniency, source data can be in a variety of formats.
+Here is a list of supported functions. Be aware that while all the examples use JSON payloads for convenience, source data can be in a variety of different formats.
 
 ### add_attribute
 
 | Applies to  | Description |
 | :---------- | :---------- |
-| `API` | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
+| API | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
 
 **Example**
 
@@ -107,79 +110,14 @@ Which would return the following:
   "leaderInfo.uptime": "10m59.322358947s",
   "link": "https://some-other-service/nodes/eca0338f4ea31566",
   "name": "node3"
-}
-```
-
-### cache
-
-| Applies to | Description |
-| :------- | :---------- |
-| `API`, `Command` | Allows reusing the cached output from a previous API as the result of the current API. For `url` APIs, the cache **key** is the URL; for the `commands` APIs, it's the name of the API. |
-
-**Example**
-
-Consider a service that returns the following payload
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
-```
-
-as a result of executing the following `url` API:
-
-```yaml
-name: example
-apis:
-    - name: stripKeys
-      url: http://some-service.com/status
-```
-
-As we want to process it in another API, we use the `cache` function. Note that the cache `key` is the URL because it's an `url` API:
-
-```yaml
-name: example
-apis:
-    - name: status
-      url: http://some-service.com/status
-    - name: otherStatus
-      cache: http://some-service.com/status
-      strip_keys:
-          - id
-          - name
-```
-
-With a `commands` API, you should use the name of the API instead:
-
-```yaml
-name: example
-apis:
-    - name: status
-      commands:
-          # assume that this file contains the same json payload showed above the beginning
-          - run: cat /var/some/file
-    - name: otherStatus
-      cache: status
-      strip_keys:
-          - id
-          - name
+}]
 ```
 
 ### convert_space
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Replaces spaces in key names with other characters. |
+| :--------- | :---------- |
+| API | Replaces spaces in key names with other characters. |
 
 **Example**
 
@@ -205,7 +143,7 @@ You could convert the spaces in `leader info` and `start time` to, for example, 
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       convert_space: "_"
 ```
@@ -224,65 +162,10 @@ Which would return the following:
 }]
 ```
 
-### custom_attributes
-
-| Applies to | Description |
-| :------- | :---------- |
-| Config, API | Adds extra attributes to the resulting sample. |
-
-**Example**
-
-Consider a service that returns the following payload:
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
-```
-
-You could add extra attributes to the resulting sample:
-
-```yaml
-name: example
-custom_attributes:
-    global_attr: global_value
-apis:
-    - name: someService
-      url: http://some-service.com/status
-      custom_attributes:
-          api_attr: api_value
-```
-
-Which would return the following:
-
-```json
-"metrics": [{
-  "event_type": "someServiceSample",
-  "id": "eca0338f4ea31566",
-  "leaderInfo.abc.def": 123,
-  "leaderInfo.abc.hij": 234,
-  "leaderInfo.leader": "a8a69d5f6b7814500",
-  "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
-  "leaderInfo.uptime": "10m59.322358947s",
-  "name": "node3",
-  "global_attr": "global_value",
-  "api_attr": "api_value",
-}
-```
-
 ### ignore_output
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions. |
 
 **Example**
@@ -311,9 +194,9 @@ name: example
 apis:
     - name: someService
       url: http://some-service.com/status
-      store_lookup:
+      store_lookups:
         # store the 'id' into a lookup key named 'nodeId'
-          - nodeId: id
+        nodeId: id
       ignore_output: true
     - name: useLookup
       # use the 'nodeId' stored in the previous APIs to execute this one
@@ -323,8 +206,8 @@ apis:
 ### keep_keys
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
+| :--------- | :---------- |
+| API | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
 
 **Example**
 
@@ -350,7 +233,7 @@ You could keep just the `id` and `name` fields by using this configuration:
 ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       keep_keys:
         - id
@@ -360,7 +243,7 @@ apis:
 ### lazy_flatten
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name. |
 
 **Example**
@@ -369,16 +252,14 @@ Consider a service that returns the following json payload:
 
 ```json
 {
-    "contacts":[
-        {
-            "name": "batman",
-            "number": 911
-        },
-        {
-            "name": "robin",
-            "number": 112
-        }
-    ]
+    "contacts":[{
+      "name": "batman",
+      "number": 911
+    },{
+      "name": "robin",
+      "number": 112
+    }
+   ]
 }
 ```
 
@@ -390,7 +271,7 @@ For example, using the following configuration:
 name: example
 apis:
     - name: status
-      url: http//some-service.com/status
+      url: http://some-service.com/status
 ```
 
 Will give you a result similar to:
@@ -421,7 +302,7 @@ apis:
       - contacts
 ```
 
-Which would return the following:
+Which would return something similar to the following:
 
 ```json
 "metrics": [{
@@ -465,7 +346,7 @@ The same configuration gives the following Which would return the following:
 ### lookup_file
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Dynamically inject values into configurations using a JSON file containing an array of objects.  |
 
 **Example**
@@ -511,17 +392,15 @@ You could use `lookup_file` to generate multiple API executions and therefore sa
 name: example
 lookup_file: addresses.json
 apis:
-    - name: lookupFile
-      url: http://${lf.addr}/status
-      math:
-          sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij}
+    - name: someService
+      url: http://${lf:addr}/status      
 ```
 
 Which would return the following:
 
 ```json
 "metrics": [{
-  "event_type": "lookupFileSample",
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -529,9 +408,8 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
-  "sum": 357
   },{
-  "event_type": "lookupFileSample",
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -539,14 +417,13 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
-  "sum": 357
 }
 ```
 
 ### math
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers. |
 
 **Example**
@@ -573,7 +450,7 @@ You could create another attribute that is, for example, the **sum** of attribut
  ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       math:
         sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
@@ -584,21 +461,21 @@ Which would return the following:
 ```json
 "metrics": [{
   "id": "eca0338f4ea31566",
-  "leaderInfo.abc.def": 100,
-  "leaderInfo.abc.hij": 100,
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
   "leaderInfo.leader": "a8a69d5f6b7814500",
   "leaderInfo.startTime": "a2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": 10,
   "name": "node3",
-  "sum": 201
+  "sum": 358
 }]
 ```
 
 ### perc_to_decimal
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Converts any percentage formatted value into its decimal representation. |
+| :--------- | :---------- |
+| API | Converts any percentage formatted value into its decimal representation. |
 
 **Example**
 
@@ -624,7 +501,7 @@ You could convert the percentage formatted values in `leaderInfo.abc.def` and `l
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       perc_to_decimal: true
 ```
@@ -646,8 +523,8 @@ Which would return the following:
 ### remove_keys
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Uses a regular expression to remove selected keys (attributes) from your data: |
+| :--------- | :---------- |
+| API | Uses a regular expression to remove selected keys (attributes) from your data: |
 
 **Example**
 
@@ -673,26 +550,23 @@ You could remove some of the keys using `remove_keys`:
 ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       remove_keys:
         - time
 ```
 
-Which would return the following:
+Which would return something similar to the following:
 
 ```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
+"metrics": [{
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.leader": "8a69d5f6b7814500",
+  "name": "node3"
+}]
 ```
 
 Be aware that the value of `remove_keys` matches at any level, meaning that it could remove complete objects if any part of the name matches the regular expression.
@@ -700,8 +574,8 @@ Be aware that the value of `remove_keys` matches at any level, meaning that it c
 ### rename_keys / replace_keys
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Uses a regex to find and rename keys |
+| :--------- | :---------- |
+| API | Uses a regex to find and rename keys |
 
 **Example**
 
@@ -727,36 +601,32 @@ You could rename the key `id` to `identifier`, and `name` to `nodeName`:
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       # replace_keys for backcompat
       rename_keys:
-        - id: identifier
-        - node: nodeName
+        id: identifier
+        name: nodeName
 ```
 
 Which would return the following:
 
 ```json
-{
-    "identifier": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "nodeName": "node3"
-}
+"metrics": [{          
+  "identifier": "eca0338f4ea31566",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.leader": "8a69d5f6b7814500",
+  "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
+  "leaderInfo.uptime": "10m59.322358947s",
+  "nodeName": "node3"
+}]
 ```
 
 ### sample_filter
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Skips creating the sample if both a key and value is found in the sample |
 
 **Example**
@@ -786,7 +656,7 @@ apis:
     - name: someService
       url: http://some-service.com/status
       sample_filter:
-          name: node3
+        - name: node3
 ```
 
 Which would return the following:
@@ -798,8 +668,8 @@ Which would return the following:
 ### snake_to_camel
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Converts all snake-cased attributes into camelCased formatted names. |
+| :--------- | :---------- |
+| API | Converts all snake-cased attributes into camelCased formatted names. |
 
 **Example**
 
@@ -825,7 +695,7 @@ You could convert `leader_info` and `start_time` to camelCase for increased cons
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       snake_to_camel: true
 ```
@@ -846,9 +716,9 @@ Which would return the following:
 
 ### split_array
 
-| Valid at | Description                           |
-| :------- | :------------------------------------ |
-| API      | Split an array that has nested arrays |
+| Applies to | Description |
+| :--------- | :---------- |
+| API | Split an array that has nested arrays |
 
 **Example**
 
@@ -894,79 +764,45 @@ Consider a service that returns the following payload:
 You could split the configuration:
 
 ```yaml
+name: example
 apis:
     - name: voltdb_cpu
-      event_type: voltdb
-      # url: <voltdb json api - CPU URL > e.g. http://127.0.0.1:32952/api/1.0/?Procedure=@Statistics&Parameters=["CPU"]
-      url: http://127.0.0.1:32952/api/1.0/?Procedure=@Statistics&Parameters=["CPU"]
+      event_type: voltdb      
+      url: http://some-service.com/status
       split_array: true
       set_header: [TIMESTAMP, HOST_ID, HOSTNAME, PERCENT_USED]
       start_key:
           - results>data
 ```
 
-Which would return the following:
+Which would return the something like following:
 
 ```json
-{
-    "name": "com.newrelic.nri-flex",
-    "protocol_version": "3",
-    "integration_version": "Unknown-SNAPSHOT",
-    "data": [
-        {
-            "metrics": [
-                {
-                    "HOSTNAME": "7605f6bec898",
-                    "HOST_ID": 0,
-                    "PERCENT_USED": 4,
-                    "TIMESTAMP": 1582161013979,
-                    "event_type": "voltdb",
-                    "integration_name": "com.newrelic.nri-flex",
-                    "integration_version": "Unknown-SNAPSHOT"
-                },
-                {
-                    "HOSTNAME": "067ea6fc4c22",
-                    "HOST_ID": 2,
-                    "PERCENT_USED": 4,
-                    "TIMESTAMP": 1582161013978,
-                    "event_type": "voltdb",
-                    "integration_name": "com.newrelic.nri-flex",
-                    "integration_version": "Unknown-SNAPSHOT"
-                },
-                {
-                    "HOSTNAME": "62a10d3f45e3",
-                    "HOST_ID": 1,
-                    "PERCENT_USED": 4,
-                    "TIMESTAMP": 1582161013980,
-                    "event_type": "voltdb",
-                    "integration_name": "com.newrelic.nri-flex",
-                    "integration_version": "Unknown-SNAPSHOT"
-                },
-                {
-                    "event_type": "flexStatusSample",
-                    "flex.Hostname": "C02W60KWHTD8",
-                    "flex.IntegrationVersion": "Unknown-SNAPSHOT",
-                    "flex.counter.ConfigsProcessed": 1,
-                    "flex.counter.EventCount": 3,
-                    "flex.counter.EventDropCount": 0,
-                    "flex.counter.HttpRequests": 1,
-                    "flex.counter.voltdb": 3,
-                    "flex.time.elaspedMs": 15,
-                    "flex.time.endMs": 1582161013969,
-                    "flex.time.startMs": 1582161013954
-                }
-            ],
-            "inventory": {},
-            "events": []
-        }
-    ]
-}
+"metrics": [{
+   "HOSTNAME": "7605f6bec898",
+   "HOST_ID": 0,
+   "PERCENT_USED": 4,
+   "TIMESTAMP": 1582161013979,
+   "event_type": "voltdb",
+   },{
+   "HOSTNAME": "067ea6fc4c22",
+   "HOST_ID": 2,
+   "PERCENT_USED": 4,
+   "TIMESTAMP": 1582161013978,
+   "event_type": "voltdb",
+   },{
+   "HOSTNAME": "62a10d3f45e3",
+   "HOST_ID": 1,
+   "PERCENT_USED": 4,
+   "TIMESTAMP": 1582161013980,
+   "event_type": "voltdb",
+ }]
 ```
 
 ### split_objects
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Splits an object that has nested objects into an array. |
 
 **Example**
@@ -1004,12 +840,12 @@ You could split the single object into two separate objects:
 ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       split_objects: true
 ```
 
-Which would return the following:
+Which would return something similar to the following:
 
 ```json
 "metrics": [{
@@ -1035,8 +871,8 @@ Which would return the following:
 ### start_key
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Starts processing data at a different point in your payload. |
+| :--------- | :---------- |
+| API | Starts processing data at a different point in your payload. |
 
 **Example**
 
@@ -1062,7 +898,7 @@ You could tell Flex to start processing the payload from `leaderInfo`:
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       start_key:
         - leaderInfo
@@ -1084,12 +920,24 @@ This would mean processing only the following data:
 }
 ```
 
+Which would return something similar to
+
+```json
+"metrics": [{
+  "abc.def": 123,
+  "abc.hij": 234,
+  "event_type": "someServiceSample",
+  "leader": "8a69d5f6b7814500",
+  "startTime": "2014-10-24T13:15:51.186620747-07:00",
+  "uptime": "10m59.322358947s" 
+}]
+ ```       
 Or further down:
 
 ```yaml
 name: example
 apis:
-    - name: startKey
+    - name: someService
       url: http://some-service.com/status
       start_key:
         - leaderInfo
@@ -1107,11 +955,21 @@ Which would mean processing only this data:
 }
 ```
 
+Which would return something similar to
+
+```json
+"metrics": [{
+  "def": 123,
+  "event_type": "someServiceSample",
+  "hij": 234
+}
+```
+
 ### store_lookups
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Stores attributes from a API that you could use in a subsequent API. |
+| :--------- | :---------- |
+| API | Stores attributes from a API that you could use in a subsequent API. |
 
 **Example**
 
@@ -1139,9 +997,9 @@ name: example
 apis:
     - name: storeLookups
       url: http://some-service.com/status
-      store_lookup:
-          # store the 'id' into a lookup key named 'nodeId'
-          - nodeId: id
+      store_lookups:
+        # store the 'id' into a lookup key named 'nodeId'
+        nodeId: id
     - name: useLookup
       url: http://some-other-service.com/${lookup:nodeId}/status
 ```
@@ -1149,8 +1007,8 @@ apis:
 ### strip_keys
 
 | Applies to | Description |
-| :------- | :---------- |
-| API      | Removes entire keys or objects from the output. |
+| :--------- | :---------- |
+| API | Removes entire keys or objects from the output. |
 
 **Example**
 
@@ -1172,29 +1030,25 @@ Consider a service that returns the following payload:
 }
 ```
 
-You could completely remove the `abc` object:
+You could completely remove the `leaderInfo` object:
 
 ```yaml
 name: example
 apis:
-    - name: stripKeys
+    - name: someService
       url: http://some-service.com/status
       strip_keys:
-          - abc
+          - leaderInfo
 ```
 
-This would return the following payload:
+This would return something similar to:
 
 ```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s"
-    },
-    "name": "node3"
-}
+"metrics": [{
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "name": "node3"
+}]
 ```
 
 You could also remove nested keys, for example `leader` and `startTime` under the `leaderInfo` object:
@@ -1209,20 +1063,17 @@ apis:
           - leaderInfo>startTime
 ```
 
-Which would return the following payload:
+Which would return something similar to:
 
 ```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
+"metrics": [{
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.uptime": "10m59.322358947s",
+  "name": "node3"
+}]
 ```
 
 Note that Flex strips all keys that match the payload. This means that if the payload has multiple objects that match the `strip_keys` value, all are be removed.
@@ -1230,7 +1081,7 @@ Note that Flex strips all keys that match the payload. This means that if the pa
 ### timestamp
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | Anywhere | Injects timestamps anywhere in your config and also performs additions or subtractions on them. |
 
 You can use the following expressions to inject a timestamp formatted in various ways:
@@ -1274,7 +1125,7 @@ ${timestamp:datetime+60min} add 60 minutes to current datetime, return datetime
 ### to_lower
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Converts all keys to lowercase. |
 
 **Example**
@@ -1323,7 +1174,7 @@ The result would be similar to the following (notice all keys are lowercase, inc
 ### value_parser
 
 | Applies to | Description |
-| :------- | :---------- |
+| :--------- | :---------- |
 | API | Finds keys using a regular expression and applies another regular expresion  to extract the first value found. |
 
 **Example**
@@ -1350,7 +1201,7 @@ You could use `value_parser` to extract/transform the numbers on keys `leaderInf
 ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       value_parser:
         def: "[0-9]+"
@@ -1360,6 +1211,7 @@ Which would return the following:
 
 ```json
 "metrics": [{
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -1372,9 +1224,9 @@ Which would return the following:
 
 ### value_transformer
 
-| Valid at | Description                                                      |
-| :------- | :--------------------------------------------------------------- |
-| API      | Uses a regular expression to find a key and transforms its value |
+| Applies to | Description                                                      |
+| :--------- | :--------------------------------------------------------------- |
+| API | Uses a regular expression to find a key and transforms its value |
 
 **Example**
 
@@ -1398,6 +1250,7 @@ Without declaring any other transformation you would get a result similar to:
 
 ```json
 "metrics": [{
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderTime.abc.def": 123,
   "leaderTime.abc.hij": 234,
@@ -1413,8 +1266,23 @@ If you want to transform the value of key `name` into a format like for example 
 ```yaml
 name: example
 apis:
-    - name: removeKeys
+    - name: someService
       url: http://some-service.com/status
       value_transformer:
           name: node_${value}
+```
+
+Which would return something similar to:
+
+```json
+"metrics": [{  
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.leader": "8a69d5f6b7814500",
+  "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
+  "leaderInfo.uptime": "10m59.322358947s",
+  "name": "node/node3"
+}]
 ```

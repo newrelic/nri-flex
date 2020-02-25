@@ -40,8 +40,11 @@ With Flex you can add your own custom attributes to samples. Add any custom attr
 custom_attributes:
   greeting: hello
 ```
+Custom attributes can be defined nearly anywhere in your configuration. For example, under `global`, or `api`, or further nested under each command. 
+Attributes defined at the lowest level take precedence.
 
-Custom attributes defined at the config level are added to all samples, while custom attributes defined at the API level are added only at the level of the API where they are defined. Custom attributes can also be added for each command declared under `commands`.
+Custom attributes defined at the `global` level are added to all samples, while custom attributes defined at the API level are added only at the level of the API where they are defined. 
+
 
 ##  <a name='Environmentvariables'></a>Environment variables
 
