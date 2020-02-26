@@ -1,4 +1,4 @@
-# NRI-Flex documentation
+# Flex documentation
 
 ## Basics
 

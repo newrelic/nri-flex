@@ -61,7 +61,7 @@ Which would give you a result similar to:
 
 ## metric_parser
 
-`metric_parser` allows setting rates and deltas. It expects an exact match to avoid any conflicts, though the `mode` attribute can be set as shown below to automatically match multiple keys. `mode` supports `regex`, `suffix`, `prefix` and `contains` for matching.
+`metric_parser` enables setting rates and deltas. It expects an exact match to avoid any conflicts, though the `mode` attribute can be set as shown below to automatically match multiple keys. `mode` supports `regex`, `suffix`, `prefix` and `contains` for matching.
 
 Flex automatically attempts to set a namespace as required for your attributes; else you can namespace based on existing attributes or a custom attributes.
 

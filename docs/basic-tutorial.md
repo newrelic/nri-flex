@@ -28,7 +28,7 @@ Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled 
    ```
 3. Go to New Relic and run the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
 
-```sql
+```sql 
 FROM flexStatusSample SELECT * LIMIT 1
 ```
 
