@@ -1,6 +1,6 @@
 # `commands`
 
-The `commands` API allows retrieving information from any application or shell command. It can accept multiple commands executed in sequence.
+The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence.
 
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
@@ -111,7 +111,7 @@ apis:
 
 ###  <a name='Specifyatimeout'></a>Specify a timeout
 
-Flex defines a 10 seconds timeout for each command by default. If the command does not complete within the timeout period, Flex stops processing the current command and moves to the next. You can change the timeout at both API and command levels. Timeout values are specified in milliseconds (for example, 15 second are specified as `15000`).
+Flex defines a 10 second timeout for each command by default. If the command does not complete within the timeout period, Flex stops processing the current command and moves to the next. You can change the timeout at both API and command levels. Timeout values are specified in milliseconds (for example, 15 seconds are specified as `15000`).
 
 ```yaml
 name: example

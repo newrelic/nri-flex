@@ -2,7 +2,14 @@
 
 [![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
 
-- [New Relic Flex](#new-relic---flex)
+Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) that allows you to collect metric data from a wide variety of services. You can instrument any app that outputs to the terminal: you create a [config file](/docs/basics/creating_configs.md), start the Infrastructure agent, and data starts pouring into New Relic - see the [200+ example integrations](#example-integrations)!
+
+Flex works in two steps:
+  1. It runs any HTTP request or shell command, with or without parameters, as defined in a YAML config file.
+  2. It generates metric samples through [functions](/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
+
+Only Linux is officially supported at the moment. Stay tuned for [updates](CHANGELOG.md)!
+
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Getting started](#getting-started)
@@ -13,15 +20,6 @@
   - [Support](#support)
   - [License](#license)
 
-
-Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) that allows you to collect metric data from a wide variety of services. You can instrument any app that outputs to the terminal: you create a [config file](/docs/basics/creating_configs.md), start the Infrastructure agent, and data starts pouring into New Relic - see the [200+ example integrations](#example-integrations)!
-
-Flex works in two steps:
-  1. It runs any HTTP request or shell command, with or without parameters.
-  2. It generates metric samples using [functions](/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
-
-Only Linux is officially supported at the moment. As updates and upgrades are made, all Flex Integrations reap the benefits.
-
 ## Requirements
 
 - Linux
@@ -30,7 +28,9 @@ Only Linux is officially supported at the moment. As updates and upgrades are ma
 
 ## Installation
 
-Flex now comes bundled with the New Relic Infrastructure agent. To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
+Flex now comes bundled with the New Relic Infrastructure agent. 
+
+To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
 
 ## Getting started
 
@@ -40,7 +40,7 @@ The Flex [step-by-step tutorial](./docs/basic-tutorial.md) is a great starting p
 
 All examples are located in [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
-Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental), and may be removed in the future.
+Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
 
 ## Experimental features
 
@@ -77,7 +77,7 @@ You can find more detailed documentation [on our website](http://newrelic.com/do
 
 If you can't find what you're looking for there, reach out to us on our [support site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com) and we'll be happy to help you.
 
-Found a bug? Contact us at [support.newrelic.com](http://support.newrelic.com/), or email support@newrelic.com.
+Found a bug? Contact us at [support.newrelic.com](http://support.newrelic.com/)
 
 ### Community
 

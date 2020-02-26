@@ -1,6 +1,6 @@
 # url API
 
-The `url` API allows retrieving information from an HTTP endpoint. 
+The `url` API allows you to retrieve information from an HTTP endpoint. 
 
 * [Basic usage](#Basicusage)
 * [Use POST/PUT methods with a body](#UsePOSTPUTmethodswithabody)
@@ -10,7 +10,7 @@ The `url` API allows retrieving information from an HTTP endpoint.
 
 ##  <a name='Basicusage'></a>Basic usage
 
-```yaml
+```yaml 
 ---
 name: example
 apis:
