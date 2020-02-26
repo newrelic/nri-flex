@@ -4,15 +4,15 @@ Follow this tutorial to get started with Flex!
 
 ## Requirements
 
-Before starting, make sure that you meet the following requirements: 
+Before starting this tutorial, make sure that you meet the following requirements: 
 
-* [Infrastructure agent](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure) version 1.8 or higher installed. This tutorial relies on the latest integrations engine, which has been added in the [v1.8.0](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).  
-* The Infrastructure agent is running in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes). 
-* Flex 0.8.5 or higher. Previous versions of Flex also work, but require few extra configuration steps that are not addressed by this tutorial.
+* [Infrastructure agent](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure) version 1.10.7 or higher installed, which bundles Flex by default.
+* Infrastructure agent running in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes). 
+* Flex 0.8.5 or higher. 
 
 ## Installation
 
-Starting from New Relic Infrastructure agent version 1.10.0, Flex comes bundled with the agent, so you don't need to perform any extra step.
+Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent, so you don't need to perform any extra step.
 
 ## Check that Flex is up and running
 
@@ -112,7 +112,7 @@ integrations:
 
 **Once the Flex config is created, the Infrastructure agent autodetects the new config and begins collecting data.**
 
-To check that your new integration is working, try executing the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
+To check that your new integration is working, execute the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
 
 ```sql
 FROM FileSystemSample SELECT mountedOn, fs, usedBytes, capacityBytes, usedBytes
