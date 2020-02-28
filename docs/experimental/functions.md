@@ -2,14 +2,14 @@
 
 Experimental functions are available for use but currently not recommend for use in production environments (unless critical for your use case). They are not officially supported by New Relic.
 
-- [inherit_attributes](#inheritattributes)
-- [metric_parser](#metricparser)
+- [inherit_attributes](#inherit_attributes)
+- [metric_parser](#metric_parser)
 - [pagination](#pagination)
-- [pluck_numbers](#plucknumbers)
-- [rename_samples](#renamesamples)
-- [sample_keys](#samplekeys)
-- [store_variables](#storevariables)
-- [sub_parse](#subparse)
+- [pluck_numbers](#pluck_numbers)
+- [rename_samples](#rename_samples)
+- [sample_keys](#sample_keys)
+- [store_variables](#store_variables)
+- [sub_parse](#sub_parse)
 
 ## inherit_attributes
 
