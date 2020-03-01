@@ -106,6 +106,31 @@ func TestConfigFile(t *testing.T) {
 	testSamples(expectedOutput, t)
 }
 
+func TestV4ConfigFile(t *testing.T) {
+	load.Refresh()
+	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
+	load.Entity, _ = i.Entity("TestV4Cmd", "nri-flex")
+	load.Args.ConfigFile = "../../test/configs/v4-integrations-example.yml"
+
+	// Read a single config file
+	var files []os.FileInfo
+	var ymls []load.Config
+	file, _ := os.Stat(load.Args.ConfigFile)
+	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
+	files = append(files, file)
+
+	LoadFiles(&ymls, files, path) // load standard configs if available
+	RunFiles(&ymls)
+
+	jsonFile, _ := ioutil.ReadFile("../../test/payloadsExpected/configFileV4.json")
+	expectedOutput := []*metric.Set{}
+	err := json.Unmarshal(jsonFile, &expectedOutput)
+	if err != nil {
+		t.Error(err)
+	}
+	testSamples(expectedOutput, t)
+}
+
 func TestSubEnvVariables(t *testing.T) {
 	str := " hi there $$PWD bye"
 	SubEnvVariables(&str)

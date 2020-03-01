@@ -156,6 +156,18 @@ type Metrics struct {
 	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
 }
 
+// AgentConfig stores the information from a single V4 integrations file
+// This has been added so that Flex can understand the V4 agent format when users are using the config_file parameter
+type AgentConfig struct {
+	Integrations []ConfigEntry `yaml:"integrations"`
+}
+
+// ConfigEntry holds an integrations YAML configuration entry. It may define multiple types of tasks
+type ConfigEntry struct {
+	Name   string `yaml:"name"`
+	Config Config `yaml:"config"`
+}
+
 // Config YAML Struct
 type Config struct {
 	FileName           string             `yaml:"file_name"`           // set when file is read
