@@ -8,7 +8,6 @@ Before starting this tutorial, make sure that you meet the following requirement
 
 * [Infrastructure agent](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure) version 1.10.7 or higher installed, which bundles Flex by default.
 * Infrastructure agent running in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes). 
-* Flex 0.8.5 or higher. 
 
 ## Installation
 
