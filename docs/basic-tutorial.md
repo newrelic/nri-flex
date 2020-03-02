@@ -2,7 +2,7 @@
 
 Follow this tutorial to get started with Flex!
 
-## Requirements
+## Requirements
 
 Before starting this tutorial, make sure that you meet the following requirements: 
 
