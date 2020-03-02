@@ -65,7 +65,7 @@ If you are setting up Flex configurations, you can use Flex in isolation mode, t
 
 ## Documentation
 
-- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/readme.md)
+- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/README.md)
 - [File and directory structure](https://github.com/newrelic/nri-flex/tree/master/docs/basics/file_layout.md)
 - [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/basics/creating_configs.md)
 - [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md)
