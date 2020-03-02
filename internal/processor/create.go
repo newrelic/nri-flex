@@ -32,6 +32,16 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		eventType := "UnknownSample" // set an UnknownSample event name
 		SetEventType(&currentSample, &eventType, api.EventType, api.Merge, api.Name)
 
+		// add custom attribute(s)
+		// global
+		for k, v := range config.CustomAttributes {
+			currentSample[k] = v
+		}
+		// nested
+		for k, v := range api.CustomAttributes {
+			currentSample[k] = v
+		}
+
 		// init lookup store
 		if (&config.LookupStore) == nil {
 			config.LookupStore = map[string]map[string]struct{}{}
@@ -110,15 +120,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 
 			RunMathCalculations(&api.Math, &currentSample)
 
-			// add custom attribute(s)
-			// global
-			for k, v := range config.CustomAttributes {
-				currentSample[k] = v
-			}
-			// nested
-			for k, v := range api.CustomAttributes {
-				currentSample[k] = v
-			}
 			// inject some additional attributes if set
 			if config.Global.BaseURL != "" {
 				currentSample["baseUrl"] = config.Global.BaseURL
