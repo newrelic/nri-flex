@@ -1,6 +1,6 @@
 # Development
 
-Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files. To run Flex with the New Relic Infrastructure agent, see the [docs](./docs/README.md).
+Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files. To run Flex with the New Relic Infrastructure agent, see the [docs](README.md).
 
 1. [Before you start](#Beforeyoustart)
 2. [Installation](#Installation)
@@ -60,6 +60,12 @@ For additional logging, use `-verbose`:
 Once you've tested your configuration and you're ready to use in production, you can:
 
 - Add your configuration to the integrations config file in `integrations.d`.
+	```yaml
+	integrations:                                    # OHI configuration starts here  
+      - name: nri-flex                               # OHI to be executed by the Agent
+        config:                                      # OHI configuration to be parsed by Flex
+        # Actual Flex configuration starts here
+	```
 	or
 - Use `config_template_path` to reference your Flex configuration file from the integrations config file:
 	```yaml
