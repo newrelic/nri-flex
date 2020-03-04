@@ -11,21 +11,32 @@ Before starting this tutorial, make sure that you meet the following requirement
 
 ## Installation
 
-Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent, so you don't need to perform any extra step.
+Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent.
+
+To install the Infrastructure agent, see:
+
+- [Install Infrastructure for Linux using the package manager](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/linux-installation/install-infrastructure-linux-using-package-manager)
+- [Install Infrastructure for Windows Server using the MSI installer](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/windows-installation/install-infrastructure-windows-server-using-msi-installer)
+
+You can [start, stop, restart, and check](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/configuration/start-stop-restart-check-infrastructure-agent-status) the Infrastructure agent from the command line.
 
 ## Check that Flex is up and running
 
-1. Create a file named `my-flex-configs.yml` (or similar) in this folder:
+1. Navigate to the integrations folder of the Infrastructure agent:
     * Linux: `/etc/newrelic-infra/integrations.d`
-    * Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d`
-2. Edit the file and add the following snippet:
+    * Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
+2. Create the integration configuration file (for example, `integrations.yml`) if it doesn't exist.
+2. Add the Flex configuration to the file.
+
    ```yaml
    integrations:
      - name: nri-flex
        config:
          name: just-testing
    ```
-3. Go to New Relic and run the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
+   If you already have an integrations section in the file, add `nri-flex` to it.
+
+After a few minutes, go to New Relic and run the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
 
 ```sql 
 FROM flexStatusSample SELECT * LIMIT 1
@@ -34,17 +45,6 @@ FROM flexStatusSample SELECT * LIMIT 1
 The query should produce a table similar to this:
 
 ![](./img/basic-table.png)
-
-### What happened behind the scenes
-
-1. The Infrastructure agent detects that a new integration, `nri-flex`, has been added.
-2. The agent looks for an executable named `nri-flex` in `/var/db/newrelic-infra/newrelic-integrations/`.
-3. A temporary configuration file is created with this content:
-   ```yaml
-   name: just-testing
-   ```
-4. `nri-flex` is executed and gets the path of the config file via the `CONFIG_PATH` environment variable.
-5. Flex recognizes a configuration named `just-testing`, but since it does not provide extra information it just returns a `flexStatusSample` containing the internal status of the Flex integration.
 
 ## Your first Flex integration
 
@@ -96,6 +96,7 @@ integrations:
             - run: 'df -PT -B1 -x tmpfs -x xfs -x vxfs -x btrfs -x ext -x ext2 -x ext3 -x ext4'
               split: horizontal
               split_by: \s+
+              row_start: 1
               set_header: [fs,fsType,capacityBytes,usedBytes,availableBytes,usedPerc,mountedOn]
           perc_to_decimal: true
 ```
@@ -106,6 +107,7 @@ integrations:
     - `run: 'df -PT -B1...` specifies the command to run.
     - `split: horizontal` states that each output line may return a metric.
     - `split_by` explains how to split each line in different fields. In this case, we use the `\s+` regular expression, which tells Flex that any sequence of one or more white spaces is a separator.
+    - `row_start` specifies that data starts right after the first row (which is `0`).
     - `set_header` specifies, in order, a matching name for each value of the aforementioned array.
     - `perc_to_decimal: true` indicates to convert any percentage string into a decimal value, removing the trailing `%` symbol.
 

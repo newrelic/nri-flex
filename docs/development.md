@@ -1,15 +1,12 @@
 # Development
 
-Flex can run in isolation while you're developing and testing your config files; the following instructions apply only when running in isolation mode. To run Flex with the New Relic Infrastructure agent, see the [docs](./docs/README.md).
+Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files. To run Flex with the New Relic Infrastructure agent, see the [docs](./docs/README.md).
 
 1. [Before you start](#Beforeyoustart)
 2. [Installation](#Installation)
 3. [Standard configuration](#Standardconfiguration)
-4. [New Relic Insights Event API](#NewRelicInsightsEventAPI)
-5. [Serverless](#Serverless)
-6. [Kubernetes](#Kubernetes)
-7. [Testing](#Testing)
-8. [Compile from source](#Compilefromsource)
+4. [Testing](#Testing)
+5. [Compile from source](#Compilefromsource)
 	* [Requirements](#Requirements)
 	* [Setup](#Setup)
 	* [Build](#Build)
@@ -17,16 +14,13 @@ Flex can run in isolation while you're developing and testing your config files;
 	* [Packaging](#Packaging)
 	* [Docker Related](#DockerRelated)
 	* [Other Utility Commands](#OtherUtilityCommands)
-9. [Releasing](#Releasing)
-10. [Docker](#Docker)
+6. [Run as a Docker image](#Docker)
 
 ##  1. <a name='Beforeyoustart'></a>Before you start
 
-- Browse `examples/flexConfigs` for configuration examples that you can reuse.
-- Flex runs everything by default in the `flexConfigs/` folder, next to the binary file.
-- Flex provides two options for ingesting your events, via the New Relic Infrastructure agent and through the New Relic Insights Event API.
 - Flex outputs to the terminal/console, so you don't need to send the data to New Relic to see the results of running Flex against you config file.
-- Flex has a built-in event limiter: the `event_limit` argument is available to ensure you don't spam heaps of events unknowingly. Default is `500` per execution/run, which can be increased if required.
+- Flex runs everything by default in the `flexConfigs/` folder, next to the binary file.
+- Browse `examples/flexConfigs` for configuration examples that you can reuse.
 
 ##  2. <a name='Installation'></a>Installation
 
@@ -44,34 +38,14 @@ You can use the following flags to instruct Flex to read configuration files fro
 
     -config_file (or -config_path) `string` Specifies a single config file
 
-##  4. <a name='NewRelicInsightsEventAPI'></a>New Relic Insights Event API
-
-If you want to see your data in New Relic while developing, use the New Relic Insights Event API in Flex. Note that it is not officially supported and we may remove this at any point in the future.
-
-To use the New Relic Insight Event API from within Flex, you need to:
-
-1. [Create an Insert API Key](https://insights.newrelic.com/accounts/YOUR_ACCOUNT_ID/manage/api_keys).
-2. Use the below flags to configure Flex:
-    - `insights_api_key` (`string`): Insights API key
-    - `insights_url` (`string`): Insights API endpoint
-    - `insights_output` (`bool`): whether events generated go to standard out or not
-
-##  5. <a name='Serverless'></a>Serverless
-
-See the [Serverless README](../examples/lambdaExample/README.md).
-
-##  6. <a name='Kubernetes'></a>Kubernetes
-
-Build your Docker Image, and deploy as a daemonset. You can see an example in [examples/nri-flex-k8s.yml](../examples/nri-flex-k8s.yml).
-
-##  7. <a name='Testing'></a>Testing
+##  4. <a name='Testing'></a>Testing your configuration
 
 Running without any flags defaults to running all configs within `./flexConfigs`:
 
 ```bash
 ./nri-flex
 ```
-To test a single config use `-config_file`:
+To test a single Flex config file use `-config_file`:
 
 ```bash
 ./nri-flex -config_file "examples/flexConfigs/redis-cmd-raw-example.yml"
@@ -83,9 +57,22 @@ For additional logging, use `-verbose`:
 ./nri-flex -verbose
 ```
 
-##  8. <a name='Compilefromsource'></a>Compile from source
+Once you've tested your configuration and you're ready to use in production, you can:
 
-###  8.1. <a name='Requirements'></a>Requirements
+- Add your configuration to the integrations config file in `integrations.d`.
+	or
+- Use `config_template_path` to reference your Flex configuration file from the integrations config file:
+	```yaml
+	integrations:
+       - name: nri-flex
+          interval: 60s
+          timeout: 5s
+          config_template_path: /path/to/flex/integration.yml
+	```
+
+##  5. <a name='Compilefromsource'></a>Compile from source
+
+###  5.1. <a name='Requirements'></a>Requirements
 
 - Make
 - Go 1.13 or higher
@@ -93,7 +80,7 @@ For additional logging, use `-verbose`:
 - [golangci-lint v1.22.2](https://github.com/golangci/golangci-lint)
 - Docker Compose (for integration tests)
 
-###  8.2. <a name='Setup'></a>Setup
+###  5.2. <a name='Setup'></a>Setup
 
 This assumes that you have a functional Go environment:
 
@@ -109,7 +96,7 @@ make clean
 make dep
 ```
 
-###  8.3. <a name='Build'></a>Build
+###  5.3. <a name='Build'></a>Build
 
 ```bash
 # Default command runs clean, linter, unit test, and compiles for the local OS
@@ -134,7 +121,7 @@ make cover
 make cover-view
 ```
 
-###  8.4. <a name='Cross-compiling'></a>Cross-compiling
+###  5.4. <a name='Cross-compiling'></a>Cross-compiling
 
 ```bash
 # Build binary for current OS
@@ -149,7 +136,7 @@ make build-linux
 make build-windows
 ```
 
-###  8.5. <a name='Packaging'></a>Packaging
+###  5.5. <a name='Packaging'></a>Packaging
 
 To build tar.gz files for distribution:
 
@@ -166,7 +153,7 @@ make package-linux
 make package-windows
 ```
 
-###  8.6. <a name='DockerRelated'></a>Docker related
+###  5.6. <a name='DockerRelated'></a>Docker related
 
 ```bash
 # clean/remove any docker containers that have been created
@@ -185,7 +172,7 @@ make docker-test
 make docker-test-infra
 ```
 
-###  8.7. <a name='OtherUtilityCommands'></a>Other utility Commands
+###  5.7. <a name='OtherUtilityCommands'></a>Other utility Commands
 
 ```bash
 # Use godocdown to create Markdown documentation for all commands and packages
@@ -193,15 +180,7 @@ make docker-test-infra
 make document
 ```
 
-##  9. <a name='Releasing'></a>Releasing
-
-The build process sets the package version based on the latest git tag. 
-
-After all changes have been made for the latest release, make a new tag with no commits after, and then `make package-all` to create the artifacts. 
-
-Finally, upload the artifacts on Github to the tag release.
-
-##  10. <a name='Docker'></a>Docker
+##  6. <a name='Docker'></a>Run as a Docker image
 
 - Set your configs, modify Dockerfile if need be.
 - Build and run the image.
