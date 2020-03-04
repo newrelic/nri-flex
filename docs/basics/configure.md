@@ -162,7 +162,7 @@ You can inject values for environment variables anywhere in a Flex config file. 
 
 ## <a name='AddyourFlexconfigurationtointegrations.d'></a>Add your Flex configuration to `integrations.d`
 
-Since it comes bundles with the Infrastructure agent, Flex configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
+Since it comes bundled with the Infrastructure agent, Flex configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
 
 * Linux: `/etc/newrelic-infra/integrations.d`
 * Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
