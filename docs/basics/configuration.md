@@ -1,32 +1,19 @@
-# Structure of a Flex configuration file
+# Configure Flex
 
-> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md).
+* [Configuration schema](#Configurationschema)
+	* [name](#name)
+	* [global](#global)
+	* [apis](#apis)
+	* [Cache](#Cache)
+	* [Custom attributes](#Customattributes)
+	* [Environment variables](#Environmentvariables)
+* [Add your Flex configuration to `integrations.d`](#AddyourFlexconfigurationtointegrations.d)
+* [Link to a separate configuration file](#Linktoaseparateconfigurationfile)
+* [Configuration example](#Configurationexample)
 
-Flex configurations are written in YAML. They can be created in two ways, as described in the [File Layout](./file_layout.md) page:
- 
-1. As part of an [on-host integration (OHI) configuration file](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).
-   For example,  the `/etc/newrelic-infra/integrations.d/my-bundled-config.yml` would contain:
-    
-   ```yaml
-   integrations:
-     - name: nri-flex
-       config:
-         <Flex configuration YAML>
-   ```
-2. Referenced from the OHI configuration file, by means of the `config_template_path` option. 
-   For example, the `/etc/newrelic-infra/integrations.d/my-bundled-config.yml` would contain:
-   ```yaml
-   integrations:
-     - name: nri-flex
-       config_template_path: /path/to/flex-config.yml
-   ```
-   While `/path/to/flex-config.yml` would contain the actual Flex configuration file.
+## <a name='Configurationschema'></a>Configuration schema
 
-Here we focus on creating the Flex configuration YAML file. For OHI configuration settings, see the [OHI configuration file specification](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180).
-
-## Overview
-
-The following schema describes the overall structure of a Flex configuration file (the one that should go inside the `config` OHI configuration, or the file referenced in `config_template_path`).
+The following schema describes the overall structure of a Flex configuration.
 
 ```
 +----------------------+
@@ -49,11 +36,11 @@ The following schema describes the overall structure of a Flex configuration fil
 +----------------------+
 ```
 
-## name
+### <a name='name'></a>name
 
 The name of the Flex configuration. It should be something short and meaningful.
 
-## global
+### <a name='global'></a>global
 
 Set of global properties that apply to the overall file. The aim of this section is to avoid repeating some values (like URLs or user credentials).
 
@@ -83,7 +70,7 @@ These are all the possible `global` properties:
 | `ssh_pem_file` | Path to PEM file to enable SSH authentication |  
 | `JMX` | See [JMX](../experimental/jmx.md) (experimental) |
 
-## apis
+### <a name='apis'></a>apis
 
 The `apis` section allows you to define multiple entries for data acquisition and processing. Each entry must have a `name` or `event_type`, which is used to name the event type in New Relic:
 
@@ -93,11 +80,9 @@ The `apis` section allows you to define multiple entries for data acquisition an
   with the `Sample` prefix concatenated.
     - For example, `name: FolderSize` would make Flex to create events named `event_type: FolderSizeSample`.
 
-In addition to the fields that define the name of the sample, each `apis` entry requires the type of API to parse data from, and, optionally, a list of [functions](../apis/functions.md) for processing the data coming from the API.
+In addition to the fields that define the name of the sample, each `apis` entry requires the type of API to parse data from, and, optionally, a list of [functions](../basics/functions.md) for processing the data coming from the API.
 
-For a list of currently supported APIs, see [`Officially supported APIs`](creating_configs.md#OfficiallysupportedAPIs).
-
-## Cache
+### <a name='Cache'></a>Cache
 
 Flex by default stores the result of an API execution in it's internal cache. You can then use this cache as input to another API for further processing.
 
@@ -157,9 +142,79 @@ apis:
           - id
           - name
 ``` 
-## Example
 
-An example of a Flex configuration file (embedded in the OHI configuration):
+### <a name='Customattributes'></a>Custom attributes
+
+With Flex you can add your own custom attributes to samples. Add any custom attribute using key-value pairs under the `global` directive, and at the API level by declaring an array named `custom_attributes`.
+
+```yaml
+custom_attributes:
+  greeting: hello
+```
+Custom attributes can be defined nearly anywhere in your configuration. For example, under `global`, or `api`, or further nested under each command. 
+Attributes defined at the lowest level take precedence.
+
+Custom attributes defined at the `global` level are added to all samples, while custom attributes defined at the API level are added only at the level of the API where they are defined. 
+
+### <a name='Environmentvariables'></a>Environment variables
+
+You can inject values for environment variables anywhere in a Flex config file. To inject the value for an environment variable, use a double dollar sign before the name of the variable (for example `$$MY_ENVIRONMENT_VAR`).
+
+## <a name='AddyourFlexconfigurationtointegrations.d'></a>Add your Flex configuration to `integrations.d`
+
+Since it comes bundles with the Infrastructure agent, Flex configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
+
+* Linux: `/etc/newrelic-infra/integrations.d`
+* Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
+
+The main section of the integrations config file is used by the Infrastructure agent to execute Flex like any other on-host integration; under `config`, you add your Flex configuration.
+
+For example, a `/etc/newrelic-infra/integrations.d/my-flex-config.yml` file could contain:
+
+```yaml
+integrations:
+  - name: nri-flex # We're telling the Infra agent to run Flex
+    interval: 60s
+    timeout: 5s
+    config: # Flex configuration starts here!
+      name: example
+      apis:
+        - event_type: ExampleSample
+          url: https://my-host:8443/admin/metrics.json
+```
+
+* **On-Host Integration Configuration**: the first five lines are read by the agent to execute the `nri-flex` binary every 60 seconds, canceling the execution if it lasts more than 5 seconds. Refer to [Integration configuration file specifications](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180) for more details about the contents of the on-host integrations configuration file.
+* **Flex configuration**: contains the actions to be taken using data sources APIs, such as the [url](../apis/url.md) API.
+
+> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md) or check existing config files under [/examples](../../examples).
+
+## <a name='Linktoaseparateconfigurationfile'></a>Link to a separate configuration file
+
+You can store the Flex configuration in a separate YAML file (for example, after [developing and testing a config file](../development.md)) and reference it by replacing `config` with `config_template_path` property, which contains the path of the Flex config file.
+
+This way, the equivalent of `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
+
+```yaml
+integrations:
+  - name: nri-flex
+    interval: 60s
+    timeout: 5s
+    config_template_path: /path/to/flex/integration.yml # Reference to a separate Flex config file
+```
+
+`/path/to/flex/integration.yml` would contain the contents that previously were inside the `config`
+section:
+
+```yaml
+name: example
+apis:
+  - event_type: ExampleSample
+    url: https://my-host:8443/admin/metrics.json
+```
+
+## <a name='Configurationexample'></a>Configuration example
+
+Here's an example of a Flex configuration file (embedded in an integration configuration file):
 
 ```yaml
 integrations:                                    # OHI configuration starts here  
