@@ -77,7 +77,7 @@ func TestSplitArrays(t *testing.T) {
 	expectedResult := `[{"HOSTNAME":"host1","HOST_ID":"1","PERCENT_USED":"10","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host2","HOST_ID":"2","PERCENT_USED":"20","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host3","HOST_ID":"3","PERCENT_USED":"30","TIMESTAMP":"1582159853733"}]`
 
 	api := getAPI()
-	result := splitArrays(&inputArray, map[string]interface{}{}, "", api, &[]interface{}{})
+	result := splitArrays(&inputArray, map[string]interface{}{}, "", api, &[]interface{}{}, map[string]interface{}{})
 	got, _ := json.Marshal(result)
 	assert.Equal(t, expectedResult, string(got))
 
