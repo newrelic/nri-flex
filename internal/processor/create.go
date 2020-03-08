@@ -6,7 +6,6 @@
 package processor
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -122,7 +121,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			// check sample_exclude_filter and sample_filter, only if it passes sample_include_filter filter or there is no sample_include_filter defined
 			if !excludeSample {
 				createSample = true
-				fmt.Println("here: yyyy000", currentSample)
 				RunSampleFilter(currentSample, api.SampleFilter, &createSample)
 				RunSampleFilter(currentSample, api.SampleExcludeFilter, &createSample)
 			}
