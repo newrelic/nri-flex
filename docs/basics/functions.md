@@ -631,7 +631,7 @@ Which would return the following:
 | Applies to | Description |
 | :--------- | :---------- |
 | API | Skips creating the sample if both a key and value is found in the sample |
-||if sample_exclude_filter is present, both filters will be applied.
+||if `sample_exclude_filter` is present as well, both filters will be applied.
 
 **Example**
 
@@ -673,9 +673,10 @@ Which would return the following:
 
 | Applies to | Description |
 | :--------- | :---------- |
-| API | only creating the sample if both a key and value is found in the sample |
-|| in absence of sample_include_filter, it defaults to include all|
-|| if the sample cannot pass sample_include_filter filter, the sample_filter and sample_exclude_filter will not be evalucated|
+| API | Only creates the sample if both a key and value is found in the sample.|
+|| In the absence of `sample_include_filter`, it defaults to include all.|
+|| If a sample is included by the `sample_include_filter` filter, the `sample_filter` and `sample_exclude_filter` will be evaluated next.|
+|| If a sample is NOT included by the `sample_include_filter` filter, the `sample_filter` and `sample_exclude_filter` will be skiped.|
 
 **Example**
 
@@ -695,7 +696,7 @@ Consider a service that returns the following payload:
 }
 ```
 
-You could completely skip creating the output sample:
+You might only want to have `"customerId": "abc"` in the ouput sample:
 
 ```yaml
 name: example
@@ -703,30 +704,30 @@ apis:
     - name: someService
       url: http://some-service.com/samples
       sample_include_filter:
-        - name: abc
+        - customerId: abc
 ```
 
 Which would return the following:
 
 ```json
-			"metrics": [
-				{
-					"api.StatusCode": 200,
-					"customerId": "abc",
-					"event_type": "usageInfoSample",
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "Unknown-SNAPSHOT",
-					"quantities": 10
-				},
-      ]
+"metrics": [
+  {
+    "api.StatusCode": 200,
+    "customerId": "abc",
+    "event_type": "usageInfoSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "Unknown-SNAPSHOT",
+    "quantities": 10
+  },
+]
 ```
 
 ### sample_exclude_filter
 
 | Applies to | Description |
 | :--------- | :---------- |
-| API |  works exactly same as sample_filter |
-||if sample_filter is present, both sample_filter and sample_exclude_filter  will be applied. 
+| API | This works exactly the same as `sample_filter`. Skips creating the sample if both a key and value is found in the sample. |
+|| If `sample_filter` is present as well, both `sample_filter` and `sample_exclude_filter` will be applied. |
 
 **Example**
 
@@ -746,7 +747,7 @@ Consider a service that returns the following payload:
 }
 ```
 
-You could completely skip creating the output sample:
+You might want to exclude `"customerId": "abc"` from the output sample:
 
 ```yaml
 name: example
@@ -754,22 +755,22 @@ apis:
     - name: someService
       url: http://some-service.com/samples
       sample_exclude_filter:
-        - name: abc
+        - customerId: abc
 ```
 
 Which would return the following:
 
 ```json
-			"metrics": [
-				{
-					"api.StatusCode": 200,
-					"customerId": "xyz",
-					"event_type": "usageInfoSample",
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "Unknown-SNAPSHOT",
-					"quantities": 20
-				},
-      ]
+"metrics": [
+  {
+    "api.StatusCode": 200,
+    "customerId": "xyz",
+    "event_type": "usageInfoSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "Unknown-SNAPSHOT",
+    "quantities": 20
+  },
+]
 ```
 
 ### snake_to_camel
