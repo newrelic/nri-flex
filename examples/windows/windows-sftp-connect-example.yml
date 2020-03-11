@@ -8,9 +8,9 @@ apis:
   - name: sftpConnect
     shell: powershell
     commands:
-      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/flexSFTP.ps1\" -TargetHost somehost.com -Username sftptest -Password password123"
+      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-sftp-connect-script\" -TargetHost somehost.com -Username sftptest -Password password123"
   - name: sftpConnect
     shell: powershell
     commands:
       # use back ticks to escape special chars
-      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/flexSFTP.ps1\" -TargetHost someotherhost.com -Username sftptest2 -Password P@`$`$w0rd!"
+      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-sftp-connect-script\" -TargetHost someotherhost.com -Username sftptest2 -Password P@`$`$w0rd!"

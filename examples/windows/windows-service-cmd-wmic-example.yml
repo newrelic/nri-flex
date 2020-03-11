@@ -1,3 +1,5 @@
+# This config will query the status of all existing Windows Services using the CMD shell and the wmic command
+# https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmic
 name: winSvc
 apis:
   - name: winSvc

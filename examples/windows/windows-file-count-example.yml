@@ -4,7 +4,7 @@
 # lookup_file: https://github.com/newrelic/nri-flex/blob/master/docs/basics/functions.md#lookup_file
 # shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
 name: winFileCount
-lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/winFileCount_lookup.json"
+lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-file-count-lookup.json"
 apis:
   - name: winFileCount
     shell: powershell

@@ -5,7 +5,7 @@
 # We use PowerShell Calculated Properties to enumerate the status in string form. ref: Example 10 of 'Select-Object'
 # https://docs.microsoft.com/en-us/previous-versions/powershell/module/microsoft.powershell.utility/select-object?view=powershell-3.0#examples
 name: winServiceStatus
-lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/winServiceStatusFiltered_lookup.json"
+lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-service-status-filtered-lookup.json"
 apis:
   - name: winServiceStatus
     shell: powershell
