@@ -1,0 +1,16 @@
+# This config will test SFTP connections from a Windows host
+# Use forward slashes on Windows paths as Flex handles these more gracefully
+# Use a backtick { ` } to escape special characters in PowerShell
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+name: sftpConnect
+apis:
+  - name: sftpConnect
+    shell: powershell
+    commands:
+      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/flexSFTP.ps1\" -TargetHost somehost.com -Username sftptest -Password password123"
+  - name: sftpConnect
+    shell: powershell
+    commands:
+      # use back ticks to escape special chars
+      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/flexSFTP.ps1\" -TargetHost someotherhost.com -Username sftptest2 -Password P@`$`$w0rd!"
