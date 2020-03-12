@@ -94,7 +94,7 @@ func TestConfig_cmd_OpenFDs(t *testing.T) {
 
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("IntegrationTest", "nri-flex")
-	load.Args.ConfigFile = "../examples/flexConfigs/linux-open-fds.yml"
+	load.Args.ConfigFile = "../examples/linux/linux-open-fds-example.yml"
 
 	// Read a single config file
 	var files []os.FileInfo

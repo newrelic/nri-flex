@@ -1,0 +1,11 @@
+[
+	{
+		"serviceName":"newrelic-infra"
+	},
+	{
+		"serviceName":"LanmanServer"
+	},
+	{
+		"serviceName":"SystemEventsBroker"
+	}
+]
