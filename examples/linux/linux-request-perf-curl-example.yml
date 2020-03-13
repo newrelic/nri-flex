@@ -1,7 +1,0 @@
-# curl needs to be available on your system
-name: curlFlex
-apis: 
-  - name: curl
-    commands: 
-      - run: curl -w "/etc/newrelic-infra/integrations.d/flexAssets/request-perf-curl-example.tmpl" -o /dev/null -s https://google.com
-        split_by: ":"
