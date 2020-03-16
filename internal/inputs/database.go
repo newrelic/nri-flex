@@ -39,7 +39,7 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}).Debug("database: process queries")
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
-	db, err := sql.Open(setDatabaseDriver(api.Database, api.DbDriver), api.DbConn)
+	db, err := sql.Open(setDatabaseDriver(api.Database, api.DBDriver), api.DBConn)
 	if err != nil {
 
 		load.Logrus.WithFields(logrus.Fields{
@@ -75,10 +75,10 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}
 
 	// execute queries async else do synchronously
-	if api.DbAsync {
+	if api.DBAsync {
 		var wg sync.WaitGroup
-		wg.Add(len(api.DbQueries))
-		for _, query := range api.DbQueries {
+		wg.Add(len(api.DBQueries))
+		for _, query := range api.DBQueries {
 			go func(query load.Command) {
 				defer wg.Done()
 				checkAndRunQuery(db, query, api, yml, dataStore)
@@ -86,7 +86,7 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		}
 		wg.Wait()
 	} else {
-		for _, query := range api.DbQueries {
+		for _, query := range api.DBQueries {
 			checkAndRunQuery(db, query, api, yml, dataStore)
 		}
 	}

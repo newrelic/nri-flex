@@ -250,13 +250,13 @@ type API struct {
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
 	Database          string            `yaml:"database"`
-	DbDriver          string            `yaml:"db_driver"`
-	DbConn            string            `yaml:"db_conn"`
+	DBDriver          string            `yaml:"db_driver"`
+	DBConn            string            `yaml:"db_conn"`
 	Shell             string            `yaml:"shell"`
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
-	DbQueries         []Command         `yaml:"db_queries"`
-	DbAsync           bool              `yaml:"db_async"` // perform db queries async
+	DBQueries         []Command         `yaml:"db_queries"`
+	DBAsync           bool              `yaml:"db_async"` // perform db queries async
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
