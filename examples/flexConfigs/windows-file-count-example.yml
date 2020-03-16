@@ -1,0 +1,12 @@
+# This config will count the files (with a recursive switch) in a Windows directory
+# Use forward slashes on Windows paths as Flex handles these more gracefully
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+# lookup_file: https://github.com/newrelic/nri-flex/blob/master/docs/basics/functions.md#lookup_file
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+name: winFileCount
+lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-file-count-lookup.json"
+apis:
+  - name: winFileCount
+    shell: powershell
+    commands:
+      - run: "Get-ChildItem -Path \"${lf:directory}\" -File ${lf:recursive} | Measure-Object | Select-Object -Property @{ Name = \"Directory\"; Expression = { \"${lf:directory}\" } }, @{ Name = \"FileCount\"; Expression = { $_.Count } }, @{ Name = \"Recursive\"; Expression = { switch ( \"${lf:recursive}\" ) { \"-Recurse\" { $true } \"\" { $false } } } } | ConvertTo-Json"
