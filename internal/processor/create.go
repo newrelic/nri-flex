@@ -118,7 +118,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			// remove keys from sample
 			RunKeyRemover(&currentSample, api.RemoveKeys)
 
-			RunMathCalculations(&api.Math, &currentSample)
+			RunMathCalculations(&api.Math, &api.MathDefault, &currentSample)
 
 			// inject some additional attributes if set
 			if config.Global.BaseURL != "" {

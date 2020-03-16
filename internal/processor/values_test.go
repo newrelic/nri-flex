@@ -2,9 +2,10 @@ package processor
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestRunSubParse(t *testing.T) {
@@ -139,9 +140,39 @@ func TestRunMathCalculations(t *testing.T) {
 			expected: `{"net.connectionsAcceptedPerSecond":4,"net.connectionsDroppedPerSecond":1,"net.handledPerSecond":3}`,
 		},
 	}
+	mathDefault := ""
 	for testName, testCase := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			RunMathCalculations(&testCase.formulas, &testCase.sample)
+			RunMathCalculations(&testCase.formulas, &mathDefault, &testCase.sample)
+
+			got, _ := json.Marshal(testCase.sample)
+			assert.Equal(t, testCase.expected, string(got))
+		})
+	}
+}
+
+func TestRunMathCalculationsWithDefault(t *testing.T) {
+	testCases := map[string]struct {
+		formulas map[string]string
+		sample   map[string]interface{}
+		key      string
+		expected string
+	}{
+		"SimpleFormula": {
+			formulas: map[string]string{
+				"net.connectionsDroppedPerSecond": `${NonExistentAttribute} - ${net.handledPerSecond}`,
+			},
+			sample: map[string]interface{}{
+				"net.connectionsAcceptedPerSecond": 4,
+				"net.handledPerSecond":             3,
+			},
+			expected: `{"net.connectionsAcceptedPerSecond":4,"net.connectionsDroppedPerSecond":97,"net.handledPerSecond":3}`,
+		},
+	}
+	mathDefault := "100"
+	for testName, testCase := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			RunMathCalculations(&testCase.formulas, &mathDefault, &testCase.sample)
 
 			got, _ := json.Marshal(testCase.sample)
 			assert.Equal(t, testCase.expected, string(got))

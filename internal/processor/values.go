@@ -91,7 +91,7 @@ func RunPluckNumbers(v *interface{}, api load.API, key *string) {
 }
 
 // RunMathCalculations performs math calculations
-func RunMathCalculations(math *map[string]string, currentSample *map[string]interface{}) {
+func RunMathCalculations(math *map[string]string, mathDefault *string, currentSample *map[string]interface{}) {
 	for newMetric, formula := range *math {
 		finalFormula := formula
 		keys := regexp.MustCompile(`\${.*?}`).FindAllString(finalFormula, -1)
@@ -101,6 +101,12 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 				finalFormula = strings.Replace(finalFormula, key, fmt.Sprintf("%v", (*currentSample)[findKey]), -1)
 			}
 		}
+
+		// If variables have not all been replaced, and a mathDefault has been defined, substitute the default into the equation
+		if *mathDefault != "" {
+			finalFormula = regexp.MustCompile(`\${.*?}`).ReplaceAllString(finalFormula, *mathDefault)
+		}
+
 		expression, err := govaluate.NewEvaluableExpression(finalFormula)
 		if err != nil {
 			load.Logrus.WithError(err).Errorf("processor-values: %v math exp failed %v", newMetric, finalFormula)

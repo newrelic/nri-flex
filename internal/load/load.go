@@ -291,6 +291,7 @@ type API struct {
 	PercToDecimal    bool              `yaml:"perc_to_decimal"` // will check strings, and perform a trimRight for the %
 	PluckNumbers     bool              `yaml:"pluck_numbers"`   // plucks numbers out of the value
 	Math             map[string]string `yaml:"math"`            // perform match across processed metrics
+	MathDefault      string            `yaml:"math_default"`    // if unable to substitute a math variable use this default
 	SubParse         []Parse           `yaml:"sub_parse"`
 	ValueParser      map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value

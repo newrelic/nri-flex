@@ -4,13 +4,14 @@ Flex has many useful functions, which can be combined in different ways to help 
 
 -   [Function precedence order](#function-precedence-order)
 -   [Supported functions](#supported-functions)
-    -   [add_attribute](#add_attribute)    
+    -   [add_attribute](#add_attribute)
     -   [convert_space](#convert_space)
     -   [ignore_output](#ignore_output)
     -   [keep_keys](#keep_keys)
     -   [lazy_flatten](#lazy_flatten)
     -   [lookup_file](#lookup_file)
     -   [math](#math)
+    -   [math_default](#math_default)
     -   [perc_to_decimal](#perc_to_decimal)
     -   [remove_keys](#remove_keys)
     -   [rename_keys / replace_keys](#rename_keys--replace_keys)
@@ -32,7 +33,7 @@ Flex applies data parsing and transformation functions in a specific order, rega
 
 1. [lookup_file](#lookup_file)
 2. [start_key](#start_key)
-3. [strip_keys](#strip_keys) *
+3. [strip_keys](#strip_keys) \*
 4. [lazy_flatten](#lazy_flatten)
 5. [split_array](#split_array)
 6. [split_objects](#split_objects)
@@ -48,12 +49,11 @@ Flex applies data parsing and transformation functions in a specific order, rega
 16. [keep_keys](#keep_keys)
 17. [ignore_output](#ignore_output)
 18. [sample_filter](#sample_filter)
-18. [remove_keys](#remove_keys)
+19. [remove_keys](#remove_keys)
 20. [math](#math)
 21. [add_attribute](#add_attribute)
 
-
-*Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
+\*Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
 
 ## Flex supported functions
 
@@ -61,9 +61,9 @@ Here is a list of supported functions. Be aware that while all the examples use 
 
 ### add_attribute
 
-| Applies to  | Description |
-| :---------- | :---------- |
-| API | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
+| Applies to | Description                                                                                                      |
+| :--------- | :--------------------------------------------------------------------------------------------------------------- |
+| API        | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
 
 **Example**
 
@@ -93,8 +93,8 @@ apis:
     - name: someService
       url: http://some-service.com/status
       add_attribute:
-        # use the 'id' attribute of the service output
-        link: https://some-other-service/nodes/${id}
+          # use the 'id' attribute of the service output
+          link: https://some-other-service/nodes/${id}
 ```
 
 Which would return the following:
@@ -115,13 +115,14 @@ Which would return the following:
 
 ### convert_space
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Replaces spaces in key names with other characters. |
+| Applies to | Description                                         |
+| :--------- | :-------------------------------------------------- |
+| API        | Replaces spaces in key names with other characters. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -145,7 +146,7 @@ name: example
 apis:
     - name: someService
       url: http://some-service.com/status
-      convert_space: "_"
+      convert_space: '_'
 ```
 
 Which would return the following:
@@ -164,13 +165,14 @@ Which would return the following:
 
 ### ignore_output
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions. |
+| Applies to | Description                                                                                                                                                                     |
+| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API        | Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -195,8 +197,8 @@ apis:
     - name: someService
       url: http://some-service.com/status
       store_lookups:
-        # store the 'id' into a lookup key named 'nodeId'
-        nodeId: id
+          # store the 'id' into a lookup key named 'nodeId'
+          nodeId: id
       ignore_output: true
     - name: useLookup
       # use the 'nodeId' stored in the previous APIs to execute this one
@@ -205,13 +207,14 @@ apis:
 
 ### keep_keys
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
+| Applies to | Description                                                                                             |
+| :--------- | :------------------------------------------------------------------------------------------------------ |
+| API        | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -236,15 +239,15 @@ apis:
     - name: someService
       url: http://some-service.com/status
       keep_keys:
-        - id
-        - name
+          - id
+          - name
 ```
 
 ### lazy_flatten
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name. |
+| Applies to | Description                                                                                                                                                                                                                                         |
+| :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API        | Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name. |
 
 **Example**
 
@@ -252,14 +255,16 @@ Consider a service that returns the following json payload:
 
 ```json
 {
-    "contacts":[{
-      "name": "batman",
-      "number": 911
-    },{
-      "name": "robin",
-      "number": 112
-    }
-   ]
+    "contacts": [
+        {
+            "name": "batman",
+            "number": 911
+        },
+        {
+            "name": "robin",
+            "number": 112
+        }
+    ]
 }
 ```
 
@@ -319,14 +324,14 @@ On the other hand, with a payload like the following:
 ```json
 {
     "contacts": {
-        "first" : {
+        "first": {
             "name": "batman",
             "number": 911
         },
         "second": {
             "name": "robin",
             "number": 112
-      }
+        }
     }
 }
 ```
@@ -345,9 +350,9 @@ The same configuration gives the following Which would return the following:
 
 ### lookup_file
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Dynamically inject values into configurations using a JSON file containing an array of objects.  |
+| Applies to | Description                                                                                     |
+| :--------- | :---------------------------------------------------------------------------------------------- |
+| API        | Dynamically inject values into configurations using a JSON file containing an array of objects. |
 
 **Example**
 
@@ -393,7 +398,7 @@ name: example
 lookup_file: addresses.json
 apis:
     - name: someService
-      url: http://${lf:addr}/status      
+      url: http://${lf:addr}/status
 ```
 
 Which would return the following:
@@ -422,13 +427,14 @@ Which would return the following:
 
 ### math
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers. |
+| Applies to | Description                                                                                                           |
+| :--------- | :-------------------------------------------------------------------------------------------------------------------- |
+| API        | Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -447,13 +453,13 @@ Consider a service that returns the following payload:
 
 You could create another attribute that is, for example, the **sum** of attributes `leaderInfo.abc.def` and `leaderInfo.abc.hij`:
 
- ```yaml
+```yaml
 name: example
 apis:
     - name: someService
       url: http://some-service.com/status
       math:
-        sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
+          sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
 ```
 
 Which would return the following:
@@ -471,15 +477,65 @@ Which would return the following:
 }]
 ```
 
+### math_default
+
+| Applies to | Description                                                                                     |
+| :--------- | :---------------------------------------------------------------------------------------------- |
+| API        | When math operations are used, if an attribute is non-existent use the defined default instead. |
+
+Consider a service that returns the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def": 123
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could create another attribute that is, for example, the **sum** of attributes `leaderInfo.abc.def` and `leaderInfo.abc.hij`, however in this case `leaderInfo.abc.hij` is not returned in the payload, you could then specify a `math_default` to use instead in your config:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/status
+      math:
+          sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
+      math_default: 1
+```
+
+Which would return the following:
+
+```json
+"metrics": [{
+  "id": "eca0338f4ea31566",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.leader": "a8a69d5f6b7814500",
+  "leaderInfo.startTime": "a2014-10-24T13:15:51.186620747-07:00",
+  "leaderInfo.uptime": 10,
+  "name": "node3",
+  "sum": 125
+}]
+```
+
 ### perc_to_decimal
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Converts any percentage formatted value into its decimal representation. |
+| Applies to | Description                                                              |
+| :--------- | :----------------------------------------------------------------------- |
+| API        | Converts any percentage formatted value into its decimal representation. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -513,7 +569,7 @@ Which would return the following:
   "id": "eca0338f4ea31566",
   "leader_info.abc.def": 123,
   "leader_info.abc.hij": 234,
-  "leader_info.leader": "8a69d5f6b7814500",  
+  "leader_info.leader": "8a69d5f6b7814500",
   "leader_info.start_time": "2014-10-24T13:15:51.186620747-07:00",
   "leader_info.uptime": "10m59.322358947s",
   "name": "node3"
@@ -522,13 +578,14 @@ Which would return the following:
 
 ### remove_keys
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Uses a regular expression to remove selected keys (attributes) from your data: |
+| Applies to | Description                                                                    |
+| :--------- | :----------------------------------------------------------------------------- |
+| API        | Uses a regular expression to remove selected keys (attributes) from your data: |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -553,7 +610,7 @@ apis:
     - name: someService
       url: http://some-service.com/status
       remove_keys:
-        - time
+          - time
 ```
 
 Which would return something similar to the following:
@@ -573,13 +630,14 @@ Be aware that the value of `remove_keys` matches at any level, meaning that it c
 
 ### rename_keys / replace_keys
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Uses a regex to find and rename keys |
+| Applies to | Description                          |
+| :--------- | :----------------------------------- |
+| API        | Uses a regex to find and rename keys |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -605,14 +663,14 @@ apis:
       url: http://some-service.com/status
       # replace_keys for backcompat
       rename_keys:
-        id: identifier
-        name: nodeName
+          id: identifier
+          name: nodeName
 ```
 
 Which would return the following:
 
 ```json
-"metrics": [{          
+"metrics": [{
   "identifier": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -625,13 +683,14 @@ Which would return the following:
 
 ### sample_filter
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Skips creating the sample if both a key and value is found in the sample |
+| Applies to | Description                                                              |
+| :--------- | :----------------------------------------------------------------------- |
+| API        | Skips creating the sample if both a key and value is found in the sample |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -656,7 +715,7 @@ apis:
     - name: someService
       url: http://some-service.com/status
       sample_filter:
-        - name: node3
+          - name: node3
 ```
 
 Which would return the following:
@@ -667,13 +726,14 @@ Which would return the following:
 
 ### snake_to_camel
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Converts all snake-cased attributes into camelCased formatted names. |
+| Applies to | Description                                                          |
+| :--------- | :------------------------------------------------------------------- |
+| API        | Converts all snake-cased attributes into camelCased formatted names. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -716,9 +776,9 @@ Which would return the following:
 
 ### split_array
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Split an array that has nested arrays |
+| Applies to | Description                           |
+| :--------- | :------------------------------------ |
+| API        | Split an array that has nested arrays |
 
 **Example**
 
@@ -767,7 +827,7 @@ You could split the configuration:
 name: example
 apis:
     - name: voltdb_cpu
-      event_type: voltdb      
+      event_type: voltdb
       url: http://some-service.com/status
       split_array: true
       set_header: [TIMESTAMP, HOST_ID, HOSTNAME, PERCENT_USED]
@@ -801,13 +861,14 @@ Which would return the something like following:
 
 ### split_objects
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Splits an object that has nested objects into an array. |
+| Applies to | Description                                             |
+| :--------- | :------------------------------------------------------ |
+| API        | Splits an object that has nested objects into an array. |
 
 **Example**
 
 Consider a service that return the following payload:
+
 ```json
 {
     "first": {
@@ -817,18 +878,18 @@ Consider a service that return the following payload:
             "abc": {
                 "def": 123,
                 "hij": 234
-          }
+            }
         },
-      "name": "node1"
+        "name": "node1"
     },
     "second": {
         "id": "eca0338f4ea31566",
-          "leaderInfo": {
-              "uptime": "10m59.322358947s",
-              "abc": {
-                  "def": 123,
-                  "hij": 234
-              }
+        "leaderInfo": {
+            "uptime": "10m59.322358947s",
+            "abc": {
+                "def": 123,
+                "hij": 234
+            }
         },
         "name": "node2"
     }
@@ -870,13 +931,14 @@ Which would return something similar to the following:
 
 ### start_key
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Starts processing data at a different point in your payload. |
+| Applies to | Description                                                  |
+| :--------- | :----------------------------------------------------------- |
+| API        | Starts processing data at a different point in your payload. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -901,7 +963,7 @@ apis:
     - name: someService
       url: http://some-service.com/status
       start_key:
-        - leaderInfo
+          - leaderInfo
 ```
 
 This would mean processing only the following data:
@@ -929,9 +991,10 @@ Which would return something similar to
   "event_type": "someServiceSample",
   "leader": "8a69d5f6b7814500",
   "startTime": "2014-10-24T13:15:51.186620747-07:00",
-  "uptime": "10m59.322358947s" 
+  "uptime": "10m59.322358947s"
 }]
- ```       
+```
+
 Or further down:
 
 ```yaml
@@ -940,18 +1003,18 @@ apis:
     - name: someService
       url: http://some-service.com/status
       start_key:
-        - leaderInfo
-        - abc
+          - leaderInfo
+          - abc
 ```
 
 Which would mean processing only this data:
 
 ```json
 {
-  "abc": {
-    "def": 123,
-    "hij": 234
-  }
+    "abc": {
+        "def": 123,
+        "hij": 234
+    }
 }
 ```
 
@@ -967,13 +1030,14 @@ Which would return something similar to
 
 ### store_lookups
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Stores attributes from a API that you could use in a subsequent API. |
+| Applies to | Description                                                          |
+| :--------- | :------------------------------------------------------------------- |
+| API        | Stores attributes from a API that you could use in a subsequent API. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
@@ -998,17 +1062,17 @@ apis:
     - name: storeLookups
       url: http://some-service.com/status
       store_lookups:
-        # store the 'id' into a lookup key named 'nodeId'
-        nodeId: id
+          # store the 'id' into a lookup key named 'nodeId'
+          nodeId: id
     - name: useLookup
       url: http://some-other-service.com/${lookup:nodeId}/status
 ```
 
 ### strip_keys
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Removes entire keys or objects from the output. |
+| Applies to | Description                                     |
+| :--------- | :---------------------------------------------- |
+| API        | Removes entire keys or objects from the output. |
 
 **Example**
 
@@ -1080,9 +1144,9 @@ Note that Flex strips all keys that match the payload. This means that if the pa
 
 ### timestamp
 
-| Applies to | Description |
-| :--------- | :---------- |
-| Anywhere | Injects timestamps anywhere in your config and also performs additions or subtractions on them. |
+| Applies to | Description                                                                                     |
+| :--------- | :---------------------------------------------------------------------------------------------- |
+| Anywhere   | Injects timestamps anywhere in your config and also performs additions or subtractions on them. |
 
 You can use the following expressions to inject a timestamp formatted in various ways:
 
@@ -1090,15 +1154,15 @@ You can use the following expressions to inject a timestamp formatted in various
 ${timestamp:[ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz][+|-][Number][ms|milli|millisecond|ns|nano|nanosecond|s|sec|second|m|min|minute|h|hr|hour]}
 ```
 
-- `ms` - milliseconds
-- `s` - seconds
-- `ns` - nanoseconds
-- `date` - current date
-- `datetime` - current datetime
-- `datetimetz` - current datetime with timezone
-- `dateutc` - current utc date
-- `datetimeutc` - current utc datetime
-- `datetimeutctz` - current utc datetime with timezone
+-   `ms` - milliseconds
+-   `s` - seconds
+-   `ns` - nanoseconds
+-   `date` - current date
+-   `datetime` - current datetime
+-   `datetimetz` - current datetime with timezone
+-   `dateutc` - current utc date
+-   `datetimeutc` - current utc datetime
+-   `datetimeutctz` - current utc datetime with timezone
 
 For example:
 
@@ -1124,13 +1188,14 @@ ${timestamp:datetime+60min} add 60 minutes to current datetime, return datetime
 
 ### to_lower
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Converts all keys to lowercase. |
+| Applies to | Description                     |
+| :--------- | :------------------------------ |
+| API        | Converts all keys to lowercase. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "Id": "eca0338f4ea31566",
@@ -1173,26 +1238,27 @@ The result would be similar to the following (notice all keys are lowercase, inc
 
 ### value_parser
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Finds keys using a regular expression and applies another regular expresion  to extract the first value found. |
+| Applies to | Description                                                                                                   |
+| :--------- | :------------------------------------------------------------------------------------------------------------ |
+| API        | Finds keys using a regular expression and applies another regular expresion to extract the first value found. |
 
 **Example**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "id": "eca0338f4ea31566",
-      "leaderInfo": {
-          "leader": "a8a69d5f6b7814500",
-          "startTime": "2014-10-24T13:15:51.186620747-07:00",
-          "uptime": "10m59.322358947s",
-          "abc": {
-              "def1": "a:123",
-              "def2": "a:234"
-          }
-        },
-      "name": "node3"
+    "leaderInfo": {
+        "leader": "a8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def1": "a:123",
+            "def2": "a:234"
+        }
+    },
+    "name": "node3"
 }
 ```
 
@@ -1204,7 +1270,7 @@ apis:
     - name: someService
       url: http://some-service.com/status
       value_parser:
-        def: "[0-9]+"
+          def: '[0-9]+'
 ```
 
 Which would return the following:
@@ -1226,7 +1292,7 @@ Which would return the following:
 
 | Applies to | Description                                                      |
 | :--------- | :--------------------------------------------------------------- |
-| API | Uses a regular expression to find a key and transforms its value |
+| API        | Uses a regular expression to find a key and transforms its value |
 
 **Example**
 
@@ -1275,7 +1341,7 @@ apis:
 Which would return something similar to:
 
 ```json
-"metrics": [{  
+"metrics": [{
   "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
