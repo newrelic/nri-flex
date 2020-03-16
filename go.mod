@@ -24,7 +24,7 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/golangci/golangci-lint v1.23.6 // indirect
+	github.com/golangci/golangci-lint v1.24.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/jeremywohl/flatten v0.0.0-20180923035001-588fe0d4c603
 	github.com/kardianos/govendor v1.0.9 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
-	github.com/stretchr/testify v1.5.0
+	github.com/stretchr/testify v1.5.1
 	github.com/vertica/vertica-sql-go v0.1.3
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 // indirect
