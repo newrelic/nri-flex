@@ -45,11 +45,10 @@ func postRequest(url string, key string, data []byte) error {
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to send")
 	}
-	defer resp.Body.Close()
-
 	if resp == nil {
 		return fmt.Errorf("http: response nil")
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		err = fmt.Errorf("http: post failed, status code: %d", resp.StatusCode)
