@@ -43,7 +43,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		}
 
 		// init lookup store
-		if (&config.LookupStore) == nil {
+		if (&config.LookupStore) == nil { //nolint
 			config.LookupStore = map[string]map[string]struct{}{}
 		}
 

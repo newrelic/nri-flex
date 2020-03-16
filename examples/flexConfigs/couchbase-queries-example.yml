@@ -1,0 +1,36 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: couchbaseQueriesFlex
+      global:
+          base_url: http://your_host_here:your_port_here_too
+          user: user_here
+          pass: pass_here
+          headers:
+            Accept: application/json
+      apis:
+        - event_type: couchbaseActiveQuerySample
+          url: /query/service
+          method: POST
+          payload: statement=SELECT+%2A%2C+MILLIS%28requestTime%29+AS+requestTimestamp+FROM+system%3Aactive_requests%3B
+          start_key:
+            - results
+          rename_keys:
+            active_requests.:
+            .ms:
+          value_parser:
+            Times: "[0-9.]+"
+            elapsedTime: "[0-9.]+"
+            executionTime: "[0-9.]+"
+        - event_type: couchbaseCompletedQuerySample
+          url: /query/service
+          method: POST
+          payload: statement=SELECT+node%2C+remoteAddr%2C+requestId%2C+requestTime%2C+MILLIS%28requestTime%29+AS+requestTimestamp%2C+resultCount%2C+resultSize%2C+scanConsistency%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28serviceTime%2C+%22s%22%29%29%2C+7%29+as+serviceTimeMillis%2C+statement%2C+userAgent+FROM+system%3Acompleted_requests+WHERE+requestTime+BETWEEN+DATE_ADD_STR%28NOW_STR%28%29%2C+-30%2C+%22second%22%29+AND+NOW_STR%28%29%3B
+          start_key:
+            - results
+        - event_type: couchbasePreparedStatementSample
+          url: /query/service
+          method: POST
+          payload: statement=SELECT+featuresControl%2C+indexApiVersion%2C+lastUse%2C+MILLIS%28REGEXP_REPLACE%28lastUse%2C+%22%5C%5Cs%2B%5C%5C%2B.%2A%22%2C+%22%22%29%29+as+lastUseTimestamp%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28avgElapsedTime%2C+%22s%22%29%29%2C+7%29+as+avgElapsedTimeMillis%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28avgServiceTime%2C+%22s%22%29%29%2C+7%29+as+avgServiceTimeMillis%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28maxElapsedTime%2C+%22s%22%29%29%2C+7%29+as+maxElapsedTimeMillis%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28maxServiceTime%2C+%22s%22%29%29%2C+7%29+as+maxServiceTimeMillis%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28minElapsedTime%2C+%22s%22%29%29%2C+7%29+as+minElapsedTimeMillis%2C+TRUNC%281000%2ATO_NUMBER%28RTRIM%28minServiceTime%2C+%22s%22%29%29%2C+7%29+as+minServiceTimeMillis%2C+name%2C+node%2C+statement%2C+uses+FROM+system%3Aprepareds
+          start_key:
+            - results
