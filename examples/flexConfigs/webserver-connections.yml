@@ -1,0 +1,12 @@
+integrations:
+    - name: nri-flex
+      interval: 30s
+      timeout: 5s
+      config:
+        name: OSTelemetry
+        apis:
+          - name: OSTelemetry
+            commands:
+              - run: "printf 'webServerConnections::' && netstat -na | grep ESTABLISHED | wc -l"
+                split_by: "::"
+            
