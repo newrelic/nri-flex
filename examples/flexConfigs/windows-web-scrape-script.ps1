@@ -52,6 +52,7 @@ If( $page.StatusCode -ne 200 ) {
 
     # Build a new psobject with results for the page
     $fail = New-Object -TypeName psobject
+    $fail | Add-Member -MemberType NoteProperty -Name 'targetURL' -Value $Target
     $fail | Add-Member -MemberType NoteProperty -Name 'targetSuccess' -Value $false # Did my target page actually load?
     $fail | Add-Member -MemberType NoteProperty -Name 'linkURL' -Value $Target 
     $fail | Add-Member -MemberType NoteProperty -Name 'statusCode' -Value $page.StatusCode
@@ -77,6 +78,7 @@ else {
 
         # Build a new psobject with results for this link
         $item = New-Object -TypeName psobject
+    	$item | Add-Member -MemberType NoteProperty -Name 'targetURL' -Value $Target
         $item | Add-Member -MemberType NoteProperty -Name 'targetSuccess' -Value $true # Did my target page actually load?
         $item | Add-Member -MemberType NoteProperty -Name 'linkURL' -Value $l.href
         $item | Add-Member -MemberType NoteProperty -Name 'statusCode' -Value $test.StatusCode
