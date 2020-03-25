@@ -113,7 +113,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			// check if this contains any key pair values to filter out
 			// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
 			excludeSample := true
-			if api.SampleIncludeFilter == nil {
+			if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
 				excludeSample = false
 			} else {
 				RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
