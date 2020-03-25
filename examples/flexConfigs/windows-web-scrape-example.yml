@@ -1,4 +1,4 @@
-# This config will test SFTP connections from a Windows host
+# This config will scrape a target URL and test each link found on the site
 # Use forward slashes on Windows paths as Flex handles these more gracefully
 # Flex has a default 10 second (10000ms) timeout that needs to be extended for this script to complete
 # Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
