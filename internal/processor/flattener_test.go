@@ -63,21 +63,60 @@ func TestSplitArrays(t *testing.T) {
 	getAPI := func() *load.API {
 		return &load.API{
 			SetHeader: []string{
-				"TIMESTAMP", "HOST_ID", "HOSTNAME", "PERCENT_USED",
+				"TIMESTAMP", "VALUE", "AA",
 			},
 		}
 	}
 
-	inputArray := []interface{}{
-		[]interface{}{1582159853733, 1, "host1", 10},
-		[]interface{}{1582159853733, 2, "host2", 20},
-		[]interface{}{1582159853733, 3, "host3", 30},
+	inputArray := []interface{}{[]interface{}{
+		map[string]interface{}{
+			"samples": []interface{}{
+				[]interface{}{1582513500000, 303.6965867733333},
+				[]interface{}{1582513500000, 404.6965867733333},
+			},
+			"type":    "B_BITS",
+			"subtype": "Out",
+			"unit": map[string]interface{}{
+				"name":     "aaaMbps",
+				"fullName": "aaaMegabits per second",
+			},
+		},
+	},
+		[]interface{}{
+			map[string]interface{}{
+				"samples": []interface{}{
+					[]interface{}{1582513500000, 1000.0},
+					[]interface{}{1582513500000, 2000.0},
+				},
+				"type":    "B_BITS",
+				"subtype": "Configured speed",
+				"unit": map[string]interface{}{
+					"name":     "bbbMbps",
+					"fullName": "bbbMegabits per second",
+				},
+			},
+		},
+		[]interface{}{
+			map[string]interface{}{
+				"samples": []interface{}{
+					[]interface{}{1582513500000, 260.34207970666665},
+					[]interface{}{1582513500000, 370.34207970666665},
+				},
+				"type":    "B_BITS",
+				"subtype": "In",
+				"unit": map[string]interface{}{
+					"name":     "cccMbps",
+					"fullName": "cccMegabits per second",
+				},
+			},
+		},
 	}
 
-	expectedResult := `[{"HOSTNAME":"host1","HOST_ID":"1","PERCENT_USED":"10","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host2","HOST_ID":"2","PERCENT_USED":"20","TIMESTAMP":"1582159853733"},{"HOSTNAME":"host3","HOST_ID":"3","PERCENT_USED":"30","TIMESTAMP":"1582159853733"}]`
+	expectedResult := `[{"TIMESTAMP":"1582513500000","VALUE":"303.696587","data-subtype":"Out","data-type":"B_BITS","data-unit-fullName":"aaaMegabits per second","data-unit-name":"aaaMbps"},{"TIMESTAMP":"1582513500000","VALUE":"404.696587","data-subtype":"Out","data-type":"B_BITS","data-unit-fullName":"aaaMegabits per second","data-unit-name":"aaaMbps"},{"TIMESTAMP":"1582513500000","VALUE":"1000.000000","data-subtype":"Configured speed","data-type":"B_BITS","data-unit-fullName":"bbbMegabits per second","data-unit-name":"bbbMbps"},{"TIMESTAMP":"1582513500000","VALUE":"2000.000000","data-subtype":"Configured speed","data-type":"B_BITS","data-unit-fullName":"bbbMegabits per second","data-unit-name":"bbbMbps"},{"TIMESTAMP":"1582513500000","VALUE":"260.342080","data-subtype":"In","data-type":"B_BITS","data-unit-fullName":"cccMegabits per second","data-unit-name":"cccMbps"},{"TIMESTAMP":"1582513500000","VALUE":"370.342080","data-subtype":"In","data-type":"B_BITS","data-unit-fullName":"cccMegabits per second","data-unit-name":"cccMbps"}]`
 
 	api := getAPI()
-	result := splitArrays(&inputArray, map[string]interface{}{}, "", api, &[]interface{}{})
+	result := splitArrays(&inputArray, map[string]interface{}{}, "data", api, &[]interface{}{}, map[string]interface{}{})
+
 	got, _ := json.Marshal(result)
 	assert.Equal(t, expectedResult, string(got))
 

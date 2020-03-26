@@ -147,12 +147,11 @@ func Run(yml load.Config) {
 	// load secrets
 	_ = loadSecrets(&yml)
 
-	if err := runVariableProcessor(&yml); err != nil {
-		load.Logrus.WithError(err).Error("config: variable processor error")
-	}
-
 	// intentionally handled synchronously
 	for i := range yml.APIs {
+		if err := runVariableProcessor(&yml); err != nil {
+			load.Logrus.WithError(err).Error("config: variable processor error")
+		}
 		dataSets := FetchData(i, &yml, &samplesToMerge)
 		processor.RunDataHandler(dataSets, &samplesToMerge, i, &yml, i)
 	}
