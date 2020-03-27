@@ -15,6 +15,8 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [remove_keys](#remove_keys)
     -   [rename_keys / replace_keys](#rename_keys--replace_keys)
     -   [sample_filter](#sample_filter)
+    -   [sample_exclude_filter](#sample_exclude_filter)  
+    -   [sample_include_filter](#sample_include_filter)
     -   [snake_to_camel](#snake_to_camel)
     -   [split_array](#split_array)
     -   [split_objects](#split_objects)
@@ -25,8 +27,7 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [to_lower](#to_lower)
     -   [value_parser](#value_parser)
     -   [value_transformer](#value_transformer)
-    -   [sample_include_filter](#sample_include_filter)
-    -   [sample_exclude_filter](#sample_exclude_filter)    
+  
 
 ## Function precedence order
 
@@ -49,12 +50,12 @@ Flex applies data parsing and transformation functions in a specific order, rega
 15. [store_lookups](#store_lookups)
 16. [keep_keys](#keep_keys)
 17. [ignore_output](#ignore_output)
-18. [sample_filter](#sample_filter)
-18. [remove_keys](#remove_keys)
-20. [math](#math)
-21. [add_attribute](#add_attribute)
-22. [sample_include_filter](#sample_include_filter)
-23. [sample_exclude_filter](#sample_exclude_filter)
+18. [sample_include_filter](#sample_include_filter)
+19. [sample_filter](#sample_filter)
+20. [sample_exclude_filter](#sample_exclude_filter)
+21. [remove_keys](#remove_keys)
+22. [math](#math)
+23. [add_attribute](#add_attribute)
 
 *Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
 
@@ -631,7 +632,7 @@ Which would return the following:
 | Applies to | Description |
 | :--------- | :---------- |
 | API | Skips creating the sample if both a key and value is found in the sample |
-||if `sample_exclude_filter` is present as well, both filters will be applied.
+||if `sample_exclude_filter` is present, both filters will be applied.
 
 **Example**
 
@@ -673,10 +674,7 @@ Which would return the following:
 
 | Applies to | Description |
 | :--------- | :---------- |
-| API | Only creates the sample if both a key and value is found in the sample.|
-|| In the absence of `sample_include_filter`, it defaults to include all.|
-|| If a sample is included by the `sample_include_filter` filter, the `sample_filter` and `sample_exclude_filter` will be evaluated next.|
-|| If a sample is NOT included by the `sample_include_filter` filter, the `sample_filter` and `sample_exclude_filter` will be skiped.|
+| API | If a sample is included using sample_include_filter, Flex evaluates sample_filter and sample_exclude_filter next|
 
 **Example**
 
@@ -696,7 +694,7 @@ Consider a service that returns the following payload:
 }
 ```
 
-You might only want to have `"customerId": "abc"` in the ouput sample:
+You may only want to have `"customerId": "abc"` in the ouput sample:
 
 ```yaml
 name: example
@@ -726,8 +724,8 @@ Which would return the following:
 
 | Applies to | Description |
 | :--------- | :---------- |
-| API | This works exactly the same as `sample_filter`. Skips creating the sample if both a key and value is found in the sample. |
-|| If `sample_filter` is present as well, both `sample_filter` and `sample_exclude_filter` will be applied. |
+| API | Skips creating the sample if both a key and value is found in the sample. |
+|| If `sample_filter` is present, both `sample_filter` and `sample_exclude_filter` are applied. |
 
 **Example**
 
@@ -747,7 +745,7 @@ Consider a service that returns the following payload:
 }
 ```
 
-You might want to exclude `"customerId": "abc"` from the output sample:
+You may want to exclude `"customerId": "abc"` from the output sample:
 
 ```yaml
 name: example
