@@ -1,0 +1,13 @@
+#https://www.aerospike.com/docs/tools/asinfo/
+name: aerospike_integration
+
+apis:
+  - name: aerospike_cluster_stats
+    event_type: aerospikeClusterSample
+    commands: 
+      #- run: docker exec -i aerospike asinfo -v statistics -l
+      - run: asinfo -v statistics -l
+        split_by: "="
+    custom_attributes:
+      CLUSERNAME: AEROSPIKE_Cluster1  
+
