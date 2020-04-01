@@ -104,14 +104,26 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
 
-		createSample := true
+		createSample := false
 		// check if we should ignore this output completely
 		// useful when requests are made to generate a lookup, but the data is not needed
 		if api.IgnoreOutput {
 			createSample = false
 		} else {
 			// check if this contains any key pair values to filter out
-			RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+			// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
+			excludeSample := true
+			if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
+				excludeSample = false
+			} else {
+				RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+			}
+			// check sample_exclude_filter and sample_filter, only if it passes sample_include_filter filter or there is no sample_include_filter defined
+			if !excludeSample {
+				createSample = true
+				RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+				RunSampleFilter(currentSample, api.SampleExcludeFilter, &createSample)
+			}
 		}
 
 		if createSample {

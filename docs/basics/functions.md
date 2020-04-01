@@ -15,6 +15,8 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [remove_keys](#remove_keys)
     -   [rename_keys / replace_keys](#rename_keys--replace_keys)
     -   [sample_filter](#sample_filter)
+    -   [sample_exclude_filter](#sample_exclude_filter)  
+    -   [sample_include_filter](#sample_include_filter)
     -   [snake_to_camel](#snake_to_camel)
     -   [split_array](#split_array)
     -   [split_objects](#split_objects)
@@ -25,6 +27,7 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [to_lower](#to_lower)
     -   [value_parser](#value_parser)
     -   [value_transformer](#value_transformer)
+  
 
 ## Function precedence order
 
@@ -47,11 +50,12 @@ Flex applies data parsing and transformation functions in a specific order, rega
 15. [store_lookups](#store_lookups)
 16. [keep_keys](#keep_keys)
 17. [ignore_output](#ignore_output)
-18. [sample_filter](#sample_filter)
-18. [remove_keys](#remove_keys)
-20. [math](#math)
-21. [add_attribute](#add_attribute)
-
+18. [sample_include_filter](#sample_include_filter)
+19. [sample_filter](#sample_filter)
+20. [sample_exclude_filter](#sample_exclude_filter)
+21. [remove_keys](#remove_keys)
+22. [math](#math)
+23. [add_attribute](#add_attribute)
 
 *Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
 
@@ -628,6 +632,7 @@ Which would return the following:
 | Applies to | Description |
 | :--------- | :---------- |
 | API | Skips creating the sample if both a key and value is found in the sample |
+||if `sample_exclude_filter` is present, both filters will be applied.
 
 **Example**
 
@@ -663,6 +668,107 @@ Which would return the following:
 
 ```json
 "metrics": []
+```
+
+### sample_include_filter
+
+| Applies to | Description |
+| :--------- | :---------- |
+| API | If a sample is included using sample_include_filter, Flex evaluates sample_filter and sample_exclude_filter next|
+
+**Example**
+
+Consider a service that returns the following payload:
+```json
+{
+  "usageInfo": [
+    {
+      "quantities": 10,
+      "customerId": "abc"
+    },
+    {
+      "quantities": 20,
+      "customerId": "xyz"
+    }
+  ]
+}
+```
+
+You may only want to have `"customerId": "abc"` in the ouput sample:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/samples
+      sample_include_filter:
+        - customerId: abc
+```
+
+Which would return the following:
+
+```json
+"metrics": [
+  {
+    "api.StatusCode": 200,
+    "customerId": "abc",
+    "event_type": "usageInfoSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "Unknown-SNAPSHOT",
+    "quantities": 10
+  },
+]
+```
+
+### sample_exclude_filter
+
+| Applies to | Description |
+| :--------- | :---------- |
+| API | Skips creating the sample if both a key and value is found in the sample. |
+|| If `sample_filter` is present, both `sample_filter` and `sample_exclude_filter` are applied. |
+
+**Example**
+
+Consider a service that returns the following payload:
+```json
+{
+  "usageInfo": [
+    {
+      "quantities": 10,
+      "customerId": "abc"
+    },
+    {
+      "quantities": 20,
+      "customerId": "xyz"
+    }
+  ]
+}
+```
+
+You may want to exclude `"customerId": "abc"` from the output sample:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/samples
+      sample_exclude_filter:
+        - customerId: abc
+```
+
+Which would return the following:
+
+```json
+"metrics": [
+  {
+    "api.StatusCode": 200,
+    "customerId": "xyz",
+    "event_type": "usageInfoSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "Unknown-SNAPSHOT",
+    "quantities": 20
+  },
+]
 ```
 
 ### snake_to_camel
