@@ -2,55 +2,58 @@
 
 Flex has many useful functions, which can be combined in different ways to help you manipulate and tidy up your data.
 
--   [Function precedence order](#function-precedence-order)
--   [Supported functions](#supported-functions)
-    -   [add_attribute](#add_attribute)    
-    -   [convert_space](#convert_space)
-    -   [ignore_output](#ignore_output)
-    -   [keep_keys](#keep_keys)
-    -   [lazy_flatten](#lazy_flatten)
-    -   [lookup_file](#lookup_file)
-    -   [math](#math)
-    -   [perc_to_decimal](#perc_to_decimal)
-    -   [remove_keys](#remove_keys)
-    -   [rename_keys / replace_keys](#rename_keys--replace_keys)
-    -   [sample_filter](#sample_filter)
-    -   [snake_to_camel](#snake_to_camel)
-    -   [split_array](#split_array)
-    -   [split_objects](#split_objects)
-    -   [start_key](#start_key)
-    -   [store_lookups](#store_lookups)
-    -   [strip_keys](#strip_keys)
-    -   [timestamp](#timestamp)
-    -   [to_lower](#to_lower)
-    -   [value_parser](#value_parser)
-    -   [value_transformer](#value_transformer)
+- [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
+  - [Function precedence order](#function-precedence-order)
+  - [Flex supported functions](#flex-supported-functions)
+    - [add_attribute](#addattribute)
+    - [convert_space](#convertspace)
+    - [ignore_output](#ignoreoutput)
+    - [keep_keys](#keepkeys)
+    - [lazy_flatten](#lazyflatten)
+    - [lookup_file](#lookupfile)
+    - [math](#math)
+    - [perc_to_decimal](#perctodecimal)
+    - [remove_keys](#removekeys)
+    - [rename_keys / replace_keys](#renamekeys--replacekeys)
+    - [sample_filter](#samplefilter)
+    - [save_output](#saveoutput)
+    - [snake_to_camel](#snaketocamel)
+    - [split_array](#splitarray)
+    - [split_objects](#splitobjects)
+    - [start_key](#startkey)
+    - [store_lookups](#storelookups)
+    - [strip_keys](#stripkeys)
+    - [timestamp](#timestamp)
+    - [to_lower](#tolower)
+    - [value_parser](#valueparser)
+    - [value_transformer](#valuetransformer)
 
 ## Function precedence order
 
 Flex applies data parsing and transformation functions in a specific order, regardless of where in the configuration files you declare them. Keep the functions precedence order in mind to avoid unexpected or empty results.
 
-1. [lookup_file](#lookup_file)
-2. [start_key](#start_key)
-3. [strip_keys](#strip_keys) *
-4. [lazy_flatten](#lazy_flatten)
-5. [split_array](#split_array)
-6. [split_objects](#split_objects)
-7. Standard flatten (auto-flattening)
-8. [to_lower](#to_lower)
-9. [convert_space](#convert_space)
-10. [snake_to_camel](#snake_to_camel)
-11. [perc_to_decimal](#perc_to_decimal)
-12. [value_parser](#value_parser)
-13. [value_transformer](#value_transformer)
-14. [rename_keys / replace_keys](#rename_keys--replace_keys)
-15. [store_lookups](#store_lookups)
-16. [keep_keys](#keep_keys)
-17. [ignore_output](#ignore_output)
-18. [sample_filter](#sample_filter)
-18. [remove_keys](#remove_keys)
-20. [math](#math)
-21. [add_attribute](#add_attribute)
+  1.   lookup_file
+  2.   start_key
+  3.   strip_keys *
+  4.   lazy_flatten
+  5.   split_array
+  6.   split_objects
+  7.   Standard flatten (auto-flattening)
+  8.   to_lower
+  9.   convert_space
+  10.  snake_to_camel
+  11.  perc_to_decimal
+  12.  value_parser
+  13.  value_transformer
+  14.  rename_keys / replace_keys
+  15.  store_lookups
+  16.  keep_keys
+  17.  ignore_output
+  18.  sample_filter
+  19.  remove_keys
+  20.  math
+  21.  add_attribute
+  22.  save_output
 
 
 *Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
@@ -648,22 +651,42 @@ Consider a service that returns the following payload:
 }
 ```
 
-You could completely skip creating the output sample:
+### save_output
+
+| Applies to  | Description |
+| :---------- | :---------- |
+| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def": 123,
+            "hij": 234
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could save the output in a file called *results.json* in the flexConfigs folder:
 
 ```yaml
 name: example
 apis:
     - name: someService
       url: http://some-service.com/status
-      sample_filter:
-        - name: node3
+      save_output: flexConfigs/results.json
 ```
-
-Which would return the following:
-
-```json
-"metrics": []
-```
+Files are saved with 0644 UNIX file permissions.
 
 ### snake_to_camel
 

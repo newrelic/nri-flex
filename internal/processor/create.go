@@ -15,7 +15,7 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-
+	"github.com/newrelic/nri-flex/internal/outputs"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 )
@@ -148,6 +148,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		}
 
 	}
+	//Save samples if specified
+	if api.SaveOutput != nil {
+		saveSamples(samples, api.SaveOutput)
+	}
 }
 
 // setInventory sets infrastructure inventory metrics
@@ -236,6 +240,20 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 		}
 	}
 }
+
+//Save samples to a JSON file
+func saveSamples(samples []interface{}, outputPath string) {
+	if outputPath != "" {
+		outputs.StoreJson(samples, outputPath)
+	}
+}
+
+/*
+//RunDiffFilter filters out replica samples from previous outputs
+func RunDiffFilter(currentSample *map[string]interface{}, ) {
+
+}
+*/
 
 // RunSampleFilter Filters samples generated
 func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
