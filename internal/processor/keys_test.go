@@ -218,6 +218,15 @@ func TestStripKeys(t *testing.T) {
 		stripKeys []string
 		expected  string
 	}{
+		"StripMultiple": {
+			sample: map[string]interface{}{
+				"abc": 1,
+				"def": 2,
+				"xyz": 3,
+			},
+			stripKeys: []string{"abc", "def"},
+			expected:  `{"xyz":3}`,
+		},
 		"NoChangeIfNoMatch": {
 			sample: map[string]interface{}{
 				"abc": 1,
