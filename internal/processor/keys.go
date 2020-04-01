@@ -68,28 +68,24 @@ func RunKeyRenamer(renameKeys map[string]string, key *string) {
 }
 
 // StripKeys strip defined keys out
-func StripKeys(dataSet *map[string]interface{}, stripKeys []string) {
+func StripKeys(ds *map[string]interface{}, stripKeys []string) {
 	for _, stripKey := range stripKeys {
-		delete(*dataSet, stripKey)
-
-		stripSplit := strings.Split(stripKey, ">")
-		if len(stripSplit) != 2 {
-			return
-		}
-
-		dataSetValue := (*dataSet)[stripSplit[0]]
-		if dataSetValue == nil {
-			return
-		}
-
-		switch v := dataSetValue.(type) {
-		case map[string]interface{}:
-			delete(v, stripSplit[1])
-		case []interface{}:
-			for i := range v {
-				switch vElement := v[i].(type) {
-				case map[string]interface{}:
-					delete(vElement, stripSplit[1])
+		delete(*ds, stripKey)
+		if strings.Contains(stripKey, ">") {
+			stripSplit := strings.Split(stripKey, ">")
+			if len(stripSplit) == 2 {
+				if (*ds)[stripSplit[0]] != nil {
+					switch (*ds)[stripSplit[0]].(type) {
+					case map[string]interface{}:
+						delete((*ds)[stripSplit[0]].(map[string]interface{}), stripSplit[1])
+					case []interface{}:
+						for i := range (*ds)[stripSplit[0]].([]interface{}) {
+							switch (*ds)[stripSplit[0]].([]interface{})[i].(type) {
+							case map[string]interface{}:
+								delete((*ds)[stripSplit[0]].([]interface{})[i].(map[string]interface{}), stripSplit[1])
+							}
+						}
+					}
 				}
 			}
 		}
