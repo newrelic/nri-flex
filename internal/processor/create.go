@@ -127,9 +127,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		}
 
 		if createSample {
-			// remove keys from sample
-			RunKeyRemover(&currentSample, api.RemoveKeys)
-
 			RunMathCalculations(&api.Math, &currentSample)
 
 			// inject some additional attributes if set
@@ -139,7 +136,11 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 
 			addAttribute(currentSample, api.AddAttribute)
 
-			// hren: if it is not mergeMetric, it will proceed to puslish metric
+			// remove keys from sample
+			// this should be kept last
+			RunKeyRemover(&currentSample, api.RemoveKeys)
+
+			// hren: if it is not mergeMetric, it will proceed to publish metric
 			if !mergeMetric {
 				workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
 				if config.MetricAPI {
