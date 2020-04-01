@@ -2,10 +2,10 @@ package outputs
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
+	"os"
 )
 
 const testData = `[{"abd":"def"},{"123":456}]`
@@ -27,12 +27,20 @@ func readJSONFile(file string, output *string) {
 	*output = string(b)
 }
 
+func removeTestFile(path string) {
+	err := os.Remove(path)
+	if err != null {
+		panic("unable to remove writeTest.json")
+	}
+}
+
 // testing function for output writes
-func testOutputWrite(t *testing.T) {
+func TestOutputWrite(t *testing.T) {
 	fname := "writeTest.json"
 	var out []interface{} = testDataProvider()
-	storeJSON(out, fname)
+	StoreJSON(out, fname)
 	var readVal string
 	readJSONFile(fname, &readVal)
-	assert.Equals(testData, readVal, "Values should be the same")
+	assert.Equal(t, testData, readVal)
+	removeTestFile(fname)
 }
