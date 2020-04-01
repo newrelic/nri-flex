@@ -6,17 +6,17 @@
 package processor
 
 import (
+	"github.com/newrelic/infra-integrations-sdk/data/event"
+	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-flex/internal/formatter"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/outputs"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"github.com/newrelic/infra-integrations-sdk/data/event"
-	"github.com/newrelic/nri-flex/internal/formatter"
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/infra-integrations-sdk/integration"
 )
 
 const regex = "regex"
@@ -242,7 +242,7 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 
 //Save samples to a JSON file
 func saveSamples(samples []interface{}, outputPath string) {
-	outputs.StoreJson(samples, outputPath)
+	outputs.StoreJSON(samples, outputPath)
 }
 
 /*
