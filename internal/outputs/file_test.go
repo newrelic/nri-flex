@@ -29,7 +29,7 @@ func readJSONFile(file string, output *string) {
 
 func removeTestFile(path string) {
 	err := os.Remove(path)
-	if err != null {
+	if err != nil {
 		panic("unable to remove writeTest.json")
 	}
 }
