@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 	"github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
@@ -149,7 +148,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 
 	}
 	//Save samples if specified
-	if api.SaveOutput != nil {
+	if api.SaveOutput != "" {
 		saveSamples(samples, api.SaveOutput)
 	}
 }
@@ -243,9 +242,7 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 
 //Save samples to a JSON file
 func saveSamples(samples []interface{}, outputPath string) {
-	if outputPath != "" {
-		outputs.StoreJson(samples, outputPath)
-	}
+	outputs.StoreJson(samples, outputPath)
 }
 
 /*

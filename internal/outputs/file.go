@@ -2,19 +2,15 @@ package outputs
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"errors"
 )
 
 //function to store samples as a JSON object at specified path
-func StoreJson(samples []interface{}, path string) error {
-	if samples == nil {
-		return nil
-	}
+func StoreJson(samples []interface{}, path string) {
 	bytes, _ := json.Marshal(samples)
 	err := ioutil.WriteFile(path, bytes, 0644)
 	if err != nil {
-		return fmt.Errorf("file output: failed to write ")
+		panic(errors.New("failed to write file: %v", err))
 	}
-	return nil
 }
