@@ -60,6 +60,7 @@ func TestSplitObjects(t *testing.T) {
 }
 
 func TestSplitArrays(t *testing.T) {
+	// test SplitArray
 	getAPI := func() *load.API {
 		return &load.API{
 			SetHeader: []string{
@@ -71,8 +72,8 @@ func TestSplitArrays(t *testing.T) {
 	inputArray := []interface{}{[]interface{}{
 		map[string]interface{}{
 			"samples": []interface{}{
-				[]interface{}{1582513500000, 303.6965867733333},
-				[]interface{}{1582513500000, 404.6965867733333},
+				[]interface{}{uint64(1582513500000), 303.6965867733333},
+				[]interface{}{uint64(1582513500000), 404.6965867733333},
 			},
 			"type":    "B_BITS",
 			"subtype": "Out",
@@ -85,8 +86,8 @@ func TestSplitArrays(t *testing.T) {
 		[]interface{}{
 			map[string]interface{}{
 				"samples": []interface{}{
-					[]interface{}{1582513500000, 1000.0},
-					[]interface{}{1582513500000, 2000.0},
+					[]interface{}{uint64(1582513500000), 1000.0},
+					[]interface{}{uint64(1582513500000), 2000.0},
 				},
 				"type":    "B_BITS",
 				"subtype": "Configured speed",
@@ -99,8 +100,8 @@ func TestSplitArrays(t *testing.T) {
 		[]interface{}{
 			map[string]interface{}{
 				"samples": []interface{}{
-					[]interface{}{1582513500000, 260.34207970666665},
-					[]interface{}{1582513500000, 370.34207970666665},
+					[]interface{}{uint64(1582513500000), 260.34207970666665},
+					[]interface{}{uint64(1582513500000), 370.34207970666665},
 				},
 				"type":    "B_BITS",
 				"subtype": "In",
@@ -119,6 +120,37 @@ func TestSplitArrays(t *testing.T) {
 
 	got, _ := json.Marshal(result)
 	assert.Equal(t, expectedResult, string(got))
+
+	// test SplitArray with leaf_array
+
+	getAPI2 := func() *load.API {
+		return &load.API{
+			SetHeader: []string{
+				"TIMESTAMP", "VALUE", "AA",
+			},
+			LeafArray: true,
+		}
+	}
+
+	inputArray2 := []interface{}{[]interface{}{
+		map[string]interface{}{
+			"timestamps": []interface{}{
+				uint64(1585662957000), uint64(1585662958000), uint64(1585662959000),
+			},
+			"type": "time_series",
+		},
+	},
+
+		[]interface{}{},
+	}
+
+	expectedResult2 := `[{"TIMESTAMP":"1585662957000","concurrent_plays-type":"time_series","index":0},{"TIMESTAMP":"1585662958000","concurrent_plays-type":"time_series","index":1},{"TIMESTAMP":"1585662959000","concurrent_plays-type":"time_series","index":2}]`
+
+	api2 := getAPI2()
+	result2 := splitArrays(&inputArray2, map[string]interface{}{}, "concurrent_plays", api2, &[]interface{}{}, map[string]interface{}{})
+
+	got2, _ := json.Marshal(result2)
+	assert.Equal(t, expectedResult2, string(got2))
 
 }
 
