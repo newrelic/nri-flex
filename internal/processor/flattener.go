@@ -253,7 +253,7 @@ func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key s
 				keyName = keys[index]
 			}
 			// turn array leaf element into sample
-			if api.ArrayLeafSample {
+			if api.LeafArray {
 				newSample = make(map[string]interface{})
 				if len(keys) >= 1 {
 					keyName = keys[0]
@@ -271,13 +271,11 @@ func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key s
 		}
 	}
 
-	if !api.ArrayLeafSample {
-		if len(newSample) != 0 {
-			for k, v := range dimensions {
-				newSample[k] = v
-			}
-			*dataSamples = append(*dataSamples, newSample)
+	if !api.LeafArray && len(newSample) != 0 {
+		for k, v := range dimensions {
+			newSample[k] = v
 		}
+		*dataSamples = append(*dataSamples, newSample)
 	}
 
 	return *dataSamples
