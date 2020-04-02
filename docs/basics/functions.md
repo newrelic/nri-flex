@@ -18,7 +18,7 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [sample_exclude_filter](#sample_exclude_filter)
     -   [sample_include_filter](#sample_include_filter)
     -   [snake_to_camel](#snake_to_camel)
-    -   [split_array](#split_array)
+    -   [split_array (leaf_array)](#split_array)
     -   [split_objects](#split_objects)
     -   [start_key](#start_key)
     -   [store_lookups](#store_lookups)
@@ -836,8 +836,8 @@ Which would return the following:
 
 | Applies to | Description |
 | :--------- | :---------- |
-| API | Split an array that has nested arrays |
-||With leaf_array option, turn array leaf node(s) into sample(s)
+| API | Splits an array that has nested arrays |
+||Enable the leaf_array option to turn array leaf nodes into samples
 
 **Example 1 (split_array)**
 
@@ -944,7 +944,7 @@ Consider a service that returns the following payload:
 }
 ```
 
-You could split the leaf nodes within `timestamps` and `filters` branches into separate samples, then merge and join them together.
+You could split the leaf nodes within `timestamps` and `filters` branches into separate samples, which you could then merge and join.
 
 ```yaml
 name: leafArrayExample
@@ -975,7 +975,7 @@ apis:
     join_key: index
 
 ```
-Which would return the something like following:
+Which would return the following:
 
 ```json
 "metrics": [
