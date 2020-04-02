@@ -37,7 +37,7 @@ Flex applies data parsing and transformation functions in a specific order, rega
 2. [start_key](#start_key)
 3. [strip_keys](#strip_keys) *
 4. [lazy_flatten](#lazy_flatten)
-5. [split_array](#split_array)
+5. [split_array (leaf_array)](#split_array)
 6. [split_objects](#split_objects)
 7. Standard flatten (auto-flattening)
 8. [to_lower](#to_lower)
@@ -820,13 +820,14 @@ Which would return the following:
 }]
 ```
 
-### split_array
+### split_array (leaf_array)
 
 | Applies to | Description |
 | :--------- | :---------- |
 | API | Split an array that has nested arrays |
+||With leaf_array option, turn array leaf node(s) into sample(s)
 
-**Example**
+**Example 1 (split_array)**
 
 Consider a service that returns the following payload:
 
@@ -903,6 +904,97 @@ Which would return the something like following:
    "TIMESTAMP": 1582161013980,
    "event_type": "voltdb",
  }]
+```
+
+**Example 2 (split_array and leaf_array)**
+
+Consider a service that returns the following payload:
+```json
+{
+    "concurrent_plays": {
+        "timestamps": [
+            1585662957000,
+            1585662958000,
+            1585662959000
+        ],
+        "meta": {
+            "status": 0
+        },
+        "type": "time_series",
+        "filters": {
+            "AccountA": [
+                200,
+                190,
+                180
+            ]
+        }
+    }
+}
+```
+
+You could split the leaf nodes within `timestamps` and `filters` branches into separate samples, then merge and join them together.
+
+```yaml
+name: leafArrayExample
+
+apis:
+  - name: getTimetamps
+    url: http://127.0.0.1:8887/concurrent_plays.json
+    split_array: true
+    leaf_array: true
+    set_header:  [Timestamp]
+    start_key:
+      - concurrent_plays
+      - timestamps
+    merge: myMetricsSample
+    join_key: index
+
+  - name: getValues
+    url: http://127.0.0.1:8887/concurrent_plays.json
+    split_array: true
+    leaf_array: true
+    set_header:  [Value]
+    start_key:
+      - concurrent_plays
+      - filters
+    custom_attributes:
+      accountid: "AccountA"
+    merge: myMetricsSample
+    join_key: index
+
+```
+Which would return the something like following:
+
+```json
+"metrics": [
+    {
+        "Timestamp": 1585662957000,
+        "Value": 200,
+        "accountid": "AccountA",
+        "event_type": "myMetricsSample",
+        "index": 0,
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT"
+    },
+    {
+        "Timestamp": 1585662958000,
+        "Value": 190,
+        "accountid": "AccountA",
+        "event_type": "myMetricsSample",
+        "index": 1,
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT"
+    },
+    {
+        "Timestamp": 1585662959000,
+        "Value": 180,
+        "accountid": "AccountA",
+        "event_type": "myMetricsSample",
+        "index": 2,
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT"
+    }
+]
 ```
 
 ### split_objects
