@@ -53,7 +53,7 @@ func TestRunSampleFilter(t *testing.T) {
 	createSample = true
 	currentSample = map[string]interface{}{
 		"customerId": "abc",
-		"secretKey": "oof",
+		"secretKey":  "oof",
 	}
 	expectedResult = false
 	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
@@ -62,7 +62,7 @@ func TestRunSampleFilter(t *testing.T) {
 	createSample = true
 	currentSample = map[string]interface{}{
 		"customerId": "abc",
-		"secretKey": "alpha",
+		"secretKey":  "alpha",
 	}
 	expectedResult = true
 	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)

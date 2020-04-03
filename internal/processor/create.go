@@ -314,7 +314,7 @@ func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters
 					valMatch = true
 				}
 			}
-			if (keyMatch && valMatch) {
+			if keyMatch && valMatch {
 				*createSample = true
 			} else {
 				*createSample = false
