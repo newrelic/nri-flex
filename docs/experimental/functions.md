@@ -2,14 +2,17 @@
 
 Experimental functions are available for use but currently not recommend for use in production environments (unless critical for your use case). They are not officially supported by New Relic.
 
-- [inherit_attributes](#inherit_attributes)
-- [metric_parser](#metric_parser)
-- [pagination](#pagination)
-- [pluck_numbers](#pluck_numbers)
-- [rename_samples](#rename_samples)
-- [sample_keys](#sample_keys)
-- [store_variables](#store_variables)
-- [sub_parse](#sub_parse)
+- [Experimental functions](#experimental-functions)
+  - [inherit_attributes](#inheritattributes)
+  - [metric_parser](#metricparser)
+  - [pagination](#pagination)
+  - [pluck_numbers](#plucknumbers)
+  - [rename_samples](#renamesamples)
+    - [sample_include_match_all_filter](#sampleincludematchallfilter)
+  - [sample_keys](#samplekeys)
+  - [store_variables](#storevariables)
+  - [save_output](#saveoutput)
+  - [sub_parse](#subparse)
 
 ## inherit_attributes
 
@@ -177,6 +180,54 @@ apis:
       db: redisDbSample
       cmd: redisCmdSample
 ```
+### sample_include_match_all_filter
+
+Similar to the supported smaple_include_filter but will create samples only when ALL the specified filter keys and values are present in the sample.
+
+Consider a service that returns the following payload:
+
+```json
+{
+    "usageInfo": [
+        {
+            "incidentCode": 77,
+            "serviceId": "compute"
+        },
+        {
+            "incidentCode": 143,
+            "serviceId": "compute"
+        }
+    ]
+}
+```
+
+You may only want to have `"serviceId": "compute"` in the output sample when `"incidentCode": 77`:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/samples
+      sample_include_match_all_filter:
+          - serviceId: "compute"
+          - incidentCode: 77
+```
+
+Which would return the following:
+
+```json
+"metrics": [
+  {
+    "api.StatusCode": 200,
+    "incidentCode": 77,
+    "serviceId": "compute",
+    "event_type": "usageInfoSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "Unknown-SNAPSHOT",
+    "quantities": 10
+  },
+]
+```
 
 ## sample_keys
 
@@ -276,6 +327,44 @@ apis:
   - name: user
     url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
 ```
+
+
+## save_output
+
+| Applies to  | Description |
+| :---------- | :---------- |
+| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def": 123,
+            "hij": 234
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could save the output in a file called *results.json* in the flexConfigs folder:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/status
+      save_output: "./flexConfigs/output.json"
+```
+Files are saved with 0644 UNIX file permissions.
 
 ## sub_parse
 
