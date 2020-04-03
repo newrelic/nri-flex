@@ -17,7 +17,7 @@ func TestRunSampleFilter(t *testing.T) {
 			SampleFilter: []map[string]string{
 				{"customerId": "xyz"},
 				{"customerId": "abc"},
-				{"secretKey": "alpha"}
+				{"secretKey": "alpha"},
 			},
 		}
 	}
