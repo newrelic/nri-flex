@@ -265,13 +265,6 @@ func saveSamples(samples []interface{}, outputPath string) {
 	outputs.StoreJSON(samples, outputPath)
 }
 
-/*
-//RunDiffFilter filters out replica samples from previous outputs
-func RunDiffFilter(currentSample *map[string]interface{}, ) {
-
-}
-*/
-
 // RunSampleFilter Filters samples generated
 func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
 	for _, sampleFilter := range sampleFilters {

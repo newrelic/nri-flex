@@ -307,6 +307,17 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
+You could save the output in a file called *results.json* in the flexConfigs folder:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/status
+      save_output: "./flexConfigs/results.json"
+```
+Files are saved with 0644 UNIX file permissions.
+
 
 ## store_variables
 
@@ -354,17 +365,6 @@ apis:
   - name: user
     url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
 ```
-
-You could save the output in a file called *results.json* in the flexConfigs folder:
-
-```yaml
-name: example
-apis:
-    - name: someService
-      url: http://some-service.com/status
-      save_output: "./flexConfigs/output.json"
-```
-Files are saved with 0644 UNIX file permissions.
 
 ## sub_parse
 
