@@ -49,4 +49,22 @@ func TestRunSampleFilter(t *testing.T) {
 	RunSampleFilter(currentSample, api.SampleFilter, &createSample)
 	assert.Equal(t, expectedResult, createSample)
 
+	createSample = true
+	currentSample = map[string]interface{}{
+		"customerId": "abc",
+		"customerId": "oof",
+	}
+	expectedResult = false
+	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
+	assert.Equal(t, expectedResult, createSample)
+
+	createSample = true
+	currentSample = map[string]interface{}{
+		"customerId": "abc",
+		"customerId": "xyz",
+	}
+	expectedResult = true
+	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
+	assert.Equal(t, expectedResult, createSample)
+
 }

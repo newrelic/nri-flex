@@ -307,15 +307,16 @@ type API struct {
 	RowStart  int      `yaml:"row_start"`  // start from this line, to be used with SplitBy
 
 	// Filtering Options
-	EventFilter         []Filter            `yaml:"event_filter"` // filters events in/out
-	KeyFilter           []Filter            `yaml:"key_filter"`   // filters keys in/out
-	StripKeys           []string            `yaml:"strip_keys"`
-	RemoveKeys          []string            `yaml:"remove_keys"`
-	KeepKeys            []string            `yaml:"keep_keys"`             // inverse of removing keys
-	SampleFilter        []map[string]string `yaml:"sample_filter"`         // exclude sample filter key pair values with regex === sample_exclude_filter
-	SampleIncludeFilter []map[string]string `yaml:"sample_include_filter"` // include sample filter key pair values with regex
-	SampleExcludeFilter []map[string]string `yaml:"sample_exclude_filter"` // exclude sample filter key pair values with regex
-	IgnoreOutput        bool                `yaml:"ignore_output"`         // ignore the output completely, useful when creating lookups
+	EventFilter                 []Filter            `yaml:"event_filter"` // filters events in/out
+	KeyFilter                   []Filter            `yaml:"key_filter"`   // filters keys in/out
+	StripKeys                   []string            `yaml:"strip_keys"`
+	RemoveKeys                  []string            `yaml:"remove_keys"`
+	KeepKeys                    []string            `yaml:"keep_keys"`                       // inverse of removing keys
+	SampleFilter                []map[string]string `yaml:"sample_filter"`                   // exclude sample filter key pair values with regex === sample_exclude_filter
+	SampleIncludeFilter         []map[string]string `yaml:"sample_include_filter"`           // include sample filter key pair values with regex
+	SampleExcludeFilter         []map[string]string `yaml:"sample_exclude_filter"`           // exclude sample filter key pair values with regex
+	SampleIncludeMatchAllFilter []map[string]string `yaml:"sample_include_match_all_filter"` //include samples where multiple keys match the specified
+	IgnoreOutput                bool                `yaml:"ignore_output"`                   // ignore the output completely, useful when creating lookups
 
 	SaveOutput string `yaml:"save_output"` // Save output samples to a file
 

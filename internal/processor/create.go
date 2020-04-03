@@ -110,16 +110,23 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			createSample = false
 		} else {
 			// check if this contains any key pair values to filter out
-			// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
 			excludeSample := true
-			if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
+			// evalute sample_include_filter if sample_include_match_all_filter is not specified
+			if api.SampleIncludeMatchAllFilter != nil || len(api.SampleIncludeMatchAllFilter) != 0 {
+				// don't exclude sample if the multi key filter is specified
 				excludeSample = false
 			} else {
-				RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+				// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
+				if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
+					excludeSample = false
+				} else {
+					RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+				}
 			}
 			// check sample_exclude_filter and sample_filter, only if it passes sample_include_filter filter or there is no sample_include_filter defined
 			if !excludeSample {
 				createSample = true
+				RunSampleFilterMatchAll(currentSample, api.SampleIncludeMatchAllFilter, &createSample)
 				RunSampleFilter(currentSample, api.SampleFilter, &createSample)
 				RunSampleFilter(currentSample, api.SampleExcludeFilter, &createSample)
 			}
@@ -287,6 +294,34 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 				if regKeyFound && regValFound {
 					*createSample = false
 				}
+			}
+		}
+	}
+}
+
+// Sample Filter to match all keys
+func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
+	for _, sampleFilter := range sampleFilters {
+		for sKey, sVal := range sampleFilter {
+			keyMatch := false
+			valMatch := false
+			if sKey != "" {
+				validateKey := regexp.MustCompile(sKey)
+			}
+			if sVal != "" {
+				validateVal := regexp.MustCompile(sVal)
+			}
+			for key, v := range currentSample {
+				if validateKey.MatchString(key) {
+					keyMatch = true
+					if validateVal.MatchString(val) {
+						valMatch = true
+						break
+					}
+				}
+			}
+			if (keyMatch && !valMatch) || !keyMatch {
+				*createSample = false
 			}
 		}
 	}
