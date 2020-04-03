@@ -18,7 +18,7 @@ Flex has many useful functions, which can be combined in different ways to help 
     -   [sample_exclude_filter](#sample_exclude_filter)
     -   [sample_include_filter](#sample_include_filter)
     -   [snake_to_camel](#snake_to_camel)
-    -   [split_array (leaf_array)](#split_array)
+    -   [split_array (leaf_array)](#split_array-leaf_array)
     -   [split_objects](#split_objects)
     -   [start_key](#start_key)
     -   [store_lookups](#store_lookups)
