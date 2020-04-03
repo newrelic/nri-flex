@@ -278,6 +278,7 @@ type API struct {
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
+	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
