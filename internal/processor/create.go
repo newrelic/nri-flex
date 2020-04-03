@@ -305,16 +305,12 @@ func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters
 		for sKey, sVal := range sampleFilter {
 			keyMatch := false
 			valMatch := false
-			if sKey != "" {
-				validateKey := regexp.MustCompile(sKey)
-			}
-			if sVal != "" {
-				validateVal := regexp.MustCompile(sVal)
-			}
-			for key, v := range currentSample {
+			validateKey := regexp.MustCompile(sKey)
+			validateVal := regexp.MustCompile(sVal)
+			for key, val := range currentSample {
 				if validateKey.MatchString(key) {
 					keyMatch = true
-					if validateVal.MatchString(val) {
+					if validateVal.MatchString(cleanValue(&val) {
 						valMatch = true
 						break
 					}

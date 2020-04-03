@@ -17,6 +17,7 @@ func TestRunSampleFilter(t *testing.T) {
 			SampleFilter: []map[string]string{
 				{"customerId": "xyz"},
 				{"customerId": "abc"},
+				{"secretKey": "alpha"}
 			},
 		}
 	}
@@ -52,7 +53,7 @@ func TestRunSampleFilter(t *testing.T) {
 	createSample = true
 	currentSample = map[string]interface{}{
 		"customerId": "abc",
-		"customerId": "oof",
+		"secretKey": "oof",
 	}
 	expectedResult = false
 	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
@@ -61,7 +62,7 @@ func TestRunSampleFilter(t *testing.T) {
 	createSample = true
 	currentSample = map[string]interface{}{
 		"customerId": "abc",
-		"customerId": "xyz",
+		"secretKey": "alpha",
 	}
 	expectedResult = true
 	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
