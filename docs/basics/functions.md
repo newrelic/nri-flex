@@ -666,6 +666,23 @@ Consider a service that returns the following payload:
 }
 ```
 
+You could completely skip creating the output sample:
+
+```yaml
+name: example
+apis:
+    - name: someService
+      url: http://some-service.com/status
+      sample_filter:
+          - name: node3
+```
+
+Which would return the following:
+
+```json
+"metrics": []
+```
+
 ### sample_include_filter
 
 | Applies to | Description                                                                                                      |
