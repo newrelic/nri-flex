@@ -272,6 +272,33 @@ func RunDiffFilter(currentSample *map[string]interface{}, ) {
 }
 */
 
+// RunSampleFilter Filters samples generated
+func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
+	for _, sampleFilter := range sampleFilters {
+		for key, v := range currentSample {
+			for regKey, regVal := range sampleFilter {
+				regKeyFound := false
+				regValFound := false
+				if regKey != "" {
+					validateKey := regexp.MustCompile(regKey)
+					if validateKey.MatchString(key) {
+						regKeyFound = true
+					}
+				}
+				if regVal != "" {
+					validateVal := regexp.MustCompile(regVal)
+					if validateVal.MatchString(cleanValue(&v)) {
+						regValFound = true
+					}
+				}
+				if regKeyFound && regValFound {
+					*createSample = false
+				}
+			}
+		}
+	}
+}
+
 // Sample Filter to match all keys
 func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
 	for _, sampleFilter := range sampleFilters {
@@ -293,32 +320,6 @@ func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters
 				*createSample = false
 			}
 		}
-	}
-}
-
-// Sample Filter to match all keys
-func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
-	keyMatch := true
-	valMatch := true
-	for _, sampleFilter := range sampleFilters {
-		for fKey, fVal := range sampleFilter {
-			filterKey := regexp.MustCompile(fKey)
-			filterVal := regexp.MustCompile(fVal)
-			for key, val := range currentSample {
-				if !filterKey.MatchString(key) {
-					keyMatch = false
-					goto validate
-				}
-				if !filterVal.MatchString(cleanValue(&val)) {
-					valMatch = false
-					goto validate
-				}
-			}
-		}
-	}
-	validate:
-	if (keyMatch && !valMatch) || !keyMatch {
-		*createSample = false
 	}
 }
 
