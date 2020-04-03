@@ -8,10 +8,10 @@ Experimental functions are available for use but currently not recommend for use
   - [pagination](#pagination)
   - [pluck_numbers](#plucknumbers)
   - [rename_samples](#renamesamples)
-    - [sample_include_match_all_filter](#sampleincludematchallfilter)
+  - [sample_include_match_all_filter](#sampleincludematchallfilter)
   - [sample_keys](#samplekeys)
-  - [store_variables](#storevariables)
   - [save_output](#saveoutput)
+  - [store_variables](#storevariables)
   - [sub_parse](#subparse)
 
 ## inherit_attributes
@@ -180,7 +180,7 @@ apis:
       db: redisDbSample
       cmd: redisCmdSample
 ```
-### sample_include_match_all_filter
+## sample_include_match_all_filter
 
 Similar to the supported smaple_include_filter but will create samples only when ALL the specified filter keys and values are present in the sample.
 
@@ -281,6 +281,33 @@ apis:
       followerSample: followers>follower.id
 ```
 
+
+## save_output
+
+| Applies to  | Description |
+| :---------- | :---------- |
+| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc": {
+            "def": 123,
+            "hij": 234
+        }
+    },
+    "name": "node3"
+}
+```
+
 ## store_variables
 
 Stores variables from any API result that can be accessed anywhere in any subsequent API.
@@ -326,33 +353,6 @@ apis:
       storedId: userId ### store the userId from this response into storedId
   - name: user
     url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
-```
-
-
-## save_output
-
-| Applies to  | Description |
-| :---------- | :---------- |
-| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
-
-**Example**
-
-Consider a service that returns the following payload:
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
 ```
 
 You could save the output in a file called *results.json* in the flexConfigs folder:
