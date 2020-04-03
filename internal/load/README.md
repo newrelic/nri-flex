@@ -267,6 +267,7 @@ type API struct {
 	SampleFilter        []map[string]string `yaml:"sample_filter"`         // exclude sample filter key pair values with regex === sample_exclude_filter
 	SampleIncludeFilter []map[string]string `yaml:"sample_include_filter"` // include sample filter key pair values with regex
 	SampleExcludeFilter []map[string]string `yaml:"sample_exclude_filter"` // exclude sample filter key pair values with regex
+	SampleIncludeMatchAllFilter []map[string]string `yaml:"sample_include_match_all_filter"` //include samples where multiple keys match the specified
 	IgnoreOutput        bool                `yaml:"ignore_output"`         // ignore the output completely, useful when creating lookups
 	SaveOutput 	 		string				`yaml:"save_output"` 		   // Save output samples to a file specified by a string path
 

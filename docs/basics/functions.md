@@ -16,7 +16,6 @@ Flex has many useful functions, which can be combined in different ways to help 
     - [remove_keys](#removekeys)
     - [rename_keys / replace_keys](#renamekeys--replacekeys)
     - [sample_filter](#samplefilter)
-    - [save_output](#saveoutput)
     - [sample_include_filter](#sampleincludefilter)
     - [sample_exclude_filter](#sampleexcludefilter)
     - [snake_to_camel](#snaketocamel)
@@ -48,7 +47,6 @@ Flex applies data parsing and transformation functions in a specific order, rega
     - [remove_keys](#removekeys)
     - [rename_keys / replace_keys](#renamekeys--replacekeys)
     - [sample_filter](#samplefilter)
-    - [save_output](#saveoutput)
     - [sample_include_filter](#sampleincludefilter)
     - [sample_exclude_filter](#sampleexcludefilter)
     - [snake_to_camel](#snaketocamel)
@@ -667,50 +665,6 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
-
-### save_output
-
-| Applies to  | Description |
-| :---------- | :---------- |
-| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
-
-**Example**
-
-Consider a service that returns the following payload:
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
-}
-```
-
-You could save the output in a file called *results.json* in the flexConfigs folder:
-
-```yaml
-name: example
-apis:
-    - name: someService
-      url: http://some-service.com/status
-      sample_filter:
-          - name: node3
-```
-
-Which would return the following:
-
-```json
-"metrics": []
-```
-Files are saved with 0644 UNIX file permissions.
 
 ### sample_include_filter
 
