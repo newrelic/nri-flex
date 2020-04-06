@@ -11,9 +11,7 @@ Before starting this tutorial, make sure that you meet the following requirement
 
 ## Installation
 
-Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent.
-
-To install the Infrastructure agent, see:
+Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent. To install the Infrastructure agent, see:
 
 - [Install Infrastructure for Linux using the package manager](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/linux-installation/install-infrastructure-linux-using-package-manager)
 - [Install Infrastructure for Windows Server using the MSI installer](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/windows-installation/install-infrastructure-windows-server-using-msi-installer)
@@ -48,7 +46,7 @@ The query should produce a table similar to this:
 
 ## Your first Flex integration
 
-This example shows how to collect disk metrics from file systems not natively supported by New Relic using the `df` command in Linux. A similar result could be achieved in Windows with a few changes.
+This example shows how to collect disk metrics from file systems not natively supported by New Relic using the `df` command in Linux.
 
 The goal of Flex is to process the output of the `df` command, showing the file system and 1-byte blocks, while excluding file systems already supported by the agent. If unsupported file systems are not mounted, remove the `-x` arguments.
 
@@ -101,9 +99,8 @@ integrations:
           perc_to_decimal: true
 ```
 
-- The `apis` section is an array of entries for each sample. Each entry sets a name for the sample, as well as the commands/procedures to get and process the sample.
-- The first entry in `apis` is named `FileSystem`: it is used to build the `FileSystemSample` event name.
-- In the `commands` section, we specify how to get the information:
+- `apis` is an array of entries for each sample. Each entry sets a `name`for the sample, as well as the commands/procedures to get and process the sample. The first entry in the example is named `FileSystem`, which is used to name the `FileSystemSample` event.
+- `commands` specifies how to get the information from CLI applications:
     - `run: 'df -PT -B1...` specifies the command to run.
     - `split: horizontal` states that each output line may return a metric.
     - `split_by` explains how to split each line in different fields. In this case, we use the `\s+` regular expression, which tells Flex that any sequence of one or more white spaces is a separator.
@@ -123,6 +120,74 @@ The query should now produce a table similar to this:
 
 ![](./img/basic-filesystem.png)
 
-## For more examples
+## How to add more integrations
 
-Check the [Flex configs examples](../examples/flexConfigs) folder for more working examples of Flex.
+Flex configuration files, like most of our examples, start with the name of the integration and the apis. For example:
+
+```yaml
+name: linuxOpenFD
+apis:
+  - name: linuxOpenFD
+    commands:
+      - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
+        split: horizontal
+        set_header: [openFD,maxFD]
+        regex_match: true
+        split_by: (\d+)\s+(.*)
+```
+
+In order to use Flex configurations with the Infrastructure agent, you need to add some lines at the beginning. If we add the example above to our `integrations.d` file, we would get the following (notice how we indented the Flex configuration so that it is a child of `config`):
+
+```yaml
+integrations:
+  - name: nri-flex
+    config:
+      name: linuxFileSystemIntegration
+      apis:
+        - name: FileSystem
+          commands:
+            - run: 'df -PT -B1 -x tmpfs -x xfs -x vxfs -x btrfs -x ext -x ext2 -x ext3 -x ext4'
+              split: horizontal
+              split_by: \s+
+              row_start: 1
+              set_header: [fs,fsType,capacityBytes,usedBytes,availableBytes,usedPerc,mountedOn]
+          perc_to_decimal: true
+      name: linuxOpenFD
+      apis:
+        - name: linuxOpenFD
+          commands:
+            - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
+              split: horizontal
+              set_header: [openFD,maxFD]
+              regex_match: true
+              split_by: (\d+)\s+(.*)
+```
+To add multiple Flex configurations, you can also add multiple `nri-flex` blocks:
+
+```yaml
+integrations:
+ - name: nri-flex
+   config:
+     name: flexName_1
+ - name: nri-flex
+   config:
+     name: flexName_2
+ - name: nri-flex
+   config:
+     name: flexName_3
+```
+Or if you want to minimize indentation issues, you can link to separate Flex configuration files using the `config_template_path` directive:
+```yaml
+integrations:
+  - name: nri-flex
+    config_template_path: /path/to/flex/integration.yml
+```
+
+In the Flex repo you can find more than [200 config examples](../examples/flexConfigs) of custom integrations, including many Linux and Windows services and command-line utilities. Remember to add them under `config` in your integrations config file or link to them using `config_template_path`. 
+
+>We strongly recommend that you use a YAML linter in your code editor to check for indentation issues in your config files. Most of the times, Flex rejects badly indented configurations.
+
+## What's next?
+
+- Learn more about the Flex configuration schema in [Configure Flex](/basics/configure.md).
+- See the [list of supported functions](/basics/functions.md) to understand what Flex is capable of.
