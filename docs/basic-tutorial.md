@@ -2,23 +2,22 @@
 
 Follow this tutorial to get started with Flex!
 
-## Requirements
+1. [Install the Infrastructure agent](#InstalltheInfrastructureagent)
+2. [Check that Flex is up and running](#CheckthatFlexisupandrunning)
+3. [Your first Flex integration](#YourfirstFlexintegration)
+4. [How to add more integrations](#Howtoaddmoreintegrations)
+5. [What's next?](#Whatsnext)
 
-Before starting this tutorial, make sure that you meet the following requirements: 
-
-* [Infrastructure agent](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure) version 1.10.7 or higher installed, which bundles Flex by default.
-* Infrastructure agent running in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes). 
-
-## Installation
+##  1. <a name='InstalltheInfrastructureagent'></a>Install the Infrastructure agent
 
 Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent. To install the Infrastructure agent, see:
 
 - [Install Infrastructure for Linux using the package manager](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/linux-installation/install-infrastructure-linux-using-package-manager)
 - [Install Infrastructure for Windows Server using the MSI installer](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/windows-installation/install-infrastructure-windows-server-using-msi-installer)
 
-You can [start, stop, restart, and check](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/configuration/start-stop-restart-check-infrastructure-agent-status) the Infrastructure agent from the command line.
+You can [start, stop, restart, and check](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/configuration/start-stop-restart-check-infrastructure-agent-status) the Infrastructure agent from the command line. The agent must run in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes).
 
-## Check that Flex is up and running
+##  2. <a name='CheckthatFlexisupandrunning'></a>Check that Flex is up and running
 
 1. Navigate to the integrations folder of the Infrastructure agent:
     * Linux: `/etc/newrelic-infra/integrations.d`
@@ -44,7 +43,7 @@ The query should produce a table similar to this:
 
 ![](./img/basic-table.png)
 
-## Your first Flex integration
+##  3. <a name='YourfirstFlexintegration'></a>Your first Flex integration
 
 This example shows how to collect disk metrics from file systems not natively supported by New Relic using the `df` command in Linux.
 
@@ -120,7 +119,7 @@ The query should now produce a table similar to this:
 
 ![](./img/basic-filesystem.png)
 
-## How to add more integrations
+##  4. <a name='Howtoaddmoreintegrations'></a>How to add more Flex integrations
 
 Flex configuration files, like most of our examples, start with the name of the integration and the apis. For example:
 
@@ -187,7 +186,8 @@ In the Flex repo you can find more than [200 config examples](../examples/flexCo
 
 >We strongly recommend that you use a YAML linter in your code editor to check for indentation issues in your config files. Most of the times, Flex rejects badly indented configurations.
 
-## What's next?
+##  5. <a name='Whatsnext'></a>What's next?
 
 - Learn more about the Flex configuration schema in [Configure Flex](/basics/configure.md).
+- Read about the [url](/apis/url.md) and [commands](/apis/command.md) APIs and how to create Flex integrations with them.
 - See the [list of supported functions](/basics/functions.md) to understand what Flex is capable of.
