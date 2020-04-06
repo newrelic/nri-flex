@@ -182,8 +182,7 @@ apis:
 ```
 ## sample_include_match_all_filter
 
-Similar to the supported `sample_include_filter` but will create samples only when ALL the specified filter keys and values are present in the sample.
-This function is mutually exclusive with the `sample_include_filter` function. If one is specified the other will be ignored.
+Similar to `sample_include_filter` but creates samples only when all the specified filter keys and values are present. This function is mutually exclusive with `sample_include_filter`: if one is specified the other is ignored.
 
 Consider a service that returns the following payload:
 
