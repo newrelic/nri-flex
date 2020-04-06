@@ -104,6 +104,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		}
 
 		createSample := false
+		runSampleFilterExperimental := true
 		// check if we should ignore this output completely
 		// useful when requests are made to generate a lookup, but the data is not needed
 		if api.IgnoreOutput {
@@ -121,12 +122,15 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 					excludeSample = false
 				} else {
 					RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+					runSampleFilterExperimental = false
 				}
 			}
 			// check sample_exclude_filter and sample_filter, only if it passes sample_include_filter filter or there is no sample_include_filter defined
 			if !excludeSample {
 				createSample = true
-				RunSampleFilterMatchAll(currentSample, api.SampleIncludeMatchAllFilter, &createSample)
+				if runSampleFilterExperimental {
+					RunSampleFilterMatchAll(currentSample, api.SampleIncludeMatchAllFilter, &createSample)
+				}
 				RunSampleFilter(currentSample, api.SampleFilter, &createSample)
 				RunSampleFilter(currentSample, api.SampleExcludeFilter, &createSample)
 			}

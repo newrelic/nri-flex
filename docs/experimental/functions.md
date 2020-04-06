@@ -182,7 +182,8 @@ apis:
 ```
 ## sample_include_match_all_filter
 
-Similar to the supported smaple_include_filter but will create samples only when ALL the specified filter keys and values are present in the sample.
+Similar to the supported `sample_include_filter` but will create samples only when ALL the specified filter keys and values are present in the sample.
+This function is mutually exclusive with the `sample_include_filter` function. If one is specified the other will be ignored.
 
 Consider a service that returns the following payload:
 
@@ -286,7 +287,7 @@ apis:
 
 | Applies to  | Description |
 | :---------- | :---------- |
-| API | Saves sample output to a .JSON file specified by the user, any directories in the path must exist prior. |
+| API | Saves sample output to an existing directory as JSON. |
 
 **Example**
 
@@ -307,7 +308,7 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
-You could save the output in a file called *results.json* in the flexConfigs folder:
+You could save the output as `results.json` in `/flexConfigs`:
 
 ```yaml
 name: example
@@ -316,7 +317,7 @@ apis:
       url: http://some-service.com/status
       save_output: "./flexConfigs/results.json"
 ```
-Files are saved with 0644 UNIX file permissions.
+Files are saved with `0644` file permissions.
 
 
 ## store_variables
