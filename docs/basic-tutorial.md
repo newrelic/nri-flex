@@ -121,7 +121,7 @@ The query should now produce a table similar to this:
 
 ##  4. <a name='Howtoaddmoreintegrations'></a>How to add more Flex integrations
 
-Flex configuration files, like most of our examples, start with the name of the integration and the apis. For example:
+Stand-alone Flex configurations, like most of our examples, start with the name of the integration and the [apis](/apis/readme.md). For example:
 
 ```yaml
 name: linuxOpenFD
@@ -134,8 +134,13 @@ apis:
         regex_match: true
         split_by: (\d+)\s+(.*)
 ```
+These stand-alone configurations can be tested by invoking Flex from the command line; this is useful when [developing Flex integrations](../development.md), since invoking Flex directly doesn't send data to the New Relic platform:
 
-In order to use Flex configurations with the Infrastructure agent, you need to add some lines at the beginning. If we add the example above to our `integrations.d` file, we would get the following (notice how we indented the Flex configuration so that it is a child of `config`):
+```bash
+sudo /var/db/newrelic-infra/newrelic-integrations/bin/nri-flex --verbose --pretty --config_file ./myconfig.yml
+```
+
+To use Flex configurations files with the Infrastructure agent, you need to add some lines at the beginning. For example, if we add the example above to our `integrations.d` file, we would get the following (notice the indentation):
 
 ```yaml
 integrations:
@@ -161,28 +166,31 @@ integrations:
               regex_match: true
               split_by: (\d+)\s+(.*)
 ```
-To add multiple Flex configurations, you can also add multiple `nri-flex` blocks:
+To insert multiple Flex configurations to the `integrations.d` config file, you can add multiple `nri-flex` blocks, each with an embedded Flex config:
 
 ```yaml
 integrations:
  - name: nri-flex
    config:
      name: flexName_1
+     # Flex config goes here
  - name: nri-flex
    config:
      name: flexName_2
+     # Flex config goes here
  - name: nri-flex
    config:
      name: flexName_3
+     # Flex config goes here
 ```
-Or if you want to minimize indentation issues, you can link to separate Flex configuration files using the `config_template_path` directive:
+To minimize indentation issues, you can link to stand-alone Flex configuration files using the `config_template_path` directive:
 ```yaml
 integrations:
   - name: nri-flex
     config_template_path: /path/to/flex/integration.yml
 ```
 
-In the Flex repo you can find more than [200 config examples](../examples/flexConfigs) of custom integrations, including many Linux and Windows services and command-line utilities. Remember to add them under `config` in your integrations config file or link to them using `config_template_path`. 
+In the Flex repo you can find more than [200 config examples](../examples/flexConfigs) of custom integrations. Remember to add them under `config` in your integrations config file, or link to them using `config_template_path` statements.
 
 >We strongly recommend that you use a YAML linter in your code editor to check for indentation issues in your config files. Most of the times, Flex rejects badly indented configurations.
 

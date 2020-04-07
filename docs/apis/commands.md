@@ -9,7 +9,6 @@ The `commands` API allows you to retrieve information from any application or sh
 ##  <a name='Basicusage'></a>Basic usage
 
 ```yaml
----
 name: example
 apis:
   - name: linuxDirectorySize
@@ -21,11 +20,7 @@ apis:
         split_by: (\d+)\s+(.*)
 ```
 
-This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. 
-
-It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. 
-
-Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
+This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 

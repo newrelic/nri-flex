@@ -11,7 +11,6 @@ The `url` API allows you to retrieve information from an HTTP endpoint.
 ##  <a name='Basicusage'></a>Basic usage
 
 ```yaml 
----
 name: example
 apis:
   - event_type: ExampleSample
@@ -27,7 +26,6 @@ The above Flex configuration retrieves a JSON file containing a set of metrics f
 To specify a `POST` or `PUT` request with a body, use the `method` and `payload` properties.
 
 ```yaml
----
 name: httpPostExample 
 apis: 
   - name: httpPost
@@ -50,7 +48,6 @@ When using TLS endpoints with self-signed certificates, define a `tls_config` se
 ### TLS configuration example:
 
 ```yaml
----
 name: example
 apis:
   - event_type: ExampleSample
