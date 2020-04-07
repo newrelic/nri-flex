@@ -56,7 +56,7 @@ Flex applies data parsing and transformation functions in a specific order, rega
 22. [add_attribute](#add_attribute)
 23. [remove_keys](#remove_keys)
 
-\*Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
+> \* Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
 
 ## Flex supported functions
 

@@ -27,12 +27,9 @@ Flex implements the following experimental features. 'Experimental' here means t
 
 ## Deprecated features
 
-The following functionalities are still provided by Flex for backwards compatibility, but
-its use is discouraged and unsupported because New Relic provides more convenient implementations
-of such functionalities.
+The following functionalities are still provided by Flex for backwards compatibility, but its use is discouraged and unsupported because New Relic provides more convenient implementations of such functionalities.
 
-For each deprecated functionality, please consider migrating to the New Relic supported equivalent,
-as linked in the right column of the following table. 
+For each deprecated functionality, please consider migrating to the New Relic supported equivalent, as linked in the right column of the following table. 
 
 | Deprecated feature | New Relic supported equivalent |
 |---|---|
