@@ -1,8 +1,0 @@
-{
-    "ha_enabled": false,
-    "is_self": false,
-    "leader_address": "",
-    "leader_cluster_address": "",
-    "performance_standby": false,
-    "performance_standby_last_remote_wal": 0
-}

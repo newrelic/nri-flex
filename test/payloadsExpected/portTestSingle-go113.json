@@ -1,8 +1,0 @@
-[
-    {
-        "addr": "fake12311290.com:9989",
-        "err": "context deadline exceeded",
-        "netw": "tcp",
-        "portStatus": "closed"
-    }
-]
