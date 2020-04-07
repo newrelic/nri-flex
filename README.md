@@ -41,7 +41,7 @@ The Flex [step-by-step tutorial](./docs/basic-tutorial.md) is a great starting p
 
 All examples are located in [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
-Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
+> Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
 
 ### Flex Manager
 
@@ -49,7 +49,7 @@ Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Reli
 
 ## Development
 
-If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](/docs/development.md).
+While developing your own Flex integrations, you can use Flex without the New Relic Infrastructure agent for debugging. For more information, see [Development](/docs/development.md).
 
 ## Documentation
 
