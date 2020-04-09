@@ -1,6 +1,6 @@
 # Development
 
-Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files. To run Flex with the New Relic Infrastructure agent, see the [docs](README.md).
+Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files.
 
 1. [Before you start](#Beforeyoustart)
 2. [Installation](#Installation)

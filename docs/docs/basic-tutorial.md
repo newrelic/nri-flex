@@ -117,11 +117,11 @@ FROM FileSystemSample SELECT mountedOn, fs, usedBytes, capacityBytes, usedBytes
 
 The query should now produce a table similar to this:
 
-![](./img/basic-filesystem.png)
+![Results](./img/basic-filesystem.png)
 
 ##  4. <a name='Howtoaddmoreintegrations'></a>How to add more Flex integrations
 
-Stand-alone Flex configurations, like most of our examples, start with the name of the integration and the [apis](/apis/readme.md). For example:
+Stand-alone Flex configurations, like most of our examples, start with the name of the integration and the [apis](./apis). For example:
 
 ```yaml
 name: linuxOpenFD
@@ -134,7 +134,7 @@ apis:
         regex_match: true
         split_by: (\d+)\s+(.*)
 ```
-These stand-alone configurations can be tested by invoking Flex from the command line; this is useful when [developing Flex integrations](../development.md), since invoking Flex directly doesn't send data to the New Relic platform:
+These stand-alone configurations can be tested by invoking Flex from the command line; this is useful when [developing Flex integrations](development), since invoking Flex directly doesn't send data to the New Relic platform:
 
 ```bash
 sudo /var/db/newrelic-infra/newrelic-integrations/bin/nri-flex --verbose --pretty --config_file ./myconfig.yml
@@ -196,6 +196,6 @@ In the Flex repo you can find more than [200 config examples](../examples/flexCo
 
 ##  5. <a name='Whatsnext'></a>What's next?
 
-- Learn more about the Flex configuration schema in [Configure Flex](/basics/configure.md).
-- Read about the [url](/apis/url.md) and [commands](/apis/command.md) APIs and how to create Flex integrations with them.
-- See the [list of supported functions](/basics/functions.md) to understand what Flex is capable of.
+- Learn more about the Flex configuration schema in [Configure Flex](configure).
+- Read about the [url](./apis/url) and [commands](./apis/command) APIs and how to create Flex integrations with them.
+- See the [list of supported functions](functions) to understand what Flex is capable of.

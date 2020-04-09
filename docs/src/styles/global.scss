@@ -1,0 +1,71 @@
+@import '~vertical-timeline-component-for-react/dist/Timeline.css';
+@import '~vertical-timeline-component-for-react/dist/TimelineItem.css';
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,600i,700,700i&display=swap');
+
+.timelineContainer {
+  .timelineKey {
+      list-style-type: none;
+      height: 50px;
+
+      li {
+          float: left;
+          list-style: none;
+          text-align: center;
+          margin: 10px;
+          min-width: 75px;
+          padding: 10px;
+          border: 1px black;
+          border-radius: 5px;
+          color: white;
+          font-weight: 800;
+      }
+
+      &:after {
+          clear: both;
+      }
+  }
+
+  p {
+      clear: both;
+  }
+
+  .header {
+      width: fit-content;
+      margin: auto;
+      margin-top: 20px;
+  }
+
+  .timeline--wrapper {
+      .timelineKey {
+          li {
+              margin-left: 10px;
+              min-width: 50px;
+              font-size: 80%;
+          }
+      }
+
+      h3,
+      h4,
+      h5,
+      h6 {
+          clear: both;
+          margin-top: 10px;
+      }
+  }
+}
+table, th, td {
+    border: 1px solid darkgray;
+    th, td {
+        padding: 10px;
+    }
+}
+
+p, li {
+    // max-width: 70ch;
+}
+code[class*='css'] {
+    padding: 2px;
+    border-radius: 3px;
+    font-size: 13px;
+    background-color: #c2d6d836;
+}

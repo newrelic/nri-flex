@@ -58,16 +58,15 @@ These are all the possible `global` properties:
 
 | Property | Description |
 |---|---|
-| `base_url` | Base URL. See [specifying a common base URL](../apis/url.md#specifying-a-common-base-url-with-base_url) |
+| `base_url` | Base URL. See [specifying a common base URL](./apis/url#specifying-a-common-base-url-with-base_url) |
 | `user` | Username for APIs that require user and password authentication |
 | `password` | Password for APIs that require user and password authentication |
 | `pass_phrase` | Pass phrase for encrypte `password` properties  |
 | `proxy` | Proxy URL for APIs whose connections require it |
 | `timeout` | Timeout for the API connections, in milliseconds |
 | `headers` | Key-value map of headers for the HTTP/HTTPS connections |
-| `tls_config` | TLS configuration. See [configuring your HTTPS connections](../apis/url.md#configuring-your-https-connections-with-tls_config) |
+| `tls_config` | TLS configuration. See [configuring your HTTPS connections](./apis/url#configuring-your-https-connections-with-tls_config) |
 | `ssh_pem_file` | Path to PEM file to enable SSH authentication |  
-| `JMX` | See [JMX](../experimental/jmx.md) (experimental) |
 
 ### <a name='apis'></a>apis
 
@@ -79,7 +78,7 @@ The `apis` section allows you to define multiple entries for data acquisition an
   with the `Sample` prefix concatenated.
     - For example, `name: FolderSize` would make Flex to create events named `event_type: FolderSizeSample`.
 
-In addition to the fields that define the name of the sample, each `apis` entry requires the type of API to parse data from, and, optionally, a list of [functions](../basics/functions.md) for processing the data coming from the API.
+In addition to the fields that define the name of the sample, each `apis` entry requires the type of API to parse data from, and, optionally, a list of [functions](functions) for processing the data coming from the API.
 
 ### <a name='Cache'></a>Cache
 
@@ -204,13 +203,13 @@ integrations:
 ```
 
 * **On-Host Integration Configuration**: the first five lines are read by the agent to execute the `nri-flex` binary every 60 seconds, canceling the execution if it lasts more than 5 seconds. Refer to [Integration configuration file specifications](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180) for more details about the contents of the on-host integrations configuration file.
-* **Flex configuration**: contains the actions to be taken using data sources APIs, such as the [url](../apis/url.md) API.
+* **Flex configuration**: contains the actions to be taken using data sources APIs, such as the [url](./apis/url) API.
 
-> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md) or check existing config files under [/examples](../../examples).
+> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](basic-tutorial) or check existing config files under [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
 ## <a name='Linktoaseparateconfigurationfile'></a>Link to a separate configuration file
 
-You can store the Flex configuration in a separate YAML file (for example, after [developing and testing a config file](../development.md)) and reference it by replacing `config` with `config_template_path` property, which contains the path of the Flex config file.
+You can store the Flex configuration in a separate YAML file (for example, after [developing and testing a config file](development)) and reference it by replacing `config` with `config_template_path` property, which contains the path of the Flex config file.
 
 This way, the equivalent of `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
 

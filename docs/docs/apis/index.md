@@ -4,10 +4,10 @@ Flex APIs give you access to several data sources, such as HTTP endpoints and ra
 
 Supported APIs include:
 
-* [commands](commands.md): Retrieve information from any application or shell command. 
-* [url](url.md): Retrieve information from any HTTP endpoint.
+* [commands](./apis/commands): Retrieve information from any application or shell command. 
+* [url](./apis/url): Retrieve information from any HTTP endpoint.
 
-Flex APIs can be used together in [configuration files](../basics/configure.md). For example:
+Flex APIs can be used together in [configuration files](./configure). For example:
 
 ```yaml
 integrations:
@@ -29,6 +29,6 @@ integrations:
 ```
 The following APIs are still experimental. 'Experimental' here means that New Relic does not yet provides support for them:
 
-- [Database queries](experimental/db.md)
-- [Net dial](experimental/dial.md)
-- [Git configuration synchronization](experimental/git_sync.md)
+- [Database queries](./experimental/db)
+- [Net dial](./experimental/dial)
+- [Git configuration synchronization](./experimental/git_sync)
