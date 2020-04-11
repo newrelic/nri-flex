@@ -54,6 +54,8 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 		return err
 	}
 
+	load.Logrus.Warn("config: testing agent config, agent features will not be available")
+
 	for _, integration := range c.Integrations {
 		// ensure it is a flex based integration
 		if integration.Name == "nri-flex" {
