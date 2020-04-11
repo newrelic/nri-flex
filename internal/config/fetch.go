@@ -49,11 +49,11 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 			if yml.Datastore["IngestData"] != nil {
 				dataStore = yml.Datastore["IngestData"]
 			}
-		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" {
+		} else if len(api.Commands) > 0 && api.Database == "" && api.DBConn == "" {
 			inputs.RunCommands(&dataStore, yml, apiNo)
 		} else if reqURL != "" {
 			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
-		} else if api.Database != "" && api.DbConn != "" {
+		} else if api.Database != "" && api.DBConn != "" {
 			inputs.ProcessQueries(&dataStore, yml, apiNo)
 		} else if api.Scp.Host != "" {
 			err := inputs.RunScpWithTimeout(&dataStore, yml, api)
@@ -74,7 +74,7 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 				yml.Datastore = map[string][]interface{}{}
 			}
 			yml.Datastore[api.URL] = dataStore
-		} else if len(api.Commands) > 0 && api.Database == "" && api.DbConn == "" && api.Name != "" {
+		} else if len(api.Commands) > 0 && api.Database == "" && api.DBConn == "" && api.Name != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
 			}

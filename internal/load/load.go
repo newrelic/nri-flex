@@ -262,13 +262,13 @@ type API struct {
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
 	Database          string            `yaml:"database"`
-	DbDriver          string            `yaml:"db_driver"`
-	DbConn            string            `yaml:"db_conn"`
+	DBDriver          string            `yaml:"db_driver"`
+	DBConn            string            `yaml:"db_conn"`
 	Shell             string            `yaml:"shell"`
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
-	DbQueries         []Command         `yaml:"db_queries"`
-	DbAsync           bool              `yaml:"db_async"` // perform db queries async
+	DBQueries         []Command         `yaml:"db_queries"`
+	DBAsync           bool              `yaml:"db_async"` // perform db queries async
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -290,6 +290,7 @@ type API struct {
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
+	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
@@ -319,13 +320,15 @@ type API struct {
 	RowStart  int      `yaml:"row_start"`  // start from this line, to be used with SplitBy
 
 	// Filtering Options
-	EventFilter  []Filter            `yaml:"event_filter"` // filters events in/out
-	KeyFilter    []Filter            `yaml:"key_filter"`   // filters keys in/out
-	StripKeys    []string            `yaml:"strip_keys"`
-	RemoveKeys   []string            `yaml:"remove_keys"`
-	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
-	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
-	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
+	EventFilter         []Filter            `yaml:"event_filter"` // filters events in/out
+	KeyFilter           []Filter            `yaml:"key_filter"`   // filters keys in/out
+	StripKeys           []string            `yaml:"strip_keys"`
+	RemoveKeys          []string            `yaml:"remove_keys"`
+	KeepKeys            []string            `yaml:"keep_keys"`             // inverse of removing keys
+	SampleFilter        []map[string]string `yaml:"sample_filter"`         // exclude sample filter key pair values with regex === sample_exclude_filter
+	SampleIncludeFilter []map[string]string `yaml:"sample_include_filter"` // include sample filter key pair values with regex
+	SampleExcludeFilter []map[string]string `yaml:"sample_exclude_filter"` // exclude sample filter key pair values with regex
+	IgnoreOutput        bool                `yaml:"ignore_output"`         // ignore the output completely, useful when creating lookups
 
 	// Debug Options
 	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!

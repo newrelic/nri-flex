@@ -30,7 +30,7 @@ func postRequest(url string, key string, data []byte) error {
 
 	load.Logrus.Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
 
-	tr := &http.Transport{IdleConnTimeout: 15 * time.Second}
+	tr := &http.Transport{IdleConnTimeout: 15 * time.Second, Proxy: http.ProxyFromEnvironment}
 	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(zlibCompressedPayload.Bytes()))
 	if err != nil {
@@ -45,11 +45,10 @@ func postRequest(url string, key string, data []byte) error {
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to send")
 	}
-	defer resp.Body.Close()
-
 	if resp == nil {
 		return fmt.Errorf("http: response nil")
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		err = fmt.Errorf("http: post failed, status code: %d", resp.StatusCode)

@@ -2,11 +2,13 @@
 
 [![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
 
-Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) that allows you to collect metric data from a wide variety of services. You can instrument any app that outputs to the terminal: you create a [config file](/docs/basics/creating_configs.md), start the Infrastructure agent, and data starts pouring into New Relic - see the [200+ example integrations](#example-integrations)!
+Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) that allows you to collect metric data from a wide variety of services. You can instrument any app that exposes metrics over a standard protocol (HTTP, file, shell) in a standard format (for example, JSON or plain text): to the terminal: you create a [config file](/docs/basics/configure.md), start the Infrastructure agent, and data starts pouring into New Relic.
 
 Flex works in two steps:
   1. It runs any HTTP request or shell command, with or without parameters, as defined in a YAML config file.
-  2. It generates metric samples through [functions](/docs/apis/functions.md) that parse and tidy up the output from the commands/requests.
+  2. It generates metric samples through [functions](/docs/basics/functions.md) that parse and tidy up the output from the commands/requests.
+
+See the [200+ example integrations](#example-integrations)!
 
 Only Linux is officially supported at the moment. Stay tuned for [updates](CHANGELOG.md)!
 
@@ -14,7 +16,6 @@ Only Linux is officially supported at the moment. Stay tuned for [updates](CHANG
   - [Installation](#installation)
   - [Getting started](#getting-started)
   - [Example integrations](#example-integrations)
-  - [Experimental features](#experimental-features)
   - [Development](#development)
   - [Documentation](#documentation)
   - [Support](#support)
@@ -40,20 +41,7 @@ The Flex [step-by-step tutorial](./docs/basic-tutorial.md) is a great starting p
 
 All examples are located in [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
-Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
-
-## Experimental features
-
-Flex implements more features than those that New Relic officially supports. While you can use them to solve specific use cases, we can't guarantee that they'll work as expected, and New Relic does not support them officially.
-
-Experimental features include, but are not limited to:
-
-- Collect metrics from any Prometheus Exporter.
-- Collect metrics from database queries.
-- Collect metrics metrics from JMX queries (Java 7+ required).
-- Collect metrics from CSV and JSON files.
-- Support for Windows Hosts, Kubernetes, ECS, Fargate, and other container based platforms.
-- Send data via New Relic Insights Event API. Should be used only in development mode.
+> Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
 
 ### Flex Manager
 
@@ -61,14 +49,13 @@ Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Reli
 
 ## Development
 
-If you are setting up Flex configurations, you can use Flex in isolation mode, that is, without using the New Relic Infrastructure agent. For more information, see [Development](/docs/development.md).
+While developing your own Flex integrations, you can use Flex without the New Relic Infrastructure agent for debugging. For more information, see [Development](/docs/development.md).
 
 ## Documentation
 
-- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/readme.md)
-- [File and directory structure](https://github.com/newrelic/nri-flex/tree/master/docs/basics/file_layout.md)
-- [Create your own Flex configurations](https://github.com/newrelic/nri-flex/tree/master/docs/basics/creating_configs.md)
-- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/apis/functions.md)
+- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/README.md)
+- [Configure Flex](https://github.com/newrelic/nri-flex/tree/master/docs/basics/configure.md)
+- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/basics/functions.md)
 - [Experimental functions](https://github.com/newrelic/nri-flex/tree/master/docs/experimental/functions.md)
 
 ## Support

@@ -9,7 +9,6 @@ The `commands` API allows you to retrieve information from any application or sh
 ##  <a name='Basicusage'></a>Basic usage
 
 ```yaml
----
 name: example
 apis:
   - name: linuxDirectorySize
@@ -21,11 +20,7 @@ apis:
         split_by: (\d+)\s+(.*)
 ```
 
-This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. 
-
-It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. 
-
-Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
+This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
@@ -34,7 +29,7 @@ The following table describes the properties of the `commands` API. The API acce
 | Name | Type | Default | Description |
 |---:|:---:|:---:|---|
 | `run` | string |  | Command or application that you want to run. It accepts any valid shell command. You can also use environment variables with the format `$$ENV_VAR_NAME` |
-| `shell` | string | `/bin/sh` (Linux) `cmd` (Windows) | Shell to use when executing the command defined in `run` |
+| `shell` | string | `/bin/sh` (Linux) `cmd` (Windows) | Shell to use when executing the command defined in `run`. All native Linux shells, Windows CMD, and Windows PowerShell v1-5.x (`powershell`) and v6+ (`pwsh`) are supported. |
 | `split`| string | `vertical` | Mode of processing of the command output, either vertical with one value per line, or horizontal with more than one value per line (table format). Only used when `ignore_output` is false|
 | `split_by` | string | | Regular expression used to process metric data |
 | `regex_match` | string | | Whether the regular expression defined in `split_by` should be interpreted as a match expression (`true`) or as a split expression (`false`) |  

@@ -53,11 +53,11 @@ func TestDatabase(t *testing.T) {
 				{
 					Name:     "postgres",
 					Database: "postgres",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
+					DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
 					CustomAttributes: map[string]string{
 						"parentAttr": "myDbServer",
 					},
-					DbQueries: []load.Command{
+					DBQueries: []load.Command{
 						{
 							Name: "pgStatActivitySample",
 							Run:  "select * FROM pg_stat_activity LIMIT 2",
@@ -70,11 +70,11 @@ func TestDatabase(t *testing.T) {
 				{
 					Name:     "postgres",
 					Database: "pg",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
+					DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
 					CustomAttributes: map[string]string{
 						"parentAttr": "myDbServer",
 					},
-					DbQueries: []load.Command{
+					DBQueries: []load.Command{
 						{
 							Name: "pgStatActivitySample",
 							Run:  "select * FROM pg_stat_activity LIMIT 2",
@@ -87,8 +87,8 @@ func TestDatabase(t *testing.T) {
 				{
 					Name:     "postgres",
 					Database: "pq",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5433",
-					DbQueries: []load.Command{
+					DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5433",
+					DBQueries: []load.Command{
 						{
 							Name: "pgStatActivitySample",
 							Run:  "select * FROM pg_stat_activity LIMIT 2",

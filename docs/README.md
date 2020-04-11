@@ -1,23 +1,25 @@
 # Flex documentation
 
-## Basics
+## Get started
 
-- [File and directory structure](basics/file_layout.md)
-- [Structure of a Flex configuration file](basics/flex_config_sections.md)
+- [Basic tutorial](basic-tutorial.md)
+- [Configure Flex](basics/configure.md)
+- [Functions for data manipulation](basics/functions.md)
 
-## APIs
+## Data sources
 
-The Flex APIs provide means to acquire data from multiple sources for [processing](apis/functions.md):
+With Flex you can acquire data from multiple sources for processing:
 
-- [commands API](apis/commands.md)
-- [url API](apis/url.md)
+- [commands](apis/commands.md): standard output from command-line tools
+- [url](apis/url.md): JSON output from HTTP/HTTPS endpoints
 
-For more information on all the functions and their order of precedence, see [Functions for data manipulation](apis/functions.md).
+More data sources will be added in future updates. 
 
 ## Experimental features
 
 Flex implements the following experimental features. 'Experimental' here means that New Relic does not yet provides support for them.
 
+- [Experimental functions](experimental/functions.md)
 - [Database queries](experimental/db.md)
 - [Net dial](experimental/dial.md)
 - [Git configuration synchronization](experimental/git_sync.md)
@@ -25,12 +27,9 @@ Flex implements the following experimental features. 'Experimental' here means t
 
 ## Deprecated features
 
-The following functionalities are still provided by Flex for backwards compatibility, but
-its use is discouraged and unsupported because New Relic provides more convenient implementations
-of such functionalities.
+The following functionalities are still provided by Flex for backwards compatibility, but its use is discouraged and unsupported because New Relic provides more convenient implementations of such functionalities.
 
-For each deprecated functionality, please consider migrating to the New Relic supported equivalent,
-as linked in the right column of the following table. 
+For each deprecated functionality, please consider migrating to the New Relic supported equivalent, as linked in the right column of the following table. 
 
 | Deprecated feature | New Relic supported equivalent |
 |---|---|

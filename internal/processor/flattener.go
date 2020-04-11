@@ -23,8 +23,9 @@ func FlattenData(unknown interface{}, data map[string]interface{}, key string, s
 	switch unknown := unknown.(type) {
 	case []interface{}:
 		if api.SplitArray {
-			dataSamples := splitArrays(&unknown, data, key, api, &[]interface{}{})
+			dataSamples := splitArrays(&unknown, map[string]interface{}{}, key, api, &[]interface{}{}, map[string]interface{}{})
 			data[key+"FlexSamples"] = dataSamples
+
 		} else {
 			dataSamples := []interface{}{}
 			dataSamples = append(dataSamples, unknown...)
@@ -188,9 +189,44 @@ func splitObjects(unknown *map[string]interface{}, api *load.API) []interface{} 
 	return dataSamples
 }
 
+// navMap expand nested map
+func navMap(data map[string]interface{}, dimensions map[string]interface{}, key string, api *load.API, dataSamples *[]interface{}) {
+
+	// sort the map based on value data type: array < others < map
+	// so that map will be processed first, we will get all the dimensions
+	members := make([]string, 0, len(data))
+	membersType := map[string]int{}
+
+	for k, v := range data {
+		members = append(members, k)
+		switch v.(type) {
+		case []interface{}:
+			membersType[k] = 100
+		case map[string]interface{}:
+			membersType[k] = 0
+		default:
+			membersType[k] = 10
+		}
+	}
+
+	sort.Slice(members, func(i, j int) bool { return membersType[members[i]] < membersType[members[j]] })
+
+	for _, loopkey := range members {
+		switch value := data[loopkey].(type) {
+		case []interface{}:
+			splitArrays(&value, map[string]interface{}{}, key+"-"+loopkey, api, dataSamples, dimensions)
+		case map[string]interface{}:
+			navMap(value, dimensions, key+"-"+loopkey, api, dataSamples)
+		default:
+			dimensions[key+"-"+loopkey] = value
+		}
+
+	}
+
+}
+
 // splitArrays splits an array interface with nested arrays
-// this will drop and ignore and slices/arrays that could exist
-func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key string, api *load.API, dataSamples *[]interface{}) []interface{} {
+func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key string, api *load.API, dataSamples *[]interface{}, dimensions map[string]interface{}) []interface{} {
 	keys := []string{}
 	if len(api.SetHeader) > 0 {
 		keys = api.SetHeader
@@ -198,7 +234,10 @@ func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key s
 	for index := range *unknown {
 		switch data := (*unknown)[index].(type) {
 		case []interface{}:
-			splitArrays(&data, map[string]interface{}{}, key, api, dataSamples)
+			splitArrays(&data, map[string]interface{}{}, key, api, dataSamples, dimensions)
+		case map[string]interface{}:
+			navMap(data, map[string]interface{}{}, key, api, dataSamples)
+
 		default:
 			value := ""
 			switch (data).(type) {
@@ -213,10 +252,29 @@ func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key s
 			if (index + 1) <= len(keys) {
 				keyName = keys[index]
 			}
-			newSample[keyName] = value
+			// turn array leaf element into sample
+			if api.LeafArray {
+				newSample = make(map[string]interface{})
+				if len(keys) >= 1 {
+					keyName = keys[0]
+				}
+				newSample[keyName] = value
+				// add "index" attribute, merge and join possible based on index/order/seq
+				newSample["index"] = index
+				for k, v := range dimensions {
+					newSample[k] = v
+				}
+				*dataSamples = append(*dataSamples, newSample)
+			} else {
+				newSample[keyName] = value
+			}
 		}
 	}
-	if len(newSample) != 0 {
+
+	if !api.LeafArray && len(newSample) != 0 {
+		for k, v := range dimensions {
+			newSample[k] = v
+		}
 		*dataSamples = append(*dataSamples, newSample)
 	}
 
