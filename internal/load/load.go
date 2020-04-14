@@ -352,6 +352,7 @@ type Command struct {
 	Timeout          int               `yaml:"timeout"`           // command timeout
 	Dial             string            `yaml:"dial"`              // eg. google.com:80
 	Network          string            `yaml:"network"`           // default tcp
+	OS               string            `yaml:"os"`                // default empty for any operating system, if set will check if the OS matches else will skip execution
 
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
