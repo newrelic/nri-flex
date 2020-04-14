@@ -1,0 +1,195 @@
+###
+# Collects a variety of networking information available from the host
+# Depends on: netstat, conntrack and /proc/net/dev
+---
+name: NetworkData
+apis:
+  - name: ResolveExternalAndInternalAddrInfo
+    url: https://ifconfig.co/json
+    merge: HostNetworkSample
+  - name: HostInfo
+    commands:
+      - run: "printf fullHostname:: && hostname"
+        split_by: "::"
+      - run: "printf shortHostname:: && hostname -s"
+        split_by: "::"
+      - run: "hostname -I"
+        split: horizontal
+        regex_match: true
+        split_by: (\d+\.\d+\.\d+\.\d+)
+        set_header: [localIp]
+    merge: HostNetworkSample
+  - name: NetstatConnection # discover connections
+    commands:
+      - name: NetstatConnection
+        run: "netstat -anut -W"
+        split: horizontal
+        regex_match: true
+        # the below regex works on linux | does not work on mac
+        split_by: (\w+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)
+        # the below regex works with mac/darwin as instead of a colon it separates with a decimal
+        # it only accepts IP addresses, and as such *.* and resolved hosts will not be returned
+        # split_by: (\w+)\s+(\d+)\s+(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\w+)
+        set_header:
+          - protocol
+          - recvQBytes
+          - sendQBytes
+          - localAddress
+          - localAddressPort
+          - foreignAddress
+          - foreignAddressPort
+          - state
+  - name: NetstatIp # summarized ip data
+    commands:
+      - run: "netstat -s -W | grep -i -A 8 ip:"
+        split_output: ^(ip:|Ip:)$
+        regex_matches:
+          - expression: (\d+) total packets received
+            keys: [totalPacketsReceived]
+          - expression: (\d+) with invalid addresses
+            keys: [packetsReceivedWithInvalidAddresses]
+          - expression: (\d+) forwarded
+            keys: [forwardedPackets]
+          - expression: (\d+) incoming packets discarded
+            keys: [incomingPacketsDiscarded]
+          - expression: (\d+) incoming packets delivered
+            keys: [incomingPacketsDelivered]
+          - expression: (\d+) requests sent out
+            keys: [requestsSentOut]
+          - expression: (\d+) outgoing packets dropped
+            keys: [outgoingPacketsDropped]
+          - expression: (\d+) dropped because of missing route
+            keys: [packetsDroppedBecauseOfMissingRoute]
+  - name: NetstatIcmpCore # summarized icmp data
+    merge: NetstatIcmpSample
+    commands:
+      - run: "netstat -s -W | grep -i -A 8 icmp:"
+        split_output: ^(icmp:|Icmp:)$
+        regex_matches:
+          - expression: (\d+) ICMP messages received
+            keys: [icmpMessagesReceived]
+          - expression: (\d+) input ICMP message failed
+            keys: [icmpInputMessagesFailed]
+          - expression: (\d+) ICMP messages sent
+            keys: [icmpMessagesSent]
+          - expression: (\d+) ICMP messages failed
+            keys: [icmpMessagesFailed]
+  - name: NetstatIcmpInputDestUnreachable
+    merge: NetstatIcmpSample
+    commands:
+      - run: netstat -s -W | grep -i -A 1 "icmp input"
+        split_output: "ICMP input histogram:"
+        regex_matches:
+          - expression: >-
+              destination unreachable: (\d+)
+            keys: [icmpInputHistogramDestinationUnreachable]
+  - name: NetstatIcmpOutputDestUnreachable
+    merge: NetstatIcmpSample
+    commands:
+      - run: netstat -s -W | grep -i -A 1 "icmp output"
+        split_output: "ICMP output histogram:"
+        regex_matches:
+          - expression: >-
+              destination unreachable: (\d+)
+            keys: [icmpOutputHistogramDestinationUnreachable]
+  - name: NetstatIcmpMsg
+    merge: NetstatIcmpSample
+    commands:
+      - run: netstat -s -W | grep -i -A 2 "icmpmsg:"
+        split_output: "IcmpMsg:"
+        regex_matches:
+          - expression: >-
+              InType3: (\d+)
+            keys: [inType3]
+          - expression: >-
+              OutType3: (\d+)
+            keys: [outType3]
+  - name: NetstatTcp # summarized tcp data
+    commands:
+      - run: "netstat -s -W | grep -i -A 11 tcp:"
+        split_output: ^(tcp:|Tcp:)$
+        regex_matches:
+          - expression: (\d+) active connections openings
+            keys: [activeConnectionsOpenings]
+          - expression: (\d+) passive connection openings
+            keys: [passiveConnectionsOpenings]
+          - expression: (\d+) failed connection attempts
+            keys: [failedConnectionAttempts]
+          - expression: (\d+) connection resets received
+            keys: [connectionResetsReceived]
+          - expression: (\d+) connections established
+            keys: [connectionsEstablished]
+          - expression: (\d+) segments received
+            keys: [segmentsReceived]
+          - expression: (\d+) segments send out
+            keys: [segmentsSendOut]
+          - expression: (\d+) segments retransmited
+            keys: [segmentsRetransmitted]
+          - expression: (\d+) bad segments received
+            keys: [badSegmentsReceived]
+          - expression: (\d+) resets sent
+            keys: [resetsSent]
+          - expression: >-
+              InCsumErrors: (\d+)
+            keys: [inCsumErrors]
+  - name: NetstatUdp # summarized udp data
+    commands:
+      - run: "netstat -s -W | grep -i -A 7 udp:"
+        split_output: ^(udp:|Udp:)$
+        regex_matches:
+          - expression: (\d+) packets received
+            keys: [packetsReceived]
+          - expression: (\d+) packets to unknown port received
+            keys: [packetsToUnknownPortReceived]
+          - expression: (\d+) packet receive errors
+            keys: [packetReceiveErrors]
+          - expression: (\d+) packets sent
+            keys: [packetsSent]
+          - expression: (\d+) receive buffer errors
+            keys: [receiveBufferErrors]
+          - expression: (\d+) send buffer errors
+            keys: [sendBufferErrors]
+  - name: NetworkInterface # network interface data
+    commands:
+      - run: cat /proc/net/dev
+        split: horizontal
+        row_start: 2
+        set_header:
+          - interface
+          - receiveBytes
+          - receivePackets
+          - receiveErrors
+          - receiveDrop
+          - receiveFifo
+          - receiveFrame
+          - receiveCompressed
+          - receiveMulticast
+          - transmitBytes
+          - transmitPackets
+          - transmitErrors
+          - transmitDrop
+          - transmitFifo
+          - transmitFrame
+          - transmitCompressed
+          - transmitMulticast
+        regex_match: true
+        split_by: (\S+):\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)
+  - name: Conntrack
+    ### note this requires conntrack installed
+    ### if manually testing conntrack requires sudo/root permissions
+    commands:
+      - run: conntrack -S
+        split: horizontal
+        set_header:
+          - cpu
+          - found
+          - invalid
+          - ignore
+          - insert
+          - insertFailed
+          - drop
+          - earlyDrop
+          - error
+          - searchRestart
+        regex_match: true
+        split_by: cpu=(\d+)\s+found=(\d+)\s+invalid=(\d+)\s+ignore=(\d+)\s+insert=(\d+)\s+insert_failed=(\d+)\s+drop=(\d+)\s+early_drop=(\d+)\s+error=(\d+)\s+search_restart=(\d+)
