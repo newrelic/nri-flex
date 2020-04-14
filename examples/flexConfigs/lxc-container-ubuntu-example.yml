@@ -1,0 +1,33 @@
+integrations:
+  - name: nri-flex
+    interval: 30s # Default is 30s
+    config: # Used to query an ubuntu LXC container
+      name: lxcSystemIntegration
+      apis:
+        - name: LXCContainers
+          commands:
+            - run: lxc-ls --fancy --fancy-format NAME | tail -n +2
+              split: horizontal
+              set_header: [containerName]
+              regex_match: true
+              split_by: (\S+)
+          store_lookups:
+            containerNames: containerName
+        - name: LXCContainerUbuntu
+          commands:
+            - run: lxc-info --name ${lookup:containerNames} --no-humanize | awk '/Name:/ { printf "containerName=%s\r\n",$2 } /State:/ { printf "state=%s\r\n",$2 } /PID:/ { printf "pid=%s\r\n",$2 } /IP:/ { printf "ip=%s\r\n",$2 } /TX bytes:/ { printf "netTxBytes=%d\r\n",$3 } /RX bytes:/ { printf "netRxBytes=%d\r\n",$3 } /Total bytes:/ { printf "netTotalBytes=%d\r\n",$3 }'
+              split_by: =
+            - run: lxc-attach --name ${lookup:containerNames} -- top -b -n 1 | head -n 3 | awk '/load average:/ { printf "loadAverage1Min=%f\r\nloadAvg5Min=%f\r\nloadAvg15Min=%f\r\n",$10,$11,$12 } /\%Cpu\(s\)\:/ { printf "cpuUser%=%f\r\ncpuSystem%=%f\r\ncpuUserNice%=%f\r\ncpuIdle%=%f\r\ncpuIOWait%=%f\r\ncpuHardwareIRQ%=%f\r\ncpuSoftwareIRQ%=%f\r\ncpuStealTime%=%f",$2,$4,$6,$8,$10,$12,$14,$16 }'
+              split_by: =
+            - run: lxc-attach --name ${lookup:containerNames} -- free --bytes | awk '/Mem:/ { printf "memUsedTotalBytes=%d\r\nmemUsedBytes=%d\r\nmemFreeBytes=%d\r\nmemSharedBytes=%d\r\nmemBuffCacheBytes=%d\r\nmemAvailableBytes=%d\r\nmemUsed%=%f\r\n",$2,$3,$4,$5,$6,$7,$3/$2 }'
+              split_by: =
+        - name: LXCContainerFilesystem
+          commands:
+            - run: lxc-attach --name ${lookup:containerNames} -- df --portability --print-type | tail -n +2
+              split: horizontal
+              set_header: [fs,fsType,1024Blocks,used1024Blocks,available1024Blocks,diskCapacityPercentage,mountedOn]
+              regex_match: true
+              split_by: (\S+.\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+              custom_attributes:
+                containerName: ${lookup:containerNames}
+          perc_to_decimal: true
