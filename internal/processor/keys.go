@@ -150,22 +150,19 @@ func storeParentAttributes(mainDataset map[string]interface{}, parentAttributes 
 					// store the parents from the first object when we are using a split that has > which targets the nested arrays
 					if len(startSplit) == 2 && key == startSplit[0] {
 						// lazy flatten the slices and maps from the highest level
-						flattened := flattenSlicesAndMaps(val)
-						if flattened != nil {
-							for mapKey, mapVal := range flattened {
-								switch data := mapVal.(type) {
-								case map[string]interface{}:
-									for innerMapKey, innerMapVal := range data {
-										// avoid duplicates from the flattened data
-										if !strings.Contains(innerMapKey, startSplit[1]) {
-											parentAttributes[fmt.Sprintf("parent.%d.%v", level, innerMapKey)] = fmt.Sprintf("%v", innerMapVal)
-										}
-									}
-								default:
+						for mapKey, mapVal := range flattenSlicesAndMaps(val) {
+							switch data := mapVal.(type) {
+							case map[string]interface{}:
+								for innerMapKey, innerMapVal := range data {
 									// avoid duplicates from the flattened data
-									if !strings.Contains(mapKey, startSplit[1]) {
-										parentAttributes[fmt.Sprintf("parent.%d.%v", level, mapKey)] = fmt.Sprintf("%v", mapVal)
+									if !strings.Contains(innerMapKey, startSplit[1]) {
+										parentAttributes[fmt.Sprintf("parent.%d.%v", level, innerMapKey)] = fmt.Sprintf("%v", innerMapVal)
 									}
+								}
+							default:
+								// avoid duplicates from the flattened data
+								if !strings.Contains(mapKey, startSplit[1]) {
+									parentAttributes[fmt.Sprintf("parent.%d.%v", level, mapKey)] = fmt.Sprintf("%v", mapVal)
 								}
 							}
 						}
