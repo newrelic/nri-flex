@@ -206,10 +206,11 @@ func applyParentAttributes(mainDataset map[string]interface{}, datasets []interf
 						if switchDs["flexSliceIndex"] != nil {
 							sliceIndex = switchDs["flexSliceIndex"].(int)
 						}
-						matchIndex, err := strconv.Atoi(matches[1])
+						matchIndex2, err := strconv.Atoi(matches[1])
 						if err == nil {
-							if sliceIndex == matchIndex {
-								switchDs[matches[2]] = val
+							// no need to add the second index into the key as we've unpacked at the matched level
+							if sliceIndex == matchIndex2 {
+								switchDs[fmt.Sprintf("parent.%v.%v", matches[0], matches[2])] = val
 							}
 						}
 					} else {
