@@ -401,7 +401,7 @@ func TestStartKeys(t *testing.T) {
 				},
 			},
 			startKeys:    []string{"def>def2"},
-			expected:     `{"def2":[{"def3":{"def4":4},"parent.0.0.xyz":"test","parent.0.abc":"1"}]}`,
+			expected:     `{"def2":[{"def3":{"def4":4},"parent.0.abc":"1","xyz":"test"}]}`,
 			inheritAttrs: true,
 		},
 		"NestedKeyWithMapAndArray_InheritAttrs": {

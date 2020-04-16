@@ -8,6 +8,7 @@ package processor
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/formatter"
@@ -103,15 +104,16 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
 					var nestedSlices []interface{}
-					for _, nested := range mainDs {
+					for i, nested := range mainDs {
 						switch sample := nested.(type) {
 						case map[string]interface{}:
 							if sample[startSplit[1]] != nil {
 								switch nestedSample := sample[startSplit[1]].(type) {
 								case map[string]interface{}:
+									nestedSample["flexSliceIndex"] = i
 									nestedSlices = append(nestedSlices, nestedSample)
 								case []interface{}:
-									nestedSlices = append(nestedSlices, nestedSample...)
+									nestedSlices = append(nestedSlices, applyIndexes(i, nestedSample)...)
 								}
 							}
 						}
@@ -136,6 +138,20 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 			}
 		}
 	}
+}
+
+func applyIndexes(index int, slices []interface{}) []interface{} {
+	newSlices := []interface{}{}
+	for _, sample := range slices {
+		switch sampleData := sample.(type) {
+		case map[string]interface{}:
+			sampleData["flexSliceIndex"] = index
+			newSlices = append(newSlices, sampleData)
+		default:
+			newSlices = append(newSlices, sample)
+		}
+	}
+	return newSlices
 }
 
 func storeParentAttributes(mainDataset map[string]interface{}, parentAttributes map[string]interface{}, startKey string, level int, inheritAttributes bool) {
@@ -183,8 +199,24 @@ func applyParentAttributes(mainDataset map[string]interface{}, datasets []interf
 			switch switchDs := dataset.(type) {
 			case map[string]interface{}:
 				for key, val := range parentAttributes {
-					switchDs[key] = val
+					// check if this is a nested parent, and only apply if the index matches
+					matches := formatter.RegMatch(key, "parent\\.(\\d+)\\.(\\d+)\\.(.+)")
+					if len(matches) > 1 {
+						sliceIndex := -1
+						if switchDs["flexSliceIndex"] != nil {
+							sliceIndex = switchDs["flexSliceIndex"].(int)
+						}
+						matchIndex, err := strconv.Atoi(matches[1])
+						if err == nil {
+							if sliceIndex == matchIndex {
+								switchDs[matches[2]] = val
+							}
+						}
+					} else {
+						switchDs[key] = val
+					}
 				}
+				delete(switchDs, "flexSliceIndex")
 			}
 		}
 	}
