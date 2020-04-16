@@ -1,7 +1,7 @@
 name: SalesforceSample
 secrets:
   mylogin: 
-    kind: local # Use Flex local/internal decrption function
+    kind: local # Use Flex local/internal decryption function
     key: N3wR3lic!  # Your pass_phrase to encrypt/decrypt the Salesforce login info
     data: <==YOUR ENCRYPTED LOGIN INFO from the command below==>
     # Run the following command to generate a encrypted login info, paste it to the above -> data 
@@ -13,17 +13,17 @@ variable_store:
   rest_host: https://<==YOUR SALESFORCE HOST==>.my.salesforce.com
   client_id: <==YOUR SALESFORCE CLIENT_ID==>
   client_secret: <==YOUR SALESFORCE CLIENT_SECRET==>
-  #Your query timestamp and offset, utc time is being used in the follownig example
+  # Your query timestamp and offset, utc time is being used in the following example
   startDatetime: ${timestamp:datetimeutc-5min}
   username: ${secret.mylogin:username}
   password: ${secret.mylogin:password}
   rest_api: /services/data/v47.0/query?q=
   oauth_token_endpoint: /services/oauth2/token
-  #Your Salesforce query string 
+  # Your Salesforce query string 
   queryString: select Id, Stack_Trace__c, Message__c, Created_Date_Time__c, Exception_Type__c from Exception_Log__c
-  #Your Salesforce query where clause
+  # Your Salesforce query where clause
   queryWhere: " where Created_Date_Time__c > "
-  #Timezone, 0000 for utc 
+  # Timezone, 0000 for utc 
   Timezone: "%2B0000"
 
 apis:
@@ -33,8 +33,8 @@ apis:
     method: POST
     store_variables:
       storedtoken: access_token   
-    #This payload assumes oauth2 grant_type=password.
-    #This should be configured based on your oauth flow
+    # This payload assumes oauth2 grant_type=password.
+    # This should be configured based on your oauth flow
     payload: >-
             client_id=${var:client_id}&grant_type=password&client_secret=${var:client_secret}&username=${var:username}&password=${var:password}
     ignore_output: true
