@@ -459,7 +459,7 @@ func flattenSlicesAndMaps(data interface{}) map[string]interface{} {
 			case map[string]interface{}:
 				flattened, err := flatten.Flatten(sampleData, "", flatten.DotStyle)
 				if err == nil {
-					sliceData[fmt.Sprintf("array.%d", i)] = flattened
+					sliceData[fmt.Sprintf("%d", i)] = flattened
 				}
 			}
 		}
