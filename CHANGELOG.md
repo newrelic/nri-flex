@@ -6,7 +6,6 @@
 - Removekeys i snow case-insensitive
 - Http connection errors is written to sample
 - Removed K8s discovery support. K8s discovery should be handled by [`New Relic K8s discovery`](https://github.com/newrelic/nri-discovery-kubernetes)
-- 
 
 0.8.4-pre
 ------
@@ -14,7 +13,6 @@
 - Fixed key deletion
 - Updated RunSampleRenamer
 - Fixed logging an error when retrieving kms secret succeeds
-
 
 0.8.3-pre
 ------
