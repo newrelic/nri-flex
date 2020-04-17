@@ -8,11 +8,26 @@ Follow this tutorial to get started with Flex!
 4. [How to add more integrations](#Howtoaddmoreintegrations)
 5. [What's next?](#Whatsnext)
 
+## Prerequisites
+
+To follow this tutorial you only need some knowledge of your operating system and basic proficiency with its shell. No previous coding experience is required. Since you want to send data to New Relic, we assume that you know the basics of [New Relic Infrastructure](https://learn.newrelic.com/getting-started-with-infrastructure) and the [New Relic Query Language (NRQL)](https://learn.newrelic.com/writing-nrql-queries).
+
+Flex integrations are written as YAML files, a human-readable language for describing data. If you are not familiar with YAML, give a look at the excellent [Learn YAML in Y minutes](https://learnxinyminutes.com/docs/yaml/) guide.
+
+Different data sources may require different skills. For instance, the `commands` API you need some knowledge of the terminal, while the `url` API requires that you're comfortable with HTTP calls, JSON payloads, and REST terminology. Knowing what you want to collect and where that is is important.
+
+While knowing [regular expressions](https://en.wikipedia.org/wiki/Regular_expression) is not required, a basic grasp of regex can greatly enhance your Flex experience. Resources like [Regex101](https://regex101.com/) can help you when composing and debugging regular expressions.
+
+Flex is not hard! If you get stuck, reach out to the community or [file an issue](https://github.com/newrelic/nri-flex/issues).
+
 ##  1. <a name='InstalltheInfrastructureagent'></a>Install the Infrastructure agent
 
 Starting from New Relic Infrastructure agent version 1.10.7, Flex comes bundled with the agent. To install the Infrastructure agent, see:
 
 - [Install Infrastructure for Linux using the package manager](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/linux-installation/install-infrastructure-linux-using-package-manager)
+
+  or 
+
 - [Install Infrastructure for Windows Server using the MSI installer](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure/windows-installation/install-infrastructure-windows-server-using-msi-installer)
 
 You can [start, stop, restart, and check](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/configuration/start-stop-restart-check-infrastructure-agent-status) the Infrastructure agent from the command line. The agent must run in [root/administrator mode](https://docs.newrelic.com/docs/infrastructure/install-configure-infrastructure/linux-installation/linux-agent-running-modes).
@@ -43,11 +58,13 @@ The query should produce a table similar to this:
 
 ![](./img/basic-table.png)
 
+If you don't get anything, make sure that your YAML configuration file is well indented and that indentation levels don't use tabs instead of spaces. When in doubt, run your configuration through a YAML validator, such as [YAMLLint](http://www.yamllint.com/).
+
 ##  3. <a name='YourfirstFlexintegration'></a>Your first Flex integration
 
 This example shows how to collect disk metrics from file systems not natively supported by New Relic using the `df` command in Linux.
 
-The goal of Flex is to process the output of the `df` command, showing the file system and 1-byte blocks, while excluding file systems already supported by the agent. If unsupported file systems are not mounted, remove the `-x` arguments.
+The goal is to process the output of the `df` command, showing the file system and 1-byte blocks, while excluding file systems already supported by the agent. If unsupported file systems are not mounted, remove the `-x` arguments.
 
 ```bash
 $ df -PT -B1 -x tmpfs -x xfs -x vxfs -x btrfs -x ext -x ext2 -x ext3 -x ext4
@@ -107,9 +124,7 @@ integrations:
     - `set_header` specifies, in order, a matching name for each value of the aforementioned array.
     - `perc_to_decimal: true` indicates to convert any percentage string into a decimal value, removing the trailing `%` symbol.
 
-**Once the Flex config is created, the Infrastructure agent autodetects the new config and begins collecting data.**
-
-To check that your new integration is working, execute the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
+Once the Flex config is created, the Infrastructure agent autodetects the new config and begins collecting data. To check that your new integration is working, execute the following [NRQL query](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language):
 
 ```sql
 FROM FileSystemSample SELECT mountedOn, fs, usedBytes, capacityBytes, usedBytes
@@ -199,3 +214,4 @@ In the Flex repo you can find more than [200 config examples](../examples/flexCo
 - Learn more about the Flex configuration schema in [Configure Flex](/basics/configure.md).
 - Read about the [url](/apis/url.md) and [commands](/apis/command.md) APIs and how to create Flex integrations with them.
 - See the [list of supported functions](/basics/functions.md) to understand what Flex is capable of.
+- Read our [Troubleshooting guide](troubleshooting.md) if you're having issues with Flex configuration files or Flex integrations.
