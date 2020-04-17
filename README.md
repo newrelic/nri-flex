@@ -4,7 +4,7 @@
 
 Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) with which you can instrument any app that exposes metrics over a standard protocol (HTTP, file, shell) in a standard format (for example, JSON or plain text): you create a [config file](/docs/basics/configure.md), start the Infrastructure agent, and data starts pouring into New Relic.
 
-Flex can take any input, process it through [functions](/docs/basics/functions.md), and send metric samples to New Relic as if they came from an integration:
+Flex can take any input using [data source APIs](/docs/apis/README.md), process it through [functions](/docs/basics/functions.md), and send metric samples to New Relic as if they came from an integration:
 
 ![Flex diagram](https://newrelic-wpengine.netdna-ssl.com/wp-content/uploads/flex_diagram.jpg)
 
@@ -24,7 +24,7 @@ For a quick introduction on Flex, [read our blog post](https://blog.newrelic.com
 Flex requires a New Relic [Infrastructure Pro](https://newrelic.com/infrastructure/pricing) subscription or trial and is compatible with the following operating systems:
 
 - Linux
-- Windows
+- Windows (Experimental)
 
 For more information on compatible distros and versions, see the [Infrastructure agent compatibility page](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/getting-started/compatibility-requirements-new-relic-infrastructure).
 
@@ -48,10 +48,11 @@ While developing your own Flex integrations, you can use Flex without the New Re
 
 ## Documentation
 
-- [Flex documentation - Main page](https://github.com/newrelic/nri-flex/tree/master/docs/README.md)
-- [Configure Flex](https://github.com/newrelic/nri-flex/tree/master/docs/basics/configure.md)
-- [Supported functions](https://github.com/newrelic/nri-flex/tree/master/docs/basics/functions.md)
-- [Experimental functions](https://github.com/newrelic/nri-flex/tree/master/docs/experimental/functions.md)
+- [Flex documentation - Main page](docs/README.md)
+- [Configure Flex](/docs/basics/configure.md)
+- [Data sources / APIS](/docs/apis/README.md)
+- [Data transformation functions](docs/basics/functions.md)
+- [Experimental functions](docs/experimental/functions.md)
 
 ### Flex Manager
 
@@ -59,7 +60,7 @@ Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Reli
 
 ## Support
 
-You can find more detailed documentation [on our website](http://newrelic.com/docs).
+Need help? See our [troubleshooting page](troubleshooting.md). You can find more detailed documentation [on the New Relic docs site](http://newrelic.com/docs).
 
 If you can't find what you're looking for there, reach out to us on our [support site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com) and we'll be happy to help you.
 

@@ -4,7 +4,9 @@
 
 - [Basic tutorial](basic-tutorial.md)
 - [Configure Flex](basics/configure.md)
-- [Functions for data manipulation](basics/functions.md)
+- [Data sources](apis/README.md)
+- [Data transformation functions](basics/functions.md)
+- [Troubleshooting](troubleshooting.md)
 
 ## Data sources
 

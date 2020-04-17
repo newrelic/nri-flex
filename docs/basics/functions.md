@@ -1,6 +1,8 @@
 # Data parsing and transformation functions
 
-Flex has many useful functions, which can be combined in different ways to help you manipulate and tidy up your data.
+Flex functions can be combined in different ways to help you manipulate and tidy up your data. The following functions apply to all Flex APIs or data sources.
+
+For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](apis/README.md).
 
 -   [Function precedence order](#function-precedence-order)
 -   [Supported functions](#supported-functions)
@@ -56,7 +58,7 @@ Flex applies data parsing and transformation functions in a specific order, rega
 22. [add_attribute](#add_attribute)
 23. [remove_keys](#remove_keys)
 
-> \* Happens before attribute modification and autoflattening, which is useful to get rid of unwanted data and arrays early on.
+> \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
 ## Flex supported functions
 
@@ -64,9 +66,7 @@ Here is a list of supported functions. Be aware that while all the examples use 
 
 ### add_attribute
 
-| Applies to | Description                                                                                                      |
-| :--------- | :--------------------------------------------------------------------------------------------------------------- |
-| API        | Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute. |
+Adds extra attributes to the resulting sample. Can use attributes from the result to create the extra attribute.
 
 **Example**
 
@@ -118,9 +118,8 @@ Which would return the following:
 
 ### convert_space
 
-| Applies to | Description                                         |
-| :--------- | :-------------------------------------------------- |
-| API        | Replaces spaces in key names with other characters. |
+
+Replaces spaces in key names with other characters.
 
 **Example**
 
@@ -168,9 +167,7 @@ Which would return the following:
 
 ### ignore_output
 
-| Applies to | Description                                                                                                                                                                     |
-| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| API        | Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions. |
+Ignores the output of some API, that is, it does not create a sample for the result, but still caches it. This is useful when creating lookups/cache for other APIs executions.
 
 **Example**
 
@@ -210,9 +207,7 @@ apis:
 
 ### keep_keys
 
-| Applies to | Description                                                                                             |
-| :--------- | :------------------------------------------------------------------------------------------------------ |
-| API        | Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics. |
+Keeps only the keys matching the regular expressions. This is useful for keeping just some key metrics.
 
 **Example**
 
@@ -248,9 +243,7 @@ apis:
 
 ### lazy_flatten
 
-| Applies to | Description                                                                                                                                                                                                                                         |
-| :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API        | Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name. |
+Performs a lazy flattening operation. The result differs depending on the object that's flattened. By default, Flex always performs data flattening; depending on the type of payload it either creates one sample or many, all with the same name.
 
 **Example**
 
@@ -270,7 +263,6 @@ Consider a service that returns the following json payload:
     ]
 }
 ```
-
 Flex flattens the structure and creates two samples if not asked to perform any transformation.
 
 For example, using the following configuration:
@@ -353,9 +345,7 @@ The same configuration gives the following Which would return the following:
 
 ### lookup_file
 
-| Applies to | Description                                                                                     |
-| :--------- | :---------------------------------------------------------------------------------------------- |
-| API        | Dynamically inject values into configurations using a JSON file containing an array of objects. |
+Dynamically inject values into configurations using a JSON file containing an array of objects.
 
 **Example**
 
@@ -430,9 +420,7 @@ Which would return the following:
 
 ### math
 
-| Applies to | Description                                                                                                           |
-| :--------- | :-------------------------------------------------------------------------------------------------------------------- |
-| API        | Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers. |
+Performs math operations with the values of the attributes specified in the expression and/or other explicit numbers.
 
 **Example**
 
@@ -482,9 +470,7 @@ Which would return the following:
 
 ### perc_to_decimal
 
-| Applies to | Description                                                              |
-| :--------- | :----------------------------------------------------------------------- |
-| API        | Converts any percentage formatted value into its decimal representation. |
+Converts any percentage formatted value into its decimal representation.
 
 **Example**
 
@@ -532,9 +518,7 @@ Which would return the following:
 
 ### remove_keys
 
-| Applies to | Description                                                                    |
-| :--------- | :----------------------------------------------------------------------------- |
-| API        | Uses a regular expression to remove selected keys (attributes) from your data: |
+Uses a regular expression to remove selected keys (attributes) from your data: |
 
 **Example**
 
@@ -579,14 +563,12 @@ Which would return something similar to the following:
   "name": "node3"
 }]
 ```
-
 Be aware that the value of `remove_keys` matches at any level, meaning that it could remove complete objects if any part of the name matches the regular expression.
 
 ### rename_keys / replace_keys
 
-| Applies to | Description                          |
-| :--------- | :----------------------------------- |
-| API        | Uses a regex to find and rename keys |
+
+Uses a regex to find and rename keys |
 
 **Example**
 
@@ -607,7 +589,6 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
-
 You could rename the key `id` to `identifier`, and `name` to `nodeName`:
 
 ```yaml
@@ -637,9 +618,7 @@ Which would return the following:
 
 ### sample_filter
 
-| Applies to | Description                                                              |
-| :--------- | :----------------------------------------------------------------------- |
-| API        | Skips creating the sample if both a key and value is found in the sample |
+Skips creating the sample if both a key and value is found in the sample |
 |            | if `sample_exclude_filter` is present, both filters will be applied.     |
 
 **Example**
@@ -661,7 +640,6 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
-
 You could completely skip creating the output sample:
 
 ```yaml
@@ -681,9 +659,7 @@ Which would return the following:
 
 ### sample_include_filter
 
-| Applies to | Description                                                                                                      |
-| :--------- | :--------------------------------------------------------------------------------------------------------------- |
-| API        | If a sample is included using sample_include_filter, Flex evaluates sample_filter and sample_exclude_filter next |
+If a sample is included using sample_include_filter, Flex evaluates sample_filter and sample_exclude_filter next.
 
 **Example**
 
@@ -732,10 +708,7 @@ Which would return the following:
 
 ### sample_exclude_filter
 
-| Applies to | Description                                                                                  |
-| :--------- | :------------------------------------------------------------------------------------------- |
-| API        | Skips creating the sample if both a key and value is found in the sample.                    |
-|            | If `sample_filter` is present, both `sample_filter` and `sample_exclude_filter` are applied. |
+Skips creating the sample if both a key and value is found in the sample. If `sample_filter` is present, both `sample_filter` and `sample_exclude_filter` are applied.
 
 **Example**
 
@@ -784,9 +757,7 @@ Which would return the following:
 
 ### snake_to_camel
 
-| Applies to | Description                                                          |
-| :--------- | :------------------------------------------------------------------- |
-| API        | Converts all snake-cased attributes into camelCased formatted names. |
+Converts all snake-cased attributes into camelCased formatted names.
 
 **Example**
 
@@ -807,7 +778,6 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
-
 You could convert `leader_info` and `start_time` to camelCase for increased consistency:
 
 ```yaml
@@ -834,10 +804,7 @@ Which would return the following:
 
 ### split_array (leaf_array)
 
-| Applies to | Description |
-| :--------- | :---------- |
-| API | Splits an array that has nested arrays |
-||Enable the leaf_array option to turn array leaf nodes into samples
+Splits an array that has nested arrays. Enable the `leaf_array` option to turn array leaf nodes into samples.
 
 **Example 1 (split_array)**
 
@@ -948,7 +915,6 @@ You could split the leaf nodes within `timestamps` and `filters` branches into s
 
 ```yaml
 name: leafArrayExample
-
 apis:
   - name: getTimetamps
     url: http://127.0.0.1:8887/concurrent_plays.json
@@ -960,7 +926,6 @@ apis:
       - timestamps
     merge: myMetricsSample
     join_key: index
-
   - name: getValues
     url: http://127.0.0.1:8887/concurrent_plays.json
     split_array: true
@@ -1011,9 +976,7 @@ Which would return the following:
 
 ### split_objects
 
-| Applies to | Description                                             |
-| :--------- | :------------------------------------------------------ |
-| API        | Splits an object that has nested objects into an array. |
+Splits an object that has nested objects into an array.
 
 **Example**
 
@@ -1081,9 +1044,7 @@ Which would return something similar to the following:
 
 ### start_key
 
-| Applies to | Description                                                  |
-| :--------- | :----------------------------------------------------------- |
-| API        | Starts processing data at a different point in your payload. |
+Starts processing data at a different point in your payload.
 
 **Example**
 
@@ -1180,9 +1141,7 @@ Which would return something similar to
 
 ### store_lookups
 
-| Applies to | Description                                                          |
-| :--------- | :------------------------------------------------------------------- |
-| API        | Stores attributes from a API that you could use in a subsequent API. |
+Stores attributes from a API that you could use in a subsequent API.
 
 **Example**
 
@@ -1220,9 +1179,7 @@ apis:
 
 ### strip_keys
 
-| Applies to | Description                                     |
-| :--------- | :---------------------------------------------- |
-| API        | Removes entire keys or objects from the output. |
+Removes entire keys or objects from the output.
 
 **Example**
 
@@ -1294,9 +1251,7 @@ Note that Flex strips all keys that match the payload. This means that if the pa
 
 ### timestamp
 
-| Applies to | Description                                                                                     |
-| :--------- | :---------------------------------------------------------------------------------------------- |
-| Anywhere   | Injects timestamps anywhere in your config and also performs additions or subtractions on them. |
+Injects timestamps anywhere in your config and also performs additions or subtractions on them.
 
 You can use the following expressions to inject a timestamp formatted in various ways:
 
@@ -1338,9 +1293,7 @@ ${timestamp:datetime+60min} add 60 minutes to current datetime, return datetime
 
 ### to_lower
 
-| Applies to | Description                     |
-| :--------- | :------------------------------ |
-| API        | Converts all keys to lowercase. |
+Converts all keys to lowercase.
 
 **Example**
 
@@ -1388,9 +1341,7 @@ The result would be similar to the following (notice all keys are lowercase, inc
 
 ### value_parser
 
-| Applies to | Description                                                                                                   |
-| :--------- | :------------------------------------------------------------------------------------------------------------ |
-| API        | Finds keys using a regular expression and applies another regular expresion to extract the first value found. |
+Finds keys using a regular expression and applies another regular expresion to extract the first value found.
 
 **Example**
 
@@ -1440,9 +1391,7 @@ Which would return the following:
 
 ### value_transformer
 
-| Applies to | Description                                                      |
-| :--------- | :--------------------------------------------------------------- |
-| API        | Uses a regular expression to find a key and transforms its value |
+Uses a regular expression to find a key and transforms its value.
 
 **Example**
 

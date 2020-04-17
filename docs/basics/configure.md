@@ -4,12 +4,61 @@ Flex integrations are code-less: They only require that you write configuration 
 
 Configurations can [go embedded](#AddyourFlexconfigurationtointegrations.d) in the Infrastructure agent configuration file, or live as stand-alone config files that you can test separately and [link](#Linktoaseparateconfigurationfile) from the main integrations config file. What approach to follow is up to you.
 
-* [Configuration schema](#Configurationschema)
-* [Configuration example](#Configurationexample)
 * [Add your Flex configuration to `integrations.d`](#AddyourFlexconfigurationtointegrations.d)
 * [Link to a separate configuration file](#Linktoaseparateconfigurationfile)
+* [Configuration schema](#Configurationschema)
+* [Configuration example](#Configurationexample)
 
+## <a name='AddyourFlexconfigurationtointegrations.d'></a>Add your configuration to `integrations.d`
 
+Since it comes bundled with the Infrastructure agent, Flex's configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
+
+* Linux: `/etc/newrelic-infra/integrations.d`
+* Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
+
+The main section of the integrations config file is used by the Infrastructure agent to execute Flex like any other integration; you can add your Flex configuration under `config`. 
+
+For example, `/etc/newrelic-infra/integrations.d/my-flex-config.yml`  could contain the following:
+
+```yaml
+integrations:
+  - name: nri-flex # We're telling the Infra agent to run Flex
+    interval: 60s
+    timeout: 5s
+    config: # Flex configuration starts here!
+      name: example
+      apis:
+        - event_type: ExampleSample
+          url: https://my-host:8443/admin/metrics.json
+```
+
+* **On-Host Integration Configuration**: the first five lines are read by the agent to execute the `nri-flex` binary every 60 seconds, canceling the execution if it lasts more than 5 seconds. Refer to [Integration configuration file specifications](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180) for more details about the contents of the on-host integrations configuration file.
+* **Flex configuration**: contains the actions to be taken using data sources APIs, such as the [url](../apis/url.md) API.
+
+> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md) or check existing config files under [/examples](../../examples).
+
+## <a name='Linktoaseparateconfigurationfile'></a>Link to a separate configuration file
+
+You can store the Flex configuration in a separate YAML file (for example, after [developing and testing a config file](../development.md)) and reference it by replacing `config` with `config_template_path` property, which contains the path of the Flex config file.
+
+This way, the equivalent of `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
+
+```yaml
+integrations:
+  - name: nri-flex
+    interval: 60s
+    timeout: 5s
+    config_template_path: /path/to/flex/integration.yml # Reference to a separate Flex config file
+```
+
+`/path/to/flex/integration.yml` would contain the contents that previously were inside the `config` section:
+
+```yaml
+name: example
+apis:
+  - event_type: ExampleSample
+    url: https://my-host:8443/admin/metrics.json
+```
 ## <a name='Configurationschema'></a>Configuration schema
 
 The following schema describes the overall structure of a Flex configuration.
@@ -177,56 +226,4 @@ integrations:                                    # OHI configuration starts here
               set_header: [dirSizeBytes,dirName] # Names for the headers of the table resulting from split
               regex_match: true                  # Splits horizontally matching a regular expression
               split_by: (\d+)\s+(.*)             # Captures the regexpes between parentheses as the headers above   
-```
-
-
-## <a name='AddyourFlexconfigurationtointegrations.d'></a>Add your configuration to `integrations.d`
-
-Since it comes bundled with the Infrastructure agent, Flex's configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
-
-* Linux: `/etc/newrelic-infra/integrations.d`
-* Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
-
-The main section of the integrations config file is used by the Infrastructure agent to execute Flex like any other integration; you can add your Flex configuration under `config`. 
-
-For example, `/etc/newrelic-infra/integrations.d/my-flex-config.yml`  could contain the following:
-
-```yaml
-integrations:
-  - name: nri-flex # We're telling the Infra agent to run Flex
-    interval: 60s
-    timeout: 5s
-    config: # Flex configuration starts here!
-      name: example
-      apis:
-        - event_type: ExampleSample
-          url: https://my-host:8443/admin/metrics.json
-```
-
-* **On-Host Integration Configuration**: the first five lines are read by the agent to execute the `nri-flex` binary every 60 seconds, canceling the execution if it lasts more than 5 seconds. Refer to [Integration configuration file specifications](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180) for more details about the contents of the on-host integrations configuration file.
-* **Flex configuration**: contains the actions to be taken using data sources APIs, such as the [url](../apis/url.md) API.
-
-> To get a quick, first picture of a Flex configuration file, you can start following our [basic, step-by-step tutorial](../../basic-tutorial.md) or check existing config files under [/examples](../../examples).
-
-## <a name='Linktoaseparateconfigurationfile'></a>Link to a separate configuration file
-
-You can store the Flex configuration in a separate YAML file (for example, after [developing and testing a config file](../development.md)) and reference it by replacing `config` with `config_template_path` property, which contains the path of the Flex config file.
-
-This way, the equivalent of `/etc/newrelic-infra/integrations.d/my-flex-config.yml` from the previous section would contain:
-
-```yaml
-integrations:
-  - name: nri-flex
-    interval: 60s
-    timeout: 5s
-    config_template_path: /path/to/flex/integration.yml # Reference to a separate Flex config file
-```
-
-`/path/to/flex/integration.yml` would contain the contents that previously were inside the `config` section:
-
-```yaml
-name: example
-apis:
-  - event_type: ExampleSample
-    url: https://my-host:8443/admin/metrics.json
 ```

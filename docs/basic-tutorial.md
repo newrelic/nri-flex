@@ -14,7 +14,7 @@ To follow this tutorial you only need some knowledge of your operating system an
 
 Flex integrations are written as YAML files, a human-readable language for describing data. If you are not familiar with YAML, give a look at the excellent [Learn YAML in Y minutes](https://learnxinyminutes.com/docs/yaml/) guide.
 
-Different data sources may require different skills. For instance, the `commands` API you need some knowledge of the terminal, while the `url` API requires that you're comfortable with HTTP calls, JSON payloads, and REST terminology. Knowing what you want to collect and where that is is important.
+Different [data sources](apis/README.md) may require different skills. For instance, the `commands` API you need some knowledge of the terminal, while the `url` API requires that you're comfortable with HTTP calls, JSON payloads, and REST terminology. Knowing what you want to collect and where that is is important.
 
 While knowing [regular expressions](https://en.wikipedia.org/wiki/Regular_expression) is not required, a basic grasp of regex can greatly enhance your Flex experience. Resources like [Regex101](https://regex101.com/) can help you when composing and debugging regular expressions.
 
