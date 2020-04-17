@@ -6,18 +6,17 @@
 package processor
 
 import (
+	"github.com/newrelic/infra-integrations-sdk/data/event"
+	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-flex/internal/formatter"
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/outputs"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/newrelic/infra-integrations-sdk/data/event"
-	"github.com/newrelic/nri-flex/internal/formatter"
-	"github.com/newrelic/nri-flex/internal/load"
-
-	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/infra-integrations-sdk/integration"
 )
 
 const regex = "regex"
@@ -105,22 +104,33 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		}
 
 		createSample := false
+		runSampleFilterExperimental := true
 		// check if we should ignore this output completely
 		// useful when requests are made to generate a lookup, but the data is not needed
 		if api.IgnoreOutput {
 			createSample = false
 		} else {
 			// check if this contains any key pair values to filter out
-			// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
 			excludeSample := true
-			if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
+			// evalute sample_include_filter if sample_include_match_all_filter is not specified
+			if api.SampleIncludeMatchAllFilter != nil || len(api.SampleIncludeMatchAllFilter) != 0 {
+				// don't exclude sample if the multi key filter is specified
 				excludeSample = false
 			} else {
-				RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+				// check if the sample passes sample_include_filter, if no sample_include_filter defined, the sample will pass by default.
+				if api.SampleIncludeFilter == nil || len(api.SampleIncludeFilter) == 0 {
+					excludeSample = false
+				} else {
+					RunSampleFilter(currentSample, api.SampleIncludeFilter, &excludeSample)
+					runSampleFilterExperimental = false
+				}
 			}
 			// check sample_exclude_filter and sample_filter, only if it passes sample_include_filter filter or there is no sample_include_filter defined
 			if !excludeSample {
 				createSample = true
+				if runSampleFilterExperimental {
+					RunSampleFilterMatchAll(currentSample, api.SampleIncludeMatchAllFilter, &createSample)
+				}
 				RunSampleFilter(currentSample, api.SampleFilter, &createSample)
 				RunSampleFilter(currentSample, api.SampleExcludeFilter, &createSample)
 			}
@@ -160,6 +170,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 
 		}
 
+	}
+	//Save samples if specified
+	if api.SaveOutput != "" {
+		saveSamples(samples, api.SaveOutput)
 	}
 }
 
@@ -250,6 +264,11 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 	}
 }
 
+//Save samples to a JSON file
+func saveSamples(samples []interface{}, outputPath string) {
+	outputs.StoreJSON(samples, outputPath)
+}
+
 // RunSampleFilter Filters samples generated
 func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
 	for _, sampleFilter := range sampleFilters {
@@ -272,6 +291,30 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 				if regKeyFound && regValFound {
 					*createSample = false
 				}
+			}
+		}
+	}
+}
+
+// Sample Filter to match all keys
+func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
+	for _, sampleFilter := range sampleFilters {
+		for fKey, fVal := range sampleFilter {
+			filterKey := regexp.MustCompile(fKey)
+			filterVal := regexp.MustCompile(fVal)
+			keyMatch, valMatch := false, false
+			for key, val := range currentSample {
+				if filterKey.MatchString(key) {
+					keyMatch = true
+				}
+				if filterVal.MatchString(cleanValue(&val)) {
+					valMatch = true
+				}
+			}
+			if keyMatch && valMatch {
+				*createSample = true
+			} else {
+				*createSample = false
 			}
 		}
 	}
