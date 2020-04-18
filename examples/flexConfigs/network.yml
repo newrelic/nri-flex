@@ -19,17 +19,14 @@ apis:
         split_by: (\d+\.\d+\.\d+\.\d+)
         set_header: [localIp]
     merge: HostNetworkSample
-  - name: NetstatConnection # discover tcp connections
+  - name: NetstatTcpConnections # discover tcp connections
     commands:
       - name: NetstatConnection
-        run: "netstat -ant -W" # TCP samples
+        run: "netstat -atpen -W" # TCP samples
         split: horizontal
         regex_match: true
         # the below regex works on linux | does not work on mac
-        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)
-        # the below regex works with mac/darwin as instead of a colon it separates with a decimal
-        # it only accepts IP addresses, and as such *.* and resolved hosts will not be returned
-        # split_by: (\w+)\s+(\d+)\s+(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\w+)
+        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\d+|-)
         set_header:
           - protocol
           - recvQBytes
@@ -39,18 +36,25 @@ apis:
           - foreignAddress
           - foreignAddressPort
           - state
+          - user
+          - inode
+          - pid
+    store_lookups:
+      foreignAddress: foreignAddress
+    merge: NetstatConnectionSample
+    join_key: foreignAddress
     value_mapper:
       foreignAddressPort:
         - (\*)=>0
       localAddressPort:
         - (\*)=>0
-  - name: NetstatConnection # discover udp connections
+  - name: NetstatUdpConnections # discover udp connections
     commands:
       - name: NetstatConnection
-        run: "netstat -anu -W" # UDP samples
+        run: "netstat -aupen -W" # UDP samples
         split: horizontal
         regex_match: true
-        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)
+        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)\s+(\d+)\s+(\d+|-)
         set_header: # udp does not have state
           - protocol
           - recvQBytes
@@ -59,11 +63,28 @@ apis:
           - localAddressPort
           - foreignAddress
           - foreignAddressPort
+          - user
+          - inode
+          - pid
+    store_lookups:
+      foreignAddresses: foreignAddress
+    merge: NetstatConnectionSample
+    join_key: foreignAddress
     value_mapper:
       foreignAddressPort:
         - (\*)=>0
       localAddressPort:
         - (\*)=>0
+  - name: ResolvedAddress
+    commands:
+      - name: dig
+        run: >
+          printf resolvedForeignAddress:$(dig -x ${lookup:foreignAddress} +short | head -c -2)
+        split_by: ":"
+    custom_attributes:
+      foreignAddress: ${lookup:foreignAddress}
+    merge: NetstatConnectionSample
+    join_key: foreignAddress
   - name: NetstatIp # summarized ip data
     commands:
       - run: "netstat -s -W | grep -i -A 8 ip:"
