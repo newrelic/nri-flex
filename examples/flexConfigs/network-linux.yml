@@ -31,6 +31,7 @@ integrations:
         - name: NetstatTcpConnections # discover tcp connections
           commands:
             - name: NetstatConnection
+              timeout: 59000
               run: "netstat -atpe -W --numeric-ports --numeric-hosts" # TCP samples
               split: horizontal
               regex_match: true
@@ -60,6 +61,7 @@ integrations:
         - name: NetstatUdpConnections # discover udp connections
           commands:
             - name: NetstatConnection
+              timeout: 59000
               run: "netstat -aupe -W --numeric-ports --numeric-hosts" # UDP samples
               split: horizontal
               regex_match: true
@@ -76,7 +78,7 @@ integrations:
                 - inode
                 - pid
           store_lookups:
-            foreignAddresses: foreignAddress
+            foreignAddress: foreignAddress
           merge: NetstatConnectionSample
           join_key: foreignAddress
           value_mapper:
@@ -95,6 +97,7 @@ integrations:
           merge: NetstatConnectionSample
           join_key: foreignAddress
         - name: NetstatIp # summarized ip data
+          timeout: 59000
           run_async: true
           commands:
             - run: "netstat -s -W | grep -i -A 8 ip:"
@@ -117,6 +120,7 @@ integrations:
                 - expression: (\d+) dropped because of missing route
                   keys: [packetsDroppedBecauseOfMissingRoute]
         - name: NetstatIcmpCore # summarized icmp data
+          timeout: 59000
           run_async: true
           merge: NetstatIcmpSample
           commands:
@@ -132,6 +136,7 @@ integrations:
                 - expression: (\d+) ICMP messages failed
                   keys: [icmpMessagesFailed]
         - name: NetstatIcmpInputDestUnreachable
+          timeout: 59000
           run_async: true
           merge: NetstatIcmpSample
           commands:
@@ -142,6 +147,7 @@ integrations:
                     destination unreachable: (\d+)
                   keys: [icmpInputHistogramDestinationUnreachable]
         - name: NetstatIcmpOutputDestUnreachable
+          timeout: 59000
           run_async: true
           merge: NetstatIcmpSample
           commands:
@@ -152,6 +158,7 @@ integrations:
                     destination unreachable: (\d+)
                   keys: [icmpOutputHistogramDestinationUnreachable]
         - name: NetstatIcmpMsg
+          timeout: 59000
           run_async: true
           merge: NetstatIcmpSample
           commands:
@@ -165,6 +172,7 @@ integrations:
                     OutType3: (\d+)
                   keys: [outType3]
         - name: NetstatTcp # summarized tcp data
+          timeout: 59000
           run_async: true
           commands:
             - run: "netstat -s -W | grep -i -A 11 tcp:"
@@ -194,6 +202,7 @@ integrations:
                     InCsumErrors: (\d+)
                   keys: [inCsumErrors]
         - name: NetstatUdp # summarized udp data
+          timeout: 59000
           run_async: true
           commands:
             - run: "netstat -s -W | grep -i -A 7 udp:"
