@@ -19,14 +19,14 @@ apis:
         split_by: (\d+\.\d+\.\d+\.\d+)
         set_header: [localIp]
     merge: HostNetworkSample
-  - name: NetstatConnection # discover connections
+  - name: NetstatConnection # discover tcp connections
     commands:
       - name: NetstatConnection
-        run: "netstat -anut -W"
+        run: "netstat -ant -W" # TCP samples
         split: horizontal
         regex_match: true
         # the below regex works on linux | does not work on mac
-        split_by: (\w+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)
+        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)\s+(\S+)
         # the below regex works with mac/darwin as instead of a colon it separates with a decimal
         # it only accepts IP addresses, and as such *.* and resolved hosts will not be returned
         # split_by: (\w+)\s+(\d+)\s+(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\d+.\d+.\d+.\d+).(\d+)\s+(\w+)
@@ -39,6 +39,31 @@ apis:
           - foreignAddress
           - foreignAddressPort
           - state
+    value_mapper:
+      foreignAddressPort:
+        - (\*)=>0
+      localAddressPort:
+        - (\*)=>0
+  - name: NetstatConnection # discover udp connections
+    commands:
+      - name: NetstatConnection
+        run: "netstat -anu -W" # UDP samples
+        split: horizontal
+        regex_match: true
+        split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\S+):(\S+)\s+(\S+):(\S+)
+        set_header: # udp does not have state
+          - protocol
+          - recvQBytes
+          - sendQBytes
+          - localAddress
+          - localAddressPort
+          - foreignAddress
+          - foreignAddressPort
+    value_mapper:
+      foreignAddressPort:
+        - (\*)=>0
+      localAddressPort:
+        - (\*)=>0
   - name: NetstatIp # summarized ip data
     commands:
       - run: "netstat -s -W | grep -i -A 8 ip:"
