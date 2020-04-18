@@ -174,7 +174,7 @@ apis:
             keys: [receiveBufferErrors]
           - expression: (\d+) send buffer errors
             keys: [sendBufferErrors]
-  - name: NetworkInterface # network interface data
+  - name: NetworkInterfaceData # network interface data
     commands:
       - run: cat /proc/net/dev
         split: horizontal
@@ -199,6 +199,24 @@ apis:
           - transmitMulticast
         regex_match: true
         split_by: (\S+):\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)
+    merge: NetworkInterfaceSample
+    join_key: interface
+  - name: NetworkInterfaceSpeed # network interface speed
+    # Indicates the interface latest or current speed value. Value is an integer representing the link speed in Mbits/sec.
+    # Note: This attribute is only valid for interfaces that implement the ethtool get_link_ksettings method (mostly Ethernet).
+    # !!!   May not be available for some virtualization technologies such as AWS EC2s where it is vendor managed
+    commands:
+      - run: >-
+          for i in $(netstat -i | cut -f1 -d" " | tail -n+3) ; do echo "$i:$(cat /sys/class/net/"$i"/speed 2> /dev/null)" ; done
+        split: horizontal
+        set_header:
+          - interface
+          - speed
+        regex_match: true
+        split_by: >-
+          (\S+):(\d+)
+    merge: NetworkInterfaceSample
+    join_key: interface
   - name: Conntrack
     ### note this requires conntrack installed
     ### if manually testing conntrack requires sudo/root permissions
