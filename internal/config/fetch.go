@@ -198,7 +198,6 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 				"name": cfg.Name,
 				"err":  err,
 			}).Error("fetch: failed to unmarshal lookup config")
-			fmt.Println(newAPI)
 		} else {
 			lookupConfig.APIs = append(lookupConfig.APIs, API)
 		}
