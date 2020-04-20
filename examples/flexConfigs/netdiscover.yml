@@ -6,7 +6,6 @@
 ---
 integrations:
   - name: nri-flex
-    exec: /var/db/newrelic-infra/newrelic-integrations/bin/nri-flex -verbose
     interval: 30s
     config:
       name: NetDiscover
