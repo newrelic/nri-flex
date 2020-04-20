@@ -444,3 +444,26 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 		}
 	}
 }
+
+func flattenSlicesAndMaps(data interface{}) map[string]interface{} {
+	switch d := data.(type) {
+	case map[string]interface{}:
+		flattened, err := flatten.Flatten(d, "", flatten.DotStyle)
+		if err == nil {
+			return flattened
+		}
+	case []interface{}:
+		sliceData := map[string]interface{}{}
+		for i, sample := range d {
+			switch sampleData := sample.(type) {
+			case map[string]interface{}:
+				flattened, err := flatten.Flatten(sampleData, "", flatten.DotStyle)
+				if err == nil {
+					sliceData[fmt.Sprintf("%d", i)] = flattened
+				}
+			}
+		}
+		return sliceData
+	}
+	return nil
+}

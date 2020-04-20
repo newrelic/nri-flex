@@ -19,7 +19,7 @@ apis:
       accept: application/json
 ```
 
-The above Flex configuration retrieves a JSON file containing a set of metrics from the provided URL. Notice that the `url` key can be followed by a `headers` section, which allows specifying HTTP headers.
+The above Flex configuration retrieves a JSON file containing a set of metrics from the provided URL. Note that the `url` key can be followed by a `headers` section, which allows specifying HTTP headers.
 
 ##  <a name='UsePOSTPUTmethodswithabody'></a>Use POST/PUT methods with a body
 

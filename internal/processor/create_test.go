@@ -17,6 +17,7 @@ func TestRunSampleFilter(t *testing.T) {
 			SampleFilter: []map[string]string{
 				{"customerId": "xyz"},
 				{"customerId": "abc"},
+				{"secretKey": "alpha"},
 			},
 		}
 	}
@@ -47,6 +48,24 @@ func TestRunSampleFilter(t *testing.T) {
 	}
 	expectedResult = true
 	RunSampleFilter(currentSample, api.SampleFilter, &createSample)
+	assert.Equal(t, expectedResult, createSample)
+
+	createSample = true
+	currentSample = map[string]interface{}{
+		"customerId": "abc",
+		"secretKey":  "oof",
+	}
+	expectedResult = false
+	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
+	assert.Equal(t, expectedResult, createSample)
+
+	createSample = true
+	currentSample = map[string]interface{}{
+		"customerId": "abc",
+		"secretKey":  "alpha",
+	}
+	expectedResult = true
+	RunSampleFilterMatchAll(currentSample, api.SampleFilter, &createSample)
 	assert.Equal(t, expectedResult, createSample)
 
 }

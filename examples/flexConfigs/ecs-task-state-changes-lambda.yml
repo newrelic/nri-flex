@@ -1,10 +1,10 @@
-### this file should be renamed to "flex-lambda-ingest.yml" 
+### this file should be renamed to "flex-lambda-ingest.yml"
 ### set a cloudwatch event to trigger the lamda for ECS state changes
 ---
 name: FlexEcsStateChange
 custom_attributes:
   version: 1
-apis: 
+apis:
   - event_type: EcsStateChangeSample
     ingest: true
     inherit_attributes: true
