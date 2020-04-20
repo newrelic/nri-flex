@@ -1,3 +1,22 @@
+1.1.2
+------
+- `inherit_attributes` now allows to collect nested attributes
+- Minor improvements
+
+1.1.1
+------
+- New Relic Insights direct sample sender now inherits proxy configuration
+- Several bugs fixed
+
+1.1.0
+------
+- Custom attributes can now be transformed, since they are now added before functions are run
+- Documentation improvements
+
+1.0.0
+------
+- First stable release of Flex
+
 0.9.7
 ------
 - Improved unit testing and logging
