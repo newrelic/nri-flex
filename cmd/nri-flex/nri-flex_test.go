@@ -29,6 +29,7 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 			delete(sample.Metrics, "flex.time.startMs")
 			delete(sample.Metrics, "flex.time.endMs")
 			delete(sample.Metrics, "flex.time.elaspedMs")
+			delete(sample.Metrics, "flex.commandTimeMs")
 			out, err := sample.MarshalJSON()
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
@@ -53,7 +54,9 @@ func TestConfigDir(t *testing.T) {
 	load.Args.ConfigDir = "../../test/configs/"
 	fintegration.RunFlex(fintegration.FlexModeTest)
 	expectedSamples := []string{
-		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
+		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":3,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.MessageSample":2,"flex.counter.commandJsonOutSample":1}`,
+		`{"error":"true","event_type":"MessageSample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","message":"bye","value":20.9}`,
+		`{"error":"false","event_type":"MessageSample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","message":"hello","value":100}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
 			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)

@@ -44,6 +44,49 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error
 	return errors
 }
 
+// LoadV4IntegrationConfig Loads Agent/Flex config files
+func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName string, filePath string) error {
+	c := load.AgentConfig{}
+	err := yaml.Unmarshal([]byte(v4Str), &c)
+
+	if err != nil {
+		load.Logrus.WithError(err).Error("config: failed to unmarshal v4 config file")
+		return err
+	}
+
+	load.Logrus.Warn("config: testing agent config, agent features will not be available")
+
+	for _, integration := range c.Integrations {
+		// ensure it is a flex based integration
+		if integration.Name == "nri-flex" {
+			newConfig := integration.Config
+			newConfig.FileName = fileName
+			newConfig.FilePath = filePath
+
+			if newConfig.Name == "" {
+				load.Logrus.WithFields(logrus.Fields{
+					"file": filePath,
+				}).WithError(err).Error("config: flexConfig requires name")
+				return err
+			}
+
+			// if lookup files exist we need to potentially create multiple config files
+			if newConfig.LookupFile != "" {
+				err = SubLookupFileData(configs, newConfig)
+				if err != nil {
+					load.Logrus.WithFields(logrus.Fields{
+						"file": filePath,
+					}).WithError(err).Error("config: failed to sub lookup file data")
+				}
+			} else {
+				*configs = append(*configs, newConfig)
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadFile loads a single Flex config file
 func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 	filePath := path + f.Name()
@@ -60,35 +103,47 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 	ymlStr := string(b)
 	SubEnvVariables(&ymlStr)
 	SubTimestamps(&ymlStr, time.Now())
-	config, err := ReadYML(ymlStr)
-	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"file": filePath,
-		}).WithError(err).Error("config: failed to load config file")
-		return err
-	}
 
-	config.FileName = f.Name()
-	config.FilePath = path
-	if config.Name == "" {
-		load.Logrus.WithFields(logrus.Fields{
-			"file": filePath,
-		}).WithError(err).Error("config: flexConfig requires name")
-		return err
-	}
-
-	checkIngestConfigs(&config)
-
-	// if lookup files exist we need to potentially create multiple config files
-	if config.LookupFile != "" {
-		err = SubLookupFileData(configs, config)
+	// Check if V4 Agent configuration
+	if strings.HasPrefix(ymlStr, "integrations:") {
+		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), path)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"file": filePath,
-			}).WithError(err).Error("config: failed to sub lookup file data")
+			}).WithError(err).Error("config: failed to load v4 config file")
+			return err
 		}
 	} else {
-		*configs = append(*configs, config)
+		config, err := ReadYML(ymlStr)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"file": filePath,
+			}).WithError(err).Error("config: failed to load config file")
+			return err
+		}
+
+		config.FileName = f.Name()
+		config.FilePath = path
+		if config.Name == "" {
+			load.Logrus.WithFields(logrus.Fields{
+				"file": filePath,
+			}).WithError(err).Error("config: flexConfig requires name")
+			return err
+		}
+
+		checkIngestConfigs(&config)
+
+		// if lookup files exist we need to potentially create multiple config files
+		if config.LookupFile != "" {
+			err = SubLookupFileData(configs, config)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"file": filePath,
+				}).WithError(err).Error("config: failed to sub lookup file data")
+			}
+		} else {
+			*configs = append(*configs, config)
+		}
 	}
 	return nil
 }
