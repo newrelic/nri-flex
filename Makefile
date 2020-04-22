@@ -38,11 +38,11 @@ build: check-version clean lint test-unit coverage compile document
 build-ci: check-version clean lint test-integration
 
 clean:
-	@echo "=== $(PROJECT_NAME) === [ clean            ]: removing binaries and coverage file..."
+	@echo "=== $(PROJECT_NAME) === [ clean ]: removing binaries and coverage file..."
 	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_DIR)/*
 
 bin:
-	@mkdir -p bin
+	@mkdir -p $(BUILD_DIR)
 
 $(GORELEASER_BIN): bin
 	@echo "=== $(PROJECT) === [ release/deps ]: Installing goreleaser"
@@ -52,13 +52,14 @@ $(GORELEASER_BIN): bin
 
 release/deps: $(GORELEASER_BIN)
 
-release: release/deps
+release: clean release/deps compile-only
 	@echo "=== $(PROJECT) === [ release ]: Releasing new version..."
 	@$(GORELEASER_BIN) release
 
 # Import fragments
 include build/deps.mk
 include build/compile.mk
+include build/setup.mk
 include build/testing.mk
 include build/util.mk
 include build/document.mk
