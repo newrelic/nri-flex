@@ -25,7 +25,7 @@ Flex requires a New Relic [Infrastructure Pro](https://newrelic.com/infrastructu
 
 - Linux
 - Kubernetes
-- Windows (Experimental)
+- Windows
 
 For more information on compatible distros and versions, see the [Infrastructure agent compatibility page](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/getting-started/compatibility-requirements-new-relic-infrastructure).
 
