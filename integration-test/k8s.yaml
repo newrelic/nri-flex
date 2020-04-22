@@ -59,7 +59,7 @@ spec:
   restartPolicy: Always
   containers:
   - name: postgres
-    image: postgres:11.2
+    image: postgres:11.7-alpine
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 5432

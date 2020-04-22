@@ -16,7 +16,7 @@ test-unit:
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO_CMD) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
-test-integration:
+test-integration: setup
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@sh ./integration-test/ci-test.sh
@@ -31,5 +31,3 @@ cover-report:
 
 cover-view: cover-report
 	@$(GO_CMD) tool cover -html=$(COVERAGE_DIR)/coverage.out
-
-
