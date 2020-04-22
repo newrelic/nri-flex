@@ -146,6 +146,13 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 ```
 RunSampleFilter Filters samples generated
 
+#### func  RunSampleFilterMatchAll
+
+```go
+func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
+```
+Sample Filter to match all keys
+
 #### func  RunSampleRenamer
 
 ```go
@@ -210,7 +217,7 @@ as the defined lookupStoreKey for later use
 #### func  StripKeys
 
 ```go
-func StripKeys(dataSet *map[string]interface{}, stripKeys []string)
+func StripKeys(ds *map[string]interface{}, stripKeys []string)
 ```
 StripKeys strip defined keys out
 

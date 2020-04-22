@@ -1,12 +1,13 @@
 name: nginxFlex
 apis:
   - name: nginxStub
-    url: http://127.0.0.1:${discovery.port}/nginx_status # get stub status output
+    url: http://https-server/nginx_status # get stub status output
+    ignore_output: true
   - name: nginx
-    entity: 127.0.0.1
+    entity: https-server
     event_type: NginxSample
     commands:
-      - cache: http://127.0.0.1:${discovery.port}/nginx_status # use commands to parse the response
+      - cache: http://https-server/nginx_status # use commands to parse the response
         split_output: Active
         regex_matches:
           - expression: Active connections:\s(\S+)

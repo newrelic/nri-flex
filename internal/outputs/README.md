@@ -40,3 +40,10 @@ SendToMetricAPI - Send processed events to insights
 func StatusSample()
 ```
 StatusSample creates flexStatusSample
+
+#### func  StoreJSON
+
+```go
+func StoreJSON(samples []interface{}, path string)
+```
+function to store samples as a JSON object at specified path
