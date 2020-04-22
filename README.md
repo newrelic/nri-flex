@@ -1,6 +1,6 @@
 # New Relic Flex
 
-[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.com/newrelic/nri-flex)
+[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.org/newrelic/nri-flex)
 
 Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) with which you can instrument any app that exposes metrics over a standard protocol (HTTP, file, shell) in a standard format (for example, JSON or plain text): you create a [config file](/docs/basics/configure.md), start the Infrastructure agent, and data starts pouring into New Relic.
 
@@ -21,9 +21,10 @@ For a quick introduction on Flex, [read our blog post](https://blog.newrelic.com
 
 ## Compatibility and requirements
 
-Flex requires a New Relic [Infrastructure Pro](https://newrelic.com/infrastructure/pricing) subscription or trial and is compatible with the following operating systems:
+Flex requires a New Relic [Infrastructure Pro](https://newrelic.com/infrastructure/pricing) subscription or trial and is compatible with the following operating systems/platforms:
 
 - Linux
+- Kubernetes
 - Windows (Experimental)
 
 For more information on compatible distros and versions, see the [Infrastructure agent compatibility page](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/getting-started/compatibility-requirements-new-relic-infrastructure).
@@ -31,6 +32,8 @@ For more information on compatible distros and versions, see the [Infrastructure
 ## Installation
 
 Flex comes bundled with the New Relic Infrastructure agent. To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
+
+If you're using Kubernetes take a look at [How to monitor services in Kubernetes](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
 
 ## Getting started
 
@@ -50,6 +53,7 @@ While developing your own Flex integrations, you can use Flex without the New Re
 
 - [Flex documentation - Main page](docs/README.md)
 - [Configure Flex](/docs/basics/configure.md)
+- [Configure Flex in Kubernetes](/docs/basics/k8s_configure.md)
 - [Data sources / APIS](/docs/apis/README.md)
 - [Data transformation functions](docs/basics/functions.md)
 - [Experimental functions](docs/experimental/functions.md)

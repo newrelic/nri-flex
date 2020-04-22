@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.0 - 2020-04-2x
+### Added
+- Official support for Kubernetes
+- Official support for Windows (Windows Server 2008,Windows Server 2012, Windows Server 2016, Windows Server 2019)
+  * URL (http/s), Command line and Text file supported APIs
+- Official support for Text file API under Linux
+
 ## 1.1.2 - 2020-04-16
 ### Changed
-- `inherit_attributes` now allows to collect nested attributes
+- `inherit_attributes` now allows collecting nested attributes
 - Minor improvements
 
 ## 1.1.1 - 2020-03-24
