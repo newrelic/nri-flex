@@ -48,3 +48,13 @@ compile-windows: deps-only
 		GOOS=windows $(GO_CMD) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+build-windows32: compile-windows32
+compile-windows32: deps-only
+	@echo "=== $(PROJECT_NAME) === [ compile-windows  ]: building commands:"
+	@mkdir -p $(BUILD_DIR)/windows
+	@for b in $(BINS); do \
+		OUTPUT_FILE="$(BUILD_DIR)windows/$$b.exe" ; \
+		echo "=== $(PROJECT_NAME) === [ compile-windows  ]:     $$OUTPUT_FILE"; \
+		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
+		GOARCH=386 CGO_ENABLED=1 GOOS=windows $(GO_CMD) build -ldflags=$(LDFLAGS) -o $$OUTPUT_FILE $$BUILD_FILES ; \
+	done

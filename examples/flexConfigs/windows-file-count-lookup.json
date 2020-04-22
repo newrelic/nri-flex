@@ -1,0 +1,10 @@
+[
+	{
+		"directory":"C:/Program Files/New Relic",
+		"recursive": "-Recurse"
+	},
+	{
+		"directory":"C:/Program Files/New Relic/newrelic-infra/integrations.d",
+		"recursive": ""
+	}
+]

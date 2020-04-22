@@ -8,6 +8,7 @@ package processor
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/formatter"
@@ -68,28 +69,24 @@ func RunKeyRenamer(renameKeys map[string]string, key *string) {
 }
 
 // StripKeys strip defined keys out
-func StripKeys(dataSet *map[string]interface{}, stripKeys []string) {
+func StripKeys(ds *map[string]interface{}, stripKeys []string) {
 	for _, stripKey := range stripKeys {
-		delete(*dataSet, stripKey)
-
-		stripSplit := strings.Split(stripKey, ">")
-		if len(stripSplit) != 2 {
-			return
-		}
-
-		dataSetValue := (*dataSet)[stripSplit[0]]
-		if dataSetValue == nil {
-			return
-		}
-
-		switch v := dataSetValue.(type) {
-		case map[string]interface{}:
-			delete(v, stripSplit[1])
-		case []interface{}:
-			for i := range v {
-				switch vElement := v[i].(type) {
-				case map[string]interface{}:
-					delete(vElement, stripSplit[1])
+		delete(*ds, stripKey)
+		if strings.Contains(stripKey, ">") {
+			stripSplit := strings.Split(stripKey, ">")
+			if len(stripSplit) == 2 {
+				if (*ds)[stripSplit[0]] != nil {
+					switch (*ds)[stripSplit[0]].(type) {
+					case map[string]interface{}:
+						delete((*ds)[stripSplit[0]].(map[string]interface{}), stripSplit[1])
+					case []interface{}:
+						for i := range (*ds)[stripSplit[0]].([]interface{}) {
+							switch (*ds)[stripSplit[0]].([]interface{})[i].(type) {
+							case map[string]interface{}:
+								delete((*ds)[stripSplit[0]].([]interface{})[i].(map[string]interface{}), stripSplit[1])
+							}
+						}
+					}
 				}
 			}
 		}
@@ -107,15 +104,16 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 				switch mainDs := (*mainDataset)[startSplit[0]].(type) {
 				case []interface{}:
 					var nestedSlices []interface{}
-					for _, nested := range mainDs {
+					for i, nested := range mainDs {
 						switch sample := nested.(type) {
 						case map[string]interface{}:
 							if sample[startSplit[1]] != nil {
 								switch nestedSample := sample[startSplit[1]].(type) {
 								case map[string]interface{}:
+									nestedSample["flexSliceIndex"] = i
 									nestedSlices = append(nestedSlices, nestedSample)
 								case []interface{}:
-									nestedSlices = append(nestedSlices, nestedSample...)
+									nestedSlices = append(nestedSlices, applyIndexes(i, nestedSample)...)
 								}
 							}
 						}
@@ -142,12 +140,48 @@ func FindStartKey(mainDataset *map[string]interface{}, startKeys []string, inher
 	}
 }
 
+func applyIndexes(index int, slices []interface{}) []interface{} {
+	newSlices := []interface{}{}
+	for _, sample := range slices {
+		switch sampleData := sample.(type) {
+		case map[string]interface{}:
+			sampleData["flexSliceIndex"] = index
+			newSlices = append(newSlices, sampleData)
+		default:
+			newSlices = append(newSlices, sample)
+		}
+	}
+	return newSlices
+}
+
 func storeParentAttributes(mainDataset map[string]interface{}, parentAttributes map[string]interface{}, startKey string, level int, inheritAttributes bool) {
 	if inheritAttributes {
+		startSplit := strings.Split(startKey, ">")
 		for key, val := range mainDataset {
 			if key != startKey {
-				value := fmt.Sprintf("%v", val)
-				if !strings.Contains(value, "map[") {
+				switch valueData := val.(type) {
+				case map[string]interface{}, []interface{}:
+					if len(startSplit) == 2 && key == startSplit[0] {
+						// lazy flatten the slices and maps from the highest level
+						for mapKey, mapVal := range flattenSlicesAndMaps(val) {
+							switch data := mapVal.(type) {
+							case map[string]interface{}:
+								for innerMapKey, innerMapVal := range data {
+									// avoid duplicates from the flattened data
+									if !strings.Contains(innerMapKey, startSplit[1]) {
+										parentAttributes[fmt.Sprintf("parent.%d.%v.%v", level, mapKey, innerMapKey)] = fmt.Sprintf("%v", innerMapVal)
+									}
+								}
+							default:
+								// avoid duplicates from the flattened data
+								if !strings.Contains(mapKey, startSplit[1]) {
+									parentAttributes[fmt.Sprintf("parent.%d.%v", level, mapKey)] = fmt.Sprintf("%v", mapVal)
+								}
+							}
+						}
+					}
+				default:
+					value := fmt.Sprintf("%v", valueData)
 					parentAttributes[fmt.Sprintf("parent.%d.%v", level, key)] = value
 				}
 			}
@@ -165,8 +199,25 @@ func applyParentAttributes(mainDataset map[string]interface{}, datasets []interf
 			switch switchDs := dataset.(type) {
 			case map[string]interface{}:
 				for key, val := range parentAttributes {
-					switchDs[key] = val
+					// check if this is a nested parent, and only apply if the index matches
+					matches := formatter.RegMatch(key, "parent\\.(\\d+)\\.(\\d+)\\.(.+)")
+					if len(matches) > 1 {
+						sliceIndex := -1
+						if switchDs["flexSliceIndex"] != nil {
+							sliceIndex = switchDs["flexSliceIndex"].(int)
+						}
+						matchIndex2, err := strconv.Atoi(matches[1])
+						if err == nil {
+							// no need to add the second index into the key as we've unpacked at the matched level
+							if sliceIndex == matchIndex2 {
+								switchDs[fmt.Sprintf("parent.%v.%v", matches[0], matches[2])] = val
+							}
+						}
+					} else {
+						switchDs[key] = val
+					}
 				}
+				delete(switchDs, "flexSliceIndex")
 			}
 		}
 	}

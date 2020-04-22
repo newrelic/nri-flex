@@ -1,0 +1,69 @@
+###
+# NetDiscover
+# Collects information returned from netdiscover, for the defined ranges
+# https://manpages.debian.org/unstable/netdiscover/netdiscover.8.en.html
+# depends on netdiscover and requires root privileges
+---
+integrations:
+  - name: nri-flex
+    interval: 30s
+    config:
+      name: NetDiscover
+      lookup_store:
+        ranges: # define your ranges as below
+          192.168.0.0/24: {}
+          100.100.0.0/24: {}
+      apis:
+        - name: NetDiscoverData
+          commands:
+            # sudo intentionally added, as regardless of root access an exit code 139 segmentation fault can occur
+            - run: sudo netdiscover -N -P -r ${lookup:ranges}
+              timeout: 59000
+              split: horizontal
+              regex_match: true
+              split_by: (\S+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(.+)
+              set_header:
+                - ipAddress
+                - macAddress
+                - count
+                - len
+                - vendor
+          store_lookups:
+            ipAddress: ipAddress
+          merge: NetDiscoverSample
+          join_key: ipAddress
+        - name: ResolvedAddress
+          commands:
+            - name: dig
+              run: >
+                printf resolvedIpAddress:$(dig -x ${lookup:ipAddress} +short | head -c -2)
+              split_by: ":"
+          custom_attributes:
+            ipAddress: ${lookup:ipAddress}
+          merge: NetDiscoverSample
+          join_key: ipAddress
+###
+#  example netdiscover output:
+#  192.168.0.200   00:d8:61:9f:87:53      1      60  Unknown vendor
+#  192.168.0.201   00:0c:29:b8:1e:14      1      60  VMware, Inc.
+#  192.168.0.210   00:0c:29:eb:b9:76      1      60  VMware, Inc.
+#  192.168.0.220   00:0c:29:f6:f3:16      1      60  VMware, Inc.
+#  192.168.0.148   00:71:47:40:0c:1e      1      60  Amazon Technologies Inc.
+#  192.168.0.230   00:0c:29:74:2e:c9      1      60  VMware, Inc.
+#  192.168.0.168   fc:65:de:d9:92:02      1      60  Amazon Technologies Inc.
+#  192.168.0.240   00:0c:29:d3:53:14      1      60  VMware, Inc.
+#  192.168.0.121   b0:59:47:8a:8d:8d      1      60  Shenzhen Qihu Intelligent Technology Company Limited
+#  192.168.0.183   5c:ea:1d:f8:1b:e1      1      60  Hon Hai Precision Ind. Co.,Ltd.
+#  192.168.0.177   24:df:a7:34:83:45      1      60  Unknown vendor
+
+#  flex output example:
+#   {
+#     "count": 1,
+#     "event_type": "NetDiscoverSample",
+#     "integration_name": "com.newrelic.nri-flex",
+#     "integration_version": "1.0.0",
+#     "ipAddress": "192.168.0.121",
+#     "len": 60,
+#     "macAddress": "b0:59:47:8a:8d:8d",
+#     "vendor": "Shenzhen Qihu Intelligent Technology Company Limited"
+#   }

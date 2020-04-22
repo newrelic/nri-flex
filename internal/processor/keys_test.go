@@ -218,6 +218,15 @@ func TestStripKeys(t *testing.T) {
 		stripKeys []string
 		expected  string
 	}{
+		"StripMultiple": {
+			sample: map[string]interface{}{
+				"abc": 1,
+				"def": 2,
+				"xyz": 3,
+			},
+			stripKeys: []string{"abc", "def"},
+			expected:  `{"xyz":3}`,
+		},
 		"NoChangeIfNoMatch": {
 			sample: map[string]interface{}{
 				"abc": 1,
@@ -391,9 +400,8 @@ func TestStartKeys(t *testing.T) {
 					},
 				},
 			},
-			startKeys: []string{"def>def2"},
-			// TODO: shouldn't def2 be considered as another key and store also xyz as parent attribute?
-			expected:     `{"def2":[{"def3":{"def4":4},"parent.0.abc":"1"}]}`,
+			startKeys:    []string{"def>def2"},
+			expected:     `{"def2":[{"def3":{"def4":4},"parent.0.abc":"1","parent.0.xyz":"test"}]}`,
 			inheritAttrs: true,
 		},
 		"NestedKeyWithMapAndArray_InheritAttrs": {

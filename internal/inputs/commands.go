@@ -22,6 +22,15 @@ func makeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func checkOS(os string) bool {
+	if os == "" {
+		return true
+	} else if runtime.GOOS == os {
+		return true
+	}
+	return false
+}
+
 // RunCommands executes the given commands to create one merged sampled
 func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	startTime := makeTimestamp()
@@ -36,7 +45,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	dataSample := map[string]interface{}{}
 	processType := ""
 	for _, command := range api.Commands {
-		if command.Run != "" && command.Dial == "" {
+		if command.Run != "" && command.Dial == "" && checkOS(command.OS) {
 			runCommand := command.Run
 			if command.Output == load.Jmx {
 				SetJMXCommand(dataStore, &runCommand, command, api, yml)
@@ -161,7 +170,7 @@ func splitOutput(dataStore *[]interface{}, output string, command load.Command, 
 			}
 
 			//create the last block
-			if i+1 == len(lines) {
+			if i+1 == len(lines) && startSplit != -1 {
 				outputBlocks = append(outputBlocks, lines[startSplit:i+1])
 			}
 		}

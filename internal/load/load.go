@@ -156,6 +156,18 @@ type Metrics struct {
 	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
 }
 
+// AgentConfig stores the information from a single V4 integrations file
+// This has been added so that Flex can understand the V4 agent format when users are using the config_file parameter
+type AgentConfig struct {
+	Integrations []ConfigEntry `yaml:"integrations"`
+}
+
+// ConfigEntry holds an integrations YAML configuration entry. It may define multiple types of tasks
+type ConfigEntry struct {
+	Name   string `yaml:"name"`
+	Config Config `yaml:"config"`
+}
+
 // Config YAML Struct
 type Config struct {
 	FileName           string             `yaml:"file_name"`           // set when file is read
@@ -250,13 +262,13 @@ type API struct {
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
 	Database          string            `yaml:"database"`
-	DbDriver          string            `yaml:"db_driver"`
-	DbConn            string            `yaml:"db_conn"`
+	DBDriver          string            `yaml:"db_driver"`
+	DBConn            string            `yaml:"db_conn"`
 	Shell             string            `yaml:"shell"`
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
-	DbQueries         []Command         `yaml:"db_queries"`
-	DbAsync           bool              `yaml:"db_async"` // perform db queries async
+	DBQueries         []Command         `yaml:"db_queries"`
+	DBAsync           bool              `yaml:"db_async"` // perform db queries async
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -278,6 +290,7 @@ type API struct {
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
+	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
@@ -307,13 +320,18 @@ type API struct {
 	RowStart  int      `yaml:"row_start"`  // start from this line, to be used with SplitBy
 
 	// Filtering Options
-	EventFilter  []Filter            `yaml:"event_filter"` // filters events in/out
-	KeyFilter    []Filter            `yaml:"key_filter"`   // filters keys in/out
-	StripKeys    []string            `yaml:"strip_keys"`
-	RemoveKeys   []string            `yaml:"remove_keys"`
-	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
-	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
-	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
+	EventFilter                 []Filter            `yaml:"event_filter"` // filters events in/out
+	KeyFilter                   []Filter            `yaml:"key_filter"`   // filters keys in/out
+	StripKeys                   []string            `yaml:"strip_keys"`
+	RemoveKeys                  []string            `yaml:"remove_keys"`
+	KeepKeys                    []string            `yaml:"keep_keys"`                       // inverse of removing keys
+	SampleFilter                []map[string]string `yaml:"sample_filter"`                   // exclude sample filter key pair values with regex === sample_exclude_filter
+	SampleIncludeFilter         []map[string]string `yaml:"sample_include_filter"`           // include sample filter key pair values with regex
+	SampleExcludeFilter         []map[string]string `yaml:"sample_exclude_filter"`           // exclude sample filter key pair values with regex
+	SampleIncludeMatchAllFilter []map[string]string `yaml:"sample_include_match_all_filter"` //include samples where multiple keys match the specified
+	IgnoreOutput                bool                `yaml:"ignore_output"`                   // ignore the output completely, useful when creating lookups
+
+	SaveOutput string `yaml:"save_output"` // Save output samples to a file
 
 	// Debug Options
 	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!
@@ -349,6 +367,7 @@ type Command struct {
 	Timeout          int               `yaml:"timeout"`           // command timeout
 	Dial             string            `yaml:"dial"`              // eg. google.com:80
 	Network          string            `yaml:"network"`           // default tcp
+	OS               string            `yaml:"os"`                // default empty for any operating system, if set will check if the OS matches else will skip execution
 
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table

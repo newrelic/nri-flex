@@ -252,15 +252,32 @@ func splitArrays(unknown *[]interface{}, newSample map[string]interface{}, key s
 			if (index + 1) <= len(keys) {
 				keyName = keys[index]
 			}
-			newSample[keyName] = value
+			// turn array leaf element into sample
+			if api.LeafArray {
+				newSample = make(map[string]interface{})
+				if len(keys) >= 1 {
+					keyName = keys[0]
+				}
+				newSample[keyName] = value
+				// add "index" attribute, merge and join possible based on index/order/seq
+				newSample["index"] = index
+				for k, v := range dimensions {
+					newSample[k] = v
+				}
+				*dataSamples = append(*dataSamples, newSample)
+			} else {
+				newSample[keyName] = value
+			}
 		}
 	}
-	if len(newSample) != 0 {
+
+	if !api.LeafArray && len(newSample) != 0 {
 		for k, v := range dimensions {
 			newSample[k] = v
 		}
 		*dataSamples = append(*dataSamples, newSample)
 	}
+
 	return *dataSamples
 }
 
@@ -426,4 +443,27 @@ func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
 			}
 		}
 	}
+}
+
+func flattenSlicesAndMaps(data interface{}) map[string]interface{} {
+	switch d := data.(type) {
+	case map[string]interface{}:
+		flattened, err := flatten.Flatten(d, "", flatten.DotStyle)
+		if err == nil {
+			return flattened
+		}
+	case []interface{}:
+		sliceData := map[string]interface{}{}
+		for i, sample := range d {
+			switch sampleData := sample.(type) {
+			case map[string]interface{}:
+				flattened, err := flatten.Flatten(sampleData, "", flatten.DotStyle)
+				if err == nil {
+					sliceData[fmt.Sprintf("%d", i)] = flattened
+				}
+			}
+		}
+		return sliceData
+	}
+	return nil
 }

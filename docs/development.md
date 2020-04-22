@@ -1,12 +1,13 @@
 # Development
 
-Development mode allow to run Flex without the Infrastructure agent; this can be useful when developing and testing your config files. To run Flex with the New Relic Infrastructure agent, see the [docs](README.md).
+Here you can learn how to build Flex from source, run it as a Docker image, or run it without the New Relic agent (development mode). Development mode is useful when developing and testing your config files.
 
-1. [Before you start](#Beforeyoustart)
-2. [Installation](#Installation)
-3. [Standard configuration](#Standardconfiguration)
-4. [Testing](#Testing)
-5. [Compile from source](#Compilefromsource)
+* [Development mode](#developmentmode)
+	* [Before you start](#Beforeyoustart)
+	* [Installation](#Installation)
+	* [Standard configuration](#Standardconfiguration)
+	* [Testing](#Testing)
+* [Build from source](#Compilefromsource)
 	* [Requirements](#Requirements)
 	* [Setup](#Setup)
 	* [Build](#Build)
@@ -14,31 +15,32 @@ Development mode allow to run Flex without the Infrastructure agent; this can be
 	* [Packaging](#Packaging)
 	* [Docker Related](#DockerRelated)
 	* [Other Utility Commands](#OtherUtilityCommands)
-6. [Run as a Docker image](#Docker)
+* [Run as a Docker image](#Docker)
 
-##  1. <a name='Beforeyoustart'></a>Before you start
+## Development mode
+
+###  <a name='Beforeyoustart'></a>Before you start
 
 - Flex outputs to the terminal/console, so you don't need to send the data to New Relic to see the results of running Flex against you config file.
 - Flex runs everything by default in the `flexConfigs/` folder, next to the binary file.
-- Browse `examples/flexConfigs` for configuration examples that you can reuse.
+- Browse `examples/flexConfigs` for Flex configurations that you can reuse.
 
-##  2. <a name='Installation'></a>Installation
+### <a name='Installation'></a>Installation
 
 1. Download the latest [release](https://github.com/newrelic/nri-flex/releases) for your development platform.
 2. Unpack the file.
 3. Run `./nri-flex -help` to see all available flags.
 
-##  3. <a name='Standardconfiguration'></a>Standard configuration
+### <a name='Standardconfiguration'></a>Standard configuration
 
 Flex looks for configuration files in a folder named `flexConfigs` by default.
 
 You can use the following flags to instruct Flex to read configuration files from somewhere else than the default folder:
 
-    -config_dir `string` Specifies a directory of configurations files
+* `config_dir` `string` Specifies a directory of configurations files
+* `config_file` (or `-config_path`) `string` Specifies a single config file
 
-    -config_file (or -config_path) `string` Specifies a single config file
-
-##  4. <a name='Testing'></a>Testing your configuration
+### <a name='Testing'></a>Testing your configuration
 
 Running without any flags defaults to running all configs within `./flexConfigs`:
 
@@ -76,9 +78,9 @@ Once you've tested your configuration and you're ready to use in production, you
           config_template_path: /path/to/flex/integration.yml
 	```
 
-##  5. <a name='Compilefromsource'></a>Compile from source
+##  <a name='Compilefromsource'></a>Build from source
 
-###  5.1. <a name='Requirements'></a>Requirements
+### <a name='Requirements'></a>Requirements
 
 - Make
 - Go 1.13 or higher
@@ -86,7 +88,7 @@ Once you've tested your configuration and you're ready to use in production, you
 - [golangci-lint v1.22.2](https://github.com/golangci/golangci-lint)
 - Docker Compose (for integration tests)
 
-###  5.2. <a name='Setup'></a>Setup
+### <a name='Setup'></a>Setup
 
 This assumes that you have a functional Go environment:
 
@@ -102,7 +104,7 @@ make clean
 make dep
 ```
 
-###  5.3. <a name='Build'></a>Build
+### <a name='Build'></a>Build
 
 ```bash
 # Default command runs clean, linter, unit test, and compiles for the local OS
@@ -127,7 +129,7 @@ make cover
 make cover-view
 ```
 
-###  5.4. <a name='Cross-compiling'></a>Cross-compiling
+### <a name='Cross-compiling'></a>Cross-compiling
 
 ```bash
 # Build binary for current OS
@@ -142,7 +144,7 @@ make build-linux
 make build-windows
 ```
 
-###  5.5. <a name='Packaging'></a>Packaging
+### <a name='Packaging'></a>Packaging
 
 To build tar.gz files for distribution:
 
@@ -159,7 +161,7 @@ make package-linux
 make package-windows
 ```
 
-###  5.6. <a name='DockerRelated'></a>Docker related
+###  <a name='DockerRelated'></a>Docker related
 
 ```bash
 # clean/remove any docker containers that have been created
@@ -178,7 +180,7 @@ make docker-test
 make docker-test-infra
 ```
 
-###  5.7. <a name='OtherUtilityCommands'></a>Other utility Commands
+### <a name='OtherUtilityCommands'></a>Other utility Commands
 
 ```bash
 # Use godocdown to create Markdown documentation for all commands and packages
@@ -186,7 +188,7 @@ make docker-test-infra
 make document
 ```
 
-##  6. <a name='Docker'></a>Run as a Docker image
+## <a name='Docker'></a>Run as a Docker image
 
 - Set your configs, modify Dockerfile if need be.
 - Build and run the image.
