@@ -1,0 +1,17 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: postgresExtendedFlex
+      apis:
+        - database: postgres
+          db_conn: host=hostname port=5432 user=pguser password=pgpassword sslmode=disable
+          logging:
+            open: true
+          db_async: true
+          db_queries:
+            - name: pgStatIndexSample
+              run: select * FROM pg_stat_all_indexes
+            - name: pgStatTableSample
+              run: select * FROM pg_stat_all_tables
+            - name: pgStatReplicationLagSample
+              run: SELECT slot_name, database, active, pg_xlog_location_diff(pg_current_xlog_insert_location(), restart_lsn) AS ret_bytes FROM pg_replication_slots;
