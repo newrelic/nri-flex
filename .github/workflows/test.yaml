@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         go: ['1.13.4']
-        os: [ubuntu-16.04, windows]
+        os: [ubuntu-latest, windows-latest]
     name: Run unit tests with go ${{matrix.os}} - ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
