@@ -8,8 +8,11 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -17,7 +20,6 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
@@ -53,30 +55,31 @@ func TestConfigDir(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
-	load.Args.ConfigDir = "../../test/configs/"
+	load.Args.ConfigDir = path.Join("..", "..", "test", "configs")
 
 	var ymls []load.Config
 	var files []os.FileInfo
-
-	path := filepath.FromSlash(load.Args.ConfigDir)
 	var err error
-	files, err = ioutil.ReadDir(path)
 
-	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Fatal("failed to read config dir: " + load.Args.ConfigDir)
+	files, err = ioutil.ReadDir(load.Args.ConfigDir)
+	require.NoError(t, err, "failed to read config dir: %s", load.Args.ConfigDir)
+
+	errs := LoadFiles(&ymls, files, load.Args.ConfigDir) // load standard configs if available
+	for _, err = range errs {
+		assert.NoError(t, err)
 	}
+	require.Empty(t, errs)
 
-	LoadFiles(&ymls, files, path) // load standard configs if available
-	RunFiles(&ymls)
+	errs = RunFiles(&ymls)
+	for _, err = range errs {
+		assert.NoError(t, err)
+	}
+	require.Empty(t, errs)
 
-	jsonFile, _ := ioutil.ReadFile("../../test/payloadsExpected/configDir.json")
-	expectedOutput := []*metric.Set{}
+	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configDir.json"))
+	var expectedOutput []*metric.Set
 	err = json.Unmarshal(jsonFile, &expectedOutput)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err)
 
 	testSamples(expectedOutput, t)
 }
@@ -85,20 +88,25 @@ func TestConfigFile(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
-	load.Args.ConfigFile = "../../test/configs/json-read-cmd-example.yml"
+	load.Args.ConfigFile = path.Join("..", "..", "test", "configs", "json-read-cmd-example.yml")
 
 	// Read a single config file
 	var files []os.FileInfo
 	var ymls []load.Config
 	file, _ := os.Stat(load.Args.ConfigFile)
-	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
+	filePath := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 	files = append(files, file)
 
-	LoadFiles(&ymls, files, path) // load standard configs if available
+	errs := LoadFiles(&ymls, files, filePath) // load standard configs if available
+	for _, err := range errs {
+		assert.NoError(t, err)
+	}
+	require.Empty(t, errs)
+
 	RunFiles(&ymls)
 
-	jsonFile, _ := ioutil.ReadFile("../../test/payloadsExpected/configFile.json")
-	expectedOutput := []*metric.Set{}
+	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configFile.json"))
+	var expectedOutput []*metric.Set
 	err := json.Unmarshal(jsonFile, &expectedOutput)
 	if err != nil {
 		t.Error(err)
@@ -110,20 +118,20 @@ func TestV4ConfigFile(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestV4Cmd", "nri-flex")
-	load.Args.ConfigFile = "../../test/configs/v4-integrations-example.yml"
+	load.Args.ConfigFile = path.Join("..", "..", "test", "configs", "v4-integrations-example.yml")
 
 	// Read a single config file
 	var files []os.FileInfo
 	var ymls []load.Config
 	file, _ := os.Stat(load.Args.ConfigFile)
-	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
+	filePath := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 	files = append(files, file)
 
-	LoadFiles(&ymls, files, path) // load standard configs if available
+	LoadFiles(&ymls, files, filePath) // load standard configs if available
 	RunFiles(&ymls)
 
-	jsonFile, _ := ioutil.ReadFile("../../test/payloadsExpected/configFileV4.json")
-	expectedOutput := []*metric.Set{}
+	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configFileV4.json"))
+	var expectedOutput []*metric.Set
 	err := json.Unmarshal(jsonFile, &expectedOutput)
 	if err != nil {
 		t.Error(err)
