@@ -33,7 +33,7 @@ jobs:
       #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
       - name: run unit tests
         run: |
-          make clean test
+          make clean test-integration
   test-windows:
     strategy:
       matrix:
@@ -54,4 +54,4 @@ jobs:
       - name: run unit tests
       # no make on windows. might be an issue
         run: |
-          go test ./...
+          go --tags=integration test ./...
