@@ -20,7 +20,7 @@ jobs:
       matrix:
         go: ['1.13.4']
         os: [ubuntu-16.04, ubuntu-18.04]
-    name: Run unit tests with go ${{matrix.go}}
+    name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout
@@ -38,8 +38,9 @@ jobs:
     strategy:
       matrix:
         go: ['1.13.4']
-    name: Run unit tests with go ${{matrix.go}}
-    runs-on: windows-2019
+        os: [windows-2019]
+    name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
+    runs-on: ${{matrix.os}}
     steps:
       - name: checkout
         uses: actions/checkout@v2
