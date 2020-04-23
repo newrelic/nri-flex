@@ -16,7 +16,7 @@ on:
 
 jobs:
   test:
-    stategy:
+    strategy:
       matrix:
         go: ['1.13.4']
         os: [ubuntu-16.04, windows]
