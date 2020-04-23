@@ -1,9 +1,9 @@
 name: Run unit tests
 
-runs-on: ${{matrix.os}}
-strategy:
-  matrix:
-    os: [ubuntu-16.04, windows]
+# runs-on: ${{matrix.os}}
+# strategy:
+#   matrix:
+#     os: [ubuntu-16.04, windows]
 
 on:
   pull_request:
@@ -19,8 +19,8 @@ jobs:
     stategy:
       matrix:
         go: ['1.13.4']
-        os: [ubuntu]
-    name: Run unit tests with go ${{matrix.go}}
+        os: [ubuntu-16.04, windows]
+    name: Run unit tests with go ${{matrix.os}} - ${{matrix.go}}
     runs-on: ubuntu-lastest
     steps:
       - name: Install go
