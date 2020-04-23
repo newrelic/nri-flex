@@ -8,14 +8,16 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -23,7 +25,7 @@ import (
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
-func testSamples(expectedSamples []*metric.Set, t *testing.T) {
+func testSamples(expectedSamples []metric.Set, t *testing.T) {
 	entityMetrics, _ := json.Marshal(load.Entity.Metrics)
 	expectedMetrics, _ := json.Marshal(expectedSamples)
 	if len(load.Entity.Metrics) != len(expectedSamples) {
@@ -52,6 +54,10 @@ func testSamples(expectedSamples []*metric.Set, t *testing.T) {
 }
 
 func TestConfigDir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
@@ -85,6 +91,10 @@ func TestConfigDir(t *testing.T) {
 }
 
 func TestConfigFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
@@ -115,6 +125,9 @@ func TestConfigFile(t *testing.T) {
 }
 
 func TestV4ConfigFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestV4Cmd", "nri-flex")

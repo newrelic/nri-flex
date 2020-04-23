@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"runtime"
 	"testing"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
@@ -48,6 +49,10 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 }
 
 func TestConfigDir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
@@ -63,6 +68,10 @@ func TestConfigDir(t *testing.T) {
 }
 
 func TestConfigFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")

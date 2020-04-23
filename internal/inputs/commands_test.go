@@ -7,6 +7,7 @@ package inputs
 
 import (
 	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,9 @@ import (
 )
 
 func TestCanRunMultipleCommands(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
 	// given
 	load.Refresh()
 	dataStoreExpected := []interface{}{
@@ -161,6 +165,9 @@ func TestCanRunMultipleCommands(t *testing.T) {
 }
 
 func TestDf(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
 	load.Refresh()
 	config := load.Config{
 		Name: "dfFlex",
@@ -211,6 +218,9 @@ func TestDf(t *testing.T) {
 }
 
 func TestDf2(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
 	load.Refresh()
 	config := load.Config{
 		Name: "dfFlex",
