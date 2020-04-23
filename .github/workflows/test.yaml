@@ -23,14 +23,14 @@ jobs:
     name: Run unit tests with go ${{matrix.os}} - ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
-      - name: Install go
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: install go
         uses: actions/setup-go@v2
         with:
           go-version: ${{matrix.go}}
-      - name: Build container image
+      - name: build container image
         run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: unit-test
+      - name: run tests in container
         run: |
           docker run --it --rm newrelic/nri-flex:integration-test go test ./...
