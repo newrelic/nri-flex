@@ -48,6 +48,7 @@ jobs:
         with:
           go-version: ${{matrix.go}}
       # - name: build container image
+      # docker in windows seems to not work properly
       #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
       - name: run unit tests
       # no make on windows. might be an issue
