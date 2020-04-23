@@ -89,6 +89,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 				}).Debug("command: failed")
 			}
 
+			load.Logrus.Info(string(output))
 			if ctx.Err() == context.DeadlineExceeded {
 				load.Logrus.WithFields(logrus.Fields{
 					"exec": command.Run,
