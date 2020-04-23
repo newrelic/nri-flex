@@ -4,4 +4,3 @@ WORKDIR /go/src/github.com/newrelic/nri-flex
 COPY . .
 
 ENV CGO_ENABLED 0
-ENV 
