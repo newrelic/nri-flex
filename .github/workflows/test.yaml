@@ -12,6 +12,7 @@ on:
   push:
     paths:
       - "**/*.go"
+      - "**/*.yaml"
 
 jobs:
   test:
