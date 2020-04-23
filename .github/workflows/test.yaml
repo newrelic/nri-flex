@@ -21,7 +21,7 @@ jobs:
         go: ['1.13.4']
         os: [ubuntu-16.04, windows]
     name: Run unit tests with go ${{matrix.os}} - ${{matrix.go}}
-    runs-on: ubuntu-lastest
+    runs-on: ${{matrix.os}}
     steps:
       - name: Install go
         uses: actions/setup-go@v1
