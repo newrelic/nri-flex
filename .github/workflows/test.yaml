@@ -15,12 +15,12 @@ on: [push, pull_request]
     #   - "**/*.yaml"
 
 jobs:
-  test:
+  test-linux:
     strategy:
       matrix:
         go: ['1.13.4']
-        os: [ubuntu-latest, windows-latest]
-    name: Run unit tests with go ${{matrix.os}} - ${{matrix.go}}
+        os: [ubuntu-16.04, ubuntu-18.04]
+    name: Run unit tests with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout
@@ -29,8 +29,27 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{matrix.go}}
-      - name: build container image
-        run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
-      - name: run tests in container
+      # - name: build container image
+      #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
+      - name: run unit tests
         run: |
-          docker run newrelic/nri-flex:integration-test go test ./...
+          make clean test
+  test-windows:
+    strategy:
+      matrix:
+        go: ['1.13.4']
+    name: Run unit tests with go ${{matrix.go}}
+    runs-on: windows-2019
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{matrix.go}}
+      # - name: build container image
+      #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
+      - name: run unit tests
+      # no make on windows. might be an issue
+        run: |
+          go test ./...
