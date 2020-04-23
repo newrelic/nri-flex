@@ -54,6 +54,10 @@ func testSamples(expectedSamples []metric.Set, t *testing.T) {
 }
 
 func TestConfigDir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
@@ -92,6 +96,10 @@ func TestConfigDir(t *testing.T) {
 }
 
 func TestConfigFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
+
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
@@ -127,6 +135,9 @@ func TestConfigFile(t *testing.T) {
 }
 
 func TestV4ConfigFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not run on windows")
+	}
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestV4Cmd", "nri-flex")
