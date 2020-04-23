@@ -7,12 +7,12 @@ strategy:
 
 on:
   pull_request:
-    paths:
-      - "**/*.go"
+    # paths:
+    #   - "**/*.go"
   push:
-    paths:
-      - "**/*.go"
-      - "**/*.yaml"
+    # paths:
+    #   - "**/*.go"
+    #   - "**/*.yaml"
 
 jobs:
   test:
