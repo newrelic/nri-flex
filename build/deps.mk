@@ -6,8 +6,7 @@
 GOTOOLS       = github.com/axw/gocov/gocov \
                 github.com/AlekSi/gocov-xml \
                 github.com/stretchr/testify/assert \
-                github.com/robertkrimen/godocdown/godocdown \
-                github.com/golangci/golangci-lint/cmd/golangci-lint
+                github.com/robertkrimen/godocdown/godocdown
 
 # Determine package dep manager
 ifneq (,"$(wildcard go.mod)")

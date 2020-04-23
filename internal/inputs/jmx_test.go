@@ -7,10 +7,11 @@ package inputs
 
 import (
 	"fmt"
-	Integration "github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
+
+	Integration "github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
@@ -293,11 +294,12 @@ func TestParseJMX(t *testing.T) {
 			for key := range sample {
 				switch recSample := dataStore[i].(type) {
 				case map[string]interface{}:
-					if sample["bean"] == recSample["bean"] {
-						if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
-							t.Errorf("%v want %v, got %v", key, sample[key], recSample[key])
-						}
+					if fmt.Sprintf("%v", sample[key]) != fmt.Sprintf("%v", recSample[key]) {
+						t.Errorf("%v want %v, got %v", key, sample[key], recSample[key])
 					}
+					// if sample["bean"] == recSample["bean"] {
+					// 	assert.Equalf(t, sample[key], recSample[key], "%v want %v, got %v", key, sample[key], recSample[key])
+					// }
 				}
 			}
 		}

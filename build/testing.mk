@@ -2,27 +2,31 @@
 # Makefile fragment for Testing
 #
 
+GOLINTER_BIN = bin/$(GOLINTER)
 
+$(GOLINTER_BIN): bin
+	@echo "=== $(PROJECT_NAME) === [ lint ]: Installing $(GOLINTER)..."
+	@(wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLINTER_VERSION))
 
-lint: deps
-	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(GOLINTER)..."
-	@$(GOLINTER) run ./...
+lint: bin $(GOLINTER_BIN)
+	@echo "=== $(PROJECT_NAME) === [ lint ]: Validating source code running $(GOLINTER)..."
+	@$(GOLINTER_BIN) run ./...
 
 test: test-only
 test-only: test-unit
 
 test-unit:
-	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
+	@echo "=== $(PROJECT_NAME) === [ unit-test ]: running unit tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO_CMD) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
-test-integration: setup
+test-integration: setup test
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@sh ./integration-test/ci-test.sh
 
 cover-report:
-	@echo "=== $(PROJECT_NAME) === [ cover-report     ]: generating coverage results..."
+	@echo "=== $(PROJECT_NAME) === [ cover-report ]: generating coverage results..."
 	@mkdir -p $(COVERAGE_DIR)
 	@echo 'mode: $(COVERMODE)' > $(COVERAGE_DIR)/coverage.out
 	@cat $(COVERAGE_DIR)/*.tmp | grep -v 'mode: $(COVERMODE)' >> $(COVERAGE_DIR)/coverage.out || true
