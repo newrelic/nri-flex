@@ -29,8 +29,9 @@ jobs:
         id: gosetup
       - name: Build container image
         run: docker build . --file integration-test/Dockerfile --tag newrelic/nri-flex:integration-test
-      - name: unit-test
+      - name: checkout
         uses: actions/checkout@v2
+      - name: unit-test
         run: |
           docker run --it --rm newrelic/nri-flex:integration-test go test ./...
         id: test 
