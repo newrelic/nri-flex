@@ -7,9 +7,11 @@ BUILD_DIR    := ./bin/
 COVERAGE_DIR := ./coverage/
 COVERMODE     = atomic
 
-GO_CMD        = go
-GODOC         = godocdown
-GOLINTER      = golangci-lint
+GO_CMD = go
+GODOC = godocdown
+
+GOLINTER         = golangci-lint
+GOLINTER_VERSION = v1.24.0
 
 GORELEASER_VERSION := v0.126.0
 GORELEASER_SHA256 := 6c0145df61140ec1bffe4048b9ef3e105e18a89734816e7a64f342d3f9267691
