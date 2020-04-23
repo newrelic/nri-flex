@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"testing"
 	"os"
+	"testing"
 )
 
 const testData = `[{"abd":"def"},{"123":456}]`
