@@ -1,5 +1,3 @@
-//+build linux darwin
-
 /*
 * Copyright 2019 New Relic Corporation. All rights reserved.
 * SPDX-License-Identifier: Apache-2.0
@@ -153,19 +151,6 @@ func TestCanRunMultipleCommands(t *testing.T) {
 	}
 }
 
-func getCanRunMultipleCommands() []load.Command {
-	return []load.Command {
-		{
-			Run:     "cat ../../test/payloads/redisInfo.out",
-			SplitBy: ":",
-		},
-		{
-			Run:     `echo "zHost:$(echo HELLO)"`,
-			SplitBy: ":",
-		},
-	}
-} 
-
 func TestDf(t *testing.T) {
 	load.Refresh()
 	config := load.Config{
@@ -236,22 +221,4 @@ func TestDf2(t *testing.T) {
 		actualValue := actual[key]
 		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
-}
-
-func getDf2Apis() []load.API {
-	return []load.API{
-		{
-			Name: "df",
-			Commands: []load.Command{
-				{
-					Run:              "cat ../../test/payloads/df.out",
-					Split:            "horizontal",
-					RegexMatch:       true,
-					SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)`,
-					HeaderRegexMatch: false,
-					HeaderSplitBy:    `\s{1,}`,
-				},
-			},
-		}
-
 }
