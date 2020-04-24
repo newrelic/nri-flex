@@ -1,4 +1,4 @@
-// +build integration
+// +build integration linux darwin
 
 /*
 * Copyright 2019 New Relic Corporation. All rights reserved.
