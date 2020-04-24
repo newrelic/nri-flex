@@ -6,6 +6,7 @@
 package inputs
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -217,8 +218,9 @@ func TestDf2(t *testing.T) {
 	expected := dataStoreExpected[0].(map[string]interface{})
 	actual := dataStore[0].(map[string]interface{})
 
+	fmt.Println(fmt.Sprintf("%v", actual))
 	for key, expectedValue := range expected {
 		actualValue := actual[key]
-		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
+		assert.Equal(t, expectedValue, actualValue)
 	}
 }
