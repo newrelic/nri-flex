@@ -14,7 +14,7 @@ import (
 )
 
 // SetJMXCommand Add parameters to JMX call
-func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Command, api load.API, config *load.Config) {
+func SetJMXCommand(runCommand *string, command load.Command, api load.API, config *load.Config) {
 	*runCommand = fmt.Sprintf("echo '%v' | java -jar %vnrjmx.jar", *runCommand, load.Args.NRJMXToolPath)
 
 	// order command > api > global

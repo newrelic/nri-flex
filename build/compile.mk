@@ -15,6 +15,11 @@ compile-only: deps-only
 		$(GO_CMD) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
 
+
+.PHONY: fmt
+fmt:
+	@($(GO_CMD) fmt ./...)
+
 build-linux: compile-linux
 compile-linux: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"

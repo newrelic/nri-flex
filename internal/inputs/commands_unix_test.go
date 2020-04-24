@@ -27,8 +27,8 @@ func getCanRunMultipleCommands() []load.Command {
 func getDfApis() []load.API {
 	return []load.API{
 		{
-			Name:  "df",
-			Shell: "/bin/sh",
+			Name: "df",
+			//Shell: "/bin/sh",
 			Commands: []load.Command{
 				{
 					Run:      "cat ../../test/payloads/df.out",
@@ -39,7 +39,7 @@ func getDfApis() []load.API {
 					},
 					RegexMatch: false,
 					SplitBy:    `\s{1,}`,
-					Shell:      "/bin/sh",
+					//Shell:      "/bin/sh",
 				},
 			},
 		},

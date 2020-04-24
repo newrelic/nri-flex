@@ -6,7 +6,10 @@ package integration_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,6 +21,14 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
+func tmpData() (data []byte) {
+	data = make([]byte, 512)
+	for i := range data {
+		data[i] = 1
+	}
+	return data
+}
+
 func TestConfig_cmd_LinuxDirUsage(t *testing.T) {
 	// given
 	load.Refresh()
@@ -26,19 +37,31 @@ func TestConfig_cmd_LinuxDirUsage(t *testing.T) {
 	load.Entity, _ = i.Entity("IntegrationTest", "nri-flex")
 	load.Args.ConfigFile = "configs/linux-directory-size.yml"
 
+	tmpDir, err := ioutil.TempDir("", t.Name())
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+	t.Logf("Tmp dir is: %s", tmpDir)
+	tmpFile := path.Join(tmpDir, "test_file")
+	err = ioutil.WriteFile(tmpFile, tmpData(), 0644)
+	require.NoError(t, err)
+
+	err = os.Setenv("TMP_TEST_DIR", tmpDir)
+	require.NoError(t, err)
+	defer os.Unsetenv("TMP_TEST_DIR")
+
 	// Read a single config file
 	var files []os.FileInfo
 	var configs []load.Config
 	file, err := os.Stat(load.Args.ConfigFile)
-	if err != nil {
-		panic("config file not found: " + load.Args.ConfigFile)
-	}
+	require.NoError(t, err, "config file not found: %s", load.Args.ConfigFile)
 	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 	files = append(files, file)
-	config.LoadFiles(&configs, files, path)
+	errs := config.LoadFiles(&configs, files, path)
+	require.Empty(t, errs)
 
 	// when
-	config.RunFiles(&configs)
+	errs = config.RunFiles(&configs)
+	require.Empty(t, errs)
 
 	// 'du' return one line per dir + total UNLESS we use 'summary' flag, then it return 2 lines
 	// - value, dirname
@@ -49,8 +72,8 @@ func TestConfig_cmd_LinuxDirUsage(t *testing.T) {
 	assert.NotEmpty(t, metricsSet)
 
 	// these were the names we gave the 2 'columns' of the command result
-	assert.NotNil(t, metricsSet.Metrics["dirSizeBytes"])
-	assert.NotNil(t, metricsSet.Metrics["dirName"])
+	assert.Equal(t, float64(8), metricsSet.Metrics["dirSizeBytes"])
+	assert.Equal(t, tmpDir, metricsSet.Metrics["dirName"])
 }
 
 func TestConfig_cmd_LinuxDiskFree(t *testing.T) {
@@ -70,10 +93,12 @@ func TestConfig_cmd_LinuxDiskFree(t *testing.T) {
 	}
 	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 	files = append(files, file)
-	config.LoadFiles(&configs, files, path)
+	errs := config.LoadFiles(&configs, files, path)
+	require.Empty(t, errs)
 
 	// when
-	config.RunFiles(&configs)
+	errs = config.RunFiles(&configs)
+	require.Empty(t, errs)
 
 	// fs,fsType,usedBytes,availableBytes,usedPerc,mountedOn
 	metricsSet := load.Entity.Metrics
@@ -105,10 +130,12 @@ func TestConfig_cmd_OpenFDs(t *testing.T) {
 	}
 	path := strings.Replace(filepath.FromSlash(load.Args.ConfigFile), file.Name(), "", -1)
 	files = append(files, file)
-	config.LoadFiles(&configs, files, path)
+	errs := config.LoadFiles(&configs, files, path)
+	require.Empty(t, errs)
 
 	// when
-	config.RunFiles(&configs)
+	errs = config.RunFiles(&configs)
+	require.Empty(t, errs)
 
 	// openFD,maxFD
 	// 1 record only
