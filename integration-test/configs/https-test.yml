@@ -2,15 +2,16 @@
 name: nginxFlex
 apis:
   - name: nginxStub
-    url: https://https-server:4444/nginx_status
+    url: https://https-server/nginx_status
     tls_config:
       enable: true
       ca: ./https-server/cabundle/cert.pem
+    ignore_output: true
   - name: nginx
     entity: https-server
     event_type: NginxSample
     commands:
-      - cache: https://https-server:4444/nginx_status
+      - cache: https://https-server/nginx_status
         split_output: Active
         regex_matches:
           - expression: Active connections:\s(\S+)
