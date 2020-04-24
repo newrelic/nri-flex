@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Official support for Kubernetes
 - Official support for Windows (Windows Server 2012, Windows Server 2016, Windows Server 2019)
-  * URL (http/s), Command line and Text file supported APIs
-- Official support for Text file API under Linux
+- Official support for the text file API under Linux
 
 ## 1.1.2 - 2020-04-16
 ### Changed

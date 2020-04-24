@@ -24,8 +24,8 @@ For a quick introduction on Flex, [read our blog post](https://blog.newrelic.com
 Flex requires a New Relic [Infrastructure Pro](https://newrelic.com/infrastructure/pricing) subscription or trial and is compatible with the following operating systems/platforms:
 
 - Linux
-- Kubernetes
 - Windows
+- Kubernetes
 
 For more information on compatible distros and versions, see the [Infrastructure agent compatibility page](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/getting-started/compatibility-requirements-new-relic-infrastructure).
 
@@ -33,7 +33,7 @@ For more information on compatible distros and versions, see the [Infrastructure
 
 Flex comes bundled with the New Relic Infrastructure agent. To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
 
-If you're using Kubernetes take a look at [How to monitor services in Kubernetes](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
+If you're using Kubernetes, see [How to monitor services in Kubernetes](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
 
 ## Getting started
 
@@ -52,8 +52,8 @@ While developing your own Flex integrations, you can use Flex without the New Re
 ## Documentation
 
 - [Flex documentation - Main page](docs/README.md)
-- [Configure Flex](/docs/basics/configure.md)
-- [Configure Flex in Kubernetes](/docs/basics/k8s_configure.md)
+- [How to configure Flex](/docs/basics/configure.md)
+- [Flex under Kubernetes](/docs/basics/k8s_configure.md)
 - [Data sources / APIS](/docs/apis/README.md)
 - [Data transformation functions](docs/basics/functions.md)
 - [Experimental functions](docs/experimental/functions.md)
