@@ -5,8 +5,8 @@ integrations:
       apis:
         - name: Message
           commands:
-            # this is simualting the 'cat' command from linux. 
-            # echo writes windwos native newline (\n\r) and flex gets confused thats why we have '&' right after the message
+            # this is simulating the 'cat' command from linux. 
+            # echo writes windows native newline (\n\r) and flex gets confused thats why we have '&' right after the message
             # maybe there's a better way...
             - run: echo message:hello& echo value:100& echo error:false
               split_by: ":"
@@ -17,7 +17,7 @@ integrations:
         - name: Message
           commands:
             # this is simualting the 'cat' command from linux. 
-            # echo writes windwos native newline (\n\r) and flex gets confused thats why we have '&' right after the message
+            # echo writes windows native newline (\n\r) and flex gets confused thats why we have '&' right after the message
             # maybe there's a better way... 
             - run: echo message::bye& echo value::20.9& echo error::true
               split_by: "::"
