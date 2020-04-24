@@ -1,4 +1,4 @@
-name: Run unit tests
+name: Run tests
 
 # runs-on: ${{matrix.os}}
 # strategy:
@@ -20,7 +20,7 @@ jobs:
       matrix:
         go: ['1.13.4']
         os: [ubuntu-16.04, ubuntu-18.04]
-    name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
+    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout
@@ -31,15 +31,15 @@ jobs:
           go-version: ${{matrix.go}}
       # - name: build container image
       #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
-      - name: run unit tests
+      - name: run integration tests
         run: |
-          make clean test-integration
+          make ci-build
   test-windows:
     strategy:
       matrix:
         go: ['1.13.4']
         os: [windows-2019]
-    name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
+    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout
@@ -51,7 +51,7 @@ jobs:
       # - name: build container image
       # docker in windows seems to not work properly
       #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
-      - name: run unit tests
+      - name: run integration tests
       # no make on windows. might be an issue
         run: |
           go test --tags=integration ./...
