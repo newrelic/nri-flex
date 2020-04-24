@@ -6,7 +6,6 @@
 package inputs
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -130,17 +129,8 @@ func TestCanRunMultipleCommands(t *testing.T) {
 		Name: "RedisInfo",
 		APIs: []load.API{
 			{
-				Name: "redis",
-				Commands: []load.Command{
-					{
-						Run:     "cat ../../test/payloads/redisInfo.out",
-						SplitBy: ":",
-					},
-					{
-						Run:     `echo "zHost:$(echo HELLO)"`,
-						SplitBy: ":",
-					},
-				},
+				Name:     "redis",
+				Commands: getCanRunMultipleCommands(),
 			},
 		},
 	}
@@ -149,14 +139,16 @@ func TestCanRunMultipleCommands(t *testing.T) {
 	dataStore := []interface{}{}
 	RunCommands(&dataStore, &configFile, 0)
 
-	result := dataStore[0].(map[string]interface{})
-	// then each of the values found in the result is equal to the expected
-	for key, value := range result {
+	actual := dataStore[0].(map[string]interface{})
+	expected := dataStoreExpected[0].(map[string]interface{})
+	// then each of the values found in the expected is equal to the actual
+	for key, expectedValue := range expected {
 		if key == "flex.commandTimeMs" {
 			continue
 		}
-		expected := dataStoreExpected[0].(map[string]interface{})
-		assert.Equal(t, expected[key], value)
+
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }
 
@@ -164,25 +156,7 @@ func TestDf(t *testing.T) {
 	load.Refresh()
 	config := load.Config{
 		Name: "dfFlex",
-		APIs: []load.API{
-			{
-				Name:  "df",
-				Shell: "/bin/sh",
-				Commands: []load.Command{
-					{
-						Run:      "cat ../../test/payloads/df.out",
-						Split:    "horizontal",
-						RowStart: 1,
-						SetHeader: []string{
-							"fs", "512Blocks", "used", "available", "capacity", "iused", "ifree", "iusedPerc", "mountedOn",
-						},
-						RegexMatch: false,
-						SplitBy:    `\s{1,}`,
-						Shell:      "/bin/sh",
-					},
-				},
-			},
-		},
+		APIs: getDfApis(),
 	}
 
 	dataStoreExpected := []interface{}{
@@ -202,33 +176,23 @@ func TestDf(t *testing.T) {
 	dataStore := []interface{}{}
 	RunCommands(&dataStore, &config, 0)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
-		}
-	}
+	assert.Len(t, dataStore, 3)
 
+	// we are only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
+	}
 }
 
 func TestDf2(t *testing.T) {
 	load.Refresh()
 	config := load.Config{
 		Name: "dfFlex",
-		APIs: []load.API{
-			{
-				Name: "df",
-				Commands: []load.Command{
-					{
-						Run:              "cat ../../test/payloads/df.out",
-						Split:            "horizontal",
-						RegexMatch:       true,
-						SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)`,
-						HeaderRegexMatch: false,
-						HeaderSplitBy:    `\s{1,}`,
-					},
-				},
-			},
-		},
+		APIs: getDf2Apis(),
 	}
 
 	dataStoreExpected := []interface{}{
@@ -248,9 +212,14 @@ func TestDf2(t *testing.T) {
 	dataStore := []interface{}{}
 	RunCommands(&dataStore, &config, 0)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
-		}
+	assert.Len(t, dataStore, 3)
+
+	// we are only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }

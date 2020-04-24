@@ -8,14 +8,16 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -23,7 +25,7 @@ import (
 )
 
 // testSamples as samples could be generated in different orders, so we test per sample
-func testSamples(expectedSamples []*metric.Set, t *testing.T) {
+func testSamples(expectedSamples []metric.Set, t *testing.T) {
 	entityMetrics, _ := json.Marshal(load.Entity.Metrics)
 	expectedMetrics, _ := json.Marshal(expectedSamples)
 	if len(load.Entity.Metrics) != len(expectedSamples) {
@@ -55,7 +57,12 @@ func TestConfigDir(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmdDir", "nri-flex")
-	load.Args.ConfigDir = path.Join("..", "..", "test", "configs")
+
+	configsPath := path.Join("..", "..", "test", "configs")
+	if runtime.GOOS == "windows" {
+		configsPath = path.Join("..", "..", "test", "config_windows")
+	}
+	load.Args.ConfigDir = configsPath
 
 	var ymls []load.Config
 	var files []os.FileInfo
@@ -77,7 +84,7 @@ func TestConfigDir(t *testing.T) {
 	require.Empty(t, errs)
 
 	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configDir.json"))
-	var expectedOutput []*metric.Set
+	var expectedOutput []metric.Set
 	err = json.Unmarshal(jsonFile, &expectedOutput)
 	require.NoError(t, err)
 
@@ -88,7 +95,12 @@ func TestConfigFile(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestReadJsonCmd", "nri-flex")
-	load.Args.ConfigFile = path.Join("..", "..", "test", "configs", "json-read-cmd-example.yml")
+
+	configsPath := path.Join("..", "..", "test", "configs")
+	if runtime.GOOS == "windows" {
+		configsPath = path.Join("..", "..", "test", "config_windows")
+	}
+	load.Args.ConfigFile = path.Join(configsPath, "json-read-cmd-example.yml")
 
 	// Read a single config file
 	var files []os.FileInfo
@@ -106,7 +118,7 @@ func TestConfigFile(t *testing.T) {
 	RunFiles(&ymls)
 
 	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configFile.json"))
-	var expectedOutput []*metric.Set
+	var expectedOutput []metric.Set
 	err := json.Unmarshal(jsonFile, &expectedOutput)
 	if err != nil {
 		t.Error(err)
@@ -118,7 +130,12 @@ func TestV4ConfigFile(t *testing.T) {
 	load.Refresh()
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("TestV4Cmd", "nri-flex")
-	load.Args.ConfigFile = path.Join("..", "..", "test", "configs", "v4-integrations-example.yml")
+
+	configsPath := path.Join("..", "..", "test", "configs")
+	if runtime.GOOS == "windows" {
+		configsPath = path.Join("..", "..", "test", "config_windows")
+	}
+	load.Args.ConfigFile = path.Join(configsPath, "v4-integrations-example.yml")
 
 	// Read a single config file
 	var files []os.FileInfo
@@ -131,7 +148,7 @@ func TestV4ConfigFile(t *testing.T) {
 	RunFiles(&ymls)
 
 	jsonFile, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloadsExpected", "configFileV4.json"))
-	var expectedOutput []*metric.Set
+	var expectedOutput []metric.Set
 	err := json.Unmarshal(jsonFile, &expectedOutput)
 	if err != nil {
 		t.Error(err)
