@@ -33,7 +33,7 @@ jobs:
       #   run: docker build . --file Dockerfile.tests --tag newrelic/nri-flex:integration-test
       - name: run integration tests
         run: |
-          make ci-build
+          make build-ci
   test-windows:
     strategy:
       matrix:
