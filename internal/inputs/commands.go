@@ -80,7 +80,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			// Create the command with our context
 			cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
 			output, err := cmd.CombinedOutput()
-
+			load.Logrus.Info(string(output))
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"exec":       command.Run,
