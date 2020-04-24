@@ -60,7 +60,7 @@ func TestConfigDir(t *testing.T) {
 
 	configsPath := path.Join("..", "..", "test", "configs")
 	if runtime.GOOS == "windows" {
-		configsPath = path.Join(configsPath, "windows")
+		configsPath = path.Join("..", "..", "test", "config_windows")
 	}
 	load.Args.ConfigDir = configsPath
 
@@ -98,7 +98,7 @@ func TestConfigFile(t *testing.T) {
 
 	configsPath := path.Join("..", "..", "test", "configs")
 	if runtime.GOOS == "windows" {
-		configsPath = path.Join(configsPath, "windows")
+		configsPath = path.Join("..", "..", "test", "config_windows")
 	}
 	load.Args.ConfigFile = path.Join(configsPath, "json-read-cmd-example.yml")
 
@@ -133,7 +133,7 @@ func TestV4ConfigFile(t *testing.T) {
 
 	configsPath := path.Join("..", "..", "test", "configs")
 	if runtime.GOOS == "windows" {
-		configsPath = path.Join(configsPath, "windows")
+		configsPath = path.Join("..", "..", "test", "config_windows")
 	}
 	load.Args.ConfigFile = path.Join(configsPath, "v4-integrations-example.yml")
 

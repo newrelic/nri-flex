@@ -8,7 +8,6 @@
 package inputs
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -132,9 +131,8 @@ func TestCanRunMultipleCommands(t *testing.T) {
 		Name: "RedisInfo",
 		APIs: []load.API{
 			{
-				Name: "redis",
+				Name:     "redis",
 				Commands: getCanRunMultipleCommands(),
-				},
 			},
 		},
 	}
@@ -150,14 +148,14 @@ func TestCanRunMultipleCommands(t *testing.T) {
 		if key == "flex.commandTimeMs" {
 			continue
 		}
-		
+
 		actualValue := actual[key]
 		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }
 
 func getCanRunMultipleCommands() []load.Command {
-	return []load.Command {
+	return []load.Command{
 		{
 			Run:     "cat ../../test/payloads/redisInfo.out",
 			SplitBy: ":",
@@ -167,7 +165,7 @@ func getCanRunMultipleCommands() []load.Command {
 			SplitBy: ":",
 		},
 	}
-} 
+}
 
 func TestDf(t *testing.T) {
 	load.Refresh()
@@ -232,7 +230,6 @@ func TestDf2(t *testing.T) {
 	config := load.Config{
 		Name: "dfFlex",
 		APIs: getDf2Apis(),
-		},
 	}
 
 	dataStoreExpected := []interface{}{
@@ -278,6 +275,6 @@ func getDf2Apis() []load.API {
 					HeaderSplitBy:    `\s{1,}`,
 				},
 			},
-		}
-
+		},
+	}
 }
