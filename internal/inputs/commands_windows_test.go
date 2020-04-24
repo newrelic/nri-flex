@@ -8,7 +8,6 @@
 package inputs
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -154,13 +153,14 @@ func TestCanRunMultipleCommands(t *testing.T) {
 	assert.Len(t, dataStore, 1)
 
 	result := dataStore[0].(map[string]interface{})
+	expected := dataStoreExpected[0].(map[string]interface{})
 	// then each of the values found in the result is equal to the expected
-	for key, value := range result {
+	for key, expectedValue := range expected {
 		if key == "flex.commandTimeMs" {
 			continue
 		}
-		expected := dataStoreExpected[0].(map[string]interface{})
-		assert.Equal(t, expected[key], value)
+		actualValue := result[key]
+		assert.Equal(t, expectedValue, actualValue)
 	}
 }
 
@@ -206,12 +206,13 @@ func TestDf(t *testing.T) {
 
 	assert.Len(t, dataStore, 3)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
-		}
+	// only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
-
 }
 
 func TestDf2(t *testing.T) {
@@ -254,9 +255,12 @@ func TestDf2(t *testing.T) {
 
 	assert.Len(t, dataStore, 3)
 
-	for key := range dataStore[0].(map[string]interface{}) {
-		if fmt.Sprintf("%v", dataStore[0].(map[string]interface{})[key]) != fmt.Sprintf("%v", dataStoreExpected[0].(map[string]interface{})[key]) {
-			t.Errorf(fmt.Sprintf("doesnt match %v : %v - %v", key, dataStore[0].(map[string]interface{})[key], dataStoreExpected[0].(map[string]interface{})[key]))
-		}
+	// we are only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }
