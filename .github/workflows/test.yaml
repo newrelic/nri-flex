@@ -55,3 +55,4 @@ jobs:
       # no make on windows. might be an issue
         run: |
           go test --tags=integration ./...
+
