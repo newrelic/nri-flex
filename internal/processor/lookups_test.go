@@ -20,7 +20,7 @@ func TestStoreLookups(t *testing.T) {
 	var v interface{}
 	v = "myStoredValue"
 
-	StoreLookups(storeLookups, &key, &lookupStore, &v)
+	StoreLookups(storeLookups, &lookupStore, key, v)
 	valueArray := []string{}
 	for a := range lookupStore["blah"] {
 		valueArray = append(valueArray, a)
@@ -40,7 +40,7 @@ func TestVariableLookups(t *testing.T) {
 	var v interface{}
 	v = "myStoredValue"
 
-	VariableLookups(storeLookups, &key, &variableStore, &v)
+	VariableLookups(storeLookups, &variableStore, key, v)
 
 	if fmt.Sprintf("%v", variableStore["blah"]) != v {
 		t.Errorf("want: %v got: %v", v, variableStore["blah"])
