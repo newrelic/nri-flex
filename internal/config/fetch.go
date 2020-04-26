@@ -103,11 +103,64 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 	}
 
 	tmpCfgStr := string(tmpCfgBytes)
+
+	manualLookups := manualLookup(tmpCfgStr, cfg)              // keep for backwards compatibility, consider possible deprecation
+	automaticLookups := automaticLookup(tmpCfgStr, cfg, apiNo) // leverage existing data to create lookups
+	newAPIs := append(manualLookups, automaticLookups...)
+
+	if len(newAPIs) == 0 {
+		return true
+	}
+
+	lookupConfig := load.Config{
+		Name:             cfg.Name,
+		Global:           cfg.Global,
+		FileName:         cfg.FileName,
+		Datastore:        cfg.Datastore,
+		LookupStore:      cfg.LookupStore,
+		VariableStore:    cfg.VariableStore,
+		CustomAttributes: cfg.CustomAttributes,
+	}
+
+	for _, newAPI := range newAPIs {
+		if strings.Contains(newAPI, "${lookup") {
+			continue
+		}
+		API := load.API{}
+		err := yaml.Unmarshal([]byte(newAPI), &API)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": cfg.Name,
+				"err":  err,
+			}).Error("fetch: failed to unmarshal lookup config")
+		} else {
+			lookupConfig.APIs = append(lookupConfig.APIs, API)
+		}
+	}
+
+	if err := runVariableProcessor(&lookupConfig); err != nil {
+		load.Logrus.WithError(err).Error("config: variable processor error")
+	}
+
+	// Please note:
+	//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
+	//          We will address this in the future if required. These two functions are probably not necessary for this use case.
+	if cfg.APIs[apiNo].RunAsync {
+		RunAsync(lookupConfig, samplesToMerge, apiNo)
+	} else {
+		RunSync(lookupConfig, samplesToMerge, apiNo)
+	}
+	return false
+}
+
+// manualLookup support for manually defined lookups
+func manualLookup(tmpCfgStr string, cfg *load.Config) []string {
+	var newAPIs []string
 	lookupsFound := regexp.MustCompile(`\${lookup:.*?}`).FindAllString(tmpCfgStr, -1)
 
 	// if no lookups, do not continue running the processor
 	if len(lookupsFound) == 0 {
-		return true
+		return []string{}
 	}
 
 	// determine each unique lookup found
@@ -165,7 +218,6 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 		"name": cfg.Name,
 	}).Debugf("fetch: combinations found %v", combinations)
 
-	var newAPIs []string
 	for _, combo := range combinations {
 		tmpConfigWithLookupReplace := tmpCfgStr
 		if len(combo) == len(sliceKeys) {
@@ -178,6 +230,75 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 				"name": cfg.Name,
 			}).Debug("fetch: invalid lookup, missing a replace")
 		}
+	}
+	return newAPIs
+}
+
+func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combinations *[][]string) {
+	loopNo++
+	for i := range sliceLookups[loopNo] {
+		// track the index of each loop
+		(sliceIndexes)[loopNo] = i
+
+		// this indicates we are in the inner most loop, else do another loop
+		if loopNo+1 == len(sliceLookups) {
+			var keys []string
+			for x := 0; x <= loopNo; x++ {
+				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
+			}
+			*combinations = append(*combinations, keys)
+		} else {
+			loopLookups(loopNo, sliceIndexes, sliceLookups, combinations)
+		}
+	}
+}
+
+// automaticLookup check existing samples to create lookups
+func automaticLookup(tmpCfgStr string, cfg *load.Config, apiNo int) []string {
+	var newAPIs []string
+	lookupsFound := regexp.MustCompile(`\${lookup\.(\S+):(\S+)}`).FindAllStringSubmatch(tmpCfgStr, -1)
+	// if no lookups, do not continue running the processor
+	if len(lookupsFound) == 0 {
+		return []string{}
+	}
+
+	eventTypesCompleted := []string{}
+	dedupeCheck := map[string][]string{}
+	for _, lookup := range lookupsFound {
+		eventType := lookup[1]
+
+		// do not reprocess an already completed event_type as they are full replaces
+		if sliceContains(eventTypesCompleted, eventType) {
+			continue
+		}
+
+		for _, entity := range load.Integration.Entities {
+			for _, sample := range entity.Metrics {
+				if sample.Metrics["event_type"] == eventType { // if the event matches create a new sample
+					create, sampleStr := createLookupSample(tmpCfgStr, eventType, sample.Metrics, &dedupeCheck, cfg.APIs[apiNo].DedupeLookups)
+					if create {
+						newAPIs = append(newAPIs, sampleStr)
+					}
+				}
+			}
+		}
+
+		// do not reprocess an already completed event_type as they are full replaces
+		if sliceContains(eventTypesCompleted, eventType) {
+			continue
+		}
+
+		// checked ignored data
+		for _, sample := range load.IgnoredIntegrationData {
+			if sample["event_type"] == eventType { // if the event matches create a new sample
+				create, sampleStr := createLookupSample(tmpCfgStr, eventType, sample, &dedupeCheck, cfg.APIs[apiNo].DedupeLookups)
+				if create {
+					newAPIs = append(newAPIs, sampleStr)
+				}
+			}
+		}
+
+		eventTypesCompleted = append(eventTypesCompleted, eventType)
 	}
 
 	lookupConfig := load.Config{
@@ -203,36 +324,36 @@ func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMer
 		}
 	}
 
-	if err := runVariableProcessor(&lookupConfig); err != nil {
-		load.Logrus.WithError(err).Error("config: variable processor error")
-	}
-
-	// Please note:
-	//          When in RunAsync/run_async mode, we will disable StoreLookups and VariableLookups due to potential concurrent map write.
-	//          We will address this in the future if required. These two functions are probably not necessary for this use case.
-	if cfg.APIs[apiNo].RunAsync {
-		RunAsync(lookupConfig, samplesToMerge, apiNo)
-	} else {
-		RunSync(lookupConfig, samplesToMerge, apiNo)
-	}
-	return false
+	return newAPIs
 }
 
-func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combinations *[][]string) {
-	loopNo++
-	for i := range sliceLookups[loopNo] {
-		// track the index of each loop
-		(sliceIndexes)[loopNo] = i
+func createLookupSample(tmpCfgStr string, eventType string, sample map[string]interface{}, dedupeCheck *map[string][]string, dedupeLookups []string) (bool, string) {
+	tmpConfigWithLookupReplace := tmpCfgStr
+	create := false
 
-		// this indicates we are in the inner most loop, else do another loop
-		if loopNo+1 == len(sliceLookups) {
-			var keys []string
-			for x := 0; x <= loopNo; x++ {
-				keys = append(keys, sliceLookups[x][sliceIndexes[x]])
-			}
-			*combinations = append(*combinations, keys)
-		} else {
-			loopLookups(loopNo, sliceIndexes, sliceLookups, combinations)
+	for k, v := range sample {
+		// if dedupe check already contains the key, do not create this
+		if sliceContains((*dedupeCheck)[k], fmt.Sprintf("%v", v)) {
+			return false, ""
+		}
+
+		// if dedupe lookups has a key from this sample store it
+		if sliceContains(dedupeLookups, k) {
+			(*dedupeCheck)[k] = append((*dedupeCheck)[k], fmt.Sprintf("%v", v))
+		}
+
+		tmpConfigWithLookupReplace = strings.ReplaceAll(tmpConfigWithLookupReplace, fmt.Sprintf("${lookup.%v:%v}", eventType, k), fmt.Sprintf("%v", v))
+		create = true
+	}
+
+	return create, tmpConfigWithLookupReplace
+}
+
+func sliceContains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
 		}
 	}
+	return false
 }
