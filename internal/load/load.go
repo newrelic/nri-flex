@@ -64,6 +64,9 @@ var StartTime int64
 // Integration Infrastructure SDK Integration
 var Integration *integration.Integration
 
+// IgnoredIntegrationData this is used for lookups with ignored output
+var IgnoredIntegrationData []map[string]interface{}
+
 // Entity Infrastructure SDK Entity
 var Entity *integration.Entity
 
@@ -281,6 +284,7 @@ type API struct {
 	DisableParentAttr bool              `yaml:"disable_parent_attr"`
 	StartKey          []string          `yaml:"start_key"` // start from a different section of the payload
 	StoreLookups      map[string]string `yaml:"store_lookups"`
+	DedupeLookups     []string          `yaml:"dedupe_lookups"`
 	StoreVariables    map[string]string `yaml:"store_variables"`
 	LazyFlatten       []string          `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string `yaml:"sample_keys"`

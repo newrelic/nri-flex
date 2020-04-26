@@ -116,6 +116,8 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 		// useful when requests are made to generate a lookup, but the data is not needed
 		if api.IgnoreOutput {
 			createSample = false
+			currentSample["event_type"] = eventType
+			load.IgnoredIntegrationData = append(load.IgnoredIntegrationData, currentSample)
 		} else {
 			// check if this contains any key pair values to filter out
 			excludeSample := true
