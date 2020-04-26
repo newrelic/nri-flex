@@ -256,7 +256,7 @@ func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combin
 // automaticLookup check existing samples to create lookups
 func automaticLookup(tmpCfgStr string, cfg *load.Config, apiNo int) []string {
 	var newAPIs []string
-	lookupsFound := regexp.MustCompile(`\${lookup\.(\S+):(\S+)}`).FindAllStringSubmatch(tmpCfgStr, -1)
+	lookupsFound := regexp.MustCompile(`\${lookup\.(.+):(.+)}`).FindAllStringSubmatch(tmpCfgStr, -1)
 	// if no lookups, do not continue running the processor
 	if len(lookupsFound) == 0 {
 		return []string{}
