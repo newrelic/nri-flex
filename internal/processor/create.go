@@ -6,17 +6,18 @@
 package processor
 
 import (
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"regexp"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 const regex = "regex"
@@ -83,25 +84,31 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 				delete(currentSample, k)
 			}
 
-			// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
-			// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
-			if !api.RunAsync {
-				StoreLookups(api.StoreLookups, &key, &config.LookupStore, &v)        // store lookups
-				VariableLookups(api.StoreVariables, &key, &config.VariableStore, &v) // store variable
-			}
-			// else {
-			// 	load.Logrus.WithFields(logrus.Fields{
-			// 		"API name":  api.Name,
-			// 		"run_async": api.RunAsync,
-			// 		"key":       key,
-			// 	}).Debug("create: skipping StoreLookups VariableLookups due to run_async is true: ")
-
-			// }
-
 			// if keepkeys used will do inverse
 			RunKeepKeys(api.KeepKeys, &key, &currentSample)
 			RunSampleRenamer(api.RenameSamples, &currentSample, key, &eventType)
 		}
+
+		// addAttribute is kept outside the first currentSample loop intentionally
+		// if an attribute is added to the currentSample while in the loop it will restart the loop
+		addAttribute(currentSample, api.AddAttribute)
+
+		// lookups should be performed after addAttribute to ensure anything constructed is available for lookup creation
+		// if run_async is set to true for the API, we will skip StoreLookups and VariableLookups processing due to potential concurrent map write operation
+		// we will address this in the future. However, for run_async=true usecase, we do not expect these two functions to be used.
+		if !api.RunAsync {
+			for k, v := range currentSample {
+				StoreLookups(api.StoreLookups, &config.LookupStore, k, v)        // store lookups
+				VariableLookups(api.StoreVariables, &config.VariableStore, k, v) // store variable
+			}
+		}
+		// else {
+		// 	load.Logrus.WithFields(logrus.Fields{
+		// 		"API name":  api.Name,
+		// 		"run_async": api.RunAsync,
+		// 		"key":       key,
+		// 	}).Debug("create: skipping StoreLookups VariableLookups due to run_async is true: ")
+		// }
 
 		createSample := false
 		runSampleFilterExperimental := true
@@ -143,8 +150,6 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			if config.Global.BaseURL != "" {
 				currentSample["baseUrl"] = config.Global.BaseURL
 			}
-
-			addAttribute(currentSample, api.AddAttribute)
 
 			// remove keys from sample
 			// this should be kept last
