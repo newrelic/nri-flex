@@ -4,65 +4,65 @@ Flex functions can be combined in different ways to help you manipulate and tidy
 
 For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](apis/README.md).
 
-- [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
-  - [Function precedence order](#function-precedence-order)
-  - [Flex supported functions](#flex-supported-functions)
-    - [add_attribute](#addattribute)
-    - [convert_space](#convertspace)
-    - [ignore_output](#ignoreoutput)
-    - [keep_keys](#keepkeys)
-    - [lazy_flatten](#lazyflatten)
-    - [lookup_file](#lookupfile)
-    - [math](#math)
-    - [perc_to_decimal](#perctodecimal)
-    - [remove_keys](#removekeys)
-    - [rename_keys / replace_keys](#renamekeys--replacekeys)
-    - [sample_filter](#samplefilter)
-    - [sample_include_filter](#sampleincludefilter)
-    - [sample_exclude_filter](#sampleexcludefilter)
-    - [snake_to_camel](#snaketocamel)
-    - [split_array (leaf_array)](#splitarray-leafarray)
-    - [split_objects](#splitobjects)
-    - [start_key](#startkey)
-    - [store_lookups](#storelookups)
-    - [strip_keys](#stripkeys)
-    - [timestamp](#timestamp)
-    - [to_lower](#tolower)
-    - [value_parser](#valueparser)
-    - [value_transformer](#valuetransformer)
+-   [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
+    -   [Function precedence order](#function-precedence-order)
+    -   [Flex supported functions](#flex-supported-functions)
+        -   [add_attribute](#addattribute)
+        -   [convert_space](#convertspace)
+        -   [ignore_output](#ignoreoutput)
+        -   [keep_keys](#keepkeys)
+        -   [lazy_flatten](#lazyflatten)
+        -   [lookup_file](#lookupfile)
+        -   [math](#math)
+        -   [perc_to_decimal](#perctodecimal)
+        -   [remove_keys](#removekeys)
+        -   [rename_keys / replace_keys](#renamekeys--replacekeys)
+        -   [sample_filter](#samplefilter)
+        -   [sample_include_filter](#sampleincludefilter)
+        -   [sample_exclude_filter](#sampleexcludefilter)
+        -   [snake_to_camel](#snaketocamel)
+        -   [split_array (leaf_array)](#splitarray-leafarray)
+        -   [split_objects](#splitobjects)
+        -   [start_key](#startkey)
+        -   [lookups](#lookups)
+        -   [dedupe_lookups](#dedupe_lookups)
+        -   [store_lookups](#storelookups)
+        -   [strip_keys](#stripkeys)
+        -   [timestamp](#timestamp)
+        -   [to_lower](#tolower)
+        -   [value_parser](#valueparser)
+        -   [value_transformer](#valuetransformer)
 
 ## Function precedence order
 
 Flex applies data parsing and transformation functions in a specific order, regardless of where in the configuration files you declare them. Keep the functions precedence order in mind to avoid unexpected or empty results.
 
-
-
-- [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
-  - [Function precedence order](#function-precedence-order)
-  - [Flex supported functions](#flex-supported-functions)
-    - [add_attribute](#addattribute)
-    - [convert_space](#convertspace)
-    - [ignore_output](#ignoreoutput)
-    - [keep_keys](#keepkeys)
-    - [lazy_flatten](#lazyflatten)
-    - [lookup_file](#lookupfile)
-    - [math](#math)
-    - [perc_to_decimal](#perctodecimal)
-    - [remove_keys](#removekeys)
-    - [rename_keys / replace_keys](#renamekeys--replacekeys)
-    - [sample_filter](#samplefilter)
-    - [sample_include_filter](#sampleincludefilter)
-    - [sample_exclude_filter](#sampleexcludefilter)
-    - [snake_to_camel](#snaketocamel)
-    - [split_array (leaf_array)](#splitarray-leafarray)
-    - [split_objects](#splitobjects)
-    - [start_key](#startkey)
-    - [store_lookups](#storelookups)
-    - [strip_keys](#stripkeys)
-    - [timestamp](#timestamp)
-    - [to_lower](#tolower)
-    - [value_parser](#valueparser)
-    - [value_transformer](#valuetransformer)
+-   [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
+    -   [Function precedence order](#function-precedence-order)
+    -   [Flex supported functions](#flex-supported-functions)
+        -   [add_attribute](#addattribute)
+        -   [convert_space](#convertspace)
+        -   [ignore_output](#ignoreoutput)
+        -   [keep_keys](#keepkeys)
+        -   [lazy_flatten](#lazyflatten)
+        -   [lookup_file](#lookupfile)
+        -   [math](#math)
+        -   [perc_to_decimal](#perctodecimal)
+        -   [remove_keys](#removekeys)
+        -   [rename_keys / replace_keys](#renamekeys--replacekeys)
+        -   [sample_filter](#samplefilter)
+        -   [sample_include_filter](#sampleincludefilter)
+        -   [sample_exclude_filter](#sampleexcludefilter)
+        -   [snake_to_camel](#snaketocamel)
+        -   [split_array (leaf_array)](#splitarray-leafarray)
+        -   [split_objects](#splitobjects)
+        -   [start_key](#startkey)
+        -   [store_lookups](#storelookups)
+        -   [strip_keys](#stripkeys)
+        -   [timestamp](#timestamp)
+        -   [to_lower](#tolower)
+        -   [value_parser](#valueparser)
+        -   [value_transformer](#valuetransformer)
 
 > \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
@@ -123,7 +123,6 @@ Which would return the following:
 ```
 
 ### convert_space
-
 
 Replaces spaces in key names with other characters.
 
@@ -269,6 +268,7 @@ Consider a service that returns the following json payload:
     ]
 }
 ```
+
 Flex flattens the structure and creates two samples if not asked to perform any transformation.
 
 For example, using the following configuration:
@@ -351,11 +351,11 @@ The same configuration gives the following Which would return the following:
 
 ### lookup_file
 
-Dynamically inject values into configurations using a JSON file containing an array of objects.
+Dynamically injects values into configurations using a JSON file which contains an array of objects.
 
 **Example**
 
-Uses a lookup file to dynamically generate separate configuration files for each object within the array, and substitutes the variables in the configuration using the expression `${lf:var-name}`.
+In this example we'll use a lookup file to dynamically generate separate configuration files for each object within the array, and substitute the variables in the configuration using the expression `${lf:var-name}`.
 
 Consider a file with the following content:
 
@@ -569,10 +569,10 @@ Which would return something similar to the following:
   "name": "node3"
 }]
 ```
+
 Be aware that the value of `remove_keys` matches at any level, meaning that it could remove complete objects if any part of the name matches the regular expression.
 
 ### rename_keys / replace_keys
-
 
 Uses a regex to find and rename keys |
 
@@ -595,6 +595,7 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
+
 You could rename the key `id` to `identifier`, and `name` to `nodeName`:
 
 ```yaml
@@ -625,7 +626,7 @@ Which would return the following:
 ### sample_filter
 
 Skips creating the sample if both a key and value is found in the sample |
-|            | if `sample_exclude_filter` is present, both filters will be applied.     |
+| | if `sample_exclude_filter` is present, both filters will be applied. |
 
 **Example**
 
@@ -646,6 +647,7 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
+
 You could completely skip creating the output sample:
 
 ```yaml
@@ -784,6 +786,7 @@ Consider a service that returns the following payload:
     "name": "node3"
 }
 ```
+
 You could convert `leader_info` and `start_time` to camelCase for increased consistency:
 
 ```yaml
@@ -894,24 +897,17 @@ Which would return the something like following:
 **Example 2 (split_array and leaf_array)**
 
 Consider a service that returns the following payload:
+
 ```json
 {
     "concurrent_plays": {
-        "timestamps": [
-            1585662957000,
-            1585662958000,
-            1585662959000
-        ],
+        "timestamps": [1585662957000, 1585662958000, 1585662959000],
         "meta": {
             "status": 0
         },
         "type": "time_series",
         "filters": {
-            "AccountA": [
-                200,
-                190,
-                180
-            ]
+            "AccountA": [200, 190, 180]
         }
     }
 }
@@ -922,30 +918,30 @@ You could split the leaf nodes within `timestamps` and `filters` branches into s
 ```yaml
 name: leafArrayExample
 apis:
-  - name: getTimetamps
-    url: http://127.0.0.1:8887/concurrent_plays.json
-    split_array: true
-    leaf_array: true
-    set_header:  [Timestamp]
-    start_key:
-      - concurrent_plays
-      - timestamps
-    merge: myMetricsSample
-    join_key: index
-  - name: getValues
-    url: http://127.0.0.1:8887/concurrent_plays.json
-    split_array: true
-    leaf_array: true
-    set_header:  [Value]
-    start_key:
-      - concurrent_plays
-      - filters
-    custom_attributes:
-      accountid: "AccountA"
-    merge: myMetricsSample
-    join_key: index
-
+    - name: getTimetamps
+      url: http://127.0.0.1:8887/concurrent_plays.json
+      split_array: true
+      leaf_array: true
+      set_header: [Timestamp]
+      start_key:
+          - concurrent_plays
+          - timestamps
+      merge: myMetricsSample
+      join_key: index
+    - name: getValues
+      url: http://127.0.0.1:8887/concurrent_plays.json
+      split_array: true
+      leaf_array: true
+      set_header: [Value]
+      start_key:
+          - concurrent_plays
+          - filters
+      custom_attributes:
+          accountid: 'AccountA'
+      merge: myMetricsSample
+      join_key: index
 ```
+
 Which would return the following:
 
 ```json
@@ -1144,6 +1140,97 @@ Which would return something similar to
   "hij": 234
 }
 ```
+
+### lookups
+
+Reuse any existing data for a subsequent lookup.
+
+**Example**
+
+Consider a service that returns the following payload.
+
+`http://some-service.com/posts`
+
+```json
+[
+    {
+        "postId": 1,
+        "postName": "My great post",
+        "userId": 10
+    },
+    {
+        "postId": 2,
+        "postName": "Sydney Attractions",
+        "userId": 6
+    },
+    {
+        "postId": 3,
+        "postName": "Barcelona Stores",
+        "userId": 7
+    }
+]
+```
+
+We could do a subsequent lookup of the users with `${lookup.<EventType>:<Attribute>}` eg. \${lookup.postSample:userId} .
+
+Given the name of your api is `post` the event type created would be `postSample`, if you manually defined your own event type eg. `event_type: myEventSample` use that instead.
+
+Access to all attributes with the samples are readily available.
+
+```yaml
+name: example
+apis:
+    - name: post
+      url: http://some-service.com/posts
+    - name: user
+      url: http://some-other-service.com/users/${lookup.postSample:userId}
+```
+
+### dedupe_lookups
+
+When using [lookups](#lookups) sometimes multiple unique identifiers are returned, and then unncessarily called further times. Dedupe lookups allows you to avoid this if not required.
+
+**Example**
+
+Consider a service that returns the following payload.
+
+`http://some-service.com/posts`
+
+```json
+[
+    {
+        "postId": 1,
+        "postName": "My great post",
+        "userId": 10
+    },
+    {
+        "postId": 2,
+        "postName": "Another great post",
+        "userId": 10
+    }
+]
+```
+
+The data returned contains 2 posts by the same userId.
+
+If we do a subsequent lookup with `${lookup.postSample:userId}` to this url for example `http://some-other-service.com/users/${lookup.postSample:userId}`
+
+The same route would be called twice.
+
+To dedupe the lookup and avoid this, refer to the following example.
+
+```yaml
+name: example
+apis:
+    - name: post
+      url: http://some-service.com/posts
+    - name: user
+      url: http://some-other-service.com/users/${lookup.postSample:userId}
+      dedupe_lookups:
+          - userId
+```
+
+Only one call for `userId: 10` will be made.
 
 ### store_lookups
 
