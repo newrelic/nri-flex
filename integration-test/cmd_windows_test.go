@@ -3,46 +3,45 @@
 package integration
 
 import (
-	"encoding/json"
+	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/newrelic/nri-flex/integration-test/integration"
+	"github.com/newrelic/infra-integrations-sdk/integration"
 
-	"github.com/newrelic/nri-flex/integration-test/gofile"
+	//"github.com/newrelic/nri-flex/integration-test/integration"
+	"github.com/newrelic/nri-flex/internal/config"
+	"github.com/newrelic/nri-flex/internal/load"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var flexMain = filepath.Join("..", "cmd", "nri-flex", "nri-flex.go")
 
 func Test_WindowsCommands_ReturnsData(t *testing.T) {
+	// given
+	load.Refresh()
 
-	configFilePath := filepath.Join("configs", "windows-cmd-test.yml")
-	flexMainPath, _ := filepath.Abs(flexMain)
+	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
+	load.Entity, _ = i.Entity("IntegrationTest", "nri-flex")
 
-	// WHEN executing nri flex with the provided configuration
-	stdout, err := gofile.Run(flexMainPath, "-verbose", "-config_path="+configFilePath)
+	// Load a single config file
+	var configs []load.Config
+	configFile, _ := os.Stat(filepath.Join("configs", "windows-cmd-test.yml"))
+	err := config.LoadFile(&configs, configFile, "configs")
 	require.NoError(t, err)
-	payload := integration.JSON{}
-	require.NoError(t, json.Unmarshal(stdout, &payload))
 
-	// THEN samples are received with the metrics properly extracted
-	require.NotEmpty(t, payload.Data)
-	found := false
-	for _, data := range payload.Data {
-		if data.Entity == nil {
-			continue
-		}
-		found = true
-		require.Len(t, data.Metrics, 1)
-		m := data.Metrics[0]
-		require.Equal(t, "windowsServiceListSample", m["event_type"])
-		require.Equal(t, "com.newrelic.nri-flex", m["integration_name"])
-		require.Contains(t, m, "integration_version")
-		require.Contains(t, m, "status")
-		require.Contains(t, m, "name")
-		require.Contains(t, m, "displayname")
+	// when
+	errs := config.RunFiles(&configs)
+	require.Empty(t, errs)
+
+	metricsSet := load.Entity.Metrics
+	assert.NotEmpty(t, metricsSet)
+
+	for _, ms := range metricsSet {
+		require.Contains(t, ms.Metrics, "status")
+		require.Contains(t, ms.Metrics, "name")
+		require.Contains(t, ms.Metrics, "displayname")
 	}
-	require.Truef(t, found, "did not find any result in the integration %s", string(stdout))
 }
