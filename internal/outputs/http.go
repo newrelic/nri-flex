@@ -9,6 +9,8 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
+	"github.com/pkg/errors"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -28,7 +30,8 @@ func postRequest(url string, key string, data []byte) error {
 		return fmt.Errorf("http: failed to close zlib writer, %v", err)
 	}
 
-	load.Logrus.Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
+	load.Logrus.
+		Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second, Proxy: http.ProxyFromEnvironment}
 	client := &http.Client{Transport: tr}
@@ -44,14 +47,16 @@ func postRequest(url string, key string, data []byte) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to send")
+		return errors.Wrap(err, "http: failed to send")
 	}
-	if resp == nil {
-		return fmt.Errorf("http: response nil")
-	}
-	defer resp.Body.Close()
+
+	defer func() {
+		_, _ = ioutil.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
-		err = fmt.Errorf("http: post failed, status code: %d", resp.StatusCode)
+		return fmt.Errorf("http: post failed, status code: %d", resp.StatusCode)
 	}
 	return err
 }
