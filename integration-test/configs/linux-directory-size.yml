@@ -3,7 +3,7 @@ name: linuxDirectorySize
 apis:
   - name: linuxDirectorySize
     commands:
-      - run: du -c $$DIR
+      - run: du -c $$TMP_TEST_DIR
         split: horizontal
         set_header: [dirSizeBytes,dirName]
         regex_match: true

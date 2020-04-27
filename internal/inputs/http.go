@@ -72,7 +72,6 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 			}
 
 			contentType := resp.Header.Get("Content-Type")
-			responseError := ""
 
 			load.Logrus.Debugf("URL: %v Status: %v Code: %d", *reqURL, resp.Status, resp.StatusCode)
 
@@ -149,12 +148,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				}
 			}
 
-			if responseError == "" {
-				if nextLink != "" {
-					*reqURL = nextLink
-				} else {
-					*doLoop = false
-				}
+			if nextLink != "" {
+				*reqURL = nextLink
+			} else {
+				*doLoop = false
 			}
 
 		} else {

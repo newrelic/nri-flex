@@ -2,6 +2,8 @@
 # Makefile Fragment for Compiling
 #
 
+LDFLAGS ?= -s -w
+
 compile: deps compile-only
 compile-all: compile-linux compile-darwin compile-windows
 build-all: compile-linux compile-darwin compile-windows
@@ -14,6 +16,13 @@ compile-only: deps-only
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
 		$(GO_CMD) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
+
+.PHONY: fmt
+fmt:
+	@($(GO_CMD) fmt ./...)
+
+bin/nri-flex:
+	@($(GO_CMD) build -ldflags="$(LDFLAGS)" -trimpath -o ./bin/nri-flex ./cmd/nri-flex/)
 
 build-linux: compile-linux
 compile-linux: deps-only

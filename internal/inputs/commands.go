@@ -23,9 +23,7 @@ func makeTimestamp() int64 {
 }
 
 func checkOS(os string) bool {
-	if os == "" {
-		return true
-	} else if runtime.GOOS == os {
+	if os == "" || runtime.GOOS == os {
 		return true
 	}
 	return false
@@ -46,74 +44,13 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	processType := ""
 	for _, command := range api.Commands {
 		if command.Run != "" && command.Dial == "" && checkOS(command.OS) {
-			runCommand := command.Run
-			if command.Output == load.Jmx {
-				SetJMXCommand(dataStore, &runCommand, command, api, yml)
-			}
-			commandTimeout := load.DefaultTimeout
-			if api.Timeout > 0 {
-				commandTimeout = time.Duration(api.Timeout) * time.Millisecond
-			}
-			if command.Timeout > 0 {
-				commandTimeout = time.Duration(command.Timeout) * time.Millisecond
-			}
-
-			// Create a new context and add a timeout to it
-			ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
-			defer cancel() // The cancel should be deferred so resources are cleaned up
-
-			secondParameter := "-c"
-
-			// windows commands are untested currently
-			if runtime.GOOS == "windows" {
-				commandShell = "cmd"
-				secondParameter = "/C"
-			}
-
-			if api.Shell != "" {
-				commandShell = api.Shell
-			}
-			if command.Shell != "" {
-				commandShell = command.Shell
-			}
-
-			// Create the command with our context
-			cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
-			output, err := cmd.CombinedOutput()
-
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"exec":       command.Run,
-					"err":        err,
-					"suggestion": "if you are handling this error case, ignore",
-				}).Debug("command: failed")
-			}
-
-			if ctx.Err() == context.DeadlineExceeded {
-				load.Logrus.WithFields(logrus.Fields{
-					"exec": command.Run,
-					"err":  ctx.Err(),
-				}).Debug("command: timed out")
-			} else if ctx.Err() != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"exec": command.Run,
-					"err":  ctx.Err(),
-				}).Debug("command: execution failed")
-			} else if len(output) > 0 {
-				if command.SplitOutput != "" {
-					splitOutput(dataStore, string(output), command, startTime)
-				} else {
-					processOutput(dataStore, string(output), &dataSample, command, api, &processType)
-				}
-			}
-
+			commandRun(dataStore, yml, command, api, commandShell, startTime, dataSample, processType)
 		} else if command.Cache != "" {
 			if yml.Datastore[command.Cache] != nil {
 				for _, cache := range yml.Datastore[command.Cache] {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
-
 							load.Logrus.WithFields(logrus.Fields{
 								"cache": command.Cache,
 							}).Debug("command: processing http cache with command processor")
@@ -146,9 +83,86 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}
 }
 
+func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, commandShell string, startTime int64, dataSample map[string]interface{}, processType string) {
+	runCommand := command.Run
+	if command.Output == load.Jmx {
+		SetJMXCommand(&runCommand, command, api, yml)
+	}
+	commandTimeout := load.DefaultTimeout
+	if api.Timeout > 0 {
+		commandTimeout = time.Duration(api.Timeout) * time.Millisecond
+	}
+	if command.Timeout > 0 {
+		commandTimeout = time.Duration(command.Timeout) * time.Millisecond
+	}
+
+	// Create a new context and add a timeout to it
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel() // The cancel should be deferred so resources are cleaned up
+
+	secondParameter := "-c"
+
+	// windows commands are untested currently
+	if runtime.GOOS == "windows" {
+		commandShell = "cmd"
+		secondParameter = "/C"
+	}
+
+	if api.Shell != "" {
+		commandShell = api.Shell
+	}
+	if command.Shell != "" {
+		commandShell = command.Shell
+	}
+
+	// Create the command with our context
+	cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"exec":       command.Run,
+			"err":        err,
+			"suggestion": "if you are handling this error case, ignore",
+		}).Debug("command: failed")
+		errorSample := map[string]interface{}{
+			"error":      err,
+			"error_msg":  string(output),
+			"error_exec": command.Run,
+		}
+		*dataStore = append(*dataStore, errorSample)
+		return
+	}
+
+	err = ctx.Err()
+	if err != nil {
+		if err == context.DeadlineExceeded {
+			load.Logrus.WithFields(logrus.Fields{
+				"exec": command.Run,
+				"err":  err,
+			}).Debug("command: timed out")
+		} else {
+			load.Logrus.WithFields(logrus.Fields{
+				"exec": command.Run,
+				"err":  err,
+			}).Debug("command: execution failed")
+		}
+		errorSample := map[string]interface{}{
+			"error": err,
+		}
+		*dataStore = append(*dataStore, errorSample)
+	} else if len(output) > 0 {
+		if command.SplitOutput != "" {
+			splitOutput(dataStore, string(output), command, startTime)
+		} else {
+			processOutput(dataStore, string(output), &dataSample, command, api, &processType)
+		}
+	}
+}
+
 func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
 	lines := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
-	outputBlocks := [][]string{}
+	var outputBlocks [][]string
 	startSplit := -1 // initialize
 	endSplit := 0
 
