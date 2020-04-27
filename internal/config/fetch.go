@@ -283,11 +283,6 @@ func automaticLookup(tmpCfgStr string, cfg *load.Config, apiNo int) []string {
 			}
 		}
 
-		// do not reprocess an already completed event_type as they are full replaces
-		if sliceContains(eventTypesCompleted, eventType) {
-			continue
-		}
-
 		// checked ignored data
 		for _, sample := range load.IgnoredIntegrationData {
 			if sample["event_type"] == eventType { // if the event matches create a new sample
