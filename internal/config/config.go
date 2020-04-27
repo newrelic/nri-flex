@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"sync"
@@ -18,16 +19,15 @@ import (
 	"github.com/newrelic/nri-flex/internal/processor"
 	"github.com/sirupsen/logrus"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // LoadFiles Loads Flex config files
-func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error {
+func LoadFiles(configs *[]load.Config, files []os.FileInfo, filePath string) []error {
 	var errors []error
 	for _, f := range files {
-		filePath := path + f.Name()
 		if f.IsDir() {
-			recurseDirectory(filePath, configs)
+			recurseDirectory(path.Join(filePath, f.Name()), configs)
 			continue
 		}
 		// ignoring non-yaml files
@@ -36,7 +36,7 @@ func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error
 		}
 
 		// since we're reading many files, continue if one of more fails
-		err := LoadFile(configs, f, path)
+		err := LoadFile(configs, f, filePath)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -88,8 +88,8 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 }
 
 // LoadFile loads a single Flex config file
-func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
-	filePath := path + f.Name()
+func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
+	filePath := path.Join(dirPath, f.Name())
 
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -106,7 +106,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 
 	// Check if V4 Agent configuration
 	if strings.HasPrefix(ymlStr, "integrations:") {
-		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), path)
+		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"file": filePath,
@@ -123,7 +123,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error {
 		}
 
 		config.FileName = f.Name()
-		config.FilePath = path
+		config.FilePath = dirPath
 		if config.Name == "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"file": filePath,
@@ -159,15 +159,14 @@ func recurseDirectory(filePath string, configs *[]load.Config) {
 		"path": filePath,
 	}).Debug("config: checking nested configs")
 
-	nextPath := filePath + "/"
-	files, err := ioutil.ReadDir(nextPath)
+	files, err := ioutil.ReadDir(filePath)
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
-			"path": nextPath,
+			"path": filePath,
 		}).WithError(err).Debug("config: failed to read")
 		return
 	}
-	LoadFiles(configs, files, nextPath)
+	LoadFiles(configs, files, filePath)
 }
 
 func checkIngestConfigs(config *load.Config) {

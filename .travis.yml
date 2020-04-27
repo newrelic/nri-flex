@@ -10,11 +10,11 @@ services:
 script: make clean build-ci
 
 deploy:
-  - provider: script
-    cleanup: false
-    script: make release
-    on:
-      tags: true
+ - provider: script
+   cleanup: false
+   script: make release
+   on:
+     tags: true
 
 env:
   global:

@@ -17,3 +17,5 @@ LATEST
 .vendor-new*
 .idea
 dist
+.vscode
+.envrc
