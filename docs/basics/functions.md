@@ -351,11 +351,11 @@ The same configuration gives the following Which would return the following:
 
 ### lookup_file
 
-Dynamically inject values into configurations using a JSON file containing an array of objects.
+Dynamically injects values into configurations using a JSON file which contains an array of objects.
 
 **Example**
 
-Uses a lookup file to dynamically generate separate configuration files for each object within the array, and substitutes the variables in the configuration using the expression `${lf:var-name}`.
+In this example we'll use a lookup file to dynamically generate separate configuration files for each object within the array, and substitute the variables in the configuration using the expression `${lf:var-name}`.
 
 Consider a file with the following content:
 
