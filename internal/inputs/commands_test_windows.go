@@ -53,7 +53,7 @@ func getDf2Apis() []load.API {
 					Run:              "type ..\\..\\test\\payloads\\df.out",
 					Split:            "horizontal",
 					RegexMatch:       true,
-					SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\W*)`,
+					SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+([[:graph:]]+)`,
 					HeaderRegexMatch: false,
 					HeaderSplitBy:    `\s{1,}`,
 				},
