@@ -39,7 +39,6 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		"count": len(api.Commands),
 	}).Debug("commands: executing")
 
-	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
 	processType := ""
 	for _, command := range api.Commands {
@@ -411,4 +410,31 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 
 	// default raw
 	return "raw", nil
+}
+
+// in *nix, the command will be run with "/bin/sh"
+// in windows it will be run under "cmd". some windowss set powershell as the default
+// to override the defaults, set the shell to run either at the API level or command level.
+// for *unix append the "-c", for windows "/c" unless we override the shell. in that case flags should be provided
+func getCommandShell(api load.API, command load.Command) (string, string) {
+	commandShell := load.DefaultShell
+	secondParameter := "-c"
+
+	if runtime.GOOS == "windows" {
+		//commandShell = "cmd"
+		//secondParameter = "/C"
+		//if api.Shell != "" || command.Shell != "" {
+		commandShell = ""
+		secondParameter = ""
+		//}
+	}
+
+	if api.Shell != "" {
+		commandShell = api.Shell
+	}
+	if command.Shell != "" {
+		commandShell = command.Shell
+	}
+
+	return commandShell, secondParameter
 }
