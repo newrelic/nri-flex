@@ -24,6 +24,8 @@ server accepts handled requests
 Reading: 0 Writing: 5 Waiting: 38
 `))
 	})
+	mux.HandleFunc("/json", serveJSON)
+
 	cfg := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -44,4 +46,17 @@ Reading: 0 Writing: 5 Waiting: 38
 	if err := srv.ListenAndServeTLS(collectorCertFile, collectorKeyFile); err != nil {
 		logrus.WithError(err).Error("Running fake https server")
 	}
+}
+
+func serveJSON(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Add("Content-type", "application/json")
+	rw.Write([]byte(`
+	{
+		metrics: [
+			"cpu": 10.0,
+			"memory": 3500,
+			"disk": 500
+		]
+	}
+	`))
 }
