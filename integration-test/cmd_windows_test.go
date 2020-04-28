@@ -13,7 +13,6 @@ import (
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/load"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,11 +36,22 @@ func Test_WindowsCommands_ReturnsData(t *testing.T) {
 	require.Empty(t, errs)
 
 	metricsSet := load.Entity.Metrics
-	assert.NotEmpty(t, metricsSet)
+	require.NotEmpty(t, metricsSet)
 
 	for _, ms := range metricsSet {
-		require.Contains(t, ms.Metrics, "status")
-		require.Contains(t, ms.Metrics, "name")
-		require.Contains(t, ms.Metrics, "displayname")
+		require.NotNil(t, ms.Metrics, "status")
+		require.NotNil(t, ms.Metrics, "name")
+		require.NotNil(t, ms.Metrics, "displayname")
 	}
+
+	// check for a specific service, because Flex ingests everything, even output "garbage"
+	// any Windows should always have the Themes service, so check for that
+	var found bool
+	for _, ms := range metricsSet {
+		if ms.Metrics["name"] == "Themes" {
+			found = true
+		}
+	}
+
+	require.Truef(t, found, "didn't find the 'Themes' service. check that the configuration is correct")
 }
