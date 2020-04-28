@@ -3,9 +3,8 @@ name: windowsServiceList
 apis:
   - name: windowsServiceList
     commands:
-      # shell in windows doesn't work properly. just run powershell direclty.
-      # on a real powershell shell just add the command like
-      - run: powershell  service
+      - run: service
+        shell: powershell
         event_type: WindowsCommand
         split: horizontal
         set_header: [status,name,displayname]

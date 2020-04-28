@@ -406,10 +406,9 @@ func buildCommand(ctx context.Context, api load.API, command load.Command) *exec
 	// not sure we should keep this for other shells
 	secondParameter := "-c"
 
-	// in windows, we ignore the shell config
-	// TODO: find a way to set a different shell, like powershell, instead of having to set in the command?
 	if runtime.GOOS == "windows" {
-		return exec.CommandContext(ctx, "cmd", "/C", command.Run)
+		commandShell = "cmd"
+		secondParameter = "/C"
 	}
 
 	if api.Shell != "" {
