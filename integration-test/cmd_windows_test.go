@@ -7,13 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	//"github.com/newrelic/nri-flex/integration-test/integration"
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/require"
 )
-
-var flexMain = filepath.Join("..", "cmd", "nri-flex", "nri-flex.go")
 
 func Test_WindowsCommands_ReturnsData(t *testing.T) {
 	// Load a single config file
@@ -36,7 +33,7 @@ func Test_WindowsCommands_ReturnsData(t *testing.T) {
 	}
 
 	// check for a specific service, because Flex ingests everything, even output "garbage"
-	// any Windows should always have the Themes service, so check for that
+	// any Windows version should always have the Themes service, so check for that
 	var found bool
 	for _, ms := range metricsSet {
 		if ms.Metrics["name"] == "Themes" {
