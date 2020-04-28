@@ -7,8 +7,8 @@ If you're running services in Kubernetes we recommend you use the official conta
 There are three container images you can use depending on how you plan on using Flex: 
 
 - To run Flex only to monitor services running in Kubernetes, use the [newrelic/infrastructure](https://hub.docker.com/r/newrelic/infrastructure) container image. This image only contains the Infrastructure agent, and the Docker and Flex integrations. You will not be able to perform service discovery or use other New Relic integrations.
-- To run Flex alongside other New Relic integrations, use the [newrelic/infrastructure-bundle](https://hub.docker.com/r/newrelic/infrastructure-bundle) container image. This adds all the other For more information, see [New Relic integrations](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
-- If you also want to monitor your Kubernetes cluster, use the [newrelic/infrastructure-k8s](https://hub.docker.com/r/newrelic/infrastructure-k8s) container image. This image adds all the integrations, including the [Kubernetes integration](https://docs.newrelic.com/docs/integrations/kubernetes-integration/get-started/introduction-kubernetes-integration). 
+- To run Flex alongside other New Relic integrations, use the [newrelic/infrastructure-bundle](https://hub.docker.com/r/newrelic/infrastructure-bundle) container image. This adds all the other New Relic integrations. For more information see [New Relic integrations](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
+- If you also want to monitor your Kubernetes cluster, use the [newrelic/infrastructure-k8s](https://hub.docker.com/r/newrelic/infrastructure-k8s) container image. This image adds all the integrations, including the [Kubernetes integration](https://docs.newrelic.com/docs/integrations/kubernetes-integration/get-started/introduction-kubernetes-integration).
 
 ## Configure Flex in Kubernetes
 
@@ -18,9 +18,12 @@ Configurations can [go embedded](#AddyourFlexconfigurationtointegrations.d) in t
 
 What approach to follow is up to you.
 
-* [Add your Flex configuration to configMap](#AddyourFlexconfigurationtoconfigMap)
-* [Link to a separate configuration file](#Linktoaseparateconfigurationfile)
-* [Add multiple Flex configurations](#Addmultipleflexconfigurations)
+- [Configure Flex in Kubernetes](#configure-flex-in-kubernetes)
+  - [New Relic container images](#new-relic-container-images)
+  - [Configure Flex in Kubernetes](#configure-flex-in-kubernetes-1)
+    - [<a name='AddyourFlexconfigurationtoconfigMap'></a>Add your configuration to `configMap`](#add-your-configuration-to-configmap)
+    - [<a name='Linktoaseparateconfigurationfile'></a>Link to a separate configuration file](#link-to-a-separate-configuration-file)
+    - [<a name='#Addmultipleflexconfigurations'></a>Add multiple Flex configurations](#add-multiple-flex-configurations)
 
 ### <a name='AddyourFlexconfigurationtoconfigMap'></a>Add your configuration to `configMap`
 
