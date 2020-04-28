@@ -7,12 +7,18 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_WindowsCommands_ReturnsData(t *testing.T) {
+	load.Refresh()
+
+	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
+	load.Entity, _ = i.Entity("IntegrationTest", "nri-flex")
+
 	// Load a single config file
 	var configs []load.Config
 	configFile, _ := os.Stat(filepath.Join("configs", "windows-cmd-test.yml"))
