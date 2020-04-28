@@ -6,7 +6,6 @@
 package inputs
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -220,6 +219,6 @@ func TestDf2(t *testing.T) {
 
 	for key, expectedValue := range expected {
 		actualValue := actual[key]
-		assert.Equalf(t, expectedValue, actualValue)
+		assert.Equal(t, expectedValue, actualValue)
 	}
 }
