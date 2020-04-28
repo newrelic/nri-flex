@@ -381,13 +381,3 @@ func runVariableProcessor(cfg *load.Config) error {
 	}
 	return nil
 }
-
-func agentConfigCheck(ymlStr string) bool {
-	lines := strings.Split(strings.TrimSuffix(ymlStr, "\n"), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "integrations:") {
-			return true
-		}
-	}
-	return false
-}
