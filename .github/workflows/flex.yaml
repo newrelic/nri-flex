@@ -31,7 +31,8 @@ jobs:
       - name: run integration tests
         run: |
           make build-ci
-  # we could have included windows above, but we can't becuase we're using "make"
+  # we could have included windows above, but we can't becuase we don't have "make" in windows
+  # we should at some point create a powershell script similar to it
   test-windows:
     strategy:
       matrix:
@@ -46,8 +47,11 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{matrix.go}}
-      - name: run integration tests
+      - name: run unit tests
       # we don't have 'make' on windows. 
-      # if we want to mimic linux tests we'll have to create a powershell/batch script for windows
+        run: |
+          go test ./...
+      - name: run integration tests
+      # we don't have 'make' on windows.
         run: |
           go test --tags=integration ./...
