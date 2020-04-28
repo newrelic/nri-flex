@@ -1,0 +1,12 @@
+name: jsonIntegrationTest
+apis:
+  - name: readEtcdSelfJson
+    file: ../test/payloads/etcdSelf.json
+    remove_keys:
+      - leaderInfo
+  - name: readEtcdSelfLeaderInfo
+    file: ../test/payloads/etcdSelf.json
+    start_key:
+      - leaderInfo
+    rename_keys:
+      startTime: timestamp

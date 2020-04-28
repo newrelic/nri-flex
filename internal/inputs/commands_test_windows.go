@@ -50,10 +50,11 @@ func getDf2Apis() []load.API {
 			Name: "df",
 			Commands: []load.Command{
 				{
-					Run:              "type ..\\..\\test\\payloads\\df.out",
-					Split:            "horizontal",
-					RegexMatch:       true,
-					SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)`,
+					Run:        "type ..\\..\\test\\payloads\\df.out",
+					Split:      "horizontal",
+					RegexMatch: true,
+					// :graph: seems to be required otherwise in windows it's capturing the \r in the last match (mount)
+					SplitBy:          `(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+([[:graph:]]+)`,
 					HeaderRegexMatch: false,
 					HeaderSplitBy:    `\s{1,}`,
 				},

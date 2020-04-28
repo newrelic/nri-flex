@@ -146,7 +146,6 @@ func TestCanRunMultipleCommands(t *testing.T) {
 		if key == "flex.commandTimeMs" {
 			continue
 		}
-
 		actualValue := actual[key]
 		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
@@ -220,6 +219,6 @@ func TestDf2(t *testing.T) {
 
 	for key, expectedValue := range expected {
 		actualValue := actual[key]
-		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
+		assert.Equal(t, expectedValue, actualValue)
 	}
 }

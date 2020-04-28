@@ -105,7 +105,8 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 	SubTimestamps(&ymlStr, time.Now())
 
 	// Check if V4 Agent configuration
-	if load.Args.ConfigFile != "" && agentConfigCheck(ymlStr) {
+	// The agent config check is intended for testing purposes only
+	if strings.Contains(ymlStr, "- name: nri-flex") {
 		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
