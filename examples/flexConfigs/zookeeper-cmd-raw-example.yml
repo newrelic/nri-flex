@@ -1,10 +1,15 @@
-name: zookeeperFlex
-apis: 
-  - name: zookeeper
-    event_type: zkSample
-    commands: 
-      - run: echo mntr | nc localhost 32770 ## change to your zookeeper server
-        split_by: "\t" ## split by tab
-    snake_to_camel: true 
-    custom_attributes:
-      myCustomAttr: theValue ## inject your own additional custom attributes
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: zookeeperFlex
+      apis:
+        - name: zookeeper
+          event_type: zkSample
+          commands:
+            - run: echo mntr | nc localhost 32770 ## change to your zookeeper server
+              split_by: "\t" ## split by tab
+          snake_to_camel: true
+          custom_attributes:
+            myCustomAttr: theValue ## inject your own additional custom attributes

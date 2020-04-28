@@ -1,28 +1,32 @@
 ---
-name: redisFlex
-apis: 
-  - name: redis
-    commands: 
-      - dial: 127.0.0.1:6379
-        run: "info\r\n"
-        split_by: ":"
-    remove_keys: # remove any keys that contain any of the following strings
-      - human
-    snake_to_camel: true 
-    perc_to_decimal: true
-    sub_parse:
-      - type: prefix
-        key: db
-        split_by:
-          - ","
-          - "="
-    metric_parser:
-      metrics:
-        totalNetInputBytes: RATE
-        rate$: RATE
-      namespace: # you can create a namespace with a custom attribute, or chain together existing attributes, else it will default 
-        # custom_attr: "mySpecialRedisServer" 
-        existing_attr:
-          - redisVersion
-          - tcpPort
-      auto_set: true ### switches metric parser to use regex rather then direct match
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: redisFlex
+      apis:
+        - name: redis
+          commands:
+            - dial: 127.0.0.1:6379
+              run: "info\r\n"
+              split_by: ":"
+          remove_keys: # remove any keys that contain any of the following strings
+            - human
+          snake_to_camel: true
+          perc_to_decimal: true
+          sub_parse:
+            - type: prefix
+              key: db
+              split_by:
+                - ","
+                - "="
+          metric_parser:
+            metrics:
+              totalNetInputBytes: RATE
+              rate$: RATE
+            namespace: # you can create a namespace with a custom attribute, or chain together existing attributes, else it will default
+              # custom_attr: "mySpecialRedisServer"
+              existing_attr:
+                - redisVersion
+                - tcpPort
+            auto_set: true ### switches metric parser to use regex rather then direct match
