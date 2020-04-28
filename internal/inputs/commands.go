@@ -39,12 +39,11 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		"count": len(api.Commands),
 	}).Debug("commands: executing")
 
-	commandShell := load.DefaultShell
 	dataSample := map[string]interface{}{}
 	processType := ""
 	for _, command := range api.Commands {
 		if command.Run != "" && command.Dial == "" && checkOS(command.OS) {
-			commandRun(dataStore, yml, command, api, commandShell, startTime, dataSample, processType)
+			commandRun(dataStore, yml, command, api, startTime, dataSample, processType)
 		} else if command.Cache != "" {
 			if yml.Datastore[command.Cache] != nil {
 				for _, cache := range yml.Datastore[command.Cache] {
@@ -83,7 +82,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}
 }
 
-func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, commandShell string, startTime int64, dataSample map[string]interface{}, processType string) {
+func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
 	runCommand := command.Run
 	if command.Output == load.Jmx {
 		SetJMXCommand(&runCommand, command, api, yml)
@@ -100,23 +99,8 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel() // The cancel should be deferred so resources are cleaned up
 
-	secondParameter := "-c"
-
-	// windows commands are untested currently
-	if runtime.GOOS == "windows" {
-		commandShell = "cmd"
-		secondParameter = "/C"
-	}
-
-	if api.Shell != "" {
-		commandShell = api.Shell
-	}
-	if command.Shell != "" {
-		commandShell = command.Shell
-	}
-
 	// Create the command with our context
-	cmd := exec.CommandContext(ctx, commandShell, secondParameter, runCommand)
+	cmd := buildCommand(ctx, api, command)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -411,4 +395,28 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 
 	// default raw
 	return "raw", nil
+}
+
+// in *nix, the command will be run with "/bin/sh"
+// in windows it will be run under "cmd". some windows set powershell as the default
+// to override the defaults, set the shell to run either at the API level or command level.
+// for *unix append the "-c", for windows "/c" unless we override the shell. in that case flags should be provided
+func buildCommand(ctx context.Context, api load.API, command load.Command) *exec.Cmd {
+	commandShell := load.DefaultShell
+	// not sure we should keep this for other shells
+	secondParameter := "-c"
+
+	if runtime.GOOS == "windows" {
+		commandShell = "cmd"
+		secondParameter = "/C"
+	}
+
+	if api.Shell != "" {
+		commandShell = api.Shell
+	}
+	if command.Shell != "" {
+		commandShell = command.Shell
+	}
+
+	return exec.CommandContext(ctx, commandShell, secondParameter, command.Run)
 }
