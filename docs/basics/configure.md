@@ -11,12 +11,12 @@ Configurations can [go embedded](#AddyourFlexconfigurationtointegrations.d) in t
 
 ## <a name='AddyourFlexconfigurationtointegrations.d'></a>Add your configuration to `integrations.d`
 
-Since it comes bundled with the Infrastructure agent, Flex's configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180): 
+Since it comes bundled with the Infrastructure agent, Flex's configuration must be stored as YAML in the same folder as the rest of [on-host integrations](https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180):
 
 * Linux: `/etc/newrelic-infra/integrations.d`
 * Windows: `C:\Program Files\New Relic\newrelic-infra\integrations.d\`
 
-The main section of the integrations config file is used by the Infrastructure agent to execute Flex like any other integration; you can add your Flex configuration under `config`. 
+The main section of the integrations config file is used by the Infrastructure agent to execute Flex like any other integration; you can add your Flex configuration under `config`.
 
 For example, `/etc/newrelic-infra/integrations.d/my-flex-config.yml`  could contain the following:
 
