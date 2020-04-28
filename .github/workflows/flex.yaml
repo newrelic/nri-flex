@@ -1,7 +1,7 @@
 name: Run tests
 
 on: [push, pull_request]
-# if we want to limit builds on chanes to code only
+# if we want to limit builds on changes to code only
   # pull_request:
     # paths:
     #   - "**/*.go"
