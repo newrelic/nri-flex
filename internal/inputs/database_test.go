@@ -44,7 +44,7 @@ func TestDrivers(t *testing.T) {
 }
 
 func TestDatabase(t *testing.T) {
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
 		t.Skip("Darwin not supported yet")
 	}
 
