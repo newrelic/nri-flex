@@ -105,7 +105,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 	SubTimestamps(&ymlStr, time.Now())
 
 	// Check if V4 Agent configuration
-	if strings.HasPrefix(ymlStr, "integrations:") {
+	if load.Args.ConfigFile != "" && agentConfigCheck(ymlStr) {
 		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
@@ -379,4 +379,14 @@ func runVariableProcessor(cfg *load.Config) error {
 		*cfg = newCfg
 	}
 	return nil
+}
+
+func agentConfigCheck(ymlStr string) bool {
+	lines := strings.Split(strings.TrimSuffix(ymlStr, "\n"), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "integrations:") {
+			return true
+		}
+	}
+	return false
 }
