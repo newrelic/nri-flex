@@ -1,0 +1,13 @@
+# Used to get list of windows services
+name: windowsServiceList
+apis:
+  - name: windowsServiceList
+    commands:
+      - run: service
+        shell: powershell
+        event_type: WindowsCommand
+        split: horizontal
+        set_header: [status,name,displayname]
+        row_start: 1
+        regex_match: true
+        split_by: (\w+)\s+(\w+)\s+(\w+)
