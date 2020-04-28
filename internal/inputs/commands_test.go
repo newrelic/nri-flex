@@ -218,9 +218,8 @@ func TestDf2(t *testing.T) {
 	expected := dataStoreExpected[0].(map[string]interface{})
 	actual := dataStore[0].(map[string]interface{})
 
-	fmt.Println(fmt.Sprintf("%v", actual))
 	for key, expectedValue := range expected {
 		actualValue := actual[key]
-		assert.Equal(t, expectedValue, actualValue)
+		assert.Equalf(t, expectedValue, actualValue)
 	}
 }
