@@ -87,7 +87,7 @@ func checkOutput(t *testing.T, metrics []*metric.Set, expectedCount int) {
 			continue
 		}
 		require.Equal(t, "WindowsHttpSample", ms.Metrics["event_type"])
-		require.Equal(t, 10.0, ms.Metrics["cpu"], "cpu")
+		require.Equal(t, 101.0, ms.Metrics["cpu"], "cpu")
 		require.Equal(t, float64(3500), ms.Metrics["memory"], "memory")
 		require.Equal(t, float64(500), ms.Metrics["disk"], "disk")
 		actualCount++
@@ -97,7 +97,8 @@ func checkOutput(t *testing.T, metrics []*metric.Set, expectedCount int) {
 }
 
 func startServer(server string) {
-	_, err := gofile.Run(filepath.Join("https-server", server, "server.go"))
+	serverFile, _ := filepath.Abs(filepath.Join("https-server", server, "server.go"))
+	_, err := gofile.Run(serverFile)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -4,15 +4,18 @@ import (
 	"crypto/tls"
 	"net/http"
 	"path/filepath"
+	"runtime"
 
 	"github.com/sirupsen/logrus"
 )
 
-const collectorCertFile = "cabundle/cert.pem"
-const collectorKeyFile = "cabundle/key.pem"
+const collectorCertFile = "./cabundle/cert.pem"
+const collectorKeyFile = "./cabundle/key.pem"
 
 func main() {
-	logrus.Info("Running fake HTTPS server...")
+	//wd, _ := os.Getwd()
+	_, file, _, _ := runtime.Caller(0)
+	logrus.Info("Running fake HTTPS server: " + file)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/nginx_status", func(w http.ResponseWriter, req *http.Request) {
