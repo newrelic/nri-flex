@@ -1,6 +1,6 @@
 # `file`
 
-The `file` API allows you to retrieve information from any `json` or `csv` file.
+The `file` API lets you retrieve information from any `JSON` or `CSV` file.
 
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
@@ -15,8 +15,8 @@ apis:
     file: /tmp/payload.json
 ```
 
-`file` accepts a path to a json or csv file. If the file does not have an extension, it will be processed as a json. 
-To process cvs files, the `.cvs` extension is required.
+`file` accepts a path to any JSON or CSV file. If the file does not have an extension, it's processed as JSON by default. 
+To process CSV files, the `.cvs` extension is required.
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
@@ -24,11 +24,11 @@ The following table describes the properties of the `file` API.
 
 | Name | Type | Default | Description |
 |---:|:---:|:---:|---|
-| `set_header` | array of strings | `[]` | Name and number of columns Flex should extract data from. Only applies to cvs files. If this property is not set, then the first row of data will be used as the header.
+| `set_header` | array of strings | `[]` | Name and number of columns Flex should extract data from. Only applies to CSV files. If this property is not set, the first row of data is used as the header.
 
 ##  <a name='Advancedusage'></a>Advanced usage
 
-The `file` API can be used along with Flex functions. In the following example we use some of the [functions available on Flex](../basics/functions.md).
+The `file` API can be used alongside other Flex functions. In the following example, we use some Flex data processing [functions](../basics/functions.md).
 
 ```yaml
 name: jsonIntegrationTest
@@ -63,7 +63,7 @@ Given the following `/tmp/etcdSelf.json` file:
 }
 ``` 
 
-The generated sample will contain the following attributes:
+The generated sample contains the following attributes:
 
 ```
 "leader": "8a69d5f6b7814500",
