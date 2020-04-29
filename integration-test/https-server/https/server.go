@@ -3,12 +3,13 @@ package main
 import (
 	"crypto/tls"
 	"net/http"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 )
 
-const collectorCertFile = "/cabundle/cert.pem"
-const collectorKeyFile = "/cabundle/key.pem"
+const collectorCertFile = "./https-server/cabundle/cert.pem"
+const collectorKeyFile = "./https-server/cabundle/key.pem"
 
 // The fake collector is a simple https service that ingests the metrics from the agent, and enables extra
 // endpoints to be controlled and monitored from the tests.
@@ -36,6 +37,7 @@ Reading: 0 Writing: 5 Waiting: 38
 			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 		},
+		InsecureSkipVerify: true,
 	}
 	srv := &http.Server{
 		Addr:         ":8043",
@@ -43,7 +45,11 @@ Reading: 0 Writing: 5 Waiting: 38
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
-	if err := srv.ListenAndServeTLS(collectorCertFile, collectorKeyFile); err != nil {
+	defer srv.Close()
+
+	certFile, _ := filepath.Abs(collectorCertFile)
+	keyFile, _ := filepath.Abs(collectorKeyFile)
+	if err := srv.ListenAndServeTLS(certFile, keyFile); err != nil {
 		logrus.WithError(err).Error("Running fake https server")
 	}
 }
@@ -52,10 +58,12 @@ func serveJSON(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-type", "application/json")
 	rw.Write([]byte(`
 	{
-		metrics: [
-			"cpu": 10.0,
-			"memory": 3500,
-			"disk": 500
+		"metrics": [
+			{
+			 "cpu": 10.0,
+			 "memory": 3500,
+			 "disk": 500
+			} 
 		]
 	}
 	`))

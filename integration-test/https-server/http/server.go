@@ -26,19 +26,23 @@ Reading: 0 Writing: 5 Waiting: 38
 		Addr:    ":8080",
 		Handler: mux,
 	}
+	defer srv.Close()
+
 	if err := srv.ListenAndServe(); err != nil {
 		logrus.WithError(err).Error("Running fake http server")
 	}
 }
 
 func serveJSON(rw http.ResponseWriter, r *http.Request) {
-	rw.Header().Add("Content-type", "application/json")
+	rw.Header().Set("Content-type", "application/json")
 	rw.Write([]byte(`
 	{
-		metrics: [
-			"cpu": 10.0,
-			"memory": 3500,
-			"disk": 500
+		"metrics": [
+			{
+			 "cpu": 10.0,
+			 "memory": 3500,
+			 "disk": 500
+			} 
 		]
 	}
 	`))
