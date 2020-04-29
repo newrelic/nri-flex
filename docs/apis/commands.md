@@ -122,7 +122,7 @@ apis:
         split_by: \s+
 ```
 
-As stated before, in Windows, you can also override the default shell, `cmd`, with, for example, `powershell`.
+As stated before, in Windows, you can also override the default shell, `cmd`, with, for example, PowerShell.
 
 ```yaml
 # Used to get list of windows services
@@ -140,7 +140,7 @@ apis:
         split_by: (\w+)\s+(\w+)\s+(\w+)
 ```
 
-In this example we are executing a command, `Get-Service`, using `powershell` as the command shell.
+In this example we are executing a command, `Get-Service`, using PowerShell as the command shell.
 
 ###  <a name='Specifyatimeout'></a>Specify a timeout
 
