@@ -1,12 +1,14 @@
 # `commands`
 
-The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence.
+The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence, and is platform-agnostic. Keep in mind that platform specific applications differ between different operating systems, and some may not be available (for example, Kubernetes).
 
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
 * [Advanced usage](#Advancedusage)
 
 ##  <a name='Basicusage'></a>Basic usage
+
+### Linux example
 
 ```yaml
 name: example
@@ -20,11 +22,27 @@ apis:
         split_by: (\d+)\s+(.*)
 ```
 
-This configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
+This Linux configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
+
+### Windows example
+
+ A Windows configuration would follow the exact same structure:
+
+```yaml
+name: winSvc
+apis:
+  - name: winSvc
+    commands:
+      - run: wmic service get State,Name,DisplayName /format:csv
+        split: horizontal
+        regex_match: false
+        split_by: \,
+        row_header: 1
+```
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
-The following table describes the properties of the `commands` API. The API accepts a list of commands, each requiring a `run` directive.
+The following table describes the properties of the `commands` API, which accepts a list of commands, each requiring a `run` directive.
 
 | Name | Type | Default | Description |
 |---:|:---:|:---:|---|
@@ -66,7 +84,6 @@ apis:
 
 In this next example, we don't specify the keys to which the values will be assigned and instead use a regex expression to extract the keys from the header. Since we are not specifying the header row number neither the values start row, Flex assumes the first row is the header and the next lines are the value rows.
 
-
 ```yaml
 ---
 name: example
@@ -79,6 +96,7 @@ apis:
         regex_match: true
         split_by: (\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)%\s+(\d+)\s+(\d+)\s+(\d+)%\s+(.*)
 ```
+
 To extract the values we use a regex expression in `split_by`. Note that in this case we extract the names of the metric attributes from raw data, so we must be sure that those are correct.
 
 ###  <a name='Specifytheshell'></a>Specify the shell
@@ -103,6 +121,26 @@ apis:
       - run: some_other_command
         split_by: \s+
 ```
+
+As stated before, in Windows, you can also override the default shell, `cmd`, with, for example, PowerShell.
+
+```yaml
+# Used to get list of windows services
+name: windowsServiceList
+apis:
+  - name: windowsServiceList
+    commands:
+      - run: Get-Service | Format-Table -Property Status, Name, DisplayName -Autosize
+        shell: powershell
+        event_type: WindowsCommand
+        split: horizontal
+        set_header: [status,name,displayname]
+        row_start: 1
+        regex_match: true
+        split_by: (\w+)\s+(\w+)\s+(\w+)
+```
+
+In this example we are executing a command, `Get-Service`, using PowerShell as the command shell.
 
 ###  <a name='Specifyatimeout'></a>Specify a timeout
 
