@@ -1,0 +1,73 @@
+# `file`
+
+The `file` API allows you to retrieve information from any `json` or `csv` file.
+
+* [Basic usage](#Basicusage)
+* [Configuration properties](#Configurationproperties)
+* [Advanced usage](#Advancedusage)
+
+##  <a name='Basicusage'></a>Basic usage
+
+```yaml
+name: example
+apis:
+  - name: linuxDirectorySize
+    file: /tmp/payload.json
+```
+
+`file` accepts a path to a json or csv file. If the file does not have an extension, it will be processed as a json. 
+To process cvs files, the `.cvs` extension is required.
+
+##  <a name='Configurationproperties'></a>Configuration properties
+
+The following table describes the properties of the `file` API.
+
+| Name | Type | Default | Description |
+|---:|:---:|:---:|---|
+| `set_header` | array of strings | `[]` | Name and number of columns Flex should extract data from. Only applies to cvs files. If this property is not set, then the first row of data will be used as the header.
+
+##  <a name='Advancedusage'></a>Advanced usage
+
+The `file` API can be used along with Flex functions. In the following example we use some of the [functions available on Flex](../basics/functions.md).
+
+```yaml
+name: jsonIntegrationTest
+apis:
+  - name: readEtcdSelfLeaderInfo
+    file: /tmp/etcdSelf.json
+    start_key:
+      - leaderInfo
+    rename_keys:
+      startTime: timestamp
+    custom_attributes:
+      env: production
+```
+
+Given the following `/tmp/etcdSelf.json` file:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s"
+    },
+    "name": "node3",
+    "recvAppendRequestCnt": 5944,
+    "recvBandwidthRate": 570.6254930219969,
+    "recvPkgRate": 9.00892789741075,
+    "sendAppendRequestCnt": 0,
+    "startTime": "2014-10-24T13:15:50.072007085-07:00",
+    "state": "StateFollower"
+}
+``` 
+
+The generated sample will contain the following attributes:
+
+```
+"leader": "8a69d5f6b7814500",
+"timestamp": "2014-10-24T13:15:51.186620747-07:00",
+"uptime": "10m59.322358947s"
+"env": "production"
+```
