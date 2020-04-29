@@ -1,7 +1,10 @@
 FROM golang:1.13-alpine3.11 as builder
-ARG CGO_ENABLED=0
+
+ENV CGO_ENABLED 0
+
 WORKDIR /go/src/github.com/newrelic/nri-flex
 COPY . .
+
 RUN go build -ldflags '-w -extldflags "-static"' -o bin/http-server integration-test/https-server/http/server.go
 RUN go build -ldflags '-w -extldflags "-static"' -o bin/https-server integration-test/https-server/https/server.go
 

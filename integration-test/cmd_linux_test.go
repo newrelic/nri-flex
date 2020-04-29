@@ -1,4 +1,5 @@
 // +build integration
+// +build linux
 
 // The tests in this file are supposed to be run in the CI using docker-compose
 // You can run then from the IDE or manually but you'll need some setup first
