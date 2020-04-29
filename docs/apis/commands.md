@@ -138,7 +138,7 @@ apis:
         split_by: (\w+)\s+(\w+)\s+(\w+)
 ```
 
-In this example we are executing a command, `service`, using `powershell` as the command shell.
+In this example we are executing a command, `Get-Service`, using `powershell` as the command shell.
 
 ###  <a name='Specifyatimeout'></a>Specify a timeout
 
