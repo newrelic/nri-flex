@@ -1,14 +1,14 @@
 # `commands`
 
-The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence.
-
-This API is platform-agnostic but as it requires running platform specific applications those will differ between different operating systems (Linux and Windows for example) and some may not be available in certain platforms (for example Kubernetes).
+The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence, and is platform-agnostic. Keep in mind that platform specific applications differ between different operating systems, and some may not be available (for example, Kubernetes).
 
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
 * [Advanced usage](#Advancedusage)
 
 ##  <a name='Basicusage'></a>Basic usage
+
+### Linux example
 
 ```yaml
 name: example
@@ -24,7 +24,9 @@ apis:
 
 This Linux configuration retrieves the raw output provided by the command defined in `run`, which outputs a pair of values: the directory size, and the directory name. It also informs Flex that the output is horizontally formatted and has two columns as defined in `set_header`. Finally, it extracts the values using the regex expression defined in `split_by`, and assigns to each of the columns set in `set_header`.
 
- A Windows configuration will follow the exact same structure.
+### Windows example
+
+ A Windows configuration would follow the exact same structure:
 
 ```yaml
 name: winSvc
@@ -40,7 +42,7 @@ apis:
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
-The following table describes the properties of the `commands` API. The API accepts a list of commands, each requiring a `run` directive.
+The following table describes the properties of the `commands` API, which accepts a list of commands, each requiring a `run` directive.
 
 | Name | Type | Default | Description |
 |---:|:---:|:---:|---|
