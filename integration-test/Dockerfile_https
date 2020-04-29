@@ -9,6 +9,6 @@ RUN go build -ldflags '-w -extldflags "-static"' -o bin/http-server integration-
 RUN go build -ldflags '-w -extldflags "-static"' -o bin/https-server integration-test/https-server/https/server.go
 
 FROM scratch
-ADD integration-test/https-server/cabundle /cabundle
+ADD integration-test/https-server/https/cabundle /cabundle
 COPY --from=builder /go/src/github.com/newrelic/nri-flex/bin/http-server /
 COPY --from=builder /go/src/github.com/newrelic/nri-flex/bin/https-server /

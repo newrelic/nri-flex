@@ -11,9 +11,6 @@ import (
 const collectorCertFile = "cabundle/cert.pem"
 const collectorKeyFile = "cabundle/key.pem"
 
-// The fake collector is a simple https service that ingests the metrics from the agent, and enables extra
-// endpoints to be controlled and monitored from the tests.
-// It stores in a queue all the events that it receives from the agent.
 func main() {
 	logrus.Info("Running fake HTTPS server...")
 
