@@ -73,7 +73,8 @@ func Test_WindowsCommands_ConfigsFolder(t *testing.T) {
 	require.NotEmpty(t, metricsSet)
 
 	for _, ms := range metricsSet {
-		if ms.Metrics["event_type"] == "flexStatusSample" {
+		// ignore all other samples from other configs in the folder
+		if ms.Metrics["event_type"] != "windowsServiceListSample" {
 			continue
 		}
 		require.NotNil(t, ms.Metrics["status"], "status")
