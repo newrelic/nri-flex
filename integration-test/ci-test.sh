@@ -10,7 +10,7 @@ cleanup() {
   $KIND delete cluster
 }
 
-trap "cleanup" ERR
+trap "cleanup" INT TERM EXIT
 
 # create out KiD cluster
 $KIND create cluster
@@ -36,7 +36,5 @@ echo '=== running tests'
 # run the integration tests and save the result. this works because we run with attach=true
 $KCTL run nri-flex --rm --restart=Never --attach=true --image newrelic/nri-flex:integration-test -- go test --tags=integration ./...
 result=$?
-
-cleanup()
 
 exit $result
