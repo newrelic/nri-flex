@@ -8,8 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const collectorCertFile = "./https-server/cabundle/cert.pem"
-const collectorKeyFile = "./https-server/cabundle/key.pem"
+const collectorCertFile = "cabundle/cert.pem"
+const collectorKeyFile = "cabundle/key.pem"
 
 // The fake collector is a simple https service that ingests the metrics from the agent, and enables extra
 // endpoints to be controlled and monitored from the tests.
