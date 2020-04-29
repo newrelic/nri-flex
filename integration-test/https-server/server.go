@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -71,7 +73,7 @@ func startHTTPS(mux *http.ServeMux) {
 	}
 	defer srv.Close()
 
-	certFilePath, keyFilePath := getCertificates()
+	certFilePath, keyFilePath := getCertificates(certFile, keyFile)
 	err := srv.ListenAndServeTLS(certFilePath, keyFilePath)
 	if err != http.ErrServerClosed {
 		logrus.WithError(err).Error("failed to start https server")
@@ -99,4 +101,15 @@ func serveJSON(rw http.ResponseWriter, r *http.Request) {
 		]
 	}
 	`))
+}
+
+func getCertificates(certFile string, keyFile string) (certFilePath string, keyFilePath string) {
+	if runtime.GOOS == "windows" {
+		certFilePath, _ = filepath.Abs(filepath.Join("https-server", certFile))
+		keyFilePath, _ = filepath.Abs(filepath.Join("https-server", keyFile))
+	} else {
+		certFilePath, _ = filepath.Abs(certFile)
+		keyFilePath, _ = filepath.Abs(keyFile)
+	}
+	return
 }

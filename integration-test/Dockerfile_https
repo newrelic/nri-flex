@@ -10,4 +10,3 @@ RUN go build -ldflags '-w -extldflags "-static"' -o bin/http-server integration-
 FROM scratch
 ADD integration-test/https-server/cabundle /cabundle
 COPY --from=builder /go/src/github.com/newrelic/nri-flex/bin/http-server /
-COPY --from=builder /go/src/github.com/newrelic/nri-flex/bin/https-server /
