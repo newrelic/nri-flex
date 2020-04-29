@@ -56,7 +56,7 @@ Reading: 0 Writing: 5 Waiting: 38
 
 func serveJSON(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-type", "application/json")
-	rw.Write([]byte(`
+	_, _ = rw.Write([]byte(`
 	{
 		"metrics": [
 			{
