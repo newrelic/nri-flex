@@ -17,7 +17,7 @@ import (
 )
 
 func Test_WindowsHttp_ReturnsData(t *testing.T) {
-	go startServer("http")
+	go startServer(false)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -37,7 +37,7 @@ func Test_WindowsHttp_ReturnsData(t *testing.T) {
 }
 
 func Test_WindowsHttps_ReturnsData(t *testing.T) {
-	go startServer("https")
+	go startServer(true)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -57,8 +57,8 @@ func Test_WindowsHttps_ReturnsData(t *testing.T) {
 }
 
 func Test_WindowsHttps_ConfigFolder_ReturnsData(t *testing.T) {
-	go startServer("http")
-	go startServer("https")
+	go startServer(false)
+	go startServer(true)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -87,7 +87,7 @@ func checkOutput(t *testing.T, metrics []*metric.Set, expectedCount int) {
 			continue
 		}
 		require.Equal(t, "WindowsHttpSample", ms.Metrics["event_type"])
-		require.Equal(t, 101.0, ms.Metrics["cpu"], "cpu")
+		require.Equal(t, 10.0, ms.Metrics["cpu"], "cpu")
 		require.Equal(t, float64(3500), ms.Metrics["memory"], "memory")
 		require.Equal(t, float64(500), ms.Metrics["disk"], "disk")
 		actualCount++
@@ -96,9 +96,9 @@ func checkOutput(t *testing.T, metrics []*metric.Set, expectedCount int) {
 	require.Equal(t, expectedCount, actualCount)
 }
 
-func startServer(server string) {
-	serverFile, _ := filepath.Abs(filepath.Join("https-server", server, "server.go"))
-	_, err := gofile.Run(serverFile)
+func startServer(tls bool) {
+	serverFile, _ := filepath.Abs(filepath.Join("https-server", "server.go"))
+	_, err := gofile.Run(serverFile, fmt.Sprint(tls))
 	if err != nil {
 		fmt.Println(err)
 	}

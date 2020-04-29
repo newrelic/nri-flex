@@ -25,13 +25,13 @@ spec:
   containers:
   - name: http-server
     image: newrelic/https-server:integration-test
-    command: ["/http-server"]
+    command: ["/http-server", "false"]
     ports:
       - containerPort: 8080
     imagePullPolicy: Never
   - name: https-server
     image: newrelic/https-server:integration-test
-    command: ["/https-server"]
+    command: ["/http-server", "true"]
     ports:
       - containerPort: 8043
     imagePullPolicy: Never
