@@ -103,8 +103,9 @@ func serveJSON(rw http.ResponseWriter, r *http.Request) {
 	`))
 }
 
-// this is because in Linux we are running in a docker container and the cabundle dir is in the root alongside the executables, 
-// but in windows we are running the server file with "go run" which changes the working dir
+// In Linux we are running in a docker container and the cabundle dir is in the root alongside the executables,
+// but in windows we are running the server file with "go run" which changes the working dir to "integration-test"
+// so we have to build the path from there
 func getCertificates(certFile string, keyFile string) (certFilePath string, keyFilePath string) {
 	if runtime.GOOS == "windows" {
 		certFilePath, _ = filepath.Abs(filepath.Join("https-server", certFile))
