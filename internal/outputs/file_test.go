@@ -3,44 +3,40 @@ package outputs
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 )
 
 const testData = `[{"abd":"def"},{"123":456}]`
 
-func testDataProvider() []interface{} {
+func testDataProvider(t *testing.T) []interface{} {
 	jsonData := []byte(testData)
 	var out []interface{}
-	if err := json.Unmarshal(jsonData, &out); err != nil {
-		panic(err)
-	}
+	err := json.Unmarshal(jsonData, &out)
+	require.NoError(t, err)
 	return out
 }
 
-func readJSONFile(file string, output *string) {
+func readJSONFile(t *testing.T, file string) string {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
-		panic("reading JSON file failed")
+		require.NoError(t, err, "reading JSON file failed")
 	}
-	*output = string(b)
-}
-
-func removeTestFile(path string) {
-	err := os.Remove(path)
-	if err != nil {
-		panic("unable to remove writeTest.json")
-	}
+	return string(b)
 }
 
 // testing function for output writes
 func TestOutputWrite(t *testing.T) {
-	fname := "writeTest.json"
-	var out []interface{} = testDataProvider()
+	dir, err := ioutil.TempDir("", t.Name())
+	require.NoError(t, err)
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	fname := path.Join(dir, "writeTest.json")
+	var out = testDataProvider(t)
 	StoreJSON(out, fname)
-	var readVal string
-	readJSONFile(fname, &readVal)
+	readVal := readJSONFile(t, fname)
 	assert.Equal(t, testData, readVal)
-	removeTestFile(fname)
 }
