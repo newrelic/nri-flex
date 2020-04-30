@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	certFile = "cabundle/cert.pem"
+	certFile = path.Join("cabundle", "cert.pem")
 	keyFile  = "cabundle/key.pem"
 )
 
