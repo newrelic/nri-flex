@@ -63,7 +63,6 @@ func startHTTPS(mux *http.ServeMux) {
 			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 		},
-		InsecureSkipVerify: true,
 	}
 	srv := &http.Server{
 		Addr:         ":8043",
