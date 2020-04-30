@@ -9,8 +9,10 @@ builds:
       - linux
       - darwin
       - windows
-    ignore:
-      - goarch: 386
+    goarch:
+      - amd64
+      - arm
+      - arm64
 archives:
   - replacements:
       darwin: Darwin
@@ -19,7 +21,7 @@ archives:
       amd64: x86_64
     files:
       - LICENSE
-      - README.md 
+      - README.md
       - CHANGELOG.md
       - examples/*
     format_overrides:
