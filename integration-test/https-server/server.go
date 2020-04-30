@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	certFile = path.Join("cabundle", "cert.pem")
-	keyFile  = "cabundle/key.pem"
+	certFile = filepath.Join("cabundle", "cert.pem")
+	keyFile  = filepath.Join("cabundle", "key.pem")
 )
 
 // The fake collector is a simple https service that ingests the metrics from the agent, and enables extra
