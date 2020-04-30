@@ -11,12 +11,12 @@ The `file` API lets you retrieve information from any `JSON` or `CSV` file.
 ```yaml
 name: example
 apis:
-  - name: linuxDirectorySize
+  - name: jsonFileExample
     file: /tmp/payload.json
 ```
 
 `file` accepts a path to any JSON or CSV file. If the file does not have an extension, it's processed as JSON by default. 
-To process CSV files, the `.cvs` extension is required.
+To process CSV files, the `.csv` extension is required.
 
 ##  <a name='Configurationproperties'></a>Configuration properties
 
@@ -50,15 +50,14 @@ Given the following `/tmp/etcdSelf.json` file:
     "id": "eca0338f4ea31566",
     "leaderInfo": {
         "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s"
+        "startTime": 1588232295,
+        "uptime": 3600
     },
     "name": "node3",
     "recvAppendRequestCnt": 5944,
     "recvBandwidthRate": 570.6254930219969,
     "recvPkgRate": 9.00892789741075,
     "sendAppendRequestCnt": 0,
-    "startTime": "2014-10-24T13:15:50.072007085-07:00",
     "state": "StateFollower"
 }
 ``` 
@@ -67,7 +66,7 @@ The generated sample contains the following attributes:
 
 ```
 "leader": "8a69d5f6b7814500",
-"timestamp": "2014-10-24T13:15:51.186620747-07:00",
-"uptime": "10m59.322358947s"
+"timestamp": 1588232295,
+"uptime": 3600
 "env": "production"
 ```

@@ -14,7 +14,7 @@ With Flex you can acquire data from multiple sources for processing:
 
 - [commands](apis/commands.md): standard output from command-line tools
 - [url](apis/url.md): JSON output from HTTP/HTTPS endpoints
-- [file](apis/file.md): `JSON` and `CVS` files processing
+- [file](apis/file.md): `JSON` and `CSV` files processing
 
 More data sources will be added in future updates. 
 
