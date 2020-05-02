@@ -63,3 +63,27 @@ func getDf2Apis() []load.API {
 		},
 	}
 }
+
+func getRawCacheApis() []load.API {
+	return []load.API{
+		{
+			Name: "getSomeData",
+			Commands: []load.Command{
+				{
+					Name:         "info",
+					Run:          "echo batman:bruce",
+					IgnoreOutput: true,
+				},
+			},
+		},
+		{
+			Name: "hero",
+			Commands: []load.Command{
+				{
+					Run:     "echo ${cache:info}",
+					SplitBy: ":",
+				},
+			},
+		},
+	}
+}

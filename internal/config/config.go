@@ -194,6 +194,7 @@ func Run(yml load.Config) {
 	// samplesToMerge := map[string][]interface{}{}
 	var samplesToMerge load.SamplesToMerge
 	samplesToMerge.Data = map[string][]interface{}{}
+	yml.RawCache = map[string]interface{}{}
 	load.Logrus.WithFields(logrus.Fields{
 		"name": yml.Name,
 		"apis": len(yml.APIs),

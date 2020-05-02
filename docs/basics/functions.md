@@ -8,6 +8,7 @@ For functions that are specific to data sources, such as `split_by` or `headers`
     -   [Function precedence order](#function-precedence-order)
     -   [Flex supported functions](#flex-supported-functions)
         -   [add_attribute](#add_attribute)
+        -   [cache](#cache)
         -   [convert_space](#convert_space)
         -   [ignore_output](#ignore_output)
         -   [keep_keys](#keep_keys)
@@ -119,6 +120,52 @@ Which would return the following:
   "leaderInfo.uptime": "10m59.322358947s",
   "link": "https://some-other-service/nodes/eca0338f4ea31566",
   "name": "node3"
+}]
+```
+
+### cache
+
+Allows http output, or commands to be cached and subsequently processed.
+For a detailed example for using URL cache see [here](../apis/url.md).
+
+For command caching see below.
+
+**Example**
+
+Consider you run the following command `echo batman:bruce` and you would like to process the recieved output `batman:bruce` without re-executing the command again to generate the output.
+
+**Note** that this is clearly more effective when being used with a command that takes a longer amount of time to execute.
+
+When a name is defined for a command it will be stored in **cache**, to have it substituted into another command use the following replacement `${cache:<CommandName>}`.
+
+```yaml
+name: rawCacheExample
+apis:
+    - name: getSomeData
+      commands:
+          - name: info # if a name is defined it will be allowed to be stored in cache
+            run: echo batman:bruce
+      ignore_output: true # you do not have to ignore the output if you would like to do some processing in this API block
+    - name: hero
+      commands:
+          - run: echo ${cache:info} # cache can be called using the defined name
+            split_by:
+                ':'
+                # we can then call the same cache again and do some other functions on the output
+          - run: echo length:$(printf "${cache:info}" | wc -m)
+            split_by: ':'
+          - run: echo lines:$(printf "${cache:info}\n" | wc -l)
+            split_by: ':'
+```
+
+Which would return the following:
+
+```json
+"metrics": [{
+"batman": "bruce",
+"event_type": "heroSample",
+"length": " 12",
+"lines": " 1"
 }]
 ```
 

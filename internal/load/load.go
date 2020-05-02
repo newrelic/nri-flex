@@ -179,7 +179,8 @@ type Config struct {
 	Name               string
 	Global             Global
 	APIs               []API
-	Datastore          map[string][]interface{}       `yaml:"datastore"`
+	Datastore          map[string][]interface{}       `yaml:"datastore"`    // caches processed output
+	RawCache           map[string]interface{}         `yaml:"raw_cache"`    // caches raw run command output (command Name should be provided)
 	LookupStore        map[string]map[string]struct{} `yaml:"lookup_store"` // ensures uniqueness vs a slice
 	LookupFile         string                         `yaml:"lookup_file"`
 	VariableStore      map[string]string              `yaml:"variable_store"`

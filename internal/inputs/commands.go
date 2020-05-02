@@ -8,7 +8,9 @@ package inputs
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -30,12 +32,12 @@ func checkOS(os string) bool {
 }
 
 // RunCommands executes the given commands to create one merged sampled
-func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
+func RunCommands(dataStore *[]interface{}, cfg *load.Config, apiNo int) {
 	startTime := makeTimestamp()
-	api := yml.APIs[apiNo]
+	api := cfg.APIs[apiNo]
 
 	load.Logrus.WithFields(logrus.Fields{
-		"name":  yml.Name,
+		"name":  cfg.Name,
 		"count": len(api.Commands),
 	}).Debug("commands: executing")
 
@@ -43,10 +45,10 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	processType := ""
 	for _, command := range api.Commands {
 		if command.Run != "" && command.Dial == "" && checkOS(command.OS) {
-			commandRun(dataStore, yml, command, api, startTime, dataSample, processType)
+			commandRun(dataStore, cfg, command, api, startTime, dataSample, processType)
 		} else if command.Cache != "" {
-			if yml.Datastore[command.Cache] != nil {
-				for _, cache := range yml.Datastore[command.Cache] {
+			if cfg.Datastore[command.Cache] != nil {
+				for _, cache := range cfg.Datastore[command.Cache] {
 					switch sample := cache.(type) {
 					case map[string]interface{}:
 						if sample["http"] != nil {
@@ -67,8 +69,8 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 			NetDialWithTimeout(dataStore, command, &dataSample, api, &processType)
 		} else if command.ContainerExec != "" {
 			// handle commands against containers
-			if yml.CustomAttributes != nil {
-				if yml.CustomAttributes["containerId"] != "" {
+			if cfg.CustomAttributes != nil {
+				if cfg.CustomAttributes["containerId"] != "" {
 					load.Logrus.Debug("command: not handled yet")
 				}
 			}
@@ -82,10 +84,22 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}
 }
 
-func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
+// subRawCache allows reusing command output, without overhead of re-executing
+func subRawCache(command *string, cfg *load.Config) {
+	variableReplaces := regexp.MustCompile(`\${cache:.*?}`).FindAllString(*command, -1)
+	for _, variableReplace := range variableReplaces {
+		variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${cache:")[1], "}") // eg. "channel"
+		if cfg.RawCache[variableKey] != "" {
+			*command = strings.Replace(*command, variableReplace, fmt.Sprintf("%v", cfg.RawCache[variableKey]), -1)
+		}
+	}
+}
+
+func commandRun(dataStore *[]interface{}, cfg *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
+	subRawCache(&command.Run, cfg)
 	runCommand := command.Run
 	if command.Output == load.Jmx {
-		SetJMXCommand(&runCommand, command, api, yml)
+		SetJMXCommand(&runCommand, command, api, cfg)
 	}
 	commandTimeout := load.DefaultTimeout
 	if api.Timeout > 0 {
@@ -102,6 +116,7 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 	// Create the command with our context
 	cmd := buildCommand(ctx, api, command)
 	output, err := cmd.CombinedOutput()
+	strOutput := string(output)
 
 	if err != nil {
 		load.Logrus.WithFields(logrus.Fields{
@@ -111,7 +126,7 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 		}).Debug("command: failed")
 		errorSample := map[string]interface{}{
 			"error":      err,
-			"error_msg":  string(output),
+			"error_msg":  strOutput,
 			"error_exec": command.Run,
 		}
 		*dataStore = append(*dataStore, errorSample)
@@ -136,10 +151,14 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 		}
 		*dataStore = append(*dataStore, errorSample)
 	} else if len(output) > 0 {
+		if command.Name != "" {
+			cfg.RawCache[command.Name] = strings.TrimSpace(strOutput)
+		}
+
 		if command.SplitOutput != "" {
-			splitOutput(dataStore, string(output), command, startTime)
+			splitOutput(dataStore, strOutput, command, startTime)
 		} else {
-			processOutput(dataStore, string(output), &dataSample, command, api, &processType)
+			processOutput(dataStore, strOutput, &dataSample, command, api, &processType)
 		}
 	}
 }

@@ -222,3 +222,33 @@ func TestDf2(t *testing.T) {
 		assert.Equal(t, expectedValue, actualValue)
 	}
 }
+
+func TestRawCache(t *testing.T) {
+	load.Refresh()
+	config := load.Config{
+		RawCache: map[string]interface{}{},
+		Name:     "rawCacheExample",
+		APIs:     getRawCacheApis(),
+	}
+
+	dataStoreExpected := []interface{}{
+		map[string]interface{}{
+			"batman": "bruce",
+		},
+	}
+
+	dataStore := []interface{}{}
+	RunCommands(&dataStore, &config, 0)
+	RunCommands(&dataStore, &config, 1)
+
+	assert.Len(t, dataStore, 1)
+
+	// we are only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equal(t, expectedValue, actualValue)
+	}
+}
