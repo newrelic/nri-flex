@@ -6,7 +6,6 @@ For functions that are specific to data sources, such as `split_by` or `headers`
 
 -   [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
     -   [Function precedence order](#function-precedence-order)
-    -   [Flex supported functions](#flex-supported-functions)
         -   [add_attribute](#add_attribute)
         -   [cache](#cache)
         -   [convert_space](#convert_space)
@@ -126,7 +125,7 @@ Which would return the following:
 ### cache
 
 Allows http output, or commands to be cached and subsequently processed.
-For a detailed example for using URL cache see [here](../apis/url.md).
+For a detailed example using URL cache see [here](../apis/url.md).
 
 For command caching see below.
 
