@@ -25,7 +25,6 @@ func TestConfig_Read_Files(t *testing.T) {
 	assert.NoError(t, exec.Command("cmd", "/C", "xcopy", "/y", "..\\test\\payloads\\etcdSelf.json", filepath.Join("%TMP%", "test payloads", "etcdSelf.json*")).Run())
 	assert.NoError(t, exec.Command("cmd", "/C", "xcopy", "/y", "..\\test\\payloads\\test.csv", filepath.Join("%TMP%", "test payloads", "test.csv*")).Run())
 
-	t.Fail()
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			flexOutput := runConfigFile(t, tc.configFile)
