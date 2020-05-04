@@ -1,7 +1,7 @@
 // +build integration
 // +build windows
 
-package integration
+package integration_test
 
 import (
 	"path/filepath"
