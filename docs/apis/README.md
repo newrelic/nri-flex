@@ -4,8 +4,9 @@ Flex APIs give you access to several data sources, such as HTTP endpoints and ra
 
 Supported APIs include:
 
-* [commands](commands.md): Retrieve information from any application or shell command. 
-* [url](url.md): Retrieve information from any HTTP endpoint.
+* [commands](commands.md): Retrieves information from any application or shell command. 
+* [url](url.md): Retrieves information from any HTTP endpoint.
+* [file](file.md): Retrieves information from `JSON` and `CSV` files.
 
 Flex APIs can be used together in [configuration files](../basics/configure.md). For example:
 
