@@ -60,8 +60,8 @@ func RunKeyRemover(currentSample *map[string]interface{}, removeKeys []string) {
 func RunKeyRenamer(renameKeys map[string]string, key *string) {
 	for renameKey, renameVal := range renameKeys {
 		// TODO: Should this first try matching as a plain string and after that try compile it as regex?
-		validateKey := regexp.MustCompile(renameKey);
-		*key = validateKey.ReplaceAllString(*key, renameVal);
+		validateKey := regexp.MustCompile(renameKey)
+		*key = validateKey.ReplaceAllString(*key, renameVal)
 	}
 }
 
