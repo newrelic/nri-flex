@@ -9,11 +9,22 @@ The `file` API lets you retrieve information from any `JSON` or `CSV` file.
 ##  <a name='Basicusage'></a>Basic usage
 
 ```yaml
-name: example
+name: linuxExample
 apis:
   - name: jsonFileExample
     file: /tmp/payload.json
 ```
+
+On Windows, make sure `file` uses backslashes "\\" to separate directories in the file path.
+
+```yaml
+name: windowsExample
+apis:
+  - name: jsonFileExample
+    file: C:\Program Files\My App\tmp\payload.json
+```
+
+Other than that, there are no differences between Linux and Windows features.
 
 `file` accepts a path to any JSON or CSV file. If the file does not have an extension, it's processed as JSON by default. 
 To process CSV files, the `.csv` extension is required.
