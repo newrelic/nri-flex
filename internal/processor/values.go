@@ -117,9 +117,8 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 
 // RunValueMapper map the value using regex grouping for keys e.g.  "*.?\s(Service Status)=>$1-Good" -> "Service Status-Good"
 func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{}) {
-	keySplit := []string{}
 	for mapKey, mapVal := range mapKeys {
-		keySplit = strings.Split(mapKey, "=>")
+		keySplit := strings.Split(mapKey, "=>")
 		if key == keySplit[0] {
 			replacedValue := false
 			for _, mapEntry := range mapVal {
