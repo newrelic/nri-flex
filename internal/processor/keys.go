@@ -61,10 +61,7 @@ func RunKeyRenamer(renameKeys map[string]string, key *string) {
 	for renameKey, renameVal := range renameKeys {
 		// TODO: Should this first try matching as a plain string and after that try compile it as regex?
 		validateKey := regexp.MustCompile(renameKey)
-		matches := validateKey.FindAllString(*key, -1)
-		for _, match := range matches {
-			*key = strings.Replace(*key, match, renameVal, -1)
-		}
+		*key = validateKey.ReplaceAllString(*key, renameVal)
 	}
 }
 
