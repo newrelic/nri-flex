@@ -1,0 +1,32 @@
+# SolarWinds Orion Alerts History Config
+# This example runs at the default 
+integrations:
+  - name: nri-flex
+    interval: 60s # Default is 30s
+    config:
+      name: solarwinds_alerts
+      global: 
+        # Replace <SOLARWINDS_SERVER_NAME> with the name of your SolarWinds Orion server
+        # You can any Orion server (Primary, Additional Poller, Additional Web) as an API endpoint
+        # Note that Additional Web Servers behind a load balancer can have extended response times to API calls
+        base_url: https://<SOLARWINDS_SERVER_NAME>:17778/SolarWinds/InformationService/v3/Json/Query?query=
+        tls_config:
+          insecure_skip_verify: true
+        headers:
+          # This is your User/Pass for a LOCAL ORION ACCOUNT
+          # Active Directory login via HTTP calls are not supported by the Orion API due to a limitation in NTLM
+          # Reference: https://thwack.solarwinds.com/t5/Discussions/Is-it-possible-to-use-Windows-Authentication-with-the-Orion-REST/m-p/209768#M4055
+          # You can create this string via the following PowerShell snippet
+          # Replace 'TestUser' and 'SuperSecretPassword'; but be sure to keep the colon delimiter ':'
+          # Take the string output from the snippet and replace BASE64_ENCODED_USER_PASS below
+          # Example:
+          # [convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("TestUser:SuperSecretPassword"))
+          Authorization: "Basic BASE64_ENCODED_USER_PASS"
+      apis:
+      - event_type: solarwinds_alerts
+        # This is purposefully limited to 'TOP 10' for testing, you'll want to remove the `TOP` and `ORDER BY` for production
+        # If you change your polling interval above, you'll need to update the WHERE clause here to reflect the change >> SECONDDIFF( a.AlertHistory.TimeStamp, GETUTCDATE() ) <= 60
+        url: "SELECT TOP 10 a.AlertHistory.AlertHistoryID AS [swAlert.alertHistoryID], SECONDDIFF( '1970-01-01 00:00:00',a.AlertHistory.TimeStamp ) AS [swAlert.alertTriggerTimeUTC], a.AlertConfigurations.Name AS [swAlert.alertName], ISNULL( a.AlertHistory.Message,'') AS [swAlert.alertMessage], a.EntityCaption AS [swAlert.alertingEntity], ISNULL( a.RelatedNodeCaption,'' ) AS [swAlert.relatedNode], a.RealEntityType AS [swAlert.realEntityType] FROM Orion.AlertObjects AS [a] WHERE a.AlertHistory.EventType = 0 AND SECONDDIFF( a.AlertHistory.TimeStamp, GETUTCDATE() ) <= 60 ORDER BY a.AlertHistory.TimeStamp DESC"
+        
+        # This is an example for Production at a 120s (2 minute) interval
+        #url: "SELECT a.AlertHistory.AlertHistoryID AS [swAlert.alertHistoryID], SECONDDIFF( '1970-01-01 00:00:00',a.AlertHistory.TimeStamp ) AS [swAlert.alertTriggerTimeUTC], a.AlertConfigurations.Name AS [swAlert.alertName], ISNULL( a.AlertHistory.Message,'') AS [swAlert.alertMessage], a.EntityCaption AS [swAlert.alertingEntity], ISNULL( a.RelatedNodeCaption,'' ) AS [swAlert.relatedNode], a.RealEntityType AS [swAlert.realEntityType] FROM Orion.AlertObjects AS [a] WHERE a.AlertHistory.EventType = 0 AND SECONDDIFF( a.AlertHistory.TimeStamp, GETUTCDATE() ) <= 120"
