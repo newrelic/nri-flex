@@ -1,5 +1,4 @@
 # SolarWinds Orion Alerts History Config
-# This example runs at the default 
 integrations:
   - name: nri-flex
     interval: 60s # Default is 30s
@@ -24,7 +23,7 @@ integrations:
           Authorization: "Basic BASE64_ENCODED_USER_PASS"
       apis:
       - event_type: solarwinds_alerts
-        # This is purposefully limited to 'TOP 10' for testing, you'll want to remove the `TOP` and `ORDER BY` for production
+        # This is purposefully limited to 'TOP 10' for testing, you'll want to remove the 'TOP' and 'ORDER BY' for production
         # If you change your polling interval above, you'll need to update the WHERE clause here to reflect the change >> SECONDDIFF( a.AlertHistory.TimeStamp, GETUTCDATE() ) <= 60
         url: "SELECT TOP 10 a.AlertHistory.AlertHistoryID AS [swAlert.alertHistoryID], SECONDDIFF( '1970-01-01 00:00:00',a.AlertHistory.TimeStamp ) AS [swAlert.alertTriggerTimeUTC], a.AlertConfigurations.Name AS [swAlert.alertName], ISNULL( a.AlertHistory.Message,'') AS [swAlert.alertMessage], a.EntityCaption AS [swAlert.alertingEntity], ISNULL( a.RelatedNodeCaption,'' ) AS [swAlert.relatedNode], a.RealEntityType AS [swAlert.realEntityType] FROM Orion.AlertObjects AS [a] WHERE a.AlertHistory.EventType = 0 AND SECONDDIFF( a.AlertHistory.TimeStamp, GETUTCDATE() ) <= 60 ORDER BY a.AlertHistory.TimeStamp DESC"
         
