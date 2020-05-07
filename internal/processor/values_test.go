@@ -2,9 +2,10 @@ package processor
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestRunSubParse(t *testing.T) {
@@ -145,6 +146,57 @@ func TestRunMathCalculations(t *testing.T) {
 
 			got, _ := json.Marshal(testCase.sample)
 			assert.Equal(t, testCase.expected, string(got))
+		})
+	}
+}
+
+func TestRunValueMapper(t *testing.T) {
+	// 	name: testValueMapper
+	// 	apis:
+	//   - name: getSomeData
+	//     commands:
+	//       - run: echo load:1.04, 2.20, 3.01
+	//         split_by: ":"
+	//     value_mapper:
+	//       load=>load1:
+	//         - (.+), (.+), (.+)=>$1
+	//       load=>load2:
+	//         - (.+), (.+), (.+)=>$2
+	//       load=>load3:
+	//         - (.+), (.+), (.+)=>$3
+
+	getConfig := func(valueMapper map[string][]string) load.API {
+		return load.API{
+			ValueMapper: valueMapper,
+		}
+	}
+
+	testCases := map[string]struct {
+		valueMapperCfg load.API
+		value          interface{}
+		key            string
+		expected       string
+		sample         map[string]interface{}
+	}{
+
+		"TransformString": {
+			valueMapperCfg: getConfig(
+				map[string][]string{
+					"load=>load1": []string{"(.+), (.+), (.+)=>$1"},
+					"load=>load2": []string{"(.+), (.+), (.+)=>$2"},
+					"load=>load3": []string{"(.+), (.+), (.+)=>$3"},
+				}),
+			key:    `load`,
+			value:  `1.04, 2.20, 3.01`,
+			sample: map[string]interface{}{},
+		},
+	}
+	for testName, testCase := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			RunValueMapper(testCase.valueMapperCfg.ValueMapper, &testCase.sample, testCase.key, &testCase.value)
+			assert.Equal(t, "1.04", testCase.sample["load1"])
+			assert.Equal(t, "2.20", testCase.sample["load2"])
+			assert.Equal(t, "3.01", testCase.sample["load3"])
 		})
 	}
 }

@@ -3,10 +3,14 @@
 # Flex has a default 10 second (10000ms) timeout that needs to be extended for this script to complete
 # Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
 # shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
-name: winScraper
-apis:
-  - name: winScraper
-    shell: powershell
-    commands:
- 	  - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-web-scrape-script.ps1\" -Target \"www.swapi.co\""
- 	    timeout: 299000 
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: winScraper
+      apis:
+        - name: winScraper
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-web-scrape-script.ps1\" -Target \"www.swapi.co\""
+              timeout: 299000
