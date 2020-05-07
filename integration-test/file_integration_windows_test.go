@@ -7,26 +7,38 @@ package integration_test
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 )
 
 func TestConfig_Read_Files(t *testing.T) {
-	tests := map[string]struct {
-		configFile string
-		want       Metrics
-	}{
-		"jsonEtcdSelf": {"configs/windows-json-test.yml", wantJsonMetrics},
-		"csvTest":      {"configs/windows-csv-test.yml", wantCsvMetrics},
-	}
+	tmpDir, err := ioutil.TempDir("", "test payloads")
+	assert.NoError(t, err)
+	defer func() {
+		assert.NoError(t, os.RemoveAll(tmpDir))
+	}()
 
-	// copy payloads to the current user's TMP folder plus a folder with spaces
-	assert.NoError(t, exec.Command("cmd", "/C", "xcopy", "/y", "..\\test\\payloads\\etcdSelf.json", filepath.Join("%TMP%", "test payloads", "etcdSelf.json*")).Run())
-	assert.NoError(t, exec.Command("cmd", "/C", "xcopy", "/y", "..\\test\\payloads\\test.csv", filepath.Join("%TMP%", "test payloads", "test.csv*")).Run())
+	assert.NoError(t, os.Setenv("MY_TEMP_FOLDER", tmpDir))
+	defer func() {
+		assert.NoError(t, os.Unsetenv("MY_TEMP_FOLDER"))
+	}()
+
+	tests := map[string]struct {
+		configFile  string
+		payloadFile string
+		want        Metrics
+	}{
+		"jsonEtcdSelf": {"configs/windows-json-test.yml", "..\\test\\payloads\\etcdSelf.json", wantJsonMetrics},
+		"csvTest":      {"configs/windows-csv-test.yml", "..\\test\\payloads\\test.csv", wantCsvMetrics},
+	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			// copy the payload file to the temporary folder
+			assert.NoError(t, exec.Command("cmd", "/C", "xcopy", "/y", tc.payloadFile, tmpDir).Run())
+
 			flexOutput := runConfigFile(t, tc.configFile)
 
 			for i, metrics := range tc.want {

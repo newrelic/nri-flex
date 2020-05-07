@@ -1,11 +1,11 @@
 name: jsonIntegrationTest
 apis:
   - name: readEtcdSelfJson
-    file: $$TMP\test payloads\etcdSelf.json
+    file: $$MY_TEMP_FOLDER\etcdSelf.json
     remove_keys:
       - leaderInfo
   - name: readEtcdSelfLeaderInfo
-    file: $$TMP\test payloads\etcdSelf.json
+    file: $$MY_TEMP_FOLDER\etcdSelf.json
     start_key:
       - leaderInfo
     rename_keys:

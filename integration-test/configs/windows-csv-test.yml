@@ -1,7 +1,7 @@
 name: csvIntegrationTest
 apis:
   - name: read
-    file: $$TMP\test payloads\test.csv
+    file: $$MY_TEMP_FOLDER\test.csv
     add_attribute:
       fullName: ${last}, ${first}
     custom_attributes:
