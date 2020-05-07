@@ -41,7 +41,7 @@ The following table describes the properties of the `commands` API. The API acce
 | `header_regex_match` | bool | `false` | Whether the regular expression in `header_split_by` should be interpreted as a match expression (`true`) or as a split expression (`false`). Applies only if `split` is equal to `horizontal` |
 | `header_split_by` | string | | Regular expression applied to the header line. Applies only if `split` is equal to `horizontal` |
 | `split_output` | string | | Regular expression used to split the output into blocks of data |
-| `timeout` | int | `10` | Time to wait for the command to execute. If the command takes longer than `timeout`, Flex ignores the output and returns an error. Note that Flex waits for the command to stop by itself| 
+| `timeout` | int | `10000` | Time to wait, in milliseconds, for the command to execute. If the command takes longer than `timeout`, Flex ignores the output and returns an error. Note that Flex waits for the command to stop by itself| 
 
 ##  <a name='Advancedusage'></a>Advanced usage
 
