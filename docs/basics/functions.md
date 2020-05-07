@@ -362,17 +362,17 @@ Consider a file with the following content:
 ```json
 [
     {
-        "name": "some-service",
-        "addr": "some-service.com:80"
+        "serviceName": "some-service",
+        "serviceAddr": "some-service.com:80"
     },
     {
-        "name": "another-service",
-        "addr": "another-service.com:80"
+        "serviceName": "another-service",
+        "serviceAddr": "another-service.com:80"
     }
 ]
 ```
 
-Assuming each service returns a payload similar to:
+Assuming an API request to each service endpoint returns a payload similar to:
 
 ```json
 {
@@ -396,15 +396,17 @@ You could use `lookup_file` to generate multiple API executions and therefore sa
 name: example
 lookup_file: addresses.json
 apis:
-    - name: someService
-      url: http://${lf:addr}/status
+    - name: someServiceCheck
+      url: http://${lf:serviceAddr}/status
+      custom_attributes:
+        service_name: ${lf:serviceName}
 ```
 
 Which would return the following:
 
 ```json
 "metrics": [{
-  "event_type": "someServiceSample",
+  "event_type": "someServiceCheckSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -412,8 +414,9 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
+  "service_name": "some-service"
   },{
-  "event_type": "someServiceSample",
+  "event_type": "someServiceCheckSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -421,6 +424,7 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
+  "service_name": "another-service"
 }
 ```
 
