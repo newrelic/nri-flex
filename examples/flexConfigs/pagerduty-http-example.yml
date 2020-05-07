@@ -1,31 +1,35 @@
 ### https://api-reference.pagerduty.com/
 ---
-name: pagerdutyFlex
-global:
-    base_url: https://api.pagerduty.com/
-    headers:
-      Authorization: Token token=YourPagerDutyToken
-apis: 
-  - event_type: pagerdutyIncidentSample ### https://api-reference.pagerduty.com/#!/Incidents/get_incidents
-    url: incidents
-    strip_keys:
-      - incidents>responder_requests      
-      - incidents>pending_actions
-      - incidents>teams
-      - incidents>subscriber_requests
-    lazy_flatten: ### lazy flatten nested arrays into the same sample, use with care as this can generate a lot of attributes per event, uncomment if you'd like to include
-      - incidents>assignments
-      - incidents>impacted_services
-      - incidents>acknowledgements
-    rename_keys:
-      impacted_services.assignments: assignments
-      assignments.assignments: assignments
-      impacted_services.impacted_services: impacted_services
-    remove_keys:
-      - escalation_policy
-      - first_trigger_log_entry
-      - impacted_services.assignments.is_mergeable
-      - assignmentSamples # unflattened key, if lazy flatten not on
-      - acknowledgementSamples  # unflattened key, if lazy flatten not on
-      - impacted_serviceSamples  # unflattened key, if lazy flatten not on
-      - incidents_responderSamples  # unflattened key, if lazy flatten not on
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: pagerdutyFlex
+      global:
+        base_url: https://api.pagerduty.com/
+        headers:
+          Authorization: Token token=YourPagerDutyToken
+      apis:
+        - event_type: pagerdutyIncidentSample ### https://api-reference.pagerduty.com/#!/Incidents/get_incidents
+          url: incidents
+          strip_keys:
+            - incidents>responder_requests
+            - incidents>pending_actions
+            - incidents>teams
+            - incidents>subscriber_requests
+          lazy_flatten: ### lazy flatten nested arrays into the same sample, use with care as this can generate a lot of attributes per event, uncomment if you'd like to include
+            - incidents>assignments
+            - incidents>impacted_services
+            - incidents>acknowledgements
+          rename_keys:
+            impacted_services.assignments: assignments
+            assignments.assignments: assignments
+            impacted_services.impacted_services: impacted_services
+          remove_keys:
+            - escalation_policy
+            - first_trigger_log_entry
+            - impacted_services.assignments.is_mergeable
+            - assignmentSamples # unflattened key, if lazy flatten not on
+            - acknowledgementSamples # unflattened key, if lazy flatten not on
+            - impacted_serviceSamples # unflattened key, if lazy flatten not on
+            - incidents_responderSamples # unflattened key, if lazy flatten not on

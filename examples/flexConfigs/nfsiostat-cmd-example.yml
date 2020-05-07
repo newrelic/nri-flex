@@ -1,14 +1,28 @@
-name: nfsiostatFlex
-apis:
-  - name: nfsiostat
-    commands:
-      - run: nfsiostat
-        split_output: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\/  # split by ipv4
-        regex_matches:
-          - expression: (\S+:\S+)\s+mounted\s+on\s+(\S+):$
-            keys: [source, mount]
-          - expression: ^\s+(\S+)\s\s+(\S+)$
-            keys: [opsPerSec, rpcBkLog]
-          - expression: ^\s\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\((\d+\.\d+)\S+\s+(\S+)\s+(\S+)
-            keys_multi: [read, write]
-            keys: [OpsPerSec, KbPerSec, KbPerOp, RetransVal, RetransPerc, AvgRTTMs, AvgExeMs]
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: nfsiostatFlex
+      apis:
+        - name: nfsiostat
+          commands:
+            - run: nfsiostat
+              split_output: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\/ # split by ipv4
+              regex_matches:
+                - expression: (\S+:\S+)\s+mounted\s+on\s+(\S+):$
+                  keys: [source, mount]
+                - expression: ^\s+(\S+)\s\s+(\S+)$
+                  keys: [opsPerSec, rpcBkLog]
+                - expression: ^\s\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\((\d+\.\d+)\S+\s+(\S+)\s+(\S+)
+                  keys_multi: [read, write]
+                  keys:
+                    [
+                      OpsPerSec,
+                      KbPerSec,
+                      KbPerOp,
+                      RetransVal,
+                      RetransPerc,
+                      AvgRTTMs,
+                      AvgExeMs,
+                    ]

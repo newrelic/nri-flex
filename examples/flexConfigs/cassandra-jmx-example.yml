@@ -1,57 +1,62 @@
-name: cassandraFlex
-apis: 
-  - name: cassandra
-    event_type: cassandraSample
-    jmx: ### global JMX config applies to all jmx commands beneath this API
-      user: cassandra
-      pass: cassandra
-      host: "127.0.0.1"
-      port: "7199"
-    # keep_keys: ### uses regex: will only keep keys that are listed here - useful if only after key metrics
-    #   - 99thPercentile
-    #   - bean
-    #   - domain
-    #   - zzzz
-    commands: 
-      - run: echo "zzzz:xxxx" ### we can call additional commands prior to the JMX call that will merge into the JMX samples
-        split_by: ":"
-        ### see here for other queries https://github.com/newrelic/nri-cassandra/blob/master/src/metrics_definition.go under JMX Patterns :P
-      - run: org.apache.cassandra.metrics:type=Table,keyspace=*,scope=*,name=ReadLatency
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Latency
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Timeouts
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Unavailables
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Table,name=LiveSSTableCount
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Table,name=AllMemtablesHeapSize
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Table,name=AllMemtablesOffHeapSize
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=*,name=ActiveTasks
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=*,name=PendingTask
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=*,name=ActiveTasks
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=*,name=PendingTasks
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=DroppedMessage,scope=*,name=Dropped
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Storage,name=Load
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Storage,name=TotalHints
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Storage,name=TotalHintsInProgress
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=Cache,scope=*,name=*
-        output: jmx
-      - run: org.apache.cassandra.metrics:type=CommitLog,name=*
-        output: jmx
-    sample_filter: ### uses regex
-      - bean: type=Table,keyspace=system_schema ## remove all bean metrics that have this value
-      # - .*: COUNTER ## remove all counter metrics
-    custom_attributes:
-      myCustomAttr: theValue ## inject your own additional custom attributes to all samples under this API
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: cassandraFlex
+      apis:
+        - name: cassandra
+          event_type: cassandraSample
+          jmx: ### global JMX config applies to all jmx commands beneath this API
+            user: cassandra
+            pass: cassandra
+            host: "127.0.0.1"
+            port: "7199"
+          # keep_keys: ### uses regex: will only keep keys that are listed here - useful if only after key metrics
+          #   - 99thPercentile
+          #   - bean
+          #   - domain
+          #   - zzzz
+          commands:
+            - run: echo "zzzz:xxxx" ### we can call additional commands prior to the JMX call that will merge into the JMX samples
+              split_by: ":"
+              ### see here for other queries https://github.com/newrelic/nri-cassandra/blob/master/src/metrics_definition.go under JMX Patterns :P
+            - run: org.apache.cassandra.metrics:type=Table,keyspace=*,scope=*,name=ReadLatency
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Latency
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Timeouts
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ClientRequest,scope=*,name=Unavailables
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Table,name=LiveSSTableCount
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Table,name=AllMemtablesHeapSize
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Table,name=AllMemtablesOffHeapSize
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=*,name=ActiveTasks
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=*,name=PendingTask
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=*,name=ActiveTasks
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=*,name=PendingTasks
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=DroppedMessage,scope=*,name=Dropped
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Storage,name=Load
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Storage,name=TotalHints
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Storage,name=TotalHintsInProgress
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=Cache,scope=*,name=*
+              output: jmx
+            - run: org.apache.cassandra.metrics:type=CommitLog,name=*
+              output: jmx
+          sample_filter: ### uses regex
+            - bean: type=Table,keyspace=system_schema ## remove all bean metrics that have this value
+            # - .*: COUNTER ## remove all counter metrics
+          custom_attributes:
+            myCustomAttr: theValue ## inject your own additional custom attributes to all samples under this API

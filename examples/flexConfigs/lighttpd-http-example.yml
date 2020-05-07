@@ -1,12 +1,16 @@
 ---
-name: lighttpdFlex
-global:
-    base_url: http://lighttpd.net/
-apis:
-  - event_type: status
-    url: status?format=plain
-  - event_type: lighttpdStatusSample
-    commands: 
-      - cache: status?format=plain
-        split_by: ": "
-    snake_to_camel: true
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: lighttpdFlex
+      global:
+        base_url: http://lighttpd.net/
+      apis:
+        - event_type: status
+          url: status?format=plain
+        - event_type: lighttpdStatusSample
+          commands:
+            - cache: status?format=plain
+              split_by: ": "
+          snake_to_camel: true

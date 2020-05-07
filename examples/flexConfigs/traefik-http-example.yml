@@ -1,8 +1,12 @@
 ---
-name: traefikFlex
-global:
-    base_url: http://localhost:8080/
-apis: 
-  - event_type: traefikHealthSample
-    url: health
-    snake_to_camel: true
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: traefikFlex
+      global:
+        base_url: http://localhost:8080/
+      apis:
+        - event_type: traefikHealthSample
+          url: health
+          snake_to_camel: true

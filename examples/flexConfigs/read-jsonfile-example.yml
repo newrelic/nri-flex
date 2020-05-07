@@ -1,8 +1,13 @@
-name: readJsonExample
-apis: 
-  - name: readEtcdJson
-    file: testPayloads/etcdLeader.json # this file is read, json is auto detected and parsed
-    sample_keys:
-      followerSample: followers>follower.id # there are objects within objects distinguished by key, we can create samples like so
-    custom_attributes:
-      myCustomAttr: theValue
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: readJsonExample
+      apis:
+        - name: readEtcdJson
+          file: testPayloads/etcdLeader.json # this file is read, json is auto detected and parsed
+          sample_keys:
+            followerSample: followers>follower.id # there are objects within objects distinguished by key, we can create samples like so
+          custom_attributes:
+            myCustomAttr: theValue
