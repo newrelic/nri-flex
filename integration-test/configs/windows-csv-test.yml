@@ -1,0 +1,10 @@
+name: csvIntegrationTest
+apis:
+  - name: read
+    file: $$MY_TEMP_FOLDER\test.csv
+    add_attribute:
+      fullName: ${last}, ${first}
+    custom_attributes:
+      agenda: customers
+    strip_keys:
+      - number
