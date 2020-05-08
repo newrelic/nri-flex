@@ -1,0 +1,13 @@
+# Windows SSL Certificate Expiration Config
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+integrations:
+  - name: nri-flex
+    interval: 24h # This is the Infra agent polling interval for this Flex config, set to one poll every 24 hours
+    config:
+      name: ssl_certificate_check
+      lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/ssl-certificate-expiration-lookup.json"
+      apis:
+      - event_type: ssl_certificate_check
+        shell: powershell
+        commands:
+          - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ssl-certificate-expiration-script.ps1\" -URL ${lf:targetURL}"
