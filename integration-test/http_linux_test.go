@@ -1,7 +1,7 @@
 // +build integration
 // +build linux
 
-package integration
+package integration_test
 
 import (
 	"encoding/json"

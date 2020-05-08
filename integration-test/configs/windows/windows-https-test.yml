@@ -1,0 +1,10 @@
+name: httpsTest
+apis:
+  - name: httpsTest
+    url: https://localhost:8043/json
+    event_type: WindowsHttpSample
+    start_key: 
+      - metrics
+    tls_config:
+      enable: true
+      insecure_skip_verify: true
