@@ -1,0 +1,7 @@
+name: httpTest
+apis:
+  - name: httpTest
+    url: http://localhost:8080/json
+    event_type: WindowsHttpSample
+    start_key:
+      - metrics

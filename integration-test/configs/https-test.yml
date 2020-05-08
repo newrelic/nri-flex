@@ -5,7 +5,7 @@ apis:
     url: https://https-server/nginx_status
     tls_config:
       enable: true
-      ca: ./https-server/cabundle/cert.pem
+      insecure_skip_verify: true
     ignore_output: true
   - name: nginx
     entity: https-server
