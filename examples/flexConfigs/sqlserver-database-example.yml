@@ -1,14 +1,19 @@
-name: sqlserverDbFlex
-apis:
-  - database: sqlserver
-    db_conn: server=myserver.asdasd.ap-southeast-2.rds.amazonaws.com;user id=hithere;database=master;encrypt=disable;password=byethere
-    logging:
-      open: true
-    custom_attributes: # applies to all queries
-      host: myDbServer
-    db_async: true # process queries async
-    db_queries:
-      - name: sqlserverExecSample
-        run: Select cpu_time,database_id,deadlock_priority,endpoint_id from sys.dm_exec_sessions
-        custom_attributes: # can apply additional at a nested level
-          nestedAttr: nestedVal
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: sqlserverDbFlex
+      apis:
+        - database: sqlserver
+          db_conn: server=myserver.asdasd.ap-southeast-2.rds.amazonaws.com;user id=hithere;database=master;encrypt=disable;password=byethere
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: myDbServer
+          db_async: true # process queries async
+          db_queries:
+            - name: sqlserverExecSample
+              run: Select cpu_time,database_id,deadlock_priority,endpoint_id from sys.dm_exec_sessions
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: nestedVal

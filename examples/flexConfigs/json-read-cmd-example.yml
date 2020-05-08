@@ -1,9 +1,14 @@
-name: commandExample
-apis: 
-  - name: commandJsonOut
-    commands: 
-      # run any command, you could cat .json file, or run some commands that produce a json output
-      # the example just calls an API that returns json
-      - run: curl -s https://jsonplaceholder.typicode.com/todos/1 #json output is retrieved from this command
-    custom_attributes:
-      myCustomAttr: theValue
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: commandExample
+      apis:
+        - name: commandJsonOut
+          commands:
+            # run any command, you could cat .json file, or run some commands that produce a json output
+            # the example just calls an API that returns json
+            - run: curl -s https://jsonplaceholder.typicode.com/todos/1 #json output is retrieved from this command
+          custom_attributes:
+            myCustomAttr: theValue

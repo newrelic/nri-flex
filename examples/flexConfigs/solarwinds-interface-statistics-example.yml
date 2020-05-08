@@ -1,0 +1,30 @@
+# SolarWinds NPM Interface Statistics Config
+integrations:
+  - name: nri-flex
+    interval: 9m # Default is 30s
+    config:
+      name: solarwinds_interfaces
+      global: 
+        # Replace <SOLARWINDS_SERVER_NAME> with the name of your SolarWinds Orion server
+        # You can any Orion server (Primary, Additional Poller, Additional Web) as an API endpoint
+        # Note that Additional Web Servers behind a load balancer can have extended response times to API calls
+        base_url: https://<SOLARWINDS_SERVER_NAME>:17778/SolarWinds/InformationService/v3/Json/Query?query=
+        tls_config:
+          insecure_skip_verify: true
+        headers:
+          # This is your User/Pass for a LOCAL ORION ACCOUNT
+          # Active Directory login via HTTP calls are not supported by the Orion API due to a limitation in NTLM
+          # Reference: https://thwack.solarwinds.com/t5/Discussions/Is-it-possible-to-use-Windows-Authentication-with-the-Orion-REST/m-p/209768#M4055
+          # You can create this string via the following PowerShell snippet
+          # Replace 'TestUser' and 'SuperSecretPassword'; but be sure to keep the colon delimiter ':'
+          # Take the string output from the snippet and replace BASE64_ENCODED_USER_PASS below
+          # Example:
+          # [convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("TestUser:SuperSecretPassword"))
+          Authorization: "Basic BASE64_ENCODED_USER_PASS"
+      apis:
+      - event_type: solarwinds_interfaces
+        # This is purposefully limited to 'TOP 10' for testing, you'll want to remove the `TOP` and `ORDER BY` for production
+        url: "SELECT TOP 10 SECONDDIFF('1970-01-01 00:00:00', i.Traffic.ObservationTimestamp) AS [npm.observationTimestamp], i.NodeID AS [npm.nodeID], i.Node.Caption AS [npm.nodeName], i.InterfaceID AS [npm.interfaceID], i.InterfaceName AS [npm.interfaceName], i.InterfaceAlias AS [npm.interfaceAlias], s.StatusName AS [npm.interfaceStatus], i.StatCollection AS [npm.trafficIntervalMins], i.HasObsoleteData AS [npm.interfaceDataObsolete], i.IfName AS [npm.ifName], i.InterfaceIndex AS [npm.ifIndex], i.InterfaceTypeName AS [npm.typeName], i.InterfaceTypeDescription AS [npm.typeDescription], i.MAC AS [npm.macAddress], i.InBandwidth AS [npm.rcvBandwidthBps], i.OutBandwidth AS [npm.xmtBandwidthBps], i.CustomBandwidth AS [npm.customBandwidthEnabled], ROUND(i.Traffic.PercentUtil,2) AS [npm.totalPercentUtil], ROUND(i.Traffic.InPercentUtil,2) AS [npm.rcvPercentUtil], ROUND(i.Traffic.OutPercentUtil,2) AS [npm.xmtPercentUtil] FROM Orion.NPM.Interfaces AS [i] JOIN Orion.StatusInfo AS [s] ON s.StatusID = i.Status WHERE MINUTEDIFF(i.Traffic.ObservationTimestamp,GETUTCDATE()) <= 10 ORDER BY i.Traffic.ObservationTimestamp DESC"
+
+        # This is an example for Production
+        #url: "SELECT SECONDDIFF('1970-01-01 00:00:00', i.Traffic.ObservationTimestamp) AS [npm.observationTimestamp], i.NodeID AS [npm.nodeID], i.Node.Caption AS [npm.nodeName], i.InterfaceID AS [npm.interfaceID], i.InterfaceName AS [npm.interfaceName], i.InterfaceAlias AS [npm.interfaceAlias], s.StatusName AS [npm.interfaceStatus], i.StatCollection AS [npm.trafficIntervalMins], i.HasObsoleteData AS [npm.interfaceDataObsolete], i.IfName AS [npm.ifName], i.InterfaceIndex AS [npm.ifIndex], i.InterfaceTypeName AS [npm.typeName], i.InterfaceTypeDescription AS [npm.typeDescription], i.MAC AS [npm.macAddress], i.InBandwidth AS [npm.rcvBandwidthBps], i.OutBandwidth AS [npm.xmtBandwidthBps], i.CustomBandwidth AS [npm.customBandwidthEnabled], ROUND(i.Traffic.PercentUtil,2) AS [npm.totalPercentUtil], ROUND(i.Traffic.InPercentUtil,2) AS [npm.rcvPercentUtil], ROUND(i.Traffic.OutPercentUtil,2) AS [npm.xmtPercentUtil] FROM Orion.NPM.Interfaces AS [i] JOIN Orion.StatusInfo AS [s] ON s.StatusID = i.Status WHERE MINUTEDIFF(i.Traffic.ObservationTimestamp,GETUTCDATE()) <= 10"

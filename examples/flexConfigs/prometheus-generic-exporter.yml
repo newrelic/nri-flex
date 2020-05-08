@@ -1,23 +1,26 @@
 # This is a configuration example explaining all the possible options on setting up prometheus exporter metrics to be ingested
 # https://prometheus.io/docs/instrumenting/exporters/
-
 ---
-name: redisFlex # https://github.com/oliver006/redis_exporter
-apis: 
-  - name: redis
-    url: http://localhost:9121/metrics 
-    prometheus: 
-      # raw: true ### if enabled will create an event per prometheus metric retaining all metadata for the metric (same as unflatten)
-      ############### by default Flex will try to flatten the metrics where possible to reduce the events being generated
-      enable: true
-      # flattened_event: "redisSample" 
-      ## override the flattened event type used, as the api name is "redis" the event type created will be redisSample
-      # histogram: true  ## default false - enable histogram metrics, as the api name is "redis" the event type created will be redisHistogramSample
-      # histogram_event: nginxMyCustomHistogramEvent ## override the auto event type for histogram metrics
-      # summary: true ## default false - enable summary metrics, as the api name is "redis" the event type created will be redisSummarySample
-      # summary_event: nginxMyCustomHistogramEvent ## override the auto event type for summary metrics
-      # go_metrics: false ## default false - the exporters internal go metrics
-      # unflatten: true ## (same as raw (will be removed later)) use with caution as it can generate a lot of events, this will generate an event per prometheus metric
-    # sample_filter:
-      # - .*: GAUGE ## remove all gauge metrics
-      # - .*: COUNTER ## remove all counter metrics
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: redisFlex # https://github.com/oliver006/redis_exporter
+      apis:
+        - name: redis
+          url: http://localhost:9121/metrics
+          prometheus:
+            # raw: true ### if enabled will create an event per prometheus metric retaining all metadata for the metric (same as unflatten)
+            ############### by default Flex will try to flatten the metrics where possible to reduce the events being generated
+            enable: true
+            # flattened_event: "redisSample"
+            ## override the flattened event type used, as the api name is "redis" the event type created will be redisSample
+            # histogram: true  ## default false - enable histogram metrics, as the api name is "redis" the event type created will be redisHistogramSample
+            # histogram_event: nginxMyCustomHistogramEvent ## override the auto event type for histogram metrics
+            # summary: true ## default false - enable summary metrics, as the api name is "redis" the event type created will be redisSummarySample
+            # summary_event: nginxMyCustomHistogramEvent ## override the auto event type for summary metrics
+            # go_metrics: false ## default false - the exporters internal go metrics
+            # unflatten: true ## (same as raw (will be removed later)) use with caution as it can generate a lot of events, this will generate an event per prometheus metric
+          # sample_filter:
+          # - .*: GAUGE ## remove all gauge metrics
+          # - .*: COUNTER ## remove all counter metrics

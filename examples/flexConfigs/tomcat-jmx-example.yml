@@ -1,53 +1,58 @@
-name: tomcatFlex
-global:
-  jmx:
-      host: "127.0.0.1"
-      port: "9001"
-apis: 
-  - name: tomcatThreads
-    event_type: tomcatThreadSample
-    ### note "keep_keys" will do the inverse, if you want all metrics remove the keep keys blocks completely
-    ### otherwise tailor specific keys you would like to keep, this uses regex for filtering
-    ### this is useful for keeping key metrics
-    keep_keys: ###
-      - bean
-      - maxThreads
-      - connectionCount
-    commands: 
-      - run: Catalina:type=ThreadPool,name=*
-        output: jmx
-  - name: tomcatRequest
-    event_type: tomcatRequestSample
-    keep_keys:
-      - bean
-      - bytesSent
-      - bytesReceived
-      - errorCount
-      - requestCount
-    commands: 
-      - run: Catalina:type=GlobalRequestProcessor,name=*
-        output: jmx
-    metric_parser: ### Metric Parser Example
-      namespace: ### Rate & Delta support requires namespacing
-        existing_attr: ### Use an existing attribute or attributes to namespace
-          - bean
-      metrics:
-        bytesReceived: RATE
-        bytesSent: RATE
-        requestCount: RATE
-        errorCount: RATE
-  - name: manager
-    event_type: tomcatManagerSample
-    keep_keys:
-      - bean
-      - errorCount
-      - requestCount
-    commands: 
-      - run: Catalina:type=GlobalRequestProcessor,name=*
-        output: jmx
-  - name: datasource
-    event_type: tomcatDatasourceSample
-    keep_keys:
-      - bean
-      - numActive
-      - numIdle
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: tomcatFlex
+      global:
+        jmx:
+          host: "127.0.0.1"
+          port: "9001"
+      apis:
+        - name: tomcatThreads
+          event_type: tomcatThreadSample
+          ### note "keep_keys" will do the inverse, if you want all metrics remove the keep keys blocks completely
+          ### otherwise tailor specific keys you would like to keep, this uses regex for filtering
+          ### this is useful for keeping key metrics
+          keep_keys: ###
+            - bean
+            - maxThreads
+            - connectionCount
+          commands:
+            - run: Catalina:type=ThreadPool,name=*
+              output: jmx
+        - name: tomcatRequest
+          event_type: tomcatRequestSample
+          keep_keys:
+            - bean
+            - bytesSent
+            - bytesReceived
+            - errorCount
+            - requestCount
+          commands:
+            - run: Catalina:type=GlobalRequestProcessor,name=*
+              output: jmx
+          metric_parser: ### Metric Parser Example
+            namespace: ### Rate & Delta support requires namespacing
+              existing_attr: ### Use an existing attribute or attributes to namespace
+                - bean
+            metrics:
+              bytesReceived: RATE
+              bytesSent: RATE
+              requestCount: RATE
+              errorCount: RATE
+        - name: manager
+          event_type: tomcatManagerSample
+          keep_keys:
+            - bean
+            - errorCount
+            - requestCount
+          commands:
+            - run: Catalina:type=GlobalRequestProcessor,name=*
+              output: jmx
+        - name: datasource
+          event_type: tomcatDatasourceSample
+          keep_keys:
+            - bean
+            - numActive
+            - numIdle
