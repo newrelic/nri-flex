@@ -1,21 +1,26 @@
 ---
 # bamboo api documentation https://docs.atlassian.com/atlassian-bamboo/REST/5.5.0/
 # jira https://developer.atlassian.com/cloud/jira/platform/rest/v3/?utm_source=%2Fcloud%2Fjira%2Fplatform%2Frest%2F&utm_medium=302#api-api-3-status-get
-name: bambooFlex
-global:
-    base_url: http://localhost:8085/
-    user: bamboo
-    pass: bamboo
-    headers:
-      accept: application/json
-apis: 
-  # - event_type: bambooResultSample ### test payload
-  #   file: ./testPayloads/bambooResult.json
-  - event_type: bambooResultSample
-    url: rest/api/latest/result?includeAllStates=true
-  - event_type: bambooProjectSample
-    url: rest/api/latest/project?os_authType=basic
-  - event_type: bambooPlanSample
-    url: rest/api/latest/plan?os_authType=basic
-  - event_type: bambooInfoSample
-    url: rest/api/latest/info?os_authType=basic
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: bambooFlex
+      global:
+        base_url: http://localhost:8085/
+        user: bamboo
+        pass: bamboo
+        headers:
+          accept: application/json
+      apis:
+        # - event_type: bambooResultSample ### test payload
+        #   file: ./testPayloads/bambooResult.json
+        - event_type: bambooResultSample
+          url: rest/api/latest/result?includeAllStates=true
+        - event_type: bambooProjectSample
+          url: rest/api/latest/project?os_authType=basic
+        - event_type: bambooPlanSample
+          url: rest/api/latest/plan?os_authType=basic
+        - event_type: bambooInfoSample
+          url: rest/api/latest/info?os_authType=basic

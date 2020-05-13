@@ -1,13 +1,16 @@
 ### PHP-FPM Status Page Integration
 ---
-name: phpfpm
-global:
-    base_url: https://www.domain.com/
-apis:
-  - event_type: phpfpmSample
-    url: fpm_status?json
-    
-# To use this integration you must configure the FPM Status page on your server. 
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: phpfpm
+      global:
+        base_url: https://www.domain.com/
+      apis:
+        - event_type: phpfpmSample
+          url: fpm_status?json
+# To use this integration you must configure the FPM Status page on your server.
 # Typically this involves
 # Edit /etc/php-fpm.d/www.conf
 # Ensure pm.status_path = /fpm_status is uncommented

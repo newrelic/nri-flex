@@ -1,18 +1,22 @@
 ### https://coreos.com/etcd/docs/latest/v2/api.html#statistics
 ---
-name: etcdFlex
-global:
-    base_url: http://127.0.0.1:2379/v2/
-    headers:
-      accept: application/json
-apis: 
-  - event_type: etcdLeaderSample
-    url: stats/leader
-    sample_keys:
-      followerSample: followers>follower.id # there are objects within objects distinguished by key, we can create samples like so
-    custom_attributes:
-      myCustomAttr: theValue
-  - event_type: etcdSelfSample 
-    url: stats/self
-  - event_type: etcdStoreSample
-    url: stats/store
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: etcdFlex
+      global:
+        base_url: http://127.0.0.1:2379/v2/
+        headers:
+          accept: application/json
+      apis:
+        - event_type: etcdLeaderSample
+          url: stats/leader
+          sample_keys:
+            followerSample: followers>follower.id # there are objects within objects distinguished by key, we can create samples like so
+          custom_attributes:
+            myCustomAttr: theValue
+        - event_type: etcdSelfSample
+          url: stats/self
+        - event_type: etcdStoreSample
+          url: stats/store

@@ -7,32 +7,32 @@ For functions that are specific to data sources, such as `split_by` or `headers`
 -   [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
     -   [Function precedence order](#function-precedence-order)
     -   [Flex supported functions](#flex-supported-functions)
-        -   [add_attribute](#addattribute)
-        -   [convert_space](#convertspace)
-        -   [ignore_output](#ignoreoutput)
-        -   [keep_keys](#keepkeys)
-        -   [lazy_flatten](#lazyflatten)
-        -   [lookup_file](#lookupfile)
+        -   [add_attribute](#add_attribute)
+        -   [convert_space](#convert_space)
+        -   [ignore_output](#ignore_output)
+        -   [keep_keys](#keep_keys)
+        -   [lazy_flatten](#lazy_flatten)
+        -   [lookup_file](#lookup_file)
         -   [math](#math)
-        -   [perc_to_decimal](#perctodecimal)
-        -   [remove_keys](#removekeys)
-        -   [rename_keys / replace_keys](#renamekeys--replacekeys)
-        -   [sample_filter](#samplefilter)
-        -   [sample_include_filter](#sampleincludefilter)
-        -   [sample_exclude_filter](#sampleexcludefilter)
-        -   [snake_to_camel](#snaketocamel)
-        -   [split_array (leaf_array)](#splitarray-leafarray)
-        -   [split_objects](#splitobjects)
-        -   [start_key](#startkey)
-        -   [store_variables](#storevariables)
+        -   [perc_to_decimal](#perc_to_decimal)
+        -   [remove_keys](#remove_keys)
+        -   [rename_keys / replace_keys](#rename_keys--replace_keys)
+        -   [sample_filter](#sample_filter)
+        -   [sample_include_filter](#sample_include_filter)
+        -   [sample_exclude_filter](#sample_exclude_filter)
+        -   [snake_to_camel](#snake_to_camel)
+        -   [split_array (leaf_array)](#split_array-leaf_array)
+        -   [split_objects](#split_objects)
+        -   [start_key](#start_key)
+        -   [store_variables](#store_variables)
         -   [lookups](#lookups)
         -   [dedupe_lookups](#dedupe_lookups)
-        -   [store_lookups](#storelookups)
-        -   [strip_keys](#stripkeys)
+        -   [store_lookups](#store_lookups)
+        -   [strip_keys](#strip_keys)
         -   [timestamp](#timestamp)
-        -   [to_lower](#tolower)
-        -   [value_parser](#valueparser)
-        -   [value_transformer](#valuetransformer)
+        -   [to_lower](#to_lower)
+        -   [value_parser](#value_parser)
+        -   [value_transformer](#value_transformer)
 
 ## Function precedence order
 
@@ -1140,53 +1140,6 @@ Which would return something similar to
   "event_type": "someServiceSample",
   "hij": 234
 }
-```
-
-### store_variables
-
-Stores variables from any API result that can be accessed anywhere in any subsequent API.
-
-Consider the following payload:
-
-```json
-{
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc":{
-            "def":123,
-            "hij":234
-        }
-    },
-    "name": "node3"
-}
-```
-
-You could store the value of key `id` to be used in the next API:
-
-```yaml
-name: example
-apis:
-  - name: storeVariables
-    url: http://some-service.com/status
-    store_variables:
-      nodeId: id
-  - name: useVariables
-    url: http://some-service.com/${var:nodeId}/status
-```
-
-```yaml
----
-name: dummyFlex
-apis:
-  - name: todo
-    url: https://jsonplaceholder.typicode.com/todos/2
-    store_variables:
-      storedId: userId ### store the userId from this response into storedId
-  - name: user
-    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
 ```
 
 ### lookups

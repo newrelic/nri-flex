@@ -2,12 +2,17 @@
 # mimics nagios check_open_fds
 # does a $1-$2 to be backward compatible with earlier kernels which had available open FDs in column 2
 # newer kernels will have column 1 listing the open FDs and column 2 zero or close to zero
-name: linuxOpenFD
-apis:
-  - name: linuxOpenFD
-    commands:
-      - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
-        split: horizontal
-        set_header: [openFD,maxFD]
-        regex_match: true
-        split_by: (\d+)\s+(.*)
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxOpenFD
+      apis:
+        - name: linuxOpenFD
+          commands:
+            - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
+              split: horizontal
+              set_header: [openFD, maxFD]
+              regex_match: true
+              split_by: (\d+)\s+(.*)

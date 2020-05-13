@@ -3,10 +3,14 @@
 # Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
 # lookup_file: https://github.com/newrelic/nri-flex/blob/master/docs/basics/functions.md#lookup_file
 # shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
-name: winPing
-lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-lookup.json"
-apis:
-  - name: winPing
-    shell: powershell
-    commands:
-      - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-script\" -Target ${lf:target} -Count ${lf:count}"
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: winPing
+      lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-lookup.json"
+      apis:
+        - name: winPing
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-script\" -Target ${lf:target} -Count ${lf:count}"

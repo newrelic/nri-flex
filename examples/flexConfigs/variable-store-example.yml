@@ -1,11 +1,15 @@
 ### variable store example
 ### we can store variables from any execution point, and reuse in any subsequent url, command, query etc.
 ---
-name: dummyFlex
-apis: 
-  - name: todo
-    url: https://jsonplaceholder.typicode.com/todos/2
-    store_variables:
-      storedId: userId ### store the userId from this response into storedId
-  - name: user
-    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: dummyFlex
+      apis:
+        - name: todo
+          url: https://jsonplaceholder.typicode.com/todos/2
+          store_variables:
+            storedId: userId ### store the userId from this response into storedId
+        - name: user
+          url: https://jsonplaceholder.typicode.com/users/${var:storedId} ### query the user route with the previously stored userId which is storedId

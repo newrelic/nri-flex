@@ -1,13 +1,29 @@
-name: dfFlex
-apis:
-  - name: df
-    commands:
-      - run: df -i
-        split: horizontal
-        set_header: [fs,512Blocks,used,available,capacity,iused,ifree,iusedPerc,mountedOn]
-        regex_match: true
-        split_by: (\S+.\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
-    perc_to_decimal: true
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: dfFlex
+      apis:
+        - name: df
+          commands:
+            - run: df -i
+              split: horizontal
+              set_header:
+                [
+                  fs,
+                  512Blocks,
+                  used,
+                  available,
+                  capacity,
+                  iused,
+                  ifree,
+                  iusedPerc,
+                  mountedOn,
+                ]
+              regex_match: true
+              split_by: (\S+.\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+          perc_to_decimal: true
 ### Above supports the expected output
 # Filesystem    512-blocks      Used Available Capacity iused               ifree %iused  Mounted on
 # /dev/disk1s1   976490568 928833376  31576920    97% 4558834 9223372036850216973    0%   /

@@ -1,11 +1,15 @@
----
 # https://api.newrelic.com/
-name: newrelicAppHealthFlex
-global:
-    headers:
-      X-Api-Key: yourApiKey
-apis: 
-  - event_type: newrelicApmSample
-    url: https://api.newrelic.com/v2/applications.json
-    remove_keys:
-      - links
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: newrelicAppHealthFlex
+      global:
+        headers:
+          X-Api-Key: yourApiKey
+      apis:
+        - event_type: newrelicApmSample
+          url: https://api.newrelic.com/v2/applications.json
+          remove_keys:
+            - links

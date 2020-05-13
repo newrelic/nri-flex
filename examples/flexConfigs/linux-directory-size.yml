@@ -1,10 +1,15 @@
 # Used to query Directory Size via Disk Usage
-name: linuxDirectorySize
-apis:
-  - name: linuxDirectorySize
-    commands:
-      - run: du -sb /var/db/newrelic-infra/custom-integrations/
-        split: horizontal
-        set_header: [dirSizeBytes,dirName]
-        regex_match: true
-        split_by: (\d+)\s+(.*)
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxDirectorySize
+      apis:
+        - name: linuxDirectorySize
+          commands:
+            - run: du -sb /var/db/newrelic-infra/custom-integrations/
+              split: horizontal
+              set_header: [dirSizeBytes, dirName]
+              regex_match: true
+              split_by: (\d+)\s+(.*)

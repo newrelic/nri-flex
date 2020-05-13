@@ -1,12 +1,16 @@
 ### https://api.alertops.com/Help/Api/
 ---
-name: alertopsFlex
-global:
-    base_url: https://api.alertops.com/api/
-apis: 
-  - event_type: alertopsAlertSample ### https://api.alertops.com/Help/Api/GET-api-Alert_APIKey_Limit_Offset_AlertStatus_DateFrom_DateTo_Order_AlertID
-    # file: ./testPayloads/alertopsAlerts.json ### used for testing
-    url: Alert?APIKey=yourAlertOpsApiKey
-    lazy_flatten:
-      - alerts>Deliveries
-      - alerts>Recipients
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: alertopsFlex
+      global:
+        base_url: https://api.alertops.com/api/
+      apis:
+        - event_type: alertopsAlertSample ### https://api.alertops.com/Help/Api/GET-api-Alert_APIKey_Limit_Offset_AlertStatus_DateFrom_DateTo_Order_AlertID
+          # file: ./testPayloads/alertopsAlerts.json ### used for testing
+          url: Alert?APIKey=yourAlertOpsApiKey
+          lazy_flatten:
+            - alerts>Deliveries
+            - alerts>Recipients

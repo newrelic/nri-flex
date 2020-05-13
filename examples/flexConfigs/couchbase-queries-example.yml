@@ -3,11 +3,11 @@ integrations:
     config:
       name: couchbaseQueriesFlex
       global:
-          base_url: http://your_host_here:your_port_here_too
-          user: user_here
-          pass: pass_here
-          headers:
-            Accept: application/json
+        base_url: http://your_host_here:your_port_here_too
+        user: user_here
+        pass: pass_here
+        headers:
+          Accept: application/json
       apis:
         - event_type: couchbaseActiveQuerySample
           url: /query/service
