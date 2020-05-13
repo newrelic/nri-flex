@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Official support for Kubernetes
 - Official support for Windows (Windows Server 2012, Windows Server 2016, Windows Server 2019)
 - Official support for the text file API under Linux
+- Official support for `store_variables` function
 
 ## 1.1.2 - 2020-04-16
 ### Changed
