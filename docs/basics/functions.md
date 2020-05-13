@@ -24,6 +24,7 @@ For functions that are specific to data sources, such as `split_by` or `headers`
         -   [split_array (leaf_array)](#split_array-leaf_array)
         -   [split_objects](#split_objects)
         -   [start_key](#start_key)
+        -   [store_variables](#store_variables)
         -   [lookups](#lookups)
         -   [dedupe_lookups](#dedupe_lookups)
         -   [store_lookups](#store_lookups)
@@ -40,29 +41,29 @@ Flex applies data parsing and transformation functions in a specific order, rega
 -   [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
     -   [Function precedence order](#function-precedence-order)
     -   [Flex supported functions](#flex-supported-functions)
-        -   [add_attribute](#add_attribute)
-        -   [convert_space](#convert_space)
-        -   [ignore_output](#ignore_output)
-        -   [keep_keys](#keep_keys)
-        -   [lazy_flatten](#lazy_flatten)
-        -   [lookup_file](#lookup_file)
+        -   [add_attribute](#addattribute)
+        -   [convert_space](#convertspace)
+        -   [ignore_output](#ignoreoutput)
+        -   [keep_keys](#keepkeys)
+        -   [lazy_flatten](#lazyflatten)
+        -   [lookup_file](#lookupfile)
         -   [math](#math)
-        -   [perc_to_decimal](#perc_to_decimal)
-        -   [remove_keys](#remove_keys)
-        -   [rename_keys / replace_keys](#rename_keys--replace_keys)
-        -   [sample_filter](#sample_filter)
-        -   [sample_include_filter](#sample_include_filter)
-        -   [sample_exclude_filter](#sample_exclude_filter)
-        -   [snake_to_camel](#split_array-leaf_array)
-        -   [split_array (leaf_array)](#split_array-leaf_array)
-        -   [split_objects](#split_objects)
-        -   [start_key](#start_key)
-        -   [store_lookups](#store_lookups)
-        -   [strip_keys](#strip_keys)
+        -   [perc_to_decimal](#perctodecimal)
+        -   [remove_keys](#removekeys)
+        -   [rename_keys / replace_keys](#renamekeys--replacekeys)
+        -   [sample_filter](#samplefilter)
+        -   [sample_include_filter](#sampleincludefilter)
+        -   [sample_exclude_filter](#sampleexcludefilter)
+        -   [snake_to_camel](#snaketocamel)
+        -   [split_array (leaf_array)](#splitarray-leafarray)
+        -   [split_objects](#splitobjects)
+        -   [start_key](#startkey)
+        -   [store_lookups](#storelookups)
+        -   [strip_keys](#stripkeys)
         -   [timestamp](#timestamp)
-        -   [to_lower](#to_lower)
-        -   [value_parser](#value_parser)
-        -   [value_transformer](#value_transformer)
+        -   [to_lower](#tolower)
+        -   [value_parser](#valueparser)
+        -   [value_transformer](#valuetransformer)
 
 > \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
@@ -362,17 +363,17 @@ Consider a file with the following content:
 ```json
 [
     {
-        "serviceName": "some-service",
-        "serviceAddr": "some-service.com:80"
+        "name": "some-service",
+        "addr": "some-service.com:80"
     },
     {
-        "serviceName": "another-service",
-        "serviceAddr": "another-service.com:80"
+        "name": "another-service",
+        "addr": "another-service.com:80"
     }
 ]
 ```
 
-Assuming an API request to each service endpoint returns a payload similar to:
+Assuming each service returns a payload similar to:
 
 ```json
 {
@@ -396,17 +397,15 @@ You could use `lookup_file` to generate multiple API executions and therefore sa
 name: example
 lookup_file: addresses.json
 apis:
-    - name: someServiceCheck
-      url: http://${lf:serviceAddr}/status
-      custom_attributes:
-        service_name: ${lf:serviceName}
+    - name: someService
+      url: http://${lf:addr}/status
 ```
 
 Which would return the following:
 
 ```json
 "metrics": [{
-  "event_type": "someServiceCheckSample",
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -414,9 +413,8 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
-  "service_name": "some-service"
   },{
-  "event_type": "someServiceCheckSample",
+  "event_type": "someServiceSample",
   "id": "eca0338f4ea31566",
   "leaderInfo.abc.def": 123,
   "leaderInfo.abc.hij": 234,
@@ -424,7 +422,6 @@ Which would return the following:
   "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3",
-  "service_name": "another-service"
 }
 ```
 

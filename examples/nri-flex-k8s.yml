@@ -16,41 +16,64 @@ spec:
       labels:
         name: nri-flex
     spec:
+      hostNetwork: true
+      hostPID: true
       containers:
         - name: nri-flex
-          image: "YourDockerUserName/nri-flex-YourCustomFlexImage"
+          image: newrelic/infrastructure:latest
           imagePullPolicy: Always
           env:
           - name: NRIA_LICENSE_KEY
             value: "YourNR-LicenseKey"
-          - name: CONTAINER_DISCOVERY
-            value: "true"
-          ### Sync integrations dynamically from your git repository
-          # - name: GIT_REPO 
-          #   value: "https://github.com/userName/repoName"
-          # - name: GIT_USER
-          #   value: "myGithubUser"
-          # - name: GIT_TOKEN
-          #   value: "myGithubToken"
+          - name: NRIA_DISPLAY_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: "v1"
+                fieldPath: "spec.nodeName"
+          - name: NRK8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: "v1"
+                fieldPath: "spec.nodeName"
           volumeMounts:
-            - name: dockersock
-              mountPath: /var/run/docker.sock
-              readOnly:  true
-            - name: proc
-              mountPath: /host/proc
+            - mountPath: /host
+              name: host-volume
               readOnly: true
+            - mountPath: /var/run/docker.sock
+              name: host-docker-socket
+            - mountPath: /etc/newrelic-infra/integrations.d/
+              name: nri-integration-cfg-volume
           resources:
             limits:
-              memory: 150M
+              memory: 300M
             requests:
               cpu: 100m
-              memory: 30M
-      hostNetwork: true
-      hostPID: true
+              memory: 100M
       volumes:
-        - name: dockersock
+        - name: host-volume
+          hostPath:
+            path: /
+        - name: host-docker-socket
           hostPath:
             path: /var/run/docker.sock
-        - name: proc
-          hostPath:
-            path: /proc
+        - name: nri-default-integration-cfg-volume
+          configMap:
+            name: nri-default-integration-cfg
+        - name: nri-integration-cfg-volume
+          configMap:
+            name: nri-integration-cfg
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nri-integration-cfg # aimed to be safely overridden by users
+  namespace: default
+data:
+  nri-flex.yml: |
+    integrations:
+      - name: nri-flex
+        config:
+          name: example
+          apis:
+            - event_type: ExampleSample
+              url: https://my-host:8080/admin/metrics.json
