@@ -24,6 +24,7 @@ For functions that are specific to data sources, such as `split_by` or `headers`
         -   [split_array (leaf_array)](#splitarray-leafarray)
         -   [split_objects](#splitobjects)
         -   [start_key](#startkey)
+        -   [store_variables](#storevariables)
         -   [lookups](#lookups)
         -   [dedupe_lookups](#dedupe_lookups)
         -   [store_lookups](#storelookups)
@@ -1139,6 +1140,53 @@ Which would return something similar to
   "event_type": "someServiceSample",
   "hij": 234
 }
+```
+
+### store_variables
+
+Stores variables from any API result that can be accessed anywhere in any subsequent API.
+
+Consider the following payload:
+
+```json
+{
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+        "leader": "8a69d5f6b7814500",
+        "startTime": "2014-10-24T13:15:51.186620747-07:00",
+        "uptime": "10m59.322358947s",
+        "abc":{
+            "def":123,
+            "hij":234
+        }
+    },
+    "name": "node3"
+}
+```
+
+You could store the value of key `id` to be used in the next API:
+
+```yaml
+name: example
+apis:
+  - name: storeVariables
+    url: http://some-service.com/status
+    store_variables:
+      nodeId: id
+  - name: useVariables
+    url: http://some-service.com/${var:nodeId}/status
+```
+
+```yaml
+---
+name: dummyFlex
+apis:
+  - name: todo
+    url: https://jsonplaceholder.typicode.com/todos/2
+    store_variables:
+      storedId: userId ### store the userId from this response into storedId
+  - name: user
+    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
 ```
 
 ### lookups
