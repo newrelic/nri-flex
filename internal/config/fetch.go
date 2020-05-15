@@ -18,48 +18,48 @@ import (
 
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
-func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge) []interface{} {
+func FetchData(apiNo int, config *load.Config, samplesToMerge *load.SamplesToMerge) []interface{} {
 	load.Logrus.WithFields(logrus.Fields{
-		"name": yml.Name,
+		"name": config.Name,
 	}).Debug("fetch: collect data")
 
-	api := yml.APIs[apiNo]
+	api := config.APIs[apiNo]
 	file := api.File
 	reqURL := api.URL
 
 	doLoop := true
 	var dataStore []interface{}
 
-	continueProcessing := FetchLookups(yml, apiNo, samplesToMerge)
+	continueProcessing := FetchLookups(config, apiNo, samplesToMerge)
 
 	if continueProcessing {
 		if file != "" {
-			err := inputs.ProcessFile(&dataStore, yml, apiNo)
+			err := inputs.ProcessFile(&dataStore, config, apiNo)
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
-					"name": yml.Name,
+					"name": config.Name,
 					"file": file,
 				}).WithError(err).Error("fetch: failed to process file")
 			}
 		} else if api.Cache != "" {
-			if yml.Datastore[api.Cache] != nil {
-				dataStore = yml.Datastore[api.Cache]
+			if config.Datastore[api.Cache] != nil {
+				dataStore = config.Datastore[api.Cache]
 			}
 		} else if api.Ingest {
-			if yml.Datastore["IngestData"] != nil {
-				dataStore = yml.Datastore["IngestData"]
+			if config.Datastore["IngestData"] != nil {
+				dataStore = config.Datastore["IngestData"]
 			}
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DBConn == "" {
-			inputs.RunCommands(&dataStore, yml, apiNo)
+			inputs.RunCommands(&dataStore, config, apiNo)
 		} else if reqURL != "" {
-			inputs.RunHTTP(&dataStore, &doLoop, yml, api, &reqURL)
+			inputs.RunHTTP(&dataStore, &doLoop, config, api, &reqURL)
 		} else if api.Database != "" && api.DBConn != "" {
-			inputs.ProcessQueries(&dataStore, yml, apiNo)
+			inputs.ProcessQueries(&dataStore, config, apiNo)
 		} else if api.Scp.Host != "" {
-			err := inputs.RunScpWithTimeout(&dataStore, yml, api)
+			err := inputs.RunScpWithTimeout(&dataStore, config, api)
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
-					"name": yml.Name,
+					"name": config.Name,
 					"host": api.Scp.Host,
 				}).WithError(err).Error("fetch: failed to process remote file")
 			}
@@ -69,22 +69,24 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 	// cache output into datastore for later use
 	// if the source was a cache itself, we don't store it
 	if len(dataStore) > 0 {
+		load.ConfigMutex.Lock()
 		if api.URL != "" {
-			if yml.Datastore == nil {
-				yml.Datastore = map[string][]interface{}{}
+			if config.Datastore == nil {
+				config.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.URL] = dataStore
+			config.Datastore[api.URL] = dataStore
 		} else if len(api.Commands) > 0 && api.Database == "" && api.DBConn == "" && api.Name != "" {
-			if yml.Datastore == nil {
-				yml.Datastore = map[string][]interface{}{}
+			if config.Datastore == nil {
+				config.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.Name] = dataStore
+			config.Datastore[api.Name] = dataStore
 		} else if api.File != "" {
-			if yml.Datastore == nil {
-				yml.Datastore = map[string][]interface{}{}
+			if config.Datastore == nil {
+				config.Datastore = map[string][]interface{}{}
 			}
-			yml.Datastore[api.File] = dataStore
+			config.Datastore[api.File] = dataStore
 		}
+		load.ConfigMutex.Unlock()
 	}
 
 	return dataStore

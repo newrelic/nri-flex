@@ -42,3 +42,6 @@ func Refresh() {
 	Args.ContainerDiscovery = false
 	Args.ContainerDiscoveryDir = ""
 }
+
+// ConfigMutex anything writing to core Flex config, lock and unlock
+var ConfigMutex = sync.RWMutex{}
