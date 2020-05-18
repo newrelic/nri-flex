@@ -6,7 +6,6 @@
 package inputs
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 
 	"io/ioutil"
@@ -20,18 +19,18 @@ import (
 )
 
 func TestRunHttp(t *testing.T) {
-	portNumber := "9123"
-	initializeHttpListener(portNumber)
-
 	tests := map[string]struct {
-		config   load.Config
-		expected []interface{}
+		address          string
+		config           load.Config
+		expected         []interface{}
+		expectedFilePath string
 	}{
 		"base-sample": {
+			"127.0.0.1:9123",
 			load.Config{
 				Name: "httpExample",
 				Global: load.Global{
-					BaseURL: fmt.Sprintf("http://127.0.0.1:%v", portNumber),
+					BaseURL: "http://127.0.0.1:9123",
 					Timeout: 5000,
 					User:    "batman",
 					Pass:    "robin",
@@ -84,12 +83,14 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": 200,
 				},
 			},
+			"../../test/payloadsExpected/http-response_single-object.json",
 		},
 		"sample-with-headers": {
+			"127.0.0.1:9124",
 			load.Config{
 				Name: "return-headers-example",
 				Global: load.Global{
-					BaseURL: fmt.Sprintf("http://127.0.0.1:%v", portNumber),
+					BaseURL: "http://127.0.0.1:9124",
 				},
 				APIs: []load.API{
 					{
@@ -113,12 +114,14 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
+			"../../test/payloadsExpected/http-response_single-object.json",
 		},
 		"sample-without-headers": {
+			"127.0.0.1:9125",
 			load.Config{
 				Name: "return-headers-example",
 				Global: load.Global{
-					BaseURL: fmt.Sprintf("http://127.0.0.1:%v", portNumber),
+					BaseURL: "http://127.0.0.1:9125",
 				},
 				APIs: []load.API{
 					{
@@ -138,6 +141,7 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": 200,
 				},
 			},
+			"../../test/payloadsExpected/http-response_single-object.json",
 		},
 	}
 
@@ -146,6 +150,9 @@ func TestRunHttp(t *testing.T) {
 			load.Refresh()
 			doLoop := true
 
+			err := mockHttpServer(tc.address, tc.expectedFilePath)
+			assert.NoError(t, err)
+
 			var dataStore []interface{}
 			RunHTTP(&dataStore, &doLoop, &tc.config, tc.config.APIs[0], &tc.config.APIs[0].URL)
 			assert.ElementsMatch(t, dataStore, tc.expected)
@@ -153,24 +160,39 @@ func TestRunHttp(t *testing.T) {
 	}
 }
 
-func initializeHttpListener(port string) {
-	// create a listener with desired port
-	address := fmt.Sprintf("127.0.0.1:%v", port)
-	l, _ := net.Listen("tcp", address)
-	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.Header().Set("Content-Type", "application/json")
-		rw.Header().Set("Date", "Mon, 18 May 2020 09:38:35 GMT")
-		fileData, _ := ioutil.ReadFile("../../test/payloadsExpected/httpTest.json")
-		_, err := rw.Write(fileData)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("http: failed to write")
-		}
-	}))
+func mockHttpServer(url string, filePath string) error {
+	l, err := net.Listen("tcp", url)
+	if err != nil {
+		load.Logrus.WithError(err).Error("http: failed to create listener")
+		return err
+	}
+
+	mockHttpHandler := mockHttpHandler{
+		filePath: filePath,
+	}
+
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
+
 	// NewUnstartedServer creates a listener. Close listener and replace with the one we created.
 	ts.Listener.Close()
 	ts.Listener = l
 	// Start the server.
 	ts.Start()
+	return nil
+}
+
+type mockHttpHandler struct {
+	filePath string
+}
+
+func (h *mockHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("Date", "Mon, 18 May 2020 09:38:35 GMT")
+	fileData, _ := ioutil.ReadFile(h.filePath)
+	_, err := rw.Write(fileData)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("http: failed to write")
+	}
 }
