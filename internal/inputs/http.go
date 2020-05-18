@@ -86,7 +86,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				}
 				// if not using pagination handle json for any response, if using pagination check the status code before storing
 				if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
-					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
+					handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 				}
 			case contentType == "text/xml" || contentType == "application/xml":
 				jsonBody, err := xj.Convert(resp.Body)
@@ -94,7 +94,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 					load.Logrus.WithError(err).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 				} else {
 					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink)
+						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 					}
 				}
 			default:
@@ -116,7 +116,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 					case load.TypeJSON:
 						// if not using pagination handle json for any response, if using pagination check the status code before storing
 						if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
-							handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink)
+							handleJSON(dataStore, body, &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 						}
 						// if it is XML, convert XML to JSON and process it
 					case load.TypeXML:
@@ -129,7 +129,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 							}).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 						} else {
 							if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) && addPage {
-								handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink)
+								handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 							}
 						}
 					default:
@@ -246,50 +246,40 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 }
 
 // handleJSON Process JSON Payload
-func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string) {
-	var f interface{}
-	err := json.Unmarshal(body, &f)
+func handleJSON(sample *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string, includeHeaders bool) {
+	var b interface{}
+	err := json.Unmarshal(body, &b)
+
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to unmarshal json")
-	} else {
-		switch f := f.(type) {
-		case []interface{}:
-			for _, sample := range f {
-
-				switch sample := sample.(type) {
-				case map[string]interface{}:
-					httpSample := sample
-					httpSample["api.StatusCode"] = (*resp).StatusCode
-					*dataStore = append(*dataStore, httpSample)
-					// load.StoreAppend(httpSample)
-				case string:
-					strSample := map[string]interface{}{
-						"output": sample,
-					}
-					// load.StoreAppend(strSample)
-					*dataStore = append(*dataStore, strSample)
-				default:
-					load.Logrus.Debugf("http: unsupported sample type: %T %v", sample, sample)
-				}
-			}
-
-		case map[string]interface{}:
-			theSample := f
-			theSample["api.StatusCode"] = (*resp).StatusCode
-			// load.StoreAppend(theSample)
-			*dataStore = append(*dataStore, theSample)
-
-			if theSample["error"] != nil && fmt.Sprintf("%v", theSample["error"]) != "false" {
-				load.Logrus.Debugf("http: request failed %v", theSample["error"])
-			}
-
-			if theSample["error"] == nil && nextLink != "" {
-				*url = nextLink
-			} else {
-				*doLoop = false
-			}
-		}
+		return
 	}
+
+	var cb responseBody
+
+	switch t := b.(type) {
+	case []interface{}:
+		cb = newArrayBody(t)
+	case map[string]interface{}:
+		cb = newObjectBody(t)
+	}
+
+	ds := dataStore{
+		cb,
+		responseHandler{
+			header: (*resp).Header,
+			status: (*resp).StatusCode,
+		},
+		includeHeaders,
+	}
+
+	if !ds.withError() && nextLink != "" {
+		*url = nextLink
+	} else {
+		*doLoop = false
+	}
+
+	*sample = ds.build()
 }
 
 func handlePagination(url *string, Pagination *load.Pagination, nextLink *string, body []byte, code int) bool {
@@ -424,4 +414,118 @@ func paginationRegex(regexKey string, jsonString string, nextLink *string) []str
 		return re.FindStringSubmatch(jsonString)
 	}
 	return []string{}
+}
+
+type dataStore struct {
+	body           responseBody
+	rh             responseHandler
+	includeHeaders bool
+}
+
+type responseHandler struct {
+	header http.Header
+	status int
+}
+
+func (ds *dataStore) build() []interface{} {
+	r := make([]interface{}, 0)
+
+	for _, line := range ds.body.get() {
+		s := make(map[string]interface{})
+		ds.statusCode(s)
+		ds.headers(s)
+
+		for key, value := range line {
+			s[key] = value
+		}
+
+		r = append(r, s)
+	}
+
+	return r
+}
+
+func (ds *dataStore) headers(s map[string]interface{}) {
+	if ds.includeHeaders {
+		for key, value := range ds.rh.header {
+			s["api.header."+key] = value
+		}
+	}
+}
+
+func (ds *dataStore) statusCode(s map[string]interface{}) {
+	s["api.StatusCode"] = ds.rh.status
+}
+
+func (ds *dataStore) withError() bool {
+	return ds.body.withError()
+}
+
+type responseBody interface {
+	get() []map[string]interface{}
+	withError() bool
+}
+
+type arrayBody struct {
+	result []map[string]interface{}
+}
+
+func newArrayBody(data []interface{}) *arrayBody {
+	r := make([]map[string]interface{}, 0)
+	for _, d := range data {
+		t := make(map[string]interface{})
+		switch sample := d.(type) {
+		case map[string]interface{}:
+			for key, value := range sample {
+				t[key] = value
+			}
+		case string:
+			t["output"] = sample
+		default:
+			load.Logrus.Debugf("http: unsupported sample type: %T %v", sample, sample)
+			continue
+		}
+		r = append(r, t)
+
+	}
+	return &arrayBody{
+		result: r,
+	}
+}
+
+func (ob *arrayBody) get() []map[string]interface{} {
+	return ob.result
+}
+
+func (ob arrayBody) withError() bool {
+	return false
+}
+
+type objectBody struct {
+	result map[string]interface{}
+}
+
+func newObjectBody(data map[string]interface{}) *objectBody {
+	t := make(map[string]interface{})
+
+	for key, value := range data {
+		t[key] = value
+	}
+
+	return &objectBody{
+		result: t,
+	}
+}
+
+func (ab *objectBody) get() []map[string]interface{} {
+	return []map[string]interface{}{ab.result}
+}
+
+func (ab *objectBody) withError() bool {
+	data := ab.result
+	if v, ok := data["error"]; ok {
+		load.Logrus.Debugf("http: request failed %v", data["error"])
+		return fmt.Sprintf("%v", v) != "false"
+	}
+	return false
 }

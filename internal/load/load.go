@@ -342,6 +342,8 @@ type API struct {
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
+
+	ReturnHeaders bool `yaml:"return_headers"`
 }
 
 // Filter struct
