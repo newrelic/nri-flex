@@ -6,16 +6,16 @@
 package inputs
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
-
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 func TestRunHttp(t *testing.T) {
@@ -48,7 +48,6 @@ func TestRunHttp(t *testing.T) {
 						Headers: map[string]string{
 							"test2": "abc2",
 						},
-						ReturnHeaders: false,
 					},
 					{
 						EventType: "httpExample2",
@@ -59,7 +58,6 @@ func TestRunHttp(t *testing.T) {
 						Headers: map[string]string{
 							"test2": "abc2",
 						},
-						ReturnHeaders: false,
 					},
 					{
 						EventType: "httpExample3",
@@ -70,7 +68,6 @@ func TestRunHttp(t *testing.T) {
 						Headers: map[string]string{
 							"test2": "abc2",
 						},
-						ReturnHeaders: false,
 					},
 				},
 			},
@@ -83,14 +80,45 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": 200,
 				},
 			},
-			"../../test/payloadsExpected/http-response_single-object.json",
+			"../../test/payloadsExpected/http_response-single_object.json",
 		},
-		"sample-with-headers": {
+		"sample-with-headers-single-response-object": {
 			"127.0.0.1:9124",
 			load.Config{
 				Name: "return-headers-example",
 				Global: load.Global{
 					BaseURL: "http://127.0.0.1:9124",
+				},
+				APIs: []load.API{
+					{
+						EventType: "return-headers-example",
+						URL:       "/",
+						Timeout:   5100,
+						ReturnHeaders: true,
+					},
+				},
+			},
+			[]interface{}{
+				map[string]interface{}{
+					"userId":                    float64(1),
+					"id":                        float64(1),
+					"title":                     "delectus aut autem",
+					"completed":                 "false",
+					"api.StatusCode":            200,
+					"api.header.Content-Type":   []string{"application/json"},
+					"api.header.Content-Length": []string{"127"},
+					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
+					"api.header.Retry-Count":    []string{"0"},
+				},
+			},
+			"../../test/payloadsExpected/http_response-single_object.json",
+		},
+		"sample-with-headers-multiple-response-object": {
+			"127.0.0.1:9125",
+			load.Config{
+				Name: "return-headers-example",
+				Global: load.Global{
+					BaseURL: "http://127.0.0.1:9125",
 				},
 				APIs: []load.API{
 					{
@@ -109,39 +137,23 @@ func TestRunHttp(t *testing.T) {
 					"completed":                 "false",
 					"api.StatusCode":            200,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"154"},
+					"api.header.Content-Length": []string{"216"},
+					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
+					"api.header.Retry-Count":    []string{"0"},
+				},
+				map[string]interface{}{
+					"userId":                    float64(1),
+					"id":                        float64(2),
+					"title":                     "quis ut nam facilis et officia qui",
+					"completed":                 "false",
+					"api.StatusCode":            200,
+					"api.header.Content-Type":   []string{"application/json"},
+					"api.header.Content-Length": []string{"216"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http-response_single-object.json",
-		},
-		"sample-without-headers": {
-			"127.0.0.1:9125",
-			load.Config{
-				Name: "return-headers-example",
-				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9125",
-				},
-				APIs: []load.API{
-					{
-						EventType: "return-headers-example",
-						URL:       "/",
-						Timeout:   5100,
-						//returnHeaders: true
-					},
-				},
-			},
-			[]interface{}{
-				map[string]interface{}{
-					"userId":         float64(1),
-					"id":             float64(1),
-					"title":          "delectus aut autem",
-					"completed":      "false",
-					"api.StatusCode": 200,
-				},
-			},
-			"../../test/payloadsExpected/http-response_single-object.json",
+			"../../test/payloadsExpected/http_response-multiple_objects.json",
 		},
 	}
 
@@ -155,9 +167,29 @@ func TestRunHttp(t *testing.T) {
 
 			var dataStore []interface{}
 			RunHTTP(&dataStore, &doLoop, &tc.config, tc.config.APIs[0], &tc.config.APIs[0].URL)
-			assert.ElementsMatch(t, dataStore, tc.expected)
+			assertElementsMatch(t, dataStore, tc)
 		})
 	}
+}
+
+func assertElementsMatch(t *testing.T, dataStore []interface{}, tc struct {
+	address          string
+	config           load.Config
+	expected         []interface{}
+	expectedFilePath string
+}) {
+
+	for index, result := range dataStore {
+		for key := range result.(map[string]interface{}) {
+			a := result.(map[string]interface{})[key]
+			e := tc.expected[index].(map[string]interface{})[key]
+
+			if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", e) || reflect.TypeOf(a) != reflect.TypeOf(e) {
+				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%v) - actual value %v(%v)", key, e, reflect.TypeOf(e).String(), a,reflect.TypeOf(a).String()))
+			}
+		}
+	}
+	assert.ElementsMatch(t, dataStore, tc.expected)
 }
 
 func mockHttpServer(url string, filePath string) error {
@@ -191,8 +223,6 @@ func (h *mockHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	fileData, _ := ioutil.ReadFile(h.filePath)
 	_, err := rw.Write(fileData)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("http: failed to write")
+		load.Logrus.WithError(err).Error("http: failed to write")
 	}
 }

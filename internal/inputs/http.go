@@ -256,7 +256,7 @@ func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response,
 
 	switch t := b.(type) {
 		case []interface{}:
-			dataStoreFromInterfaceSlideResponse(dataStore, t, resp)
+			dataStoreFromInterfaceSlideResponse(dataStore, t, resp, returnHeaders)
 		case map[string]interface{}:
 			dataStoreFromInterfaceMapResponse(dataStore, t, resp, returnHeaders, nextLink, url, doLoop)
 	}
@@ -292,11 +292,16 @@ func dataStoreFromInterfaceMapResponse(
 	}
 }
 
-func dataStoreFromInterfaceSlideResponse(dataStore *[]interface{}, f []interface{}, resp *gorequest.Response) {
-	for _, sample := range f {
-		switch sample := sample.(type) {
+func dataStoreFromInterfaceSlideResponse(dataStore *[]interface{}, results []interface{}, resp *gorequest.Response, includeHeaders bool) {
+	for _, r := range results {
+		switch sample := r.(type) {
 		case map[string]interface{}:
 			sample["api.StatusCode"] = (*resp).StatusCode
+			if includeHeaders {
+				for key, value := range (*resp).Header {
+					sample["api.header."+key] = value
+				}
+			}
 			*dataStore = append(*dataStore, sample)
 		case string:
 			strSample := map[string]interface{}{
