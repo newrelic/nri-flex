@@ -246,72 +246,40 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 }
 
 // handleJSON Process JSON Payload
-func handleJSON(dataStore *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string, returnHeaders bool) {
+func handleJSON(sample *[]interface{}, body []byte, resp *gorequest.Response, doLoop *bool, url *string, nextLink string, includeHeaders bool) {
 	var b interface{}
 	err := json.Unmarshal(body, &b)
+
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to unmarshal json")
 		return
 	}
 
+	var cb responseBody
+
 	switch t := b.(type) {
-		case []interface{}:
-			dataStoreFromInterfaceSlideResponse(dataStore, t, resp, returnHeaders)
-		case map[string]interface{}:
-			dataStoreFromInterfaceMapResponse(dataStore, t, resp, returnHeaders, nextLink, url, doLoop)
-	}
-}
-
-func dataStoreFromInterfaceMapResponse(
-		dataStore *[]interface{},
-		f map[string]interface{},
-		resp *gorequest.Response,
-		returnHeaders bool,
-		nextLink string,
-		url *string,
-		doLoop *bool) {
-	sample := f
-	sample["api.StatusCode"] = (*resp).StatusCode
-
-	if returnHeaders {
-		for key, value := range (*resp).Header {
-			sample["api.header."+key] = value
-		}
+	case []interface{}:
+		cb = newObjectBody(t)
+	case map[string]interface{}:
+		cb = newArrayBody(t)
 	}
 
-	*dataStore = append(*dataStore, sample)
-
-	if sample["error"] != nil && fmt.Sprintf("%v", sample["error"]) != "false" {
-		load.Logrus.Debugf("http: request failed %v", sample["error"])
+	ds := dataStore{
+		cb,
+		responseHandler{
+			header: (*resp).Header,
+			status: (*resp).StatusCode,
+		},
+		includeHeaders,
 	}
 
-	if sample["error"] == nil && nextLink != "" {
+	if !ds.withError() && nextLink != "" {
 		*url = nextLink
 	} else {
 		*doLoop = false
 	}
-}
 
-func dataStoreFromInterfaceSlideResponse(dataStore *[]interface{}, results []interface{}, resp *gorequest.Response, includeHeaders bool) {
-	for _, r := range results {
-		switch sample := r.(type) {
-		case map[string]interface{}:
-			sample["api.StatusCode"] = (*resp).StatusCode
-			if includeHeaders {
-				for key, value := range (*resp).Header {
-					sample["api.header."+key] = value
-				}
-			}
-			*dataStore = append(*dataStore, sample)
-		case string:
-			strSample := map[string]interface{}{
-				"output": sample,
-			}
-			*dataStore = append(*dataStore, strSample)
-		default:
-			load.Logrus.Debugf("http: unsupported sample type: %T %v", sample, sample)
-		}
-	}
+	*sample = ds.build()
 }
 
 func handlePagination(url *string, Pagination *load.Pagination, nextLink *string, body []byte, code int) bool {
@@ -446,4 +414,121 @@ func paginationRegex(regexKey string, jsonString string, nextLink *string) []str
 		return re.FindStringSubmatch(jsonString)
 	}
 	return []string{}
+}
+
+type dataStore struct {
+	body           responseBody
+	rh             responseHandler
+	includeHeaders bool
+}
+
+type responseHandler struct {
+	header http.Header
+	status int
+}
+
+func (ds *dataStore) build() []interface{} {
+	var r []interface{}
+
+	for _, line := range ds.body.get() {
+		s := make(map[string]interface{})
+		ds.statusCode(s)
+		ds.headers(s)
+
+		for key, value := range line {
+			s[key] = value
+		}
+
+		r = append(r, s)
+	}
+
+	return r
+}
+
+func (ds *dataStore) headers(s map[string]interface{}) {
+	if ds.includeHeaders {
+		for key, value := range ds.rh.header {
+			s["api.header."+key] = value
+		}
+	}
+}
+
+func (ds *dataStore) statusCode(s map[string]interface{}) {
+	s["api.StatusCode"] = ds.rh.status
+}
+
+func (ds *dataStore) withError() bool {
+	return ds.body.withError()
+}
+
+
+
+type responseBody interface {
+	get() []map[string]interface{}
+	withError() bool
+}
+
+type objectBody struct {
+	result []map[string]interface{}
+}
+
+func newObjectBody(data []interface{}) *objectBody {
+	var r []map[string]interface{}
+	for _, d := range data {
+		t := make(map[string]interface{})
+		switch sample := d.(type) {
+		case map[string]interface{}:
+			for key, value := range sample {
+				t[key] = value
+			}
+		case string:
+			t["output"] = sample
+		default:
+			load.Logrus.Debugf("http: unsupported sample type: %T %v", sample, sample)
+			continue
+		}
+		r = append(r, t)
+
+	}
+	return &objectBody{
+		result: r,
+	}
+}
+
+func (ob *objectBody) get() []map[string]interface{} {
+	return ob.result
+}
+
+func (ob objectBody) withError() bool {
+	return false
+}
+
+type arrayBody struct {
+	result map[string]interface{}
+}
+
+func newArrayBody(data map[string]interface{}) *arrayBody {
+	t := make(map[string]interface{})
+
+	for key, value := range data {
+		t[key] = value
+	}
+
+	return &arrayBody{
+		result: t,
+	}
+}
+
+func (ab *arrayBody) get() []map[string]interface{} {
+	var r []map[string]interface{}
+	return append(r, ab.result)
+}
+
+func (ab *arrayBody) withError() bool {
+	data := ab.result
+	if v, ok := data["error"]; ok {
+		load.Logrus.Debugf("http: request failed %v", data["error"])
+		return fmt.Sprintf("%v", v) != "false"
+	}
+	return false
 }

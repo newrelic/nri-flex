@@ -7,11 +7,17 @@ package inputs
 
 import (
 	"fmt"
+	"github.com/parnurzeal/gorequest"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -80,7 +86,7 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": 200,
 				},
 			},
-			"../../test/payloadsExpected/http_response-single_object.json",
+			"../../test/payloadsExpected/http_response/http_response-single_object.json",
 		},
 		"sample-with-headers-single-response-object": {
 			"127.0.0.1:9124",
@@ -91,9 +97,9 @@ func TestRunHttp(t *testing.T) {
 				},
 				APIs: []load.API{
 					{
-						EventType: "return-headers-example",
-						URL:       "/",
-						Timeout:   5100,
+						EventType:     "return-headers-example",
+						URL:           "/",
+						Timeout:       5100,
 						ReturnHeaders: true,
 					},
 				},
@@ -111,7 +117,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response-single_object.json",
+			"../../test/payloadsExpected/http_response/http_response-single_object.json",
 		},
 		"sample-with-headers-multiple-response-object": {
 			"127.0.0.1:9125",
@@ -153,7 +159,69 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response-multiple_objects.json",
+			"../../test/payloadsExpected/http_response/http_response-multiple_objects.json",
+		},
+		"sample-with-headers-string-response": {
+			"127.0.0.1:9126",
+			load.Config{
+				Name: "return-headers-example",
+				Global: load.Global{
+					BaseURL: "http://127.0.0.1:9126",
+				},
+				APIs: []load.API{
+					{
+						EventType:     "return-headers-example",
+						URL:           "/",
+						Timeout:       5100,
+						ReturnHeaders: true,
+					},
+				},
+			},
+			[]interface{}{
+				map[string]interface{}{
+					"output":                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+					"api.StatusCode":            200,
+					"api.header.Content-Type":   []string{"application/json"},
+					"api.header.Content-Length": []string{"136"},
+					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
+					"api.header.Retry-Count":    []string{"0"},
+				},
+			},
+			"../../test/payloadsExpected/http_response/http_response-string_response.json",
+		},
+		"sample-error-with-headers": {
+			"127.0.0.1:9127",
+			load.Config{
+				Name: "return-headers-example",
+				Global: load.Global{
+					BaseURL: "http://127.0.0.1:9127",
+				},
+				APIs: []load.API{
+					{
+						EventType:     "return-headers-example",
+						URL:           "/",
+						Timeout:       5100,
+						ReturnHeaders: true,
+					},
+					{
+						EventType:     "return-headers-example",
+						URL:           "/todos",
+						Timeout:       5100,
+						ReturnHeaders: true,
+					},
+				},
+			},
+			[]interface{}{
+				map[string]interface{}{
+					"error":                     "Missing Required Parameters",
+					"api.StatusCode":            200,
+					"api.header.Content-Type":   []string{"application/json"},
+					"api.header.Content-Length": []string{"52"},
+					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
+					"api.header.Retry-Count":    []string{"0"},
+				},
+			},
+			"../../test/payloadsExpected/http_response/http_response-error_message.json",
 		},
 	}
 
@@ -172,20 +240,48 @@ func TestRunHttp(t *testing.T) {
 	}
 }
 
+func TestHttp_handleJSON_unmarshalError(t *testing.T) {
+	// Given a test logger
+	load.Logrus.SetOutput(ioutil.Discard)  // discard logs so not to break race tests
+	defer log.SetOutput(os.Stderr) // return back to default
+	hook := new(test.Hook)
+	load.Logrus.AddHook(hook)
+
+	// AND a http response with invalid json format
+	url := ""
+	doLoop := false
+	var resp gorequest.Response
+	var sample []interface{}
+
+	body := []byte("invalidJSON")
+
+	// When get body from response
+	handleJSON(&sample, body, &resp, &doLoop, &url, "", false)
+
+	// THEN one error entry were found
+	require.NotEmpty(t, hook.Entries)
+	entry := hook.LastEntry()
+	assert.Equal(t, logrus.ErrorLevel, entry.Level)
+	assert.Equal(t, "http: failed to unmarshal json", entry.Message)
+	assert.EqualError(t, entry.Data["error"].(error), "invalid character 'i' looking for beginning of value")
+
+	// AND no sample was built
+	assert.Equal(t, 0, len(sample))
+}
+
 func assertElementsMatch(t *testing.T, dataStore []interface{}, tc struct {
 	address          string
 	config           load.Config
 	expected         []interface{}
 	expectedFilePath string
 }) {
-
 	for index, result := range dataStore {
 		for key := range result.(map[string]interface{}) {
 			a := result.(map[string]interface{})[key]
 			e := tc.expected[index].(map[string]interface{})[key]
 
 			if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", e) || reflect.TypeOf(a) != reflect.TypeOf(e) {
-				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%v) - actual value %v(%v)", key, e, reflect.TypeOf(e).String(), a,reflect.TypeOf(a).String()))
+				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%v) - actual value %v(%v)", key, e, reflect.TypeOf(e).String(), a, reflect.TypeOf(a).String()))
 			}
 		}
 	}
