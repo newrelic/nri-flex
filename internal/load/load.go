@@ -338,12 +338,12 @@ type API struct {
 	SaveOutput string `yaml:"save_output"` // Save output samples to a file
 
 	// Debug Options
-	Debug   bool `yaml:"debug"` // logs out additional data, should not be enabled for production use!
+	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
 
-	ReturnHeaders 				bool				`yaml:"return_headers"`
+	ReturnHeaders bool `yaml:"return_headers"`
 }
 
 // Filter struct

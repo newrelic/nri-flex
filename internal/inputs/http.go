@@ -428,7 +428,7 @@ type responseHandler struct {
 }
 
 func (ds *dataStore) build() []interface{} {
-	var r []interface{}
+	r := make([]interface{}, 0)
 
 	for _, line := range ds.body.get() {
 		s := make(map[string]interface{})
@@ -461,8 +461,6 @@ func (ds *dataStore) withError() bool {
 	return ds.body.withError()
 }
 
-
-
 type responseBody interface {
 	get() []map[string]interface{}
 	withError() bool
@@ -473,7 +471,7 @@ type objectBody struct {
 }
 
 func newObjectBody(data []interface{}) *objectBody {
-	var r []map[string]interface{}
+	r := make([]map[string]interface{}, 0)
 	for _, d := range data {
 		t := make(map[string]interface{})
 		switch sample := d.(type) {
@@ -520,8 +518,7 @@ func newArrayBody(data map[string]interface{}) *arrayBody {
 }
 
 func (ab *arrayBody) get() []map[string]interface{} {
-	var r []map[string]interface{}
-	return append(r, ab.result)
+	return []map[string]interface{}{ab.result}
 }
 
 func (ab *arrayBody) withError() bool {
