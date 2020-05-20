@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.3.1 - 2020-05-XX
+### Added
+- Url API now can retrieve response header value attached on each generated sample included a response error.
+    - Setting up `return_headers` to true 
+
+
 ## 1.3.0 - 2020-05-13
 ### Added
 - Official support for Kubernetes
