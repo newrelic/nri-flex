@@ -7,6 +7,7 @@ The `url` API allows you to retrieve information from an HTTP endpoint.
 * [Configure your HTTPS connections](#ConfigureyourHTTPSconnections)
 * [Specify a common base URL](#SpecifyacommonbaseURL)
 * [URL with cache for later processing](#URLwithcacheforlaterprocessing)
+* [Include response headers on sample](#ReturnResponseHeaders)
 
 ##  <a name='Basicusage'></a>Basic usage
 
@@ -105,4 +106,18 @@ apis:
             keys: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
     math:
       net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond}
+```
+
+##  <a name='ReturnResponseHeaders'></a>Include response headers on sample
+
+To include response headers on the metric sample setting `return_headers` attribute to true is needed.
+
+###  Return headers example
+
+```yaml
+name: example
+apis:
+  - name: ExampleSample
+    url: https://my-host:8443/admin/metrics/1
+    return_headers: true    
 ```
