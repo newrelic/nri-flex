@@ -25,11 +25,15 @@ import (
 )
 
 func TestRunHttp(t *testing.T) {
+	successStatusCode := 200
+	internalServerErrorStatusCode := 500
+
 	tests := map[string]struct {
-		address          string
-		config           load.Config
-		expected         []interface{}
-		expectedFilePath string
+		address            string
+		config             load.Config
+		expected           []interface{}
+		expectedFilePath   string
+		expectedStatusCode int
 	}{
 		"base-sample": {
 			"127.0.0.1:9123",
@@ -83,10 +87,11 @@ func TestRunHttp(t *testing.T) {
 					"id":             float64(1),
 					"title":          "delectus aut autem",
 					"completed":      "false",
-					"api.StatusCode": 200,
+					"api.StatusCode": successStatusCode,
 				},
 			},
 			"../../test/payloadsExpected/http_response/http_response-single_object.json",
+			successStatusCode,
 		},
 		"sample-with-headers-single-response-object": {
 			"127.0.0.1:9124",
@@ -110,7 +115,7 @@ func TestRunHttp(t *testing.T) {
 					"id":                        float64(1),
 					"title":                     "delectus aut autem",
 					"completed":                 "false",
-					"api.StatusCode":            200,
+					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
 					"api.header.Content-Length": []string{"127"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
@@ -118,6 +123,7 @@ func TestRunHttp(t *testing.T) {
 				},
 			},
 			"../../test/payloadsExpected/http_response/http_response-single_object.json",
+			successStatusCode,
 		},
 		"sample-with-headers-multiple-response-object": {
 			"127.0.0.1:9125",
@@ -141,7 +147,7 @@ func TestRunHttp(t *testing.T) {
 					"id":                        float64(1),
 					"title":                     "delectus aut autem",
 					"completed":                 "false",
-					"api.StatusCode":            200,
+					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
 					"api.header.Content-Length": []string{"216"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
@@ -152,7 +158,7 @@ func TestRunHttp(t *testing.T) {
 					"id":                        float64(2),
 					"title":                     "quis ut nam facilis et officia qui",
 					"completed":                 "false",
-					"api.StatusCode":            200,
+					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
 					"api.header.Content-Length": []string{"216"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
@@ -160,6 +166,7 @@ func TestRunHttp(t *testing.T) {
 				},
 			},
 			"../../test/payloadsExpected/http_response/http_response-multiple_objects.json",
+			successStatusCode,
 		},
 		"sample-with-headers-string-response": {
 			"127.0.0.1:9126",
@@ -180,7 +187,7 @@ func TestRunHttp(t *testing.T) {
 			[]interface{}{
 				map[string]interface{}{
 					"output":                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
-					"api.StatusCode":            200,
+					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
 					"api.header.Content-Length": []string{"136"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
@@ -188,6 +195,7 @@ func TestRunHttp(t *testing.T) {
 				},
 			},
 			"../../test/payloadsExpected/http_response/http_response-string_response.json",
+			successStatusCode,
 		},
 		"sample-error-with-headers": {
 			"127.0.0.1:9127",
@@ -214,7 +222,7 @@ func TestRunHttp(t *testing.T) {
 			[]interface{}{
 				map[string]interface{}{
 					"error":                     "Missing Required Parameters",
-					"api.StatusCode":            200,
+					"api.StatusCode":            internalServerErrorStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
 					"api.header.Content-Length": []string{"52"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
@@ -222,6 +230,7 @@ func TestRunHttp(t *testing.T) {
 				},
 			},
 			"../../test/payloadsExpected/http_response/http_response-error_message.json",
+			internalServerErrorStatusCode,
 		},
 	}
 
@@ -230,20 +239,20 @@ func TestRunHttp(t *testing.T) {
 			load.Refresh()
 			doLoop := true
 
-			err := mockHttpServer(tc.address, tc.expectedFilePath)
+			err := mockHttpServer(tc.address, tc.expectedFilePath, tc.expectedStatusCode)
 			assert.NoError(t, err)
 
 			var dataStore []interface{}
 			RunHTTP(&dataStore, &doLoop, &tc.config, tc.config.APIs[0], &tc.config.APIs[0].URL)
-			assertElementsMatch(t, dataStore, tc)
+			assertElementsMatch(t, dataStore, tc.expected)
 		})
 	}
 }
 
 func TestHttp_handleJSON_unmarshalError(t *testing.T) {
 	// Given a test logger
-	load.Logrus.SetOutput(ioutil.Discard)  // discard logs so not to break race tests
-	defer log.SetOutput(os.Stderr) // return back to default
+	load.Logrus.SetOutput(ioutil.Discard) // discard logs so not to break race tests
+	defer log.SetOutput(os.Stderr)        // return back to default
 	hook := new(test.Hook)
 	load.Logrus.AddHook(hook)
 
@@ -269,26 +278,21 @@ func TestHttp_handleJSON_unmarshalError(t *testing.T) {
 	assert.Equal(t, 0, len(sample))
 }
 
-func assertElementsMatch(t *testing.T, dataStore []interface{}, tc struct {
-	address          string
-	config           load.Config
-	expected         []interface{}
-	expectedFilePath string
-}) {
-	for index, result := range dataStore {
+func assertElementsMatch(t *testing.T, actual []interface{}, expected []interface{}) {
+	for index, result := range actual {
 		for key := range result.(map[string]interface{}) {
 			a := result.(map[string]interface{})[key]
-			e := tc.expected[index].(map[string]interface{})[key]
+			e := expected[index].(map[string]interface{})[key]
 
 			if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", e) || reflect.TypeOf(a) != reflect.TypeOf(e) {
 				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%v) - actual value %v(%v)", key, e, reflect.TypeOf(e).String(), a, reflect.TypeOf(a).String()))
 			}
 		}
 	}
-	assert.ElementsMatch(t, dataStore, tc.expected)
+	assert.ElementsMatch(t, actual, expected)
 }
 
-func mockHttpServer(url string, filePath string) error {
+func mockHttpServer(url string, filePath string, statusCode int) error {
 	l, err := net.Listen("tcp", url)
 	if err != nil {
 		load.Logrus.WithError(err).Error("http: failed to create listener")
@@ -296,7 +300,8 @@ func mockHttpServer(url string, filePath string) error {
 	}
 
 	mockHttpHandler := mockHttpHandler{
-		filePath: filePath,
+		filePath:   filePath,
+		statusCode: statusCode,
 	}
 
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
@@ -310,12 +315,14 @@ func mockHttpServer(url string, filePath string) error {
 }
 
 type mockHttpHandler struct {
-	filePath string
+	filePath   string
+	statusCode int
 }
 
 func (h *mockHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Header().Set("Date", "Mon, 18 May 2020 09:38:35 GMT")
+	rw.WriteHeader(h.statusCode)
 	fileData, _ := ioutil.ReadFile(h.filePath)
 	_, err := rw.Write(fileData)
 	if err != nil {
