@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"reflect"
 	"testing"
 
@@ -90,7 +91,7 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": successStatusCode,
 				},
 			},
-			"../../test/payloadsExpected/http_response/http_response-single_object.json",
+			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-single_object.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-single-response-object": {
@@ -122,7 +123,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response/http_response-single_object.json",
+			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-single_object.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-multiple-response-object": {
@@ -165,7 +166,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response/http_response-multiple_objects.json",
+			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-multiple_objects.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-string-response": {
@@ -194,7 +195,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response/http_response-string_response.json",
+			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-string_response.json"),
 			successStatusCode,
 		},
 		"sample-error-with-headers": {
@@ -229,7 +230,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			"../../test/payloadsExpected/http_response/http_response-error_message.json",
+			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-error_message.json"),
 			internalServerErrorStatusCode,
 		},
 	}
