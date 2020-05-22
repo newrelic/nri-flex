@@ -110,7 +110,7 @@ apis:
 
 ##  <a name='ReturnResponseHeaders'></a>Include response headers on sample
 
-To include response headers on the metric sample setting `return_headers` attribute to true is needed.
+To include response headers on the metric sample set `return_headers` attribute to true.
 
 ###  Return headers example
 

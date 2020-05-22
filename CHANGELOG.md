@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.3.1 - 2020-05-XX
 ### Added
-- Url API now can retrieve response header value attached on each generated sample included a response error.
-    - Setting up `return_headers` to true 
-
+- Url API can now include all the response headers in the resulting sample. Set `return_headers` to true to enable.
 
 ## 1.3.0 - 2020-05-13
 ### Added
