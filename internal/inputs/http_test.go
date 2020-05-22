@@ -14,12 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path"
-	"reflect"
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
@@ -30,18 +28,15 @@ func TestRunHttp(t *testing.T) {
 	internalServerErrorStatusCode := 500
 
 	tests := map[string]struct {
-		address            string
 		config             load.Config
 		expected           []interface{}
 		expectedFilePath   string
 		expectedStatusCode int
 	}{
 		"base-sample": {
-			"127.0.0.1:9123",
 			load.Config{
 				Name: "httpExample",
 				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9123",
 					Timeout: 5000,
 					User:    "batman",
 					Pass:    "robin",
@@ -95,12 +90,8 @@ func TestRunHttp(t *testing.T) {
 			successStatusCode,
 		},
 		"sample-with-headers-single-response-object": {
-			"127.0.0.1:9124",
 			load.Config{
 				Name: "return-headers-example",
-				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9124",
-				},
 				APIs: []load.API{
 					{
 						EventType:     "return-headers-example",
@@ -127,12 +118,8 @@ func TestRunHttp(t *testing.T) {
 			successStatusCode,
 		},
 		"sample-with-headers-multiple-response-object": {
-			"127.0.0.1:9125",
 			load.Config{
 				Name: "return-headers-example",
-				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9125",
-				},
 				APIs: []load.API{
 					{
 						EventType:     "return-headers-example",
@@ -170,12 +157,8 @@ func TestRunHttp(t *testing.T) {
 			successStatusCode,
 		},
 		"sample-with-headers-string-response": {
-			"127.0.0.1:9126",
 			load.Config{
 				Name: "return-headers-example",
-				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9126",
-				},
 				APIs: []load.API{
 					{
 						EventType:     "return-headers-example",
@@ -199,12 +182,8 @@ func TestRunHttp(t *testing.T) {
 			successStatusCode,
 		},
 		"sample-error-with-headers": {
-			"127.0.0.1:9127",
 			load.Config{
 				Name: "return-headers-example",
-				Global: load.Global{
-					BaseURL: "http://127.0.0.1:9127",
-				},
 				APIs: []load.API{
 					{
 						EventType:     "return-headers-example",
@@ -240,9 +219,10 @@ func TestRunHttp(t *testing.T) {
 			load.Refresh()
 			doLoop := true
 
-			err := mockHttpServer(tc.address, tc.expectedFilePath, tc.expectedStatusCode)
-			assert.NoError(t, err)
+			url, err := mockHttpServer(tc.expectedFilePath, tc.expectedStatusCode)
+			require.NoError(t, err)
 
+			tc.config.Global.BaseURL = url
 			var dataStore []interface{}
 			RunHTTP(&dataStore, &doLoop, &tc.config, tc.config.APIs[0], &tc.config.APIs[0].URL)
 			assertElementsMatch(t, dataStore, tc.expected)
@@ -285,34 +265,24 @@ func assertElementsMatch(t *testing.T, actual []interface{}, expected []interfac
 			a := result.(map[string]interface{})[key]
 			e := expected[index].(map[string]interface{})[key]
 
-			if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", e) || reflect.TypeOf(a) != reflect.TypeOf(e) {
-				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%v) - actual value %v(%v)", key, e, reflect.TypeOf(e).String(), a, reflect.TypeOf(a).String()))
+			if fmt.Sprintf("%v(%T)", a, a) != fmt.Sprintf("%v(%T)", e, e) {
+				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%T) - actual value %v(%T)", key, e, e, a, a))
 			}
 		}
 	}
 	assert.ElementsMatch(t, actual, expected)
 }
 
-func mockHttpServer(url string, filePath string, statusCode int) error {
-	l, err := net.Listen("tcp", url)
-	if err != nil {
-		load.Logrus.WithError(err).Error("http: failed to create listener")
-		return err
-	}
-
+func mockHttpServer(filePath string, statusCode int) (string, error) {
 	mockHttpHandler := mockHttpHandler{
 		filePath:   filePath,
 		statusCode: statusCode,
 	}
 
-	ts := httptest.NewUnstartedServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
+	ts := httptest.NewServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
+	defer ts.CloseClientConnections()
 
-	// NewUnstartedServer creates a listener. Close listener and replace with the one we created.
-	ts.Listener.Close()
-	ts.Listener = l
-	// Start the server.
-	ts.Start()
-	return nil
+	return ts.URL, nil
 }
 
 type mockHttpHandler struct {
