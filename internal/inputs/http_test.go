@@ -219,10 +219,11 @@ func TestRunHttp(t *testing.T) {
 			load.Refresh()
 			doLoop := true
 
-			url, err := mockHttpServer(tc.expectedFilePath, tc.expectedStatusCode)
-			require.NoError(t, err)
+			ts := mockHttpServer(tc.expectedFilePath, tc.expectedStatusCode)
+			defer ts.Close()
 
-			tc.config.Global.BaseURL = url
+			tc.config.Global.BaseURL = ts.URL
+
 			var dataStore []interface{}
 			RunHTTP(&dataStore, &doLoop, &tc.config, tc.config.APIs[0], &tc.config.APIs[0].URL)
 			assertElementsMatch(t, dataStore, tc.expected)
@@ -273,16 +274,13 @@ func assertElementsMatch(t *testing.T, actual []interface{}, expected []interfac
 	assert.ElementsMatch(t, actual, expected)
 }
 
-func mockHttpServer(filePath string, statusCode int) (string, error) {
+func mockHttpServer(filePath string, statusCode int) *httptest.Server {
 	mockHttpHandler := mockHttpHandler{
 		filePath:   filePath,
 		statusCode: statusCode,
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
-	defer ts.CloseClientConnections()
-
-	return ts.URL, nil
+	return httptest.NewServer(http.HandlerFunc(mockHttpHandler.ServeHTTP))
 }
 
 type mockHttpHandler struct {
