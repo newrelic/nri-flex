@@ -259,9 +259,9 @@ func handleJSON(sample *[]interface{}, body []byte, resp *gorequest.Response, do
 
 	switch t := b.(type) {
 	case []interface{}:
-		cb = newObjectBody(t)
-	case map[string]interface{}:
 		cb = newArrayBody(t)
+	case map[string]interface{}:
+		cb = newObjectBody(t)
 	}
 
 	ds := dataStore{
@@ -466,11 +466,11 @@ type responseBody interface {
 	withError() bool
 }
 
-type objectBody struct {
+type arrayBody struct {
 	result []map[string]interface{}
 }
 
-func newObjectBody(data []interface{}) *objectBody {
+func newArrayBody(data []interface{}) *arrayBody {
 	r := make([]map[string]interface{}, 0)
 	for _, d := range data {
 		t := make(map[string]interface{})
@@ -488,40 +488,40 @@ func newObjectBody(data []interface{}) *objectBody {
 		r = append(r, t)
 
 	}
-	return &objectBody{
+	return &arrayBody{
 		result: r,
 	}
 }
 
-func (ob *objectBody) get() []map[string]interface{} {
+func (ob *arrayBody) get() []map[string]interface{} {
 	return ob.result
 }
 
-func (ob objectBody) withError() bool {
+func (ob arrayBody) withError() bool {
 	return false
 }
 
-type arrayBody struct {
+type objectBody struct {
 	result map[string]interface{}
 }
 
-func newArrayBody(data map[string]interface{}) *arrayBody {
+func newObjectBody(data map[string]interface{}) *objectBody {
 	t := make(map[string]interface{})
 
 	for key, value := range data {
 		t[key] = value
 	}
 
-	return &arrayBody{
+	return &objectBody{
 		result: t,
 	}
 }
 
-func (ab *arrayBody) get() []map[string]interface{} {
+func (ab *objectBody) get() []map[string]interface{} {
 	return []map[string]interface{}{ab.result}
 }
 
-func (ab *arrayBody) withError() bool {
+func (ab *objectBody) withError() bool {
 	data := ab.result
 	if v, ok := data["error"]; ok {
 		load.Logrus.Debugf("http: request failed %v", data["error"])
