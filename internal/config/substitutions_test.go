@@ -5,6 +5,7 @@
 package config
 
 import (
+	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -67,4 +68,48 @@ func TestSubTimestamps(t *testing.T) {
 	SubTimestamps(&fileContent, fixedDate)
 
 	assert.Equal(t, expected, fileContent)
+}
+
+func Test_parseLookupFileAndUpdateConfig(t *testing.T) {
+
+	testConfig := `
+custom_attributes:
+  replace_id_float: ${lf:id_float}
+  replace_id_int: ${lf:id_int}
+  replace_name: ${lf:name}
+`
+
+	item := map[string]interface{}{
+		"id_float": 2456853.0,
+		"id_int":   2456854,
+		"name":     "AMP_eov_ntet-np",
+	}
+
+	actual, err := fillTemplateConfigWithValues(item, testConfig)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+
+	expected := load.Config{
+		CustomAttributes: map[string]string{
+			"replace_id_float": "2456853.000000",
+			"replace_id_int":   "2456854",
+			"replace_name":     "AMP_eov_ntet-np",
+		},
+	}
+
+	assert.ObjectsAreEqual(expected.CustomAttributes, (*actual).CustomAttributes)
+}
+
+func Test_toString(t *testing.T) {
+	valueInt := 2456853
+	assert.Equal(t, "2456853", toString(valueInt))
+	valueFloat32 := float32(2456853)
+	assert.Equal(t, "2456853.000000", toString(valueFloat32))
+	valueFloat64 := float64(2456853)
+	assert.Equal(t, "2456853.000000", toString(valueFloat64))
+	valueString := "2456853"
+	assert.Equal(t, "2456853", toString(valueString))
+	valueMap := map[string]interface{}{"foo": "baz"}
+	assert.Equal(t, "map[foo:baz]", toString(valueMap))
 }

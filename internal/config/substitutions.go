@@ -45,39 +45,68 @@ func SubLookupFileData(configs *[]load.Config, config load.Config) error {
 
 	// create a new config file per
 	for _, item := range jsonOut {
-		switch obj := item.(type) {
-		case map[string]interface{}:
-			tmpCfgStr := string(tmpCfgBytes)
-			variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(tmpCfgStr, -1)
-			replaceOccurred := false
-			for _, variableReplace := range variableReplaces {
-				variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
-				if obj[variableKey] != nil {
-					tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, fmt.Sprintf("%v", obj[variableKey]), -1)
-					replaceOccurred = true
-				}
-			}
-			// if replace occurred convert string to config yaml and reload
-			if replaceOccurred {
-				newCfg, err := ReadYML(tmpCfgStr)
-				if err != nil {
+		tmpCfgStr := string(tmpCfgBytes)
+		newCfg, err := fillTemplateConfigWithValues(item, tmpCfgStr)
 
-					load.Logrus.WithFields(logrus.Fields{
-						"file":       config.LookupFile,
-						"name":       config.Name,
-						"suggestion": "check for errors or run yaml lint against the below output",
-					}).WithError(err).Error("config: new lookup file unmarshal failed")
-					load.Logrus.Error(tmpCfgStr)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"file":       config.LookupFile,
+				"name":       config.Name,
+				"suggestion": "check for errors or run yaml lint against the below output",
+			}).WithError(err).Error("config: new lookup file unmarshal failed")
+			load.Logrus.Error(tmpCfgStr)
+		}
 
-				} else {
-					*configs = append(*configs, newCfg)
-				}
-			}
-		default:
-			load.Logrus.Debug("config: lookup file needs to contain an array of objects")
+		if newCfg != nil {
+			*configs = append(*configs, *newCfg)
 		}
 	}
 	return nil
+}
+
+func fillTemplateConfigWithValues(values interface{}, configTemplate string) (*load.Config, error) {
+	switch obj := values.(type) {
+	case map[string]interface{}:
+		variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(configTemplate, -1)
+		replaceOccurred := false
+		for _, variableReplace := range variableReplaces {
+			variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
+			if obj[variableKey] != nil {
+				value := obj[variableKey]
+				configTemplate = strings.Replace(
+					configTemplate,
+					variableReplace,
+					toString(value),
+					-1)
+				replaceOccurred = true
+			}
+		}
+		// if replace occurred convert string to values yaml and reload
+		if replaceOccurred {
+			newCfg, err := ReadYML(configTemplate)
+			if err != nil {
+				return nil, err
+			}
+			return &newCfg, nil
+		}
+	default:
+		load.Logrus.Debug("config: lookup file needs to contain an array of objects")
+	}
+	return nil, nil
+}
+
+func toString(value interface{}) string {
+	format := "%v"
+	switch value.(type) {
+	case int:
+		format = "%d"
+	case float64, float32:
+		format = "%f"
+	case string:
+		format = "%s"
+	}
+
+	return fmt.Sprintf(format, value)
 }
 
 // SubEnvVariables substitutes environment variables into config
