@@ -121,3 +121,22 @@ apis:
     url: https://my-host:8443/admin/metrics/1
     return_headers: true    
 ```
+
+Given the following output for each metric:
+
+```json
+{
+    "event_type": "ExampleSample",
+    "integration_name": "com.newrelic.nri-flex",
+    "integration_version": "version-number",
+    "id": 1,
+    "completed": "true",
+    "api.StatusCode": 200,
+    "api.header.Access-Control-Allow-Credentials": "[true]",
+    "api.header.Age": "[4459]",
+    "api.header.Content-Type": "[application/json; charset=utf-8]",
+    "api.header.Date": "[Mon, 25 May 2020 16:23:53 GMT]",
+    "api.header.Expires": "[-1]",
+    "api.header.Retry-Count": "[0]"
+}
+``` 
