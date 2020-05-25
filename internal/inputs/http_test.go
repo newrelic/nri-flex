@@ -109,7 +109,7 @@ func TestRunHttp(t *testing.T) {
 					"completed":                 "false",
 					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"127"},
+					"api.header.Content-Length": []string{"999"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
@@ -137,7 +137,7 @@ func TestRunHttp(t *testing.T) {
 					"completed":                 "false",
 					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"216"},
+					"api.header.Content-Length": []string{"999"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
@@ -148,7 +148,7 @@ func TestRunHttp(t *testing.T) {
 					"completed":                 "false",
 					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"216"},
+					"api.header.Content-Length": []string{"999"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
@@ -173,7 +173,7 @@ func TestRunHttp(t *testing.T) {
 					"output":                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 					"api.StatusCode":            successStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"136"},
+					"api.header.Content-Length": []string{"999"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
@@ -204,7 +204,7 @@ func TestRunHttp(t *testing.T) {
 					"error":                     "Missing Required Parameters",
 					"api.StatusCode":            internalServerErrorStatusCode,
 					"api.header.Content-Type":   []string{"application/json"},
-					"api.header.Content-Length": []string{"52"},
+					"api.header.Content-Length": []string{"999"},
 					"api.header.Date":           []string{"Mon, 18 May 2020 09:38:35 GMT"},
 					"api.header.Retry-Count":    []string{"0"},
 				},
@@ -290,6 +290,7 @@ type mockHttpHandler struct {
 
 func (h *mockHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("Content-Length", "999")
 	rw.Header().Set("Date", "Mon, 18 May 2020 09:38:35 GMT")
 	rw.WriteHeader(h.statusCode)
 	fileData, _ := ioutil.ReadFile(h.filePath)
