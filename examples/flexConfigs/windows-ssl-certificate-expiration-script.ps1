@@ -13,7 +13,12 @@
 	Version:		1.0
 	Author:			Zack Mutchler
 	Creation Date:	04/30/2020
-	Purpose/Change:	Initial script development
+    Purpose/Change:	Initial script development
+    
+	Version:		1.1
+	Author:			Zack Mutchler
+	Creation Date:	05/13/2020
+	Purpose/Change:	Adding work-arounds for self-signed and TLS errors
 #>
 
 #endregion
@@ -41,6 +46,24 @@ $ErrorActionPreference = "SilentlyContinue"
 # Disable Certificate Validation so we don't fail on expired certs
 [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
 
+#Ignore self-signed certificate warnings
+add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+
+[Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+#To support SNI, TLS1.2 needs to be forced
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::TLS11, [Net.SecurityProtocolType]::TLS12, [Net.SecurityProtocolType]::SSL3
+
 # Build a .NET HTTP Web Request
 $request = $null
 $request = [ Net.HttpWebRequest ]::Create( $URL )
@@ -54,7 +77,7 @@ $request.AllowAutoRedirect = $false
 $request.GetResponse() | Out-Null
 
 # If there's no certificate used, tell us
-If( $request.ServicePoint.Certificate -eq $null ) {
+If( $null -eq $request.ServicePoint.Certificate ) {
 
     # Build a set of data with empty keys
     $results = New-Object -TypeName PSObject

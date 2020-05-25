@@ -1,3 +1,5 @@
+[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Project.png)](https://github.com/newrelic/open-source-office/blob/master/examples/categories/index.md#category-community-project)
+
 # New Relic Flex
 
 [![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.org/newrelic/nri-flex)
@@ -33,7 +35,7 @@ For more information on compatible distros and versions, see the [Infrastructure
 
 Flex comes bundled with the New Relic Infrastructure agent. To install the Infrastructure agent, see [Install, configure, and manage Infrastructure](https://docs.newrelic.com/docs/infrastructure/install-configure-manage-infrastructure).
 
-If you're using Kubernetes, see [How to monitor services in Kubernetes](https://docs.newrelic.com/docs/integrations/kubernetes-integration/link-apps-services/monitor-services-running-kubernetes).
+If you're using Kubernetes, see [Configure Flex in Kubernetes](https://github.com/newrelic/nri-flex/blob/master/docs/basics/k8s_configure.md).
 
 ## Getting started
 
@@ -51,7 +53,7 @@ While developing your own Flex integrations, you can use Flex without the New Re
 
 ## Documentation
 
-- [Flex documentation - Main page](docs/README.md)
+- [Flex usage documentation](docs/README.md)
 - [How to configure Flex](/docs/basics/configure.md)
 - [Flex under Kubernetes](/docs/basics/k8s_configure.md)
 - [Data sources / APIS](/docs/apis/README.md)
