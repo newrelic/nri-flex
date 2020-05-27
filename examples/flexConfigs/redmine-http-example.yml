@@ -1,3 +1,5 @@
+# NOTE: 'pagination' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 # redmine api documentation https://www.redmine.org/projects/redmine/wiki/Rest_api
 ---
 integrations:

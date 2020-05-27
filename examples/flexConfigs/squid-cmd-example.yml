@@ -1,3 +1,5 @@
+# NOTE: 'pluck_numbers' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ---
 integrations:
   - name: nri-flex

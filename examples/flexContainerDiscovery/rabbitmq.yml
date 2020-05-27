@@ -1,3 +1,5 @@
+# NOTE: 'metric_parser' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 # example label to apply -> flexDiscoveryRabbit="t=rabbitmq,c=rabbitmq,tt=img,tm=contains"
 # if using kubernetes add it as a environment variable
 ### https://www.rabbitmq.com/monitoring.html

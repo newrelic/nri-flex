@@ -1,3 +1,5 @@
+# NOTE: 'inherit_attributes' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ### this file should be renamed to "flex-lambda-ingest.yml"
 ### set a cloudwatch event to trigger the lamda for ECS state changes
 ---

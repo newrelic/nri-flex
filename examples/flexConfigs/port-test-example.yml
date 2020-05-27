@@ -1,3 +1,5 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
 ---
 integrations:
   - name: nri-flex
