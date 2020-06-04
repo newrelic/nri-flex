@@ -1,0 +1,11 @@
+# This is an example of using Flex to query against OSQuery metrics
+# ref: https://osql.io/schema/3.3.2#process_open_sockets
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: osquery
+      apis:
+        - event_type: osqueryOpenSockets
+          commands:
+            - run: osqueryi --json "SELECT * FROM process_open_sockets;"
