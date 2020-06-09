@@ -1,3 +1,6 @@
+# NOTE: 'git sync' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/git_sync.md
+---
 service: nri-flex
 
 provider:

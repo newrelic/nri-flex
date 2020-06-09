@@ -1,3 +1,5 @@
+# NOTE: 'metric_parser' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ### https://www.rabbitmq.com/monitoring.html
 ### your.rabbit.server/api/index.html
 ---

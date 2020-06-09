@@ -1,3 +1,5 @@
+# NOTE: 'metric_parser' and 'sub_parse' are experimental functions at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ### note if local testing, macOS does not have the -q flag for nc (netcat) that other linux systems have, so remove if testing locally
 ### if running on linux you may need to add the -q0 flag eg. (printf "info\r\n"; sleep 1) | nc -q0 127.0.0.1 6379
 ---

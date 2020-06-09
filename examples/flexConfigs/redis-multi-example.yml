@@ -1,3 +1,7 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
+# NOTE: 'sub_parse' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ---
 integrations:
   - name: nri-flex

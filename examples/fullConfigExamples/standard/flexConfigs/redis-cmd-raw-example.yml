@@ -1,3 +1,7 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
+# NOTE: 'metric_parser' and 'sub_parse' are experimental functions at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
 ---
 name: redisFlex
 apis: 
