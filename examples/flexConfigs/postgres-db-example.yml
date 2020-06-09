@@ -1,4 +1,4 @@
-# NOTE: 'database' is an experimental function at this time
+# NOTE: 'database' is an experimental API at this time
 # ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
 ---
 integrations:
