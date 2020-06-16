@@ -1,5 +1,4 @@
 # This integration returns a list of files in a particular directory. 
-# In the past, this integration was used by a customer to verify if files arrived successfully onto a SFTP file share. 
 # Wildcards, *, below in the run: section are for listing files with similar names.  This can be customized to fit the naming convention of the directory/process. 
 ---
 integrations:
