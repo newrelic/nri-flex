@@ -1,6 +1,6 @@
 # `commands`
 
-The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence, RAW and JSON input format, and is platform-agnostic. Keep in mind that platform specific applications differ between different operating systems, and some may not be available (for example, Kubernetes).
+The `commands` API allows you to retrieve information from any application or shell command. It can accept multiple commands executed in sequence, raw text, and JSON data, and is platform-agnostic. Keep in mind that platform specific applications differ between different operating systems, and some may not be available (for example, Kubernetes).
 
 * [Basic usage](#Basicusage)
 * [Configuration properties](#Configurationproperties)
