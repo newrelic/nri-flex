@@ -86,6 +86,7 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 	runCommand := command.Run
 	if command.Output == load.Jmx {
 		SetJMXCommand(&runCommand, command, api, yml)
+		command.Run = runCommand
 	}
 	commandTimeout := load.DefaultTimeout
 	if api.Timeout > 0 {
