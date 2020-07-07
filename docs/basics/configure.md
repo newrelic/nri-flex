@@ -127,6 +127,8 @@ The `apis` section allows you to define multiple entries for data acquisition an
 * If `event_type` is not defined and `name` is, the submitted event type is `name`
   with the `Sample` prefix concatenated.
     - For example, `name: FolderSize` would make Flex to create events named `event_type: FolderSizeSample`.
+* Each `event_type` will be automatically decorated by the infrastructure-agent with a `timestamp` attribute.
+  Flex can overwrite this attribute, but it's not recomended as it can impact the alerts configured for this `event_type`
 
 In addition to the fields that define the name of the sample, each `apis` entry requires the type of API to parse data from, and, optionally, a list of [functions](../basics/functions.md) for processing the data coming from the API.
 
