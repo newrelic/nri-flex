@@ -568,9 +568,17 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 					foundKey = true
 					checkError(metricSet.SetMetric(k, parsed, metric.RATE))
 					break
+				} else if metricVal == "PRATE" {
+					foundKey = true
+					checkError(metricSet.SetMetric(k, parsed, metric.PRATE))
+					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
 					checkError(metricSet.SetMetric(k, parsed, metric.DELTA))
+					break
+				} else if metricVal == "PDELTA" {
+					foundKey = true
+					checkError(metricSet.SetMetric(k, parsed, metric.PDELTA))
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
