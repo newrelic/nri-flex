@@ -313,7 +313,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
-	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	ValueMapper         map[string][]string `yaml:"value_mapper"`         // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	TimestampConversion map[string]string   `yaml:"timestamp_conversion"` // find keys with regex, convert date<=>timestamp DATE2TIMESTAMP or TIMESTAMP2DATE
 
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs

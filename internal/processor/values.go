@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Knetic/govaluate"
 	"github.com/newrelic/nri-flex/internal/formatter"
@@ -143,6 +144,77 @@ func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]inter
 						break
 					}
 				}
+			}
+		}
+	}
+}
+
+// RunTimestampConversion find keys with regex, convert date<=>timestamp DATE2TIMESTAMP or TIMESTAMP2DATE
+func RunTimestampConversion(v *interface{}, api load.API, key *string) {
+	for regexKey, regexVal := range api.TimestampConversion {
+		if formatter.KvFinder("regex", *key, regexKey) {
+			value := toString(v)
+			convertDateStamp(regexVal, &value)
+			*v = value
+		}
+	}
+}
+
+// convert value to string, float64 to string without decimal
+func toString(v *interface{}) string {
+	switch val := (*v).(type) {
+	case float32, float64:
+		return fmt.Sprintf("%0.f", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
+func convertDateStamp(timestampTamplate string, targetValue *string) {
+
+	DATEFORMAT := map[string]string{
+		"ATOM":    "2006-01-02T15:04:05Z07:00",
+		"COOKIE":  "Monday, 02-Jan-06 15:04:05 MST",
+		"ISO8601": "2006-01-02T15:04:05Z0700",
+		"RFC822":  "Mon, 02 Jan 06 15:04:05 Z0700",
+		"RFC850":  "Monday, 02-Jan-06 15:04:05 MST",
+		"RFC1036": "Mon, 02 Jan 06 15:04:05 Z0700",
+		"RFC1123": "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"RFC2822": "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"RFC3339": "2006-01-02T15:04:05Z07:00",
+		"RSS":     "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"W3C":     "2006-01-02T15:04:05Z07:00",
+	}
+
+	timestampFormat := strings.Split(timestampTamplate, "::")
+	if len(timestampFormat) != 0 {
+		if timestampFormat[0] == "DATE2TIMESTAMP" {
+			srcDateformat := time.RFC3339
+			if len(timestampFormat) == 2 {
+				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {
+					srcDateformat = val
+				} else {
+					srcDateformat = timestampFormat[1]
+				}
+			}
+			resTime, err := time.Parse(srcDateformat, *targetValue)
+			if err == nil {
+				*targetValue = strconv.FormatInt(resTime.Unix(), 10)
+			}
+		}
+		if timestampFormat[0] == "TIMESTAMP2DATE" {
+			dstDateformat := time.RFC3339
+			if len(timestampFormat) == 2 {
+				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {
+					dstDateformat = val
+				} else {
+					dstDateformat = timestampFormat[1]
+				}
+			}
+			n, err := strconv.ParseInt(*targetValue, 10, 64)
+			if err == nil {
+				unixTimeUTC := time.Unix(n, 0)
+				*targetValue = unixTimeUTC.Format(dstDateformat)
 			}
 		}
 	}
