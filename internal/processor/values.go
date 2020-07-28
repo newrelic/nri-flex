@@ -149,7 +149,7 @@ func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]inter
 	}
 }
 
-// RunTimestampConversion find keys with regex, convert date<=>timestamp DATE2TIMESTAMP or TIMESTAMP2DATE
+// RunTimestampConversion find keys with regex, convert date<=>timestamp
 func RunTimestampConversion(v *interface{}, api load.API, key *string) {
 	for regexKey, regexVal := range api.TimestampConversion {
 		if formatter.KvFinder("regex", *key, regexKey) {
@@ -192,7 +192,7 @@ func convertDateStamp(timestampTamplate string, targetValue *string) {
 
 	timestampFormat := strings.Split(timestampTamplate, "::")
 	if len(timestampFormat) != 0 {
-		if timestampFormat[0] == "DATE2TIMESTAMP" {
+		if timestampFormat[0] == "TIMESTAMP" {
 			srcDateformat := time.RFC3339
 			if len(timestampFormat) == 2 {
 				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {
@@ -208,7 +208,7 @@ func convertDateStamp(timestampTamplate string, targetValue *string) {
 				*targetValue = strconv.FormatInt(resTime.Unix(), 10)
 			}
 		}
-		if timestampFormat[0] == "TIMESTAMP2DATE" {
+		if timestampFormat[0] == "DATE" {
 			dstDateformat := time.RFC3339
 			if len(timestampFormat) == 2 {
 				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {

@@ -71,10 +71,10 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			RunValueMapper(api.ValueMapper, &currentSample, key, &v) // valueMapper
 
 			RunTimestampConversion(&v, api, &key)
-			// find keys with regex, convert date<=>timestamp DATE2TIMESTAMP or TIMESTAMP2DATE
+			// find keys with regex, convert date<=>timestamp
 			// timestamp_conversion:
-			//   started_at: DATE2TIMESTAMP::RFC3339
-			//   endtime: TIMESTAMP2DATE::RFC3339
+			//   started_at: TIMESTAMP::RFC3339
+			//   endtime: DATE::RFC3339
 			// do not rename a key again, this is to avoid continuous replacement loops
 			// eg. if you replace id with project.id
 			// this could then again attempt to replace id within project.id to project.project.id
