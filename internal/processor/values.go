@@ -198,7 +198,9 @@ func convertDateStamp(timestampTamplate string, targetValue *string) {
 				}
 			}
 			resTime, err := time.Parse(srcDateformat, *targetValue)
-			if err == nil {
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("processor-values: %v TimestampConversion failed %v", srcDateformat, *targetValue)
+			} else {
 				*targetValue = strconv.FormatInt(resTime.Unix(), 10)
 			}
 		}
@@ -212,7 +214,9 @@ func convertDateStamp(timestampTamplate string, targetValue *string) {
 				}
 			}
 			n, err := strconv.ParseInt(*targetValue, 10, 64)
-			if err == nil {
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("processor-values: %v TimestampConversion failed %v", dstDateformat, *targetValue)
+			} else {
 				unixTimeUTC := time.Unix(n, 0)
 				*targetValue = unixTimeUTC.Format(dstDateformat)
 			}

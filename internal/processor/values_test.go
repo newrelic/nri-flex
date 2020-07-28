@@ -200,3 +200,64 @@ func TestRunValueMapper(t *testing.T) {
 		})
 	}
 }
+
+func TestRunTimestampConversion(t *testing.T) {
+	getConfig := func(TimestampConversion map[string]string) load.API {
+		return load.API{
+			TimestampConversion: TimestampConversion,
+		}
+	}
+
+	testCases := map[string]struct {
+		parseCfg load.API
+		value    interface{}
+		key      string
+		expected string
+	}{
+		"DATE2TIMESTAMP_Predefined_Date_Format": {
+			parseCfg: getConfig(
+				map[string]string{
+					"started_at": "DATE2TIMESTAMP::RFC3339",
+				}),
+			key:      `started_at`,
+			value:    `2020-07-20T14:34:05Z`,
+			expected: `"1595255645"`,
+		},
+		"DATE2TIMESTAMP_Custom_Date_Format": {
+			parseCfg: getConfig(
+				map[string]string{
+					"started_at": "DATE2TIMESTAMP::2006-01-02",
+				}),
+			key:      `started_at`,
+			value:    `2020-07-20`,
+			expected: `"1595203200"`,
+		},
+		"TIMESTAMP2DATE_Predefined_Date_Format": {
+			parseCfg: getConfig(
+				map[string]string{
+					"endtime": "TIMESTAMP2DATE::RFC3339",
+				}),
+			key:      `endtime`,
+			value:    1595598897,
+			expected: `"2020-07-24T23:54:57+10:00"`,
+		},
+		"TIMESTAMP2DATE_Custom_Date_Format": {
+			parseCfg: getConfig(
+				map[string]string{
+					"endtime": "TIMESTAMP2DATE::2006-01-02T03:04",
+				}),
+			key:      `endtime`,
+			value:    1595598897,
+			expected: `"2020-07-24T11:54"`,
+		},
+	}
+
+	for testName, testCase := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			RunTimestampConversion(&testCase.value, testCase.parseCfg, &testCase.key)
+
+			got, _ := json.Marshal(testCase.value)
+			assert.Equal(t, testCase.expected, string(got))
+		})
+	}
+}
