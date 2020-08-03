@@ -7,13 +7,14 @@ package integration_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -120,7 +121,7 @@ func TestConfig_cmd_OpenFDs(t *testing.T) {
 
 	i, _ := integration.New(load.IntegrationName, load.IntegrationVersion)
 	load.Entity, _ = i.Entity("IntegrationTest", "nri-flex")
-	load.Args.ConfigFile = "../examples/flexConfigs/linux-open-fds.yml"
+	load.Args.ConfigFile = "../examples/linux/linux-open-fds.yml"
 
 	// Read a single config file
 	var files []os.FileInfo

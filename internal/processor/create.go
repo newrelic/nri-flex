@@ -66,10 +66,15 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			RunValConversion(&v, api, &key)
 			RunValueParser(&v, api, &key)
 			RunPluckNumbers(&v, api, &key)
-			RunSubParse(api.SubParse, &currentSample, key, v) // subParse key pairs (see redis example)
-			RunValueTransformer(&v, api, &key)                // Needs to be run before KeyRenamer and KeyReplacer
+			RunSubParse(api.SubParse, &currentSample, key, v)        // subParse key pairs (see redis example)
+			RunValueTransformer(&v, api, &key)                       // Needs to be run before KeyRenamer and KeyReplacer
+			RunValueMapper(api.ValueMapper, &currentSample, key, &v) // valueMapper
 
-			RunValueMapper(api.ValueMapper, &currentSample, key, &v) // subParse key pairs (see redis example)
+			RunTimestampConversion(&v, api, &key)
+			// find keys with regex, convert date<=>timestamp
+			// timestamp_conversion:
+			//   started_at: TIMESTAMP::RFC3339
+			//   endtime: DATE::RFC3339
 			// do not rename a key again, this is to avoid continuous replacement loops
 			// eg. if you replace id with project.id
 			// this could then again attempt to replace id within project.id to project.project.id
@@ -568,9 +573,17 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 					foundKey = true
 					checkError(metricSet.SetMetric(k, parsed, metric.RATE))
 					break
+				} else if metricVal == "PRATE" {
+					foundKey = true
+					checkError(metricSet.SetMetric(k, parsed, metric.PRATE))
+					break
 				} else if metricVal == "DELTA" {
 					foundKey = true
 					checkError(metricSet.SetMetric(k, parsed, metric.DELTA))
+					break
+				} else if metricVal == "PDELTA" {
+					foundKey = true
+					checkError(metricSet.SetMetric(k, parsed, metric.PDELTA))
 					break
 				} else if metricVal == "ATTRIBUTE" {
 					foundKey = true
