@@ -1,0 +1,16 @@
+# This integration returns a list of files in a particular directory. 
+# Wildcards, *, below in the run: section are for listing files with similar names.  This can be customized to fit the naming convention of the directory/process. 
+---
+integrations:
+  - name: nri-flex
+    interval: 300s
+    config:
+      name: LinuxFileList
+      apis:
+        - event_type: LinuxFileList
+          commands:
+            - run: ls -1 /file/path/filenames*.txt*
+              split: horizontal
+              set_header: [FileName]
+              regex_match: true
+              split_by: (\S+)

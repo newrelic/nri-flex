@@ -1,0 +1,46 @@
+# nginx plus
+# https://docs.nginx.com/nginx/admin-guide/monitoring/live-activity-monitoring/
+integrations:
+  - name: nri-flex
+    config:
+      name: nginxFlex
+      # interval: 30s
+      global:
+        base_url: https://demo.nginx.com/api/6
+      apis:
+        - name: server_zones
+          event_type: NginxServerZoneSample
+          run_async: true
+          url: /http/server_zones
+          split_objects: true
+          rename_keys:
+            split.id: server.zone
+        - name: caches
+          event_type: NginxCacheSample
+          run_async: true
+          url: /caches
+          split_objects: true
+          rename_keys:
+            split.id: cache.zone
+        - name: upstreamLookup
+          event_type: NginxUpstreamLookup
+          url: /http/upstreams?fields=none
+          split_objects: true
+          rename_keys:
+            split.id: upstream.zone
+          ignore_output: true
+        - name: upstreamLookup
+          event_type: NginxUpstreamSample
+          run_async: true
+          url: /http/upstreams/${lookup.NginxUpstreamLookup:upstream.zone}
+        - name: slabs
+          event_type: NginxSlabSample
+          run_async: true
+          url: /slabs
+          split_objects: true
+          rename_keys:
+            split.id: memory.zone
+        - name: httpRequests
+          event_type: NginxHttpRequestSample
+          run_async: true
+          url: /http/requests
