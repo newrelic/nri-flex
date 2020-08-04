@@ -211,8 +211,8 @@ In the Flex repo you can find more than [200 config examples](../examples/flexCo
 
 ##  5. <a name='Whatsnext'></a>What's next?
 
-- Learn more about the Flex configuration schema in [Configure Flex](/basics/configure.md).
-- Read about the [url](/apis/url.md) and [commands](/apis/command.md) APIs and how to create Flex integrations with them.
-- See the [list of supported functions](/basics/functions.md) to understand what Flex is capable of.
+- Learn more about the Flex configuration schema in [Configure Flex](/docs/basics/configure.md).
+- Read about the [url](/docs/apis/url.md) and [commands](/docs/apis/commands.md) APIs and how to create Flex integrations with them.
+- See the [list of supported functions](/docs/basics/functions.md) to understand what Flex is capable of.
 - Configure [Flex under Kubernetes](/docs/basics/k8s_configure.md).
 - Read our [Troubleshooting guide](troubleshooting.md) if you're having issues with Flex configuration files or Flex integrations.
