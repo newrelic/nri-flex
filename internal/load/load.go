@@ -50,7 +50,7 @@ type ArgumentList struct {
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
-	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
 }
