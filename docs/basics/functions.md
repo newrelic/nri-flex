@@ -10,6 +10,7 @@ For functions that are specific to data sources, such as `split_by` or `headers`
     - [add_attribute](#add_attribute)
     - [convert_space](#convert_space)
     - [ignore_output](#ignore_output)
+    - [jq](#jq)
     - [keep_keys](#keep_keys)
     - [lazy_flatten](#lazy_flatten)
     - [lookup_file](#lookup_file)
@@ -38,29 +39,29 @@ For functions that are specific to data sources, such as `split_by` or `headers`
 
 Flex applies data parsing and transformation functions in a specific order, regardless of where in the configuration files you declare them. Keep the functions precedence order in mind to avoid unexpected or empty results.
 
-  1. [lookup_file](#lookup_file)
-  2. [start_key](#start_key)
-  3. [strip_keys](#strip_keys) \*
-  4. [lazy_flatten](#lazy_flatten)
-  5. [split_array (leaf_array)](#split_array)
-  6. [split_objects](#split_objects)
-  7. Standard flatten (auto-flattening)
-  8. [to_lower](#to_lower)
-  9. [convert_space](#convert_space)
-  10. [snake_to_camel](#snake_to_camel)
-  11. [perc_to_decimal](#perc_to_decimal)
-  12. [value_parser](#value_parser)
-  13. [value_transformer](#value_transformer)
-  14. [rename_keys / replace_keys](#rename_keys--replace_keys)
-  15. [store_lookups](#store_lookups)
-  16. [keep_keys](#keep_keys)
-  17. [ignore_output](#ignore_output)
-  18. [sample_include_filter](#sample_include_filter)
-  19. [sample_filter](#sample_filter)
-  20. [sample_exclude_filter](#sample_exclude_filter)
-  21. [math](#math)
-  22. [add_attribute](#add_attribute)
-  23. [remove_keys](#remove_keys)
+1. [lookup_file](#lookup_file)
+2. [start_key](#start_key)
+3. [strip_keys](#strip_keys) \*
+4. [lazy_flatten](#lazy_flatten)
+5. [split_array (leaf_array)](#split_array)
+6. [split_objects](#split_objects)
+7. Standard flatten (auto-flattening)
+8. [to_lower](#to_lower)
+9. [convert_space](#convert_space)
+10. [snake_to_camel](#snake_to_camel)
+11. [perc_to_decimal](#perc_to_decimal)
+12. [value_parser](#value_parser)
+13. [value_transformer](#value_transformer)
+14. [rename_keys / replace_keys](#rename_keys--replace_keys)
+15. [store_lookups](#store_lookups)
+16. [keep_keys](#keep_keys)
+17. [ignore_output](#ignore_output)
+18. [sample_include_filter](#sample_include_filter)
+19. [sample_filter](#sample_filter)
+20. [sample_exclude_filter](#sample_exclude_filter)
+21. [math](#math)
+22. [add_attribute](#add_attribute)
+23. [remove_keys](#remove_keys)
 
 > \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
@@ -78,17 +79,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -97,11 +98,11 @@ You could use the payload to generate a link that can be added as an extra attri
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      add_attribute:
-          # use the 'id' attribute of the service output
-          link: https://some-other-service/nodes/${id}
+  - name: someService
+    url: http://some-service.com/status
+    add_attribute:
+      # use the 'id' attribute of the service output
+      link: https://some-other-service/nodes/${id}
 ```
 
 Which would return the following:
@@ -130,17 +131,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leader info": {
-        "leader": "8a69d5f6b7814500",
-        "start time": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leader info": {
+    "leader": "8a69d5f6b7814500",
+    "start time": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -149,9 +150,9 @@ You could convert the spaces in `leader info` and `start time` to, for example, 
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      convert_space: '_'
+  - name: someService
+    url: http://some-service.com/status
+    convert_space: "_"
 ```
 
 Which would return the following:
@@ -178,34 +179,61 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
-You could use it as source of values for other APIs:
+### jq
+
+Use jq commands to easily access data from any structure.
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
+}
+```
+
+To easily access and return just the data under `abc` you can use the following configuration:
 
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      store_lookups:
-          # store the 'id' into a lookup key named 'nodeId'
-          nodeId: id
-      ignore_output: true
-    - name: useLookup
-      # use the 'nodeId' stored in the previous APIs to execute this one
-      url: http://some-other-service.com/${lookup:nodeId}/status
+  - name: someService
+    url: http://some-service.com/status
+    jq: ".leaderInfo.abc"
+```
+
+Returns:
+
+```json
+{
+  "def": 123,
+  "hij": 234
+}
 ```
 
 ### keep_keys
@@ -218,17 +246,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -237,11 +265,11 @@ You could keep just the `id` and `name` fields by using this configuration:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      keep_keys:
-          - id
-          - name
+  - name: someService
+    url: http://some-service.com/status
+    keep_keys:
+      - id
+      - name
 ```
 
 ### lazy_flatten
@@ -254,16 +282,16 @@ Consider a service that returns the following json payload:
 
 ```json
 {
-    "contacts": [
-        {
-            "name": "batman",
-            "number": 911
-        },
-        {
-            "name": "robin",
-            "number": 112
-        }
-    ]
+  "contacts": [
+    {
+      "name": "batman",
+      "number": 911
+    },
+    {
+      "name": "robin",
+      "number": 112
+    }
+  ]
 }
 ```
 
@@ -274,8 +302,8 @@ For example, using the following configuration:
 ```yaml
 name: example
 apis:
-    - name: status
-      url: http://some-service.com/status
+  - name: status
+    url: http://some-service.com/status
 ```
 
 Will give you a result similar to:
@@ -322,16 +350,16 @@ On the other hand, with a payload like the following:
 
 ```json
 {
-    "contacts": {
-        "first": {
-            "name": "batman",
-            "number": 911
-        },
-        "second": {
-            "name": "robin",
-            "number": 112
-        }
+  "contacts": {
+    "first": {
+      "name": "batman",
+      "number": 911
+    },
+    "second": {
+      "name": "robin",
+      "number": 112
     }
+  }
 }
 ```
 
@@ -359,14 +387,14 @@ Consider a file with the following content:
 
 ```json
 [
-    {
-        "name": "some-service",
-        "addr": "some-service.com:80"
-    },
-    {
-        "name": "another-service",
-        "addr": "another-service.com:80"
-    }
+  {
+    "name": "some-service",
+    "addr": "some-service.com:80"
+  },
+  {
+    "name": "another-service",
+    "addr": "another-service.com:80"
+  }
 ]
 ```
 
@@ -374,17 +402,17 @@ Assuming each service returns a payload similar to:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -394,8 +422,8 @@ You could use `lookup_file` to generate multiple API executions and therefore sa
 name: example
 lookup_file: addresses.json
 apis:
-    - name: someService
-      url: http://${lf:addr}/status
+  - name: someService
+    url: http://${lf:addr}/status
 ```
 
 Which would return the following:
@@ -432,17 +460,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -451,10 +479,10 @@ You could create another attribute that is, for example, the **sum** of attribut
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      math:
-          sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
+  - name: someService
+    url: http://some-service.com/status
+    math:
+      sum: ${leaderInfo.abc.def} + ${leaderInfo.abc.hij} + 1
 ```
 
 Which would return the following:
@@ -482,17 +510,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": "123%",
-            "hij": "234%"
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": "123%",
+      "hij": "234%"
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -501,9 +529,9 @@ You could convert the percentage formatted values in `leaderInfo.abc.def` and `l
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      perc_to_decimal: true
+  - name: someService
+    url: http://some-service.com/status
+    perc_to_decimal: true
 ```
 
 Which would return the following:
@@ -530,17 +558,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -549,10 +577,10 @@ You could remove some of the keys using `remove_keys`:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      remove_keys:
-          - time
+  - name: someService
+    url: http://some-service.com/status
+    remove_keys:
+      - time
 ```
 
 Which would return something similar to the following:
@@ -580,17 +608,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -599,12 +627,12 @@ You could rename the key `id` to `identifier`, and `name` to `nodeName`:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      # replace_keys for backcompat
-      rename_keys:
-          id: identifier
-          name: nodeName
+  - name: someService
+    url: http://some-service.com/status
+    # replace_keys for backcompat
+    rename_keys:
+      id: identifier
+      name: nodeName
 ```
 
 Which would return the following:
@@ -632,17 +660,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -651,10 +679,10 @@ You could completely skip creating the output sample:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      sample_filter:
-          - name: node3
+  - name: someService
+    url: http://some-service.com/status
+    sample_filter:
+      - name: node3
 ```
 
 Which would return the following:
@@ -673,16 +701,16 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "usageInfo": [
-        {
-            "quantities": 10,
-            "customerId": "abc"
-        },
-        {
-            "quantities": 20,
-            "customerId": "xyz"
-        }
-    ]
+  "usageInfo": [
+    {
+      "quantities": 10,
+      "customerId": "abc"
+    },
+    {
+      "quantities": 20,
+      "customerId": "xyz"
+    }
+  ]
 }
 ```
 
@@ -691,10 +719,10 @@ You may only want to have `"customerId": "abc"` in the ouput sample:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/samples
-      sample_include_filter:
-          - customerId: abc
+  - name: someService
+    url: http://some-service.com/samples
+    sample_include_filter:
+      - customerId: abc
 ```
 
 Which would return the following:
@@ -722,16 +750,16 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "usageInfo": [
-        {
-            "quantities": 10,
-            "customerId": "abc"
-        },
-        {
-            "quantities": 20,
-            "customerId": "xyz"
-        }
-    ]
+  "usageInfo": [
+    {
+      "quantities": 10,
+      "customerId": "abc"
+    },
+    {
+      "quantities": 20,
+      "customerId": "xyz"
+    }
+  ]
 }
 ```
 
@@ -740,10 +768,10 @@ You may want to exclude `"customerId": "abc"` from the output sample:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/samples
-      sample_exclude_filter:
-          - customerId: abc
+  - name: someService
+    url: http://some-service.com/samples
+    sample_exclude_filter:
+      - customerId: abc
 ```
 
 Which would return the following:
@@ -771,17 +799,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leader_info": {
-        "leader": "8a69d5f6b7814500",
-        "start_time": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leader_info": {
+    "leader": "8a69d5f6b7814500",
+    "start_time": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -790,9 +818,9 @@ You could convert `leader_info` and `start_time` to camelCase for increased cons
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      snake_to_camel: true
+  - name: someService
+    url: http://some-service.com/status
+    snake_to_camel: true
 ```
 
 Which would return the following:
@@ -819,38 +847,38 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "status": 1,
-    "appstatus": -128,
-    "statusstring": null,
-    "appstatusstring": null,
-    "results": [
+  "status": 1,
+  "appstatus": -128,
+  "statusstring": null,
+  "appstatusstring": null,
+  "results": [
+    {
+      "status": -128,
+      "schema": [
         {
-            "status": -128,
-            "schema": [
-                {
-                    "name": "TIMESTAMP",
-                    "type": 6
-                },
-                {
-                    "name": "HOST_ID",
-                    "type": 5
-                },
-                {
-                    "name": "HOSTNAME",
-                    "type": 9
-                },
-                {
-                    "name": "PERCENT_USED",
-                    "type": 6
-                }
-            ],
-            "data": [
-                [1582159853733, 0, "7605f6bec898", 0],
-                [1582159853733, 2, "067ea6fc4c22", 0],
-                [1582159853733, 1, "62a10d3f45e3", 0]
-            ]
+          "name": "TIMESTAMP",
+          "type": 6
+        },
+        {
+          "name": "HOST_ID",
+          "type": 5
+        },
+        {
+          "name": "HOSTNAME",
+          "type": 9
+        },
+        {
+          "name": "PERCENT_USED",
+          "type": 6
         }
-    ]
+      ],
+      "data": [
+        [1582159853733, 0, "7605f6bec898", 0],
+        [1582159853733, 2, "067ea6fc4c22", 0],
+        [1582159853733, 1, "62a10d3f45e3", 0]
+      ]
+    }
+  ]
 }
 ```
 
@@ -859,13 +887,13 @@ You could split the configuration:
 ```yaml
 name: example
 apis:
-    - name: voltdb_cpu
-      event_type: voltdb
-      url: http://some-service.com/status
-      split_array: true
-      set_header: [TIMESTAMP, HOST_ID, HOSTNAME, PERCENT_USED]
-      start_key:
-          - results>data
+  - name: voltdb_cpu
+    event_type: voltdb
+    url: http://some-service.com/status
+    split_array: true
+    set_header: [TIMESTAMP, HOST_ID, HOSTNAME, PERCENT_USED]
+    start_key:
+      - results>data
 ```
 
 Which would return the something like following:
@@ -898,16 +926,16 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "concurrent_plays": {
-        "timestamps": [1585662957000, 1585662958000, 1585662959000],
-        "meta": {
-            "status": 0
-        },
-        "type": "time_series",
-        "filters": {
-            "AccountA": [200, 190, 180]
-        }
+  "concurrent_plays": {
+    "timestamps": [1585662957000, 1585662958000, 1585662959000],
+    "meta": {
+      "status": 0
+    },
+    "type": "time_series",
+    "filters": {
+      "AccountA": [200, 190, 180]
     }
+  }
 }
 ```
 
@@ -916,28 +944,28 @@ You could split the leaf nodes within `timestamps` and `filters` branches into s
 ```yaml
 name: leafArrayExample
 apis:
-    - name: getTimetamps
-      url: http://127.0.0.1:8887/concurrent_plays.json
-      split_array: true
-      leaf_array: true
-      set_header: [Timestamp]
-      start_key:
-          - concurrent_plays
-          - timestamps
-      merge: myMetricsSample
-      join_key: index
-    - name: getValues
-      url: http://127.0.0.1:8887/concurrent_plays.json
-      split_array: true
-      leaf_array: true
-      set_header: [Value]
-      start_key:
-          - concurrent_plays
-          - filters
-      custom_attributes:
-          accountid: 'AccountA'
-      merge: myMetricsSample
-      join_key: index
+  - name: getTimetamps
+    url: http://127.0.0.1:8887/concurrent_plays.json
+    split_array: true
+    leaf_array: true
+    set_header: [Timestamp]
+    start_key:
+      - concurrent_plays
+      - timestamps
+    merge: myMetricsSample
+    join_key: index
+  - name: getValues
+    url: http://127.0.0.1:8887/concurrent_plays.json
+    split_array: true
+    leaf_array: true
+    set_header: [Value]
+    start_key:
+      - concurrent_plays
+      - filters
+    custom_attributes:
+      accountid: "AccountA"
+    merge: myMetricsSample
+    join_key: index
 ```
 
 Which would return the following:
@@ -984,28 +1012,28 @@ Consider a service that return the following payload:
 
 ```json
 {
-    "first": {
-        "id": "eca0338f4ea31566",
-        "leaderInfo": {
-            "uptime": "10m59.322358947s",
-            "abc": {
-                "def": 123,
-                "hij": 234
-            }
-        },
-        "name": "node1"
+  "first": {
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+      "uptime": "10m59.322358947s",
+      "abc": {
+        "def": 123,
+        "hij": 234
+      }
     },
-    "second": {
-        "id": "eca0338f4ea31566",
-        "leaderInfo": {
-            "uptime": "10m59.322358947s",
-            "abc": {
-                "def": 123,
-                "hij": 234
-            }
-        },
-        "name": "node2"
-    }
+    "name": "node1"
+  },
+  "second": {
+    "id": "eca0338f4ea31566",
+    "leaderInfo": {
+      "uptime": "10m59.322358947s",
+      "abc": {
+        "def": 123,
+        "hij": 234
+      }
+    },
+    "name": "node2"
+  }
 }
 ```
 
@@ -1014,9 +1042,9 @@ You could split the single object into two separate objects:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      split_objects: true
+  - name: someService
+    url: http://some-service.com/status
+    split_objects: true
 ```
 
 Which would return something similar to the following:
@@ -1052,17 +1080,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1071,25 +1099,25 @@ You could tell Flex to start processing the payload from `leaderInfo`:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      start_key:
-          - leaderInfo
+  - name: someService
+    url: http://some-service.com/status
+    start_key:
+      - leaderInfo
 ```
 
 This would mean processing only the following data:
 
 ```json
 {
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
     }
+  }
 }
 ```
 
@@ -1111,21 +1139,21 @@ Or further down:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      start_key:
-          - leaderInfo
-          - abc
+  - name: someService
+    url: http://some-service.com/status
+    start_key:
+      - leaderInfo
+      - abc
 ```
 
 Which would mean processing only this data:
 
 ```json
 {
-    "abc": {
-        "def": 123,
-        "hij": 234
-    }
+  "abc": {
+    "def": 123,
+    "hij": 234
+  }
 }
 ```
 
@@ -1147,17 +1175,17 @@ Consider the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc":{
-            "def":123,
-            "hij":234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1183,7 +1211,7 @@ apis:
     store_variables:
       storedId: userId ### store the userId from this response into storedId
   - name: user
-    url: https://jsonplaceholder.typicode.com/users/${var:storedId}  ### query the user route with the previously stored userId which is storedId
+    url: https://jsonplaceholder.typicode.com/users/${var:storedId} ### query the user route with the previously stored userId which is storedId
 ```
 
 ### lookups
@@ -1198,21 +1226,21 @@ Consider a service that returns the following payload.
 
 ```json
 [
-    {
-        "postId": 1,
-        "postName": "My great post",
-        "userId": 10
-    },
-    {
-        "postId": 2,
-        "postName": "Sydney Attractions",
-        "userId": 6
-    },
-    {
-        "postId": 3,
-        "postName": "Barcelona Stores",
-        "userId": 7
-    }
+  {
+    "postId": 1,
+    "postName": "My great post",
+    "userId": 10
+  },
+  {
+    "postId": 2,
+    "postName": "Sydney Attractions",
+    "userId": 6
+  },
+  {
+    "postId": 3,
+    "postName": "Barcelona Stores",
+    "userId": 7
+  }
 ]
 ```
 
@@ -1225,10 +1253,10 @@ Access to all attributes with the samples are readily available.
 ```yaml
 name: example
 apis:
-    - name: post
-      url: http://some-service.com/posts
-    - name: user
-      url: http://some-other-service.com/users/${lookup.postSample:userId}
+  - name: post
+    url: http://some-service.com/posts
+  - name: user
+    url: http://some-other-service.com/users/${lookup.postSample:userId}
 ```
 
 ### dedupe_lookups
@@ -1243,16 +1271,16 @@ Consider a service that returns the following payload.
 
 ```json
 [
-    {
-        "postId": 1,
-        "postName": "My great post",
-        "userId": 10
-    },
-    {
-        "postId": 2,
-        "postName": "Another great post",
-        "userId": 10
-    }
+  {
+    "postId": 1,
+    "postName": "My great post",
+    "userId": 10
+  },
+  {
+    "postId": 2,
+    "postName": "Another great post",
+    "userId": 10
+  }
 ]
 ```
 
@@ -1267,12 +1295,12 @@ To dedupe the lookup and avoid this, refer to the following example.
 ```yaml
 name: example
 apis:
-    - name: post
-      url: http://some-service.com/posts
-    - name: user
-      url: http://some-other-service.com/users/${lookup.postSample:userId}
-      dedupe_lookups:
-          - userId
+  - name: post
+    url: http://some-service.com/posts
+  - name: user
+    url: http://some-other-service.com/users/${lookup.postSample:userId}
+    dedupe_lookups:
+      - userId
 ```
 
 Only one call for `userId: 10` will be made.
@@ -1287,17 +1315,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1306,13 +1334,13 @@ You could store the `id` attribute to be used in a subsequent API.
 ```yaml
 name: example
 apis:
-    - name: storeLookups
-      url: http://some-service.com/status
-      store_lookups:
-          # store the 'id' into a lookup key named 'nodeId'
-          nodeId: id
-    - name: useLookup
-      url: http://some-other-service.com/${lookup:nodeId}/status
+  - name: storeLookups
+    url: http://some-service.com/status
+    store_lookups:
+      # store the 'id' into a lookup key named 'nodeId'
+      nodeId: id
+  - name: useLookup
+    url: http://some-other-service.com/${lookup:nodeId}/status
 ```
 
 ### strip_keys
@@ -1325,17 +1353,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1344,10 +1372,10 @@ You could completely remove the `leaderInfo` object:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      strip_keys:
-          - leaderInfo
+  - name: someService
+    url: http://some-service.com/status
+    strip_keys:
+      - leaderInfo
 ```
 
 This would return something similar to:
@@ -1365,11 +1393,11 @@ You could also remove nested keys, for example `leader` and `startTime` under th
 ```yaml
 name: example
 apis:
-    - name: stripKeys
-      url: http://some-service.com/status
-      strip_keys:
-          - leaderInfo>leader
-          - leaderInfo>startTime
+  - name: stripKeys
+    url: http://some-service.com/status
+    strip_keys:
+      - leaderInfo>leader
+      - leaderInfo>startTime
 ```
 
 Which would return something similar to:
@@ -1397,15 +1425,15 @@ You can use the following expressions to inject a timestamp formatted in various
 ${timestamp:[ms|ns|s|date|datetime|datetimetz|dateutc|datetimeutc|datetimeutctz][+|-][Number][ms|milli|millisecond|ns|nano|nanosecond|s|sec|second|m|min|minute|h|hr|hour]}
 ```
 
--   `ms` - milliseconds
--   `s` - seconds
--   `ns` - nanoseconds
--   `date` - current date
--   `datetime` - current datetime
--   `datetimetz` - current datetime with timezone
--   `dateutc` - current utc date
--   `datetimeutc` - current utc datetime
--   `datetimeutctz` - current utc datetime with timezone
+- `ms` - milliseconds
+- `s` - seconds
+- `ns` - nanoseconds
+- `date` - current date
+- `datetime` - current datetime
+- `datetimetz` - current datetime with timezone
+- `dateutc` - current utc date
+- `datetimeutc` - current utc datetime
+- `datetimeutctz` - current utc datetime with timezone
 
 For example:
 
@@ -1439,17 +1467,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "Id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "Name": "node3"
+  "Id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "Name": "node3"
 }
 ```
 
@@ -1458,9 +1486,9 @@ You could rename all keys to lowercase:
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      to_lower: true
+  - name: someService
+    url: http://some-service.com/status
+    to_lower: true
 ```
 
 The result would be similar to the following (notice all keys are lowercase, including keys that would be camelCased):
@@ -1487,17 +1515,17 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "leader": "a8a69d5f6b7814500",
-        "startTime": "2014-10-24T13:15:51.186620747-07:00",
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def1": "a:123",
-            "def2": "a:234"
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "leader": "a8a69d5f6b7814500",
+    "startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def1": "a:123",
+      "def2": "a:234"
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1506,10 +1534,10 @@ You could use `value_parser` to extract/transform the numbers on keys `leaderInf
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      value_parser:
-          def: '[0-9]+'
+  - name: someService
+    url: http://some-service.com/status
+    value_parser:
+      def: "[0-9]+"
 ```
 
 Which would return the following:
@@ -1537,15 +1565,15 @@ Consider a service that returns the following payload:
 
 ```json
 {
-    "id": "eca0338f4ea31566",
-    "leaderInfo": {
-        "uptime": "10m59.322358947s",
-        "abc": {
-            "def": 123,
-            "hij": 234
-        }
-    },
-    "name": "node3"
+  "id": "eca0338f4ea31566",
+  "leaderInfo": {
+    "uptime": "10m59.322358947s",
+    "abc": {
+      "def": 123,
+      "hij": 234
+    }
+  },
+  "name": "node3"
 }
 ```
 
@@ -1569,10 +1597,10 @@ If you want to transform the value of key `name` into a format like for example 
 ```yaml
 name: example
 apis:
-    - name: someService
-      url: http://some-service.com/status
-      value_transformer:
-          name: node_${value}
+  - name: someService
+    url: http://some-service.com/status
+    value_transformer:
+      name: node_${value}
 ```
 
 Which would return something similar to:
