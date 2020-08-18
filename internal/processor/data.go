@@ -75,7 +75,11 @@ func runJq(dataSets interface{}, api load.API) []interface{} {
 	// so an api that returns a map will still be a slice returned for processing
 	// for better usability if there is no array prefix access the first item in the slice automatically for the user
 	if !strings.HasPrefix(api.Jq, ".[") {
-		api.Jq = fmt.Sprintf(".[0]%v", api.Jq)
+		if api.Jq == "." {
+			api.Jq = ".[0]"
+		} else {
+			api.Jq = fmt.Sprintf(".[0]%v", api.Jq)
+		}
 	}
 
 	query, err := gojq.Parse(api.Jq)
