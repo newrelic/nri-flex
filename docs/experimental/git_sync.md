@@ -22,7 +22,7 @@ integration_name: com.newrelic.nri-flex
 instances:
   - name: nri-flex
     command: metrics
-    arguments:
+    env:
       git_repo: https://github.com/userName/repoName
       git_user: userName
       git_token: abcd
