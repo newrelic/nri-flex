@@ -8,8 +8,8 @@ integrations:
       apis:
         - name: linuxFileAge
           commands:
-            - run: stat -c '%n;%y' /etc/*conf
+            - run: stat -c '%n;%Y' /etc/*conf
               split: horizontal
-              set_header: [fileName, fileAgeSeconds]
+              set_header: [fileName, fileLastModified]
               regex_match: false
               split_by: ";"
