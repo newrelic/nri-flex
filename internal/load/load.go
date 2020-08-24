@@ -272,6 +272,7 @@ type API struct {
 	Commands          []Command         `yaml:"commands"`
 	DBQueries         []Command         `yaml:"db_queries"`
 	DBAsync           bool              `yaml:"db_async"` // perform db queries async
+	Jq                string            `yaml:"jq"`       // parse data using jq
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
