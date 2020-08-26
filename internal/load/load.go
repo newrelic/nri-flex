@@ -29,7 +29,7 @@ type ArgumentList struct {
 	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
-	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
