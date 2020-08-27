@@ -369,7 +369,7 @@ type Command struct {
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	Output           string            `yaml:"output"`            // jmx, raw, json
+	Output           string            `yaml:"output"`            // jmx, raw, json,xml
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout

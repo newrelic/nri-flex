@@ -393,7 +393,7 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	}
 	// check xml
 	xmlSignature := `<?xml version=`
-	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
+	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) || commandOutput == load.TypeXML {
 		// return load.TypeXML, nil
 		xmlBody := strings.NewReader(dataOutput)
 		jsonBody, err := xj.Convert(xmlBody)
