@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	xj "github.com/basgys/goxml2json"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
@@ -394,20 +393,21 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	// check xml
 	xmlSignature := `<?xml version=`
 	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
-		xmlBody := strings.NewReader(dataOutput)
-		jsonBody, err := xj.Convert(xmlBody)
+		return load.TypeXML, nil
+		// xmlBody := strings.NewReader(dataOutput)
+		// jsonBody, err := xj.Convert(xmlBody)
 
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Errorf("Failed to convert XML to Json ")
-		} else {
-			var f interface{}
-			err := json.Unmarshal(jsonBody.Bytes(), &f)
-			if err == nil {
-				return load.TypeXML, f
-			}
-		}
+		// if err != nil {
+		// 	load.Logrus.WithFields(logrus.Fields{
+		// 		"err": err,
+		// 	}).Errorf("Failed to convert XML to Json ")
+		// } else {
+		// 	var f interface{}
+		// 	err := json.Unmarshal(jsonBody.Bytes(), &f)
+		// 	if err == nil {
+		// 		return load.TypeXML, f
+		// 	}
+		// }
 
 	}
 
