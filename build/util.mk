@@ -2,6 +2,7 @@
 # Makefile fragment for utility items
 #
 
+.PHONY: check-version
 check-version:
 ifdef GOOS
 ifneq "$(GOOS)" "$(NATIVEOS)"
