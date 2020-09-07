@@ -4,10 +4,16 @@
 
 LDFLAGS ?= -s -w
 
+.PHONY: compile
 compile: deps compile-only
+
+.PHONY: compile-all
 compile-all: compile-linux compile-darwin compile-windows
+
+.PHONY: build-all
 build-all: compile-linux compile-darwin compile-windows
 
+.PHONY: compile-only
 compile-only: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/$(GOOS)
@@ -24,7 +30,10 @@ fmt:
 bin/nri-flex:
 	@($(GO_CMD) build -ldflags="$(LDFLAGS)" -trimpath -o ./bin/nri-flex ./cmd/nri-flex/)
 
+.PHONY: build-linux
 build-linux: compile-linux
+
+.PHONY: compile-linux
 compile-linux: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/linux
@@ -35,7 +44,10 @@ compile-linux: deps-only
 		GOOS=linux $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+.PHONY: build-darwin
 build-darwin: compile-darwin
+
+.PHONY: compile-darwin
 compile-darwin: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-darwin   ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/darwin
@@ -46,7 +58,10 @@ compile-darwin: deps-only
 		GOOS=darwin $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+.PHONY: build-windows
 build-windows: compile-windows
+
+.PHONY: compile-windows
 compile-windows: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows  ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/windows
@@ -57,7 +72,10 @@ compile-windows: deps-only
 		GOOS=windows $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
+.PHONY: build-windows32
 build-windows32: compile-windows32
+
+.PHONY: compile-windows32
 compile-windows32: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows  ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/windows
