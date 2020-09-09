@@ -219,7 +219,7 @@ func TestRunHttp(t *testing.T) {
 			load.Refresh()
 			doLoop := true
 
-			ts := mockHttpServer(tc.expectedFilePath, tc.expectedStatusCode)
+			ts := newMockHttpServer(tc.expectedFilePath, tc.expectedStatusCode)
 			defer ts.Close()
 
 			tc.config.Global.BaseURL = ts.URL
@@ -229,6 +229,49 @@ func TestRunHttp(t *testing.T) {
 			assertElementsMatch(t, dataStore, tc.expected)
 		})
 	}
+}
+
+func TestRunHttp_withPagination(t *testing.T) {
+	expectedDataQuantity := 452
+
+	loop := true
+	config := load.Config{
+		Name: "pagination",
+		Global: load.Global{
+			Timeout: 5000,
+		},
+		APIs: []load.API{
+		{
+				EventType: "paginationSample",
+				URL:       "/",
+				Timeout:   5100,
+			},
+		},
+	}
+	var dataStore []interface{}
+
+	// GIVEN a http server with pagination headers in the first call
+	var count int
+	httpHandler := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		// set pagination headers only once
+		if count == 0 {
+			writer.Header().Set("Link", "</pagination?perPage=500>;rel=first,</pagination?perPage=500>;rel=next,</pagination?perPage=500>;rel=last")
+		}
+		writer.WriteHeader(200)
+		fileData, _ := ioutil.ReadFile(path.Join("..", "..", "test", "payloads", "http_response", "two_hundred_objects.json"))
+		_, err := writer.Write(fileData)
+		require.NoError(t, err)
+
+		count++
+	}))
+
+	defer httpHandler.Close()
+
+	config.Global.BaseURL = httpHandler.URL
+
+	RunHTTP(&dataStore, &loop, &config, config.APIs[0], &config.APIs[0].URL)
+
+	assert.Equal(t, expectedDataQuantity, len(dataStore))
 }
 
 func TestHttp_handleJSON_unmarshalError(t *testing.T) {
@@ -274,7 +317,7 @@ func assertElementsMatch(t *testing.T, actual []interface{}, expected []interfac
 	assert.ElementsMatch(t, actual, expected)
 }
 
-func mockHttpServer(filePath string, statusCode int) *httptest.Server {
+func newMockHttpServer(filePath string, statusCode int) *httptest.Server {
 	mockHttpHandler := mockHttpHandler{
 		filePath:   filePath,
 		statusCode: statusCode,

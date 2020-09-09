@@ -279,7 +279,7 @@ func handleJSON(sample *[]interface{}, body []byte, resp *gorequest.Response, do
 		*doLoop = false
 	}
 
-	*sample = ds.build()
+	*sample = append(*sample, ds.build()...)
 }
 
 func handlePagination(url *string, Pagination *load.Pagination, nextLink *string, body []byte, code int) bool {
