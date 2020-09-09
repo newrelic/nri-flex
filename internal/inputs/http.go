@@ -493,11 +493,11 @@ func newArrayBody(data []interface{}) *arrayBody {
 	}
 }
 
-func (ob *arrayBody) get() []map[string]interface{} {
-	return ob.result
+func (ab *arrayBody) get() []map[string]interface{} {
+	return ab.result
 }
 
-func (ob arrayBody) withError() bool {
+func (ab arrayBody) withError() bool {
 	return false
 }
 
@@ -517,12 +517,12 @@ func newObjectBody(data map[string]interface{}) *objectBody {
 	}
 }
 
-func (ab *objectBody) get() []map[string]interface{} {
-	return []map[string]interface{}{ab.result}
+func (ob *objectBody) get() []map[string]interface{} {
+	return []map[string]interface{}{ob.result}
 }
 
-func (ab *objectBody) withError() bool {
-	data := ab.result
+func (ob *objectBody) withError() bool {
+	data := ob.result
 	if v, ok := data["error"]; ok {
 		load.Logrus.Debugf("http: request failed %v", data["error"])
 		return fmt.Sprintf("%v", v) != "false"
