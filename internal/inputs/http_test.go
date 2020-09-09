@@ -86,7 +86,7 @@ func TestRunHttp(t *testing.T) {
 					"api.StatusCode": successStatusCode,
 				},
 			},
-			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-single_object.json"),
+			path.Join("..", "..", "test", "payloads", "http_response", "single_object.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-single-response-object": {
@@ -114,7 +114,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-single_object.json"),
+			path.Join("..", "..", "test", "payloads", "http_response", "single_object.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-multiple-response-object": {
@@ -153,7 +153,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-multiple_objects.json"),
+			path.Join("..", "..", "test", "payloads", "http_response", "two_objects.json"),
 			successStatusCode,
 		},
 		"sample-with-headers-string-response": {
@@ -178,7 +178,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-string_response.json"),
+			path.Join("..", "..", "test", "payloads", "http_response", "string_line.json"),
 			successStatusCode,
 		},
 		"sample-error-with-headers": {
@@ -209,7 +209,7 @@ func TestRunHttp(t *testing.T) {
 					"api.header.Retry-Count":    []string{"0"},
 				},
 			},
-			path.Join("..", "..", "test", "payloadsExpected", "http_response", "http_response-error_message.json"),
+			path.Join("..", "..", "test", "payloads", "http_response", "error_message.json"),
 			internalServerErrorStatusCode,
 		},
 	}
