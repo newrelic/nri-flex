@@ -4,6 +4,7 @@
 
 GODOC        ?= godocdown
 
+.PHONY: document
 document:
 	@echo "=== $(PROJECT_NAME) === [ documentation    ]: Generating Godoc in Markdown..."
 	@for p in $(PACKAGES); do \

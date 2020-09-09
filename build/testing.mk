@@ -8,23 +8,30 @@ $(GOLINTER_BIN): bin
 	@echo "=== $(PROJECT_NAME) === [ lint ]: Installing $(GOLINTER)..."
 	@(wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLINTER_VERSION))
 
+.PHONY: lint
 lint: bin $(GOLINTER_BIN)
 	@echo "=== $(PROJECT_NAME) === [ lint ]: Validating source code running $(GOLINTER)..."
 	@$(GOLINTER_BIN) run ./...
 
+.PHONY: test
 test: test-only
+
+.PHONY: test-only
 test-only: test-unit
 
+.PHONY: test-unit
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test ]: running unit tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO_CMD) test -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
+.PHONY: test-integration
 test-integration: setup test
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@sh ./integration-test/ci-test.sh
 
+.PHONY: cover-report
 cover-report:
 	@echo "=== $(PROJECT_NAME) === [ cover-report ]: generating coverage results..."
 	@mkdir -p $(COVERAGE_DIR)
@@ -33,6 +40,7 @@ cover-report:
 	@$(GO_CMD) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
 	@echo "=== $(PROJECT_NAME) === [ cover-report     ]:     $(COVERAGE_DIR)coverage.html"
 
+.PHONY: cover-view
 cover-view: cover-report
 	@$(GO_CMD) tool cover -html=$(COVERAGE_DIR)/coverage.out
 
