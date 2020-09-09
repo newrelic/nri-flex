@@ -29,7 +29,7 @@ type ArgumentList struct {
 	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
-	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
@@ -369,7 +369,7 @@ type Command struct {
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	Output           string            `yaml:"output"`            // jmx, raw, json
+	Output           string            `yaml:"output"`            // jmx, raw, json,xml
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout

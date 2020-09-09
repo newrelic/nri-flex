@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	xj "github.com/basgys/goxml2json"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
@@ -243,6 +244,8 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 		case load.TypeJSON:
 			// load.StoreAppend(dataInterface)
 			*dataStore = append(*dataStore, dataInterface)
+		case load.TypeXML:
+			*dataStore = append(*dataStore, dataInterface)
 		case load.Jmx:
 			*processType = "jmx"
 			ParseJMX(dataStore, dataInterface, command, dataSample)
@@ -390,8 +393,23 @@ func detectCommandOutput(dataOutput string, commandOutput string) (string, inter
 	}
 	// check xml
 	xmlSignature := `<?xml version=`
-	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) {
-		return load.TypeXML, nil
+	if strings.HasPrefix(strings.TrimSpace(dataOutput), xmlSignature) || commandOutput == load.TypeXML {
+		// return load.TypeXML, nil
+		xmlBody := strings.NewReader(dataOutput)
+		jsonBody, err := xj.Convert(xmlBody)
+
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Errorf("Failed to convert XML to Json ")
+		} else {
+			var f interface{}
+			err := json.Unmarshal(jsonBody.Bytes(), &f)
+			if err == nil {
+				return load.TypeXML, f
+			}
+		}
+
 	}
 
 	// default raw
