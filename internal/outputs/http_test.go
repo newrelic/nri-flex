@@ -23,7 +23,8 @@ func Test_postRequest_no_such_host(t *testing.T) {
 		Metrics: []*metric.Set{},
 	}
 	err := postRequest("http://bad..url..z/", someKey, someData)
-	require.EqualError(t, err, "http: failed to send: Post http://bad..url..z/: dial tcp: lookup bad..url..z: no such host")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "http://bad..url..z/")
 }
 
 func Test_postRequest_create_request_fail(t *testing.T) {
@@ -34,7 +35,8 @@ func Test_postRequest_create_request_fail(t *testing.T) {
 		Metrics: []*metric.Set{},
 	}
 	err := postRequest("%zzzzz", someKey, someData)
-	require.EqualError(t, err, "http: unable to create http.Request, parse %zzzzz: invalid URL escape \"%zz\"")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "%zzzzz")
 }
 
 func Test_postRequest_http_post(t *testing.T) {
