@@ -7,7 +7,7 @@ integrations:
     config:
       name: twitterInfo
       #point lookup file at a json file that contains api key and api secret key
-      lookup_file: /home/ubuntu/apikeys.json
+      lookup_file: /home/ubuntu/twitter-monitor-lookup.json
       apis:
         - name: twitterAuth
           url: https://api.twitter.com/oauth2/token
