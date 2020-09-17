@@ -3,22 +3,31 @@
 #   Auto-detects between dep and govendor
 #
 
-GOTOOLS       = github.com/axw/gocov/gocov \
-                github.com/AlekSi/gocov-xml \
-                github.com/stretchr/testify/assert \
-                github.com/robertkrimen/godocdown/godocdown
+# Go file to track tool deps with go modules
+TOOL_DIR     ?= tools
+TOOL_CONFIG  ?= $(TOOL_DIR)/tools.go
+
+GOTOOLS		  ?=
+GOTOOLS       += github.com/axw/gocov/gocov
+GOTOOLS       += github.com/AlekSi/gocov-xml
+GOTOOLS       += github.com/robertkrimen/godocdown/godocdown
+
 
 VENDOR_CMD	= $(GO_CMD) mod vendor
 
 .PHONY: tools
 tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools            ]: Installing tools required by the project..."
+	@cd $(TOOL_DIR)
 	@$(GO_CMD) get $(GOTOOLS)
+	@$(GO_CMD) mod tidy
 
 .PHONY: tools-update
 tools-update: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools-update     ]: Updating tools required by the project..."
-	@$(GO_CMD) get -u $(GOTOOLS)
+	@cd $(TOOL_DIR)
+	@$(GO) get -u $(GOTOOLS)
+	@$(VENDOR_CMD)
 
 .PHONY: deps
 deps: tools deps-only
