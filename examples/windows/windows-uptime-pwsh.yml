@@ -1,0 +1,10 @@
+# Sample integration to send Windows uptime info using PowerShell 6+
+integrations:
+  - name: nri-flex
+    config:
+      name: winUptime
+      apis:
+        - name: WinUptime
+          shell: pwsh
+          commands:
+            - run: "Get-Uptime | ConvertTo-Json"
