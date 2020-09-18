@@ -8,9 +8,9 @@ integrations:
         - name: winDiskPerf
           shell: powershell
           commands:
-            - run: "Get-CimInstance -ClassName Win32_PerfFormattedData_PerfDisk_LogicalDisk 
-            | Select-Object -Property Name, AvgDiskBytesPerRead, AvgDiskBytesPerTransfer, AvgDiskBytesPerWrite, AvgDiskQueueLength, 
-              AvgDiskReadQueueLength, AvgDisksecPerRead, AvgDisksecPerTransfer, AvgDisksecPerWrite, AvgDiskWriteQueueLength, CurrentDiskQueueLength, 
-              DiskBytesPersec, DiskReadBytesPersec, DiskReadsPersec, DiskTransfersPersec, DiskWriteBytesPersec, DiskWritesPersec, FreeMegabytes, 
-              PercentDiskReadTime, PercentDiskTime, PercentDiskWriteTime, PercentFreeSpace, PercentIdleTime, SplitIOPerSec 
-            | ConvertTo-Json"
+            - run: |
+                Get-CimInstance -ClassName Win32_PerfFormattedData_PerfDisk_LogicalDisk 
+                Select-Object -Property Name, AvgDiskBytesPerRead, AvgDiskBytesPerTransfer, AvgDiskBytesPerWrite, AvgDiskQueueLength, 
+                AvgDiskReadQueueLength, AvgDisksecPerRead, AvgDisksecPerTransfer, AvgDisksecPerWrite, AvgDiskWriteQueueLength, CurrentDiskQueueLength, 
+                DiskBytesPersec, DiskReadBytesPersec, DiskReadsPersec, DiskTransfersPersec, DiskWriteBytesPersec, DiskWritesPersec, FreeMegabytes, 
+                PercentDiskReadTime, PercentDiskTime, PercentDiskWriteTime, PercentFreeSpace, PercentIdleTime, SplitIOPerSec | ConvertTo-Json
