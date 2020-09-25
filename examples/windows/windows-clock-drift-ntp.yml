@@ -1,0 +1,13 @@
+# This config will execute a script to measure clock drift from a target NTP server
+# Use forward slashes on Windows paths as Flex handles these more gracefully
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: ntpCheck
+      apis:
+        - event_type: ntpCheck
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/ntpCheck.ps1\""
