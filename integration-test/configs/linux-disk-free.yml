@@ -1,0 +1,13 @@
+# Used to query linux file systems
+name: linuxFilesystem
+apis:
+  - name: linuxFilesystem
+    commands:
+      - run: df -T
+        split: horizontal
+        set_header: [fs,fsType,blocks,usedBytes,availableBytes,usedPerc,mountedOn]
+        row_header: 0
+        row_start: 1
+        regex_match: false
+        split_by: \s+
+    perc_to_decimal: true

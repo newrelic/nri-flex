@@ -1,0 +1,14 @@
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: systemctl
+      apis:
+        - name: systemctl
+          commands:
+            - run: systemctl --type=service --no-page --no-legend
+              split: horizontal
+              set_header: [service, load, active, sub, description]
+              regex_match: true
+              split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)

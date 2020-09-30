@@ -1,0 +1,21 @@
+# NOTE: 'database' is an experimental API at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: mysqlDbFlex
+      apis:
+        - database: mysql
+          db_conn: hithere:byethere@tcp(apacmysql.adcasdasdfa.ap-southeast-2.rds.amazonaws.com:3306)/sys
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: myDbServer
+          db_async: true # process queries async
+          db_queries:
+            - name: mysqlSessionSample
+              run: Select * from sys.dm_exec_sessions
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: nestedVal

@@ -1,0 +1,23 @@
+# linux port check example
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: portcheckFlex
+      apis:
+        - name: portcheck
+          commands:
+            # timeout is not available on mac, update the command in run, and add update the custom attributes so you know what your testing against
+            - run: timeout 5 bash -c '</dev/tcp/google.com/80 && echo status:open || echo status:closed' || echo -e 'status:closed\nmsg:timed out'
+              split_by: ":"
+              custom_attributes:
+                host: google.com
+                port: 80
+        - name: portcheck
+          commands:
+            - run: timeout 5 bash -c '</dev/tcp/yahoo.com/9999 && echo status:open || echo status:closed' || echo -e 'status:closed\nmsg:timed out'
+              split_by: ":"
+              custom_attributes:
+                host: yahoo.com
+                port: 9999

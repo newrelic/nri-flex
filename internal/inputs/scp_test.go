@@ -69,10 +69,10 @@ func TestGetSSHConnection(t *testing.T) {
 	}
 
 	_, err := getSSHConnection(&config, config.APIs[0])
-	expectedErr := "dial tcp 8.8.8.8:22: i/o timeout"
+	expectedErr := "ssh: failed to connect to sftp host: 8.8.8.8, with user newrelic, error: dial tcp 8.8.8.8:22: i/o timeout"
 	if err != nil {
 		if err.Error() != expectedErr {
-			t.Errorf("received error  %v does not match expected %v", err, expectedErr)
+			t.Errorf("received error '%v' does not match expected '%v'", err, expectedErr)
 		}
 	}
 

@@ -1,0 +1,30 @@
+### we can use k8s environment variables to target istio services
+###
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: prometheusIstioFlex
+      apis:
+        - name: promIstioCitadel
+          url: http://$$ISTIO_CITADEL_PORT_9093_TCP_ADDR:9093/metrics
+          prometheus:
+            enable: true
+            # raw: true ### if enabled will create an event per prometheus metric retaining all metadata for the metric (same as unflatten)
+            ############### by default Flex will try to flatten the metrics where possible to reduce the events being generated
+        - name: promIstioMixer
+          url: http://$$ISTIO_TELEMETRY_SERVICE_HOST:9093/metrics
+          prometheus:
+            enable: true
+        - name: promIstioGalley
+          url: http://$$ISTIO_GALLEY_PORT_9093_TCP_ADDR:9093/metrics
+          prometheus:
+            enable: true
+        # - name: prometheusIstioPilot
+        #   url: istio pilot address
+        #   prometheus:
+        #     enable: true
+        # sample_filter:
+        # - .*: GAUGE ## remove all gauge metrics
+        # - .*: COUNTER ## remove all counter metrics

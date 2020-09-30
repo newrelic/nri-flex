@@ -1,74 +1,30 @@
 # Contributing
 
-You are welcome to send pull requests to us.  By doing so you agree that you are
-granting New Relic a non-exclusive, non-revokable, no-cost license to use the
-code, algorithms, patents, and ideas in that code in our products if we so
-choose.  You also agree the code is provided as-is and you provide no warranties
-as to its fitness or correctness for any purpose.
+Contributions are always welcome. Before contributing please read the
+[code of conduct](./CODE_OF_CONDUCT.md) and [search the issue tracker](issues); your issue may have already been discussed or fixed in `main`. To contribute,
+[fork](https://help.github.com/articles/fork-a-repo/) this repository, commit your changes, and [send a Pull Request](https://help.github.com/articles/using-pull-requests/).
 
-* [LICENSE.md](LICENSE.md)
+Note that our [code of conduct](./CODE_OF_CONDUCT.md) applies to all platforms and venues related to this project; please follow it in all your interactions with the project and its participants.
 
-# Contributing to the New Relic Flex
-Thanks for your interest in contributing to the New Relic Flex!
-We look forward to engaging with you.
+## Feature Requests
 
-## How to Contribute
-* Read this CONTRIBUTING file
-* Read our [Code of Conduct](CODE_OF_CONDUCT.md)
-* Submit a [pull request](#pull-request-guidelines) or
-  [issue](#filing-issues-and-bug-reports). For pull requests, please also:
-    * Sign the [Contributor Licensing Agreement](#contributor-license-agreement-cla),
-    if you haven't already done so. (You will be prompted if we don't have a
-    signed CLA already recorded.)
-    
-## How to Get Help or Ask Questions
-Please raise a github issue.
+Feature requests should be submitted in the [Issue tracker](../../issues), with a description of the expected behavior & use case, where they’ll remain closed until sufficient interest, [e.g. :+1: reactions](https://help.github.com/articles/about-discussions-in-issues-and-pull-requests/), has been [shown by the community](../../issues?q=label%3A%22votes+needed%22+sort%3Areactions-%2B1-desc).
+Before submitting an Issue, please search for similar ones in the
+[closed issues](../../issues?q=is%3Aissue+is%3Aclosed+label%3Aenhancement).
 
-## Contributor License Agreement ("CLA")
-We'd love to get your contributions to improve the New Relic Flex!
-Keep in mind when you submit your pull request, you'll need to sign the CLA via
-the click-through using CLA-Assistant. You only have to sign the CLA one time
-per project.
+## Pull Requests
 
-To execute our corporate CLA, which is required if your contribution is on
-behalf of a company, or if you have any questions, please drop us an email at
-open-source@newrelic.com. 
+1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
+2. Increase the version numbers in any examples files and the README.md to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
+3. You may merge the Pull Request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
 
-## Filing Issues and Bug Reports
-We use GitHub issues to track public issues and bugs. If possible, please
-provide a link to an example app or gist that reproduces the issue. When filing
-an issue, please ensure your description is clear and includes the following
-information.
+## Contributor License Agreement
 
-* Project version (ex: 1.4.0)
-* Custom configurations (ex: flag=true)
-* Any modifications made to the New Relic Flex
+Keep in mind that when you submit your Pull Request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
 
-#### A note about vulnerabilities  
-New Relic is committed to the security of our customers and their data. We
-believe that providing coordinated disclosure by security researchers and
-engaging with the security community are important means to achieve our security
-goals.
+For more information about CLAs, please check out Alex Russell’s excellent post,
+[“Why Do I Need to Sign This?”](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
 
-If you believe you have found a security vulnerability in this project or any
-of New Relic's products or websites, we welcome and greatly appreciate you
-reporting it to New Relic through [HackerOne](https://hackerone.com/newrelic).
+## Slack
 
-## Setting Up Your Environment
-This Open Source Software can be used in a large number of environments, all of
-which have their own quirks and best practices. As such, while we are happy to
-provide documentation and assistance for unmodified Open Source Software, we
-cannot provide support for your specific environment.
-
-If you can build New Relic Flex, you can develop it!
-
-## Pull Request Guidelines
-Before we can accept a pull request, you must sign our
-[Contributor Licensing Agreement](#contributor-license-agreement-cla), if you
-have not already done so. This grants us the right to use your code under the
-same Apache 2.0 license as we use for this project in general.
-
-## License
-By contributing to New Relic Flex, you agree that your contributions
-will be licensed under the [License file](LICENSE.md) in the root directory of
-this source tree.
+We host a public Slack with a dedicated channel for contributors and maintainers of open source projects hosted by New Relic.  If you are contributing to this project, you're welcome to request access to the #oss-contributors channel in the newrelicusers.slack.com workspace.  To request access, see https://newrelicusers-signup.herokuapp.com/.

@@ -1,0 +1,47 @@
+# This integration does a post request to the twitter auth api, uses a token from the auth api to query the tweet api.
+# As an added benefit it then does a third query to analyses each tweets sentiment.
+# Check out https://newrelic.com/resources/webinars/your-observability-data-in-one-place1 for live demo.
+integrations:
+  - name: nri-flex
+    interval: 60m
+    config:
+      name: twitterInfo
+      #point lookup file at a json file that contains api key and api secret key
+      lookup_file: /home/ubuntu/twitter-monitor-lookup.json
+      apis:
+        - name: twitterAuth
+          url: https://api.twitter.com/oauth2/token
+          method: POST
+          user: ${lf:twitter-api-key}
+          pass: ${lf:twitter-api-secret-key}
+          payload: >-
+            grant_type=client_credentials
+          store_variables:
+            storedtoken: access_token
+        - name: twitterTweet
+          url: https://api.twitter.com/1.1/search/tweets.json?q=from%3AImpatientUser
+          headers:
+            Authorization: Bearer ${var:storedtoken}
+          metric_parser:
+            metrics:
+              id_str: ATTRIBUTE
+            namespace: 
+              custom_attr: "somenamespace"
+        - name: sentiment
+          event_type: sentimentSample
+          url: "https://twinword-sentiment-analysis.p.rapidapi.com/analyze/"
+          method: POST
+          headers:
+            x-rapidapi-host: twinword-sentiment-analysis.p.rapidapi.com
+            x-rapidapi-key: ${lf:x-rapidapi-key}
+            content-type: application/x-www-form-urlencoded
+          payload: "text=${lookup.statuseSample:text}"
+          split_array: true
+          custom_attributes:
+            tweetId: "${lookup.statuseSample:id_str}"
+            tweetText: "${lookup.statuseSample:text}"
+          metric_parser:
+            metrics:
+              tweetId: ATTRIBUTE
+            namespace: 
+              custom_attr: "somenamespace"

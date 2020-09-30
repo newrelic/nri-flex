@@ -1,0 +1,19 @@
+# NOTE: 'database' is an experimental API at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: verticaDbFlex
+      variable_store:
+        query1: "'aup3099s','qgspa28l','qgspa29l','dgspa01l','dgspa14l','aup3169s'"
+      apis:
+        - database: vertica
+          db_conn: vertica://xxxxxxxx:xxxxxxxxxx@xx.xx.xx.xx:5433/dbadmin
+          logging:
+            open: true
+          db_async: true # process queries async
+          db_queries:
+            - name: ovmcpuSample
+              run: select k.host_name,s.ta_period,s.avgMemoryUtil,s.avgCPUUtil,s.totInPackets,s.totOutPackets from OBR.K_CI_System as k inner join OBR.SR_SM_NODE_RES as s on k.dsi_key_id=s.dsi_key_id_ where s.ta_period>'2018-06-16 21:30:00' and host_name in (${var:query1})

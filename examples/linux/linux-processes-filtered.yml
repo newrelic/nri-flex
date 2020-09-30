@@ -1,0 +1,29 @@
+# Used to query Process Status, with filtering
+# This is useful to monitor processes with Command Lines > 4k characters*
+#   *current limit for the 'strip_command_line' attribute for the Infrastructure Agent
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxProcessFiltered
+      apis:
+        - name: processfilterSshd
+          commands:
+            - run: ps -eo pid,ppid,time,euser,cmd | grep -E "sshd" | grep -v grep
+              split: horizontal
+              set_header: [processID, parentID, time, userName, commandLine]
+              regex_match: true
+              split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+              custom_attributes:
+                processFilter: sshd
+        # Note you can monitor multiple processes in the single YAML configuration
+        - name: processfilterDhclient
+          commands:
+            - run: ps -eo pid,ppid,time,euser,cmd | grep -E "dhclient" | grep -v grep
+              split: horizontal
+              set_header: [processID, parentID, time, userName, commandLine]
+              regex_match: true
+              split_by: (\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+              custom_attributes:
+                processFilter: dhclient

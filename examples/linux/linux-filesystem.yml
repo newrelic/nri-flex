@@ -1,0 +1,26 @@
+# Used to query file systems not natively supported by New Relic using Disk Free
+# ref: https://docs.newrelic.com/docs/infrastructure/manage-your-data/data-instrumentation/default-infrastructure-events#linux-supported
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxFilesystem
+      apis:
+        - name: linuxFilesystem
+          commands:
+            - run: df -PT -B1 -x tmpfs -x xfs -x vxfs -x btrfs -x ext -x ext2 -x ext3 -x ext4 -x hfs
+              split: horizontal
+              set_header:
+                [
+                  fs,
+                  fsType,
+                  capacityBytes,
+                  usedBytes,
+                  availableBytes,
+                  usedPerc,
+                  mountedOn,
+                ]
+              regex_match: true
+              split_by: (\S+.\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)
+          perc_to_decimal: true

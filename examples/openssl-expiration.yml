@@ -1,0 +1,12 @@
+# Used to measure days until expiration for certificates using openssl
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: linuxCertificateExpiration
+      lookup_file: /etc/newrelic-infra/integrations.d/flexAssets/openssl-expiration-lookup.json
+      apis:
+        - event_type: certificateExpiration
+          commands:
+            - run: echo "{\"certificateFile\":\"${lf:certificate}\",\"expirationDate\":$(date --date="$(openssl x509 -enddate -noout -in ${lf:certificate} | awk -F= '{ print $2 }')" +%s),\"daysUntilExpiration\":$((( $(date --date="$(openssl x509 -enddate -noout -in ${lf:certificate} | awk -F= '{ print $2 }')" +%s) - $(date +%s)) / 86400 ))}"

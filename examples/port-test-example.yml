@@ -1,0 +1,16 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: portTestFlex
+      apis:
+        - timeout: 1000 ### default 1000 ms increase if you'd like
+          commands:
+            - dial: "google.com:80"
+            - dial: "yahoo.com:9988"
+          # - dial: "localhost:6379" ### you can also send messages and split the output
+          # run: "info\r\n"
+          # split_by: ":"

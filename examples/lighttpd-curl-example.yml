@@ -1,0 +1,12 @@
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: lighttpdFlex
+      apis:
+        - name: lighttpdStatus
+          commands:
+            - run: curl -s http://lighttpd.net/status?format=plain
+              split_by: ": "
+          snake_to_camel: true

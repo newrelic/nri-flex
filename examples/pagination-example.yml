@@ -1,0 +1,26 @@
+# NOTE: 'pagination' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: paginationTest
+      apis:
+        - event_type: paginationTest
+          url: https://reqres.in/api/users?page=${page}&per_page=2
+          # url: https://reqres.in/api/users?page=${page}&per_page=${limit}
+          pagination:
+            page_start: 1 ### select the page to start from
+            # increment: 10 ### number to increment by // default 1
+            # page_limit: 2 ### can be used as a page offset place ${limit} into the url
+            # page_limit_key: per_page ### select a key in the payload to set the page limit / offset
+            # page_next_key: next_page ### select a key in the payload to set the next page to walk too
+            # max_pages: 3 ### set max number of pages to walk
+            # max_pages_key: total_pages ### select a key in the payload to set the max pages to walk
+            # next_cursor_key: nextCursor ### if using cursor pagination look for this key instead, will get substituted into ${page}
+            ############################# you will need to also set a ?flex=${page} query parameter for tracking eg. https://reqres.in/api/users?flex=${page}
+            # next_link_key: nextLink ### look for specified key to navigate to next
+            ############################# you will need to also set a ?flex=${page} query parameter for tracking eg. https://reqres.in/api/users?flex=${page}
+            payload_key: data ### select a key in the payload to check if there is still content being returned
+

@@ -1,0 +1,47 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
+# NOTE: 'sub_parse' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: redisMultiFlex
+      apis:
+        - name: redis
+          commands:
+            - dial: 127.0.0.1:6379
+              run: "info\r\n"
+              split_by: ":"
+          remove_keys: # remove any keys that contain any of the following strings
+            - human
+          snake_to_camel: true
+          perc_to_decimal: true
+          sub_parse:
+            - type: prefix
+              key: db
+              split_by:
+                - ","
+                - "="
+          custom_attributes:
+            targetHost: redisServer1 ### use custom attributes section to distinguish by server
+            targetIp: "192.168.0.100"
+        - name: redis
+          commands:
+            - dial: 127.0.0.1:6379
+              run: "info\r\n"
+              split_by: ":"
+          remove_keys: # remove any keys that contain any of the following strings
+            - human
+          snake_to_camel: true
+          perc_to_decimal: true
+          sub_parse:
+            - type: prefix
+              key: db
+              split_by:
+                - ","
+                - "="
+          custom_attributes:
+            targetHost: redisServer2 ### use custom attributes section to distinguish by server
+            targetIp: "192.168.0.4"

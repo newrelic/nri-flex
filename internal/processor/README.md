@@ -29,7 +29,7 @@ AutoSetStandard x
 #### func  CreateMetricSets
 
 ```go
-func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *map[string][]interface{})
+func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMetric bool, samplesToMerge *load.SamplesToMerge, originalAPINo int)
 ```
 CreateMetricSets creates metric sets hren added samplesToMerge parameter, moved
 merge operation to CreateMetricSets so that the "Run...." functions still apply
@@ -60,16 +60,19 @@ FlattenData flatten an interface
 #### func  ProcessSamplesMergeJoin
 
 ```go
-func ProcessSamplesMergeJoin(samplesToMerge *map[string][]interface{}, yml *load.Config)
+func ProcessSamplesMergeJoin(samplesToMerge *load.SamplesToMerge, yml *load.Config)
 ```
-hren: ProcessSamplesMergeJoin used to merge/join multiple samples together hren
+ProcessSamplesMergeJoin used to merge/join multiple samples together hren
 
 #### func  RunDataHandler
 
 ```go
-func RunDataHandler(dataSets []interface{}, samplesToMerge *map[string][]interface{}, i int, cfg *load.Config)
+func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge, i int, cfg *load.Config, originalAPINo int)
 ```
-RunDataHandler handles the data received for processing
+RunDataHandler handles the data received for processing The originalAPINo is to
+track the original API sequential No. in the Flex config file. This is to
+diffentiate the new API Seq No. created by StoreLookup. The originalAPINo is
+used for Merge and Join operation
 
 #### func  RunEventFilter
 
@@ -83,8 +86,7 @@ RunEventFilter filters events generated
 ```go
 func RunKeepKeys(keepKeys []string, key *string, currentSample *map[string]interface{})
 ```
-RunKeepKeys Removes all other keys/attributes and keep only those defined in
-keep_keys
+RunKeepKeys will remove the key if is not defined in keep_keys.
 
 #### func  RunKeyConversion
 
@@ -110,7 +112,7 @@ RunKeyRemover Remove unwanted keys with regex
 #### func  RunKeyRenamer
 
 ```go
-func RunKeyRenamer(renameKeys map[string]string, key *string, originalKey string)
+func RunKeyRenamer(renameKeys map[string]string, key *string)
 ```
 RunKeyRenamer find keys with regex, and replace the value
 
@@ -143,6 +145,13 @@ RunPluckNumbers pluck numbers out automatically with ValueParser eg.
 func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
 ```
 RunSampleFilter Filters samples generated
+
+#### func  RunSampleFilterMatchAll
+
+```go
+func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
+```
+Sample Filter to match all keys
 
 #### func  RunSampleRenamer
 
@@ -200,7 +209,7 @@ SetEventType sets the metricSet's eventType
 #### func  StoreLookups
 
 ```go
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string][]string, v *interface{})
+func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{})
 ```
 StoreLookups if key is found (using regex), store the values in the lookupStore
 as the defined lookupStoreKey for later use

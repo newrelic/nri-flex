@@ -1,0 +1,11 @@
+# Sample integration to send Windows uptime info using PowerShell 5.x
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: winUptime
+      apis:
+        - name: WinUptime
+          shell: powershell
+          commands:
+            - run: "(get-date) - (gcim Win32_OperatingSystem).LastBootUpTime | ConvertTo-Json"

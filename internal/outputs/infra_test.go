@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
@@ -23,7 +25,8 @@ func TestConfigPath_Override(t *testing.T) {
 		}
 	}()
 
-	InfraIntegration()
+	err := InfraIntegration()
+	assert.NoError(t, err)
 
 	if load.Args.ConfigPath != expectedPath ||
 		load.Args.ConfigFile != expectedPath {

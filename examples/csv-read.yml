@@ -1,0 +1,9 @@
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: csvFileExample
+      apis:
+        - name: csvFile
+          file: /Users/hello/test.csv

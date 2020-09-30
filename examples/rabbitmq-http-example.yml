@@ -1,0 +1,80 @@
+# NOTE: 'metric_parser' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+### https://www.rabbitmq.com/monitoring.html
+### your.rabbit.server/api/index.html
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: rabbitFlex
+      global:
+        base_url: http://localhost:32789/
+        user: user
+        pass: user
+        headers:
+          accept: application/json
+      apis:
+        - event_type: rabbitOverviewSample
+          url: api/overview
+          snake_to_camel: true
+          strip_keys: ### we can get rid off additional data earlier before it continues to the internal metrics pipeline for processing
+            - listeners
+            - exchange_types
+            - sample_retention_policies
+            - contexts
+          metric_parser: ### Metric Parser Example
+            namespace: ### Rate & Delta support requires namespacing
+              existing_attr: ### Use an existing attribute or attributes to namespace
+                - node
+            auto_set: true ### switches to using regex rather then direct match
+            metrics:
+              .rate$: RATE ### any metrics that match this regex will be set as RATE
+        - event_type: rabbitQueueSample
+          url: api/queues
+          snake_to_camel: true
+          strip_keys:
+            - backing_queue_status.delta
+        - event_type: rabbitExchangeSample
+          url: api/exchanges
+        - event_type: rabbitConnSample
+          url: api/connections
+        - event_type: rabbitBindingSample
+          url: api/bindings
+        - event_type: rabbitConsumerSample
+          url: api/consumers
+        - event_type: rabbitChannelSample
+          url: api/channels
+          store_lookups:
+            channels: name
+        - event_type: rabbitVHostSample
+          url: api/vhosts
+          snake_to_camel: true
+          store_lookups: ### we store all vhost "name" attributes found into the lookupStore to be used later
+            vhosts: name
+        - event_type: rabbitAliveTestSample ### as we use the special lookup key, we fetch the vhosts found, and execute the next request(s)
+          url: api/aliveness-test/${lookup:vhosts} ### if multiple vhosts were stored, this will issue multiple requests
+        - event_type: rabbitNodeSample
+          url: api/nodes
+          snake_to_camel: true
+          strip_keys: ### we can get rid off additional data earlier before it continues through to the internal metrics pipeline for processing, this also helps avoid any sample splitting
+            - listeners
+            - exchange_types
+            - auth_mechanisms
+            - applications
+            - contexts
+            - log_files
+            - config_files
+            - enabled_plugins
+          metric_parser: ### Metric Parser Example
+            namespace: ### Rate & Delta support requires namespacing
+              existing_attr: ### Use an existing attribute or attributes to namespace
+                - node
+            auto_set: true ### switches to using regex rather then direct match
+            metrics:
+              .rate$: RATE ### any metrics that match this regex will be set as RATE
+          store_lookups: ### we store all nodes "name" attributes found into the lookupStore to be used later
+            nodes: name
+        - event_type: rabbitHealthCheckSample ### as we use the special lookup key, we fetch the nodes that were found, and execute the next request(s)
+          url: api/healthchecks/node/${lookup:nodes} ### if multiple vhosts were stored, this will issue multiple requests
+          snake_to_camel: true

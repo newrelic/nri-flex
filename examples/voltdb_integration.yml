@@ -1,0 +1,52 @@
+#https://www.voltdb.com/
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: voltdb_integration
+      variable_store:
+        voltdb_server: http://127.0.0.1
+        voltdb_port: 32772
+        voltdb_memory: MEMORY
+        voltdb_cpu: CPU
+        voltdb_api: /api/1.0/?Procedure=@Statistics&Parameters=
+      apis:
+        - name: voltdb_cpu
+          event_type: voltdb
+          url: ${var:voltdb_server}:${var:voltdb_port}${var:voltdb_api}[${var:voltdb_cpu}]
+          split_array: true
+          set_header: [TIMESTAMP, HOST_ID, HOSTNAME, CPU_PERCENT_USED]
+          start_key:
+            - results>data
+          merge: voltdbSample
+          join_key: hostname
+          custom_attributes:
+            clustername: <==YOUR Voltdb Cluster Name==>
+          to_lower: true
+
+        - name: voltdb_mem
+          url: ${var:voltdb_server}:${var:voltdb_port}${var:voltdb_api}[${var:voltdb_memory}]
+          split_array: true
+          set_header:
+            [
+              TIMESTAMP,
+              HOST_ID,
+              HOSTNAME,
+              SERVER_RAM,
+              JAVAUSED,
+              JAVAUNUSED,
+              TUPLEDATA,
+              TUPLEALLOCATED,
+              INDEXMEMORY,
+              STRINGMEMORY,
+              TUPLECOUNT,
+              POOLEDMEMORY,
+              PHYSICALMEMORY,
+              JAVAMAXHEAP,
+            ]
+          start_key:
+            - results>data
+          merge: voltdbSample
+          join_key: hostname
+          to_lower: true

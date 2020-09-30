@@ -1,10 +1,28 @@
-[{
-    "completed": "false",
-    "event_type": "commandJsonOutSample",
-    "id": 1,
-    "integration_name": "com.newrelic.nri-flex",
-    "integration_version": "Unknown-SNAPSHOT",
-    "myCustomAttr": "theValue",
-    "title": "delectus aut autem",
-    "userId": 1
-}]
+[
+    {
+        "completed": "false",
+        "event_type": "commandJsonOutSample",
+        "id": 1,
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT",
+        "myCustomAttr": "theValue",
+        "title": "delectus aut autem",
+        "userId": 1
+    },
+    {
+        "error": "false",
+        "event_type": "MessageSample",
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT",
+        "message": "hello",
+        "value": 100
+    },
+    {
+        "error": "true",
+        "event_type": "MessageSample",
+        "integration_name": "com.newrelic.nri-flex",
+        "integration_version": "Unknown-SNAPSHOT",
+        "message": "bye",
+        "value": 20.9
+    }
+]

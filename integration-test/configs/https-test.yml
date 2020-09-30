@@ -1,0 +1,24 @@
+# The https-server runs in a docker-compose container as it requires its own CA configuration
+name: nginxFlex
+apis:
+  - name: nginxStub
+    url: https://https-server/nginx_status
+    tls_config:
+      enable: true
+      insecure_skip_verify: true
+    ignore_output: true
+  - name: nginx
+    entity: https-server
+    event_type: NginxSample
+    commands:
+      - cache: https://https-server/nginx_status
+        split_output: Active
+        regex_matches:
+          - expression: Active connections:\s(\S+)
+            keys: [net.connectionsActive]
+          - expression: \s?(\d+)\s(\d+)\s(\d+)
+            keys: [net.connectionsAcceptedPerSecond, net.handledPerSecond, net.requestsPerSecond]
+          - expression: Reading:\s(\d+)\s\S+\s(\d+)\s\S+\s(\d+)
+            keys: [net.connectionsReading, net.connectionsWriting, net.connectionsWaiting]
+    math:
+      net.connectionsDroppedPerSecond: ${net.connectionsAcceptedPerSecond} - ${net.handledPerSecond}

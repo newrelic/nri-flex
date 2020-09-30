@@ -1,0 +1,14 @@
+[
+	{
+		"target":"www.google.com",
+		"count": "4"
+	},
+	{
+		"target":"www.newrelic.com",
+		"count": "5"
+	},
+	{
+		"target":"www.thisismeantto.fail",
+		"count": "7"
+	}
+]

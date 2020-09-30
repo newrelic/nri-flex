@@ -12,43 +12,52 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func cleanValue(v *interface{}) string {
+	switch val := (*v).(type) {
+	case float32, float64:
+		return fmt.Sprintf("%f", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
 // StoreLookups if key is found (using regex), store the values in the lookupStore as the defined lookupStoreKey for later use
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{}) {
+func StoreLookups(storeLookups map[string]string, lookupStore *map[string]map[string]struct{}, key string, v interface{}) {
 	for lookupStoreKey, lookupFindKey := range storeLookups {
-		if *key == lookupFindKey {
+		if key == lookupFindKey {
 			load.Logrus.WithFields(logrus.Fields{
 				"lookupFindKey": lookupFindKey,
-				lookupStoreKey:  fmt.Sprintf("%v", *v),
+				lookupStoreKey:  fmt.Sprintf("%v", v),
 			}).Debug("create: store lookup")
 
 			if (*lookupStore)[lookupStoreKey] == nil {
 				(*lookupStore)[lookupStoreKey] = make(map[string]struct{})
 			}
 
-			switch data := (*v).(type) {
+			switch data := (v).(type) {
 			case []interface{}:
 				load.Logrus.WithFields(logrus.Fields{
 					"lookupFindKey": lookupFindKey,
 				}).Debug("splitting array")
 
 				for _, dataKey := range data {
-					(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", dataKey)] = struct{}{}
+					(*lookupStore)[lookupStoreKey][cleanValue(&dataKey)] = struct{}{}
 				}
 			default:
-				(*lookupStore)[lookupStoreKey][fmt.Sprintf("%v", *v)] = struct{}{}
+				(*lookupStore)[lookupStoreKey][cleanValue(&v)] = struct{}{}
 			}
 		}
 	}
 }
 
 // VariableLookups if key is found (using regex), store the value in the variableStore, as the defined by the variableStoreKey for later use
-func VariableLookups(variableLookups map[string]string, key *string, variableStore *map[string]string, v *interface{}) {
+func VariableLookups(variableLookups map[string]string, variableStore *map[string]string, key string, v interface{}) {
 	for variableStoreKey, variableFindKey := range variableLookups {
-		if *key == variableFindKey {
+		if key == variableFindKey {
 			if (*variableStore) == nil {
 				(*variableStore) = map[string]string{}
 			}
-			(*variableStore)[variableStoreKey] = fmt.Sprintf("%v", *v)
+			(*variableStore)[variableStoreKey] = cleanValue(&v)
 		}
 	}
 }

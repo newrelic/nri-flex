@@ -8,7 +8,7 @@
 #### func  FetchData
 
 ```go
-func FetchData(apiNo int, yml *load.Config) []interface{}
+func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge) []interface{}
 ```
 FetchData fetches data from various inputs Also handles paginated responses for
 HTTP requests (tested against NR APIs)
@@ -16,14 +16,14 @@ HTTP requests (tested against NR APIs)
 #### func  FetchLookups
 
 ```go
-func FetchLookups(cfg *load.Config, i int) bool
+func FetchLookups(cfg *load.Config, apiNo int, samplesToMerge *load.SamplesToMerge) bool
 ```
 FetchLookups x
 
 #### func  GitCheckout
 
 ```go
-func GitCheckout(w *git.Worktree)
+func GitCheckout(w *git.Worktree) error
 ```
 GitCheckout git checkout
 
@@ -51,7 +51,7 @@ LoadFile loads a single Flex config file
 #### func  LoadFiles
 
 ```go
-func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string)
+func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error
 ```
 LoadFiles Loads Flex config files
 
@@ -69,20 +69,26 @@ func Run(yml load.Config)
 ```
 Run Action each config file
 
+#### func  RunAsync
+
+```go
+func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int)
+```
+RunAsync API in Async mode after lookup
+
 #### func  RunFiles
 
 ```go
-func RunFiles(configs *[]load.Config)
+func RunFiles(configs *[]load.Config) []error
 ```
 RunFiles Processes yml files
 
-#### func  RunVariableProcessor
+#### func  RunSync
 
 ```go
-func RunVariableProcessor(i int, cfg *load.Config)
+func RunSync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPINo int)
 ```
-RunVariableProcessor substitute store variables into specific parts of config
-files
+RunSync API in Sync mode after lookup
 
 #### func  SubEnvVariables
 
@@ -96,14 +102,14 @@ config file Can be useful with kubernetes service environment variables
 #### func  SubLookupFileData
 
 ```go
-func SubLookupFileData(configs *[]load.Config, config load.Config)
+func SubLookupFileData(configs *[]load.Config, config load.Config) error
 ```
 SubLookupFileData substitutes data from lookup files into config
 
 #### func  SubTimestamps
 
 ```go
-func SubTimestamps(strConf *string)
+func SubTimestamps(strConf *string, currentTime time.Time)
 ```
 SubTimestamps - return timestamp/date/datetime of current date/time with
 optional adjustment in various format
@@ -111,6 +117,6 @@ optional adjustment in various format
 #### func  SyncGitConfigs
 
 ```go
-func SyncGitConfigs(customDir string) bool
+func SyncGitConfigs(customDir string) (bool, error)
 ```
 SyncGitConfigs Clone git repo if already exists, else pull latest version

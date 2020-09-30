@@ -1,29 +1,47 @@
 package config
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestDimensionalLookup(t *testing.T) {
 	lookupStore := map[string][]string{}
-	lookupStore["animal"] = []string{"dog", "cat", "cow"}
-	lookupStore["gender"] = []string{"m", "f"}
-	lookupStore["numbers"] = []string{"10", "11"}
-	sliceIndexes := []int{}
-	sliceKeys := []string{}
-	sliceLookups := [][]string{}
+	lookupStore["animal"] = []string{
+		"dog",
+		"cat",
+		"cow",
+	}
+	lookupStore["gender"] = []string{
+		"m",
+		"f",
+	}
+	lookupStore["numbers"] = []string{
+		"10",
+		"11",
+	}
 
-	for key, val := range lookupStore {
-		sliceIndexes = append(sliceIndexes, 0)
-		sliceKeys = append(sliceKeys, key)
-		sliceLookups = append(sliceLookups, val)
+	lookupDimensions := []string{
+		"animal",
+		"gender",
+		"numbers",
+	}
+
+	var sliceIndexes []int
+	var sliceKeys []string
+	var sliceLookups [][]string
+
+	// init lookups
+	for _, dimKey := range lookupDimensions {
+		if value, found := lookupStore[dimKey]; found {
+			sliceIndexes = append(sliceIndexes, 0)
+			sliceKeys = append(sliceKeys, dimKey)
+			sliceLookups = append(sliceLookups, value)
+		}
 	}
 
 	loopNo := -1
-	combinations := [][]string{}
+	var combinations [][]string
 	loopLookups(loopNo, sliceIndexes, sliceLookups, &combinations)
 
-	expected := map[int][]string{}
+	expected := make([][]string, 12)
 	expected[0] = []string{"dog", "m", "10"}
 	expected[1] = []string{"dog", "m", "11"}
 	expected[2] = []string{"dog", "f", "10"}

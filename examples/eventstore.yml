@@ -1,0 +1,23 @@
+# NOTE: 'sample_keys' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: eventstoreFlex
+      apis:
+        - event_type: eventstoreProcSample
+          url: http://0.0.0.0:2113/stats?format=json
+          start_key:
+            - proc
+        - event_type: eventstoreSysSample
+          cache: http://0.0.0.0:2113/stats?format=json
+          start_key:
+            - sys
+        - event_type: eventstoreQueueSample
+          cache: http://0.0.0.0:2113/stats?format=json
+          sample_keys:
+            queueSample: queue>queue.name
+          start_key:
+            - es

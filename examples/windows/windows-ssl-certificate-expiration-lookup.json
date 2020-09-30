@@ -1,0 +1,12 @@
+[
+	{
+        "targetURL":"https://www.newrelic.com"
+	},
+	{
+        "targetURL":"https://www.google.com"
+	},
+	{
+        "targetURL":"http://www.fakebrokenwebsite.com"
+	}
+
+]

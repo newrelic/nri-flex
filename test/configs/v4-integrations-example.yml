@@ -1,0 +1,17 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: splitByTest
+      apis:
+        - name: Message
+          commands:
+            - run: printf "message:hello\nvalue:100\nerror:false\n"
+              split_by: ":"
+  - name: nri-flex
+    config:
+      name: splitByTest
+      apis:
+        - name: Message
+          commands:
+            - run: printf "message::bye\nvalue::20.9\nerror::true\n"
+              split_by: "::"

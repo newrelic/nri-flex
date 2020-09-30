@@ -10,24 +10,26 @@ import (
 	"fmt"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 // SendToMetricAPI - Send processed events to insights
-func SendToMetricAPI() {
+func SendToMetricAPI() error {
 	key := load.Args.InsightsAPIKey
 	if load.Args.MetricAPIKey != "" {
 		key = load.Args.MetricAPIKey
 	}
 	jsonData, err := json.Marshal(load.MetricsStore.Data) // may need to implement some sort of chunking or batching
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("metrics: failed to marshal")
-	} else {
-		postRequest(load.Args.MetricAPIUrl, key, jsonData)
-		if load.Args.InsightsOutput {
-			fmt.Println(string(jsonData))
-		}
+		return fmt.Errorf("metrics api: failed to marshal json, %v", err)
 	}
+
+	if load.Args.InsightsOutput {
+		fmt.Println(string(jsonData))
+	}
+
+	err = postRequest(load.Args.MetricAPIUrl, key, jsonData)
+	if err != nil {
+		return fmt.Errorf("insights: sending events failed, %v", err)
+	}
+	return nil
 }

@@ -3,36 +3,37 @@
 #   Auto-detects between dep and govendor
 #
 
-GOTOOLS       = github.com/axw/gocov/gocov \
-                github.com/AlekSi/gocov-xml \
-                github.com/stretchr/testify/assert \
-                github.com/robertkrimen/godocdown/godocdown \
-                github.com/golangci/golangci-lint/cmd/golangci-lint
+# Go file to track tool deps with go modules
+TOOL_DIR     ?= tools
+TOOL_CONFIG  ?= $(TOOL_DIR)/tools.go
 
-# Determine package dep manager
-ifneq ("$(wildcard Gopkg.toml)","")
-	VENDOR     = dep
-	VENDOR_CMD = ${VENDOR} ensure
-	GOTOOLS    += github.com/golang/dep
-	GO         = ${GO_CMD}
-else
-	VENDOR     = govendor
-	VENDOR_CMD = ${VENDOR} sync
-	GOTOOLS    += github.com/kardianos/govendor
-	GO         = ${VENDOR}
-endif
+GOTOOLS		  ?=
+GOTOOLS       += github.com/axw/gocov/gocov
+GOTOOLS       += github.com/AlekSi/gocov-xml
+GOTOOLS       += github.com/robertkrimen/godocdown/godocdown
 
+
+VENDOR_CMD	= $(GO_CMD) mod vendor
+
+.PHONY: tools
 tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools            ]: Installing tools required by the project..."
+	@cd $(TOOL_DIR)
 	@$(GO_CMD) get $(GOTOOLS)
+	@$(GO_CMD) mod tidy
 
+.PHONY: tools-update
 tools-update: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools-update     ]: Updating tools required by the project..."
-	@$(GO_CMD) get -u $(GOTOOLS)
+	@cd $(TOOL_DIR)
+	@$(GO) get -u $(GOTOOLS)
+	@$(VENDOR_CMD)
 
+.PHONY: deps
 deps: tools deps-only
 
+.PHONY: deps-only
 deps-only:
 	@echo "=== $(PROJECT_NAME) === [ deps             ]: Installing package dependencies required by the project..."
-	@echo "=== $(PROJECT_NAME) === [ deps             ]: Detected '$(VENDOR)'"
+	@echo "=== $(PROJECT_NAME) === [ deps             ]: Using '$(VENDOR_CMD)'"
 	@$(VENDOR_CMD)

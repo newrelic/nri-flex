@@ -1,0 +1,35 @@
+# NOTE: 'dial' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/dial.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: portTestWithLookup
+      lookup_file: testLookup.json ### location of lookup file
+      apis:
+        - name: portTest
+          timeout: 1000 ### default 1000 ms increase if you'd like
+          commands:
+            - dial: ${lf:addr}
+          custom_attributes: ### add some additional attributes if you'd like
+            name: ${lf:name}
+            abc: ${lf:abc}
+      ### testLookup.json should have a format like below
+      # [
+      #     {
+      #         "name":"google.com",
+      #         "addr":"google.com:80",
+      #         "abc":"def"
+      #     },
+      #     {
+      #         "name":"yahoo",
+      #         "addr":"yahoo.com:80",
+      #         "abc":"zyx"
+      #     },
+      #     {
+      #         "name":"redis",
+      #         "addr":"localhost:6379",
+      #         "abc":"efg"
+      #     }
+      # ]

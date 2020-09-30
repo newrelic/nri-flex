@@ -1,0 +1,45 @@
+---
+builds:
+  - id: nri-flex
+    main: ./cmd/nri-flex/
+    binary: nri-flex
+    ldflags:
+      - -s -w -X github.com/newrelic/nri-flex/internal/load.IntegrationVersion={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - examples/*
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^Merge'

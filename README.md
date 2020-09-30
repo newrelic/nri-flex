@@ -1,374 +1,93 @@
-# New Relic - Flex
+[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Project.png)](https://github.com/newrelic/open-source-office/blob/master/examples/categories/index.md#category-community-project)
 
-[![Build Status](https://badge.buildkite.com/fe011ab8474a98a28ac3255e2141ec3887e9accda7d3c31196.svg?branch=master)](https://buildkite.com/kav91/nri-flex)
+[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.org/newrelic/nri-flex)
 
--   Flex is an agnostic AIO New Relic Integration, that can:
-    -   Abstract the need for end users to write any code other then to define a configuration yml, allowing you to consume metrics from practically anywhere!
-    -   Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query (Java 7+ is required for JMX to work).
-    -   Can generate New Relic metric samples automatically from almost [any endpoint for almost any payload, useful helper functions exist to tidy up your output neatly](#features--support).
-    -   Simplies deployment and configuration as a single Flex integration can be running multiple integrations which would be just config files.
-    -   Provides over [200+ Integrations](#integrations)
-    -   Has agnostic [Service / Container Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery) built-in,
-    -   Flex's Service Discovery is tidy, it avoids the need of applying annotations, labels or additional configs against your existing deployments!
-    -   Runs on Linux & Windows Hosts and Kubernetes, ECS, Fargate, and other container based platforms.
-    -   As updates and upgrades are made, all Flex Integrations reap the benefits.
-    -   Can send data via the New Relic Infrastructure Agent, or the New Relic Insights Event API,
+# New Relic Flex
 
-## Requirements
+Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) with which you can instrument any app that exposes metrics over a standard protocol (HTTP, file, shell) in a standard format (for example, JSON or plain text): you create a [config file](/docs/basics/configure.md), start the Infrastructure agent, and data starts pouring into New Relic.
 
--   Linux
--   Windows
--   New Relic Infrastructure
+Flex can take any input using [data source APIs](/docs/apis/README.md), process it through [functions](/docs/basics/functions.md), and send metric samples to New Relic as if they came from an integration:
 
-## Tutorials
+![Flex diagram](https://newrelic-wpengine.netdna-ssl.com/wp-content/uploads/flex_diagram.jpg)
 
-- [Basic step-by-step tutorial](./docs/basic-tutorial.md)
+For a quick introduction on Flex, [read our blog post](https://blog.newrelic.com/product-news/how-to-use-new-relic-flex/). You can also have a look at the [200+ example integrations](#example-integrations)!
 
-## Usage
+## What you need
 
--   [Installation](#installation)
--   [Download the latest compiled release under the Releases section](https://github.com/newrelic/nri-flex/releases)
--   [Config Examples](https://github.com/newrelic/nri-flex/tree/master/cmd/flex/examples)
--   [Standard Config Layout](#standard-configuration)
--   [Development](#development)
--   [Testing](#testing)
--   [Releasing](#releasing)
--   [Contributing](#contributing)
+Flex requires a [New Relic account](https://docs.newrelic.com/docs/accounts/accounts-billing/account-setup/create-your-new-relic-account) and is compatible with the following operating systems/platforms:
 
-## Visualizing & Managing with the Flex Manager UI
+- Linux
+- Windows
+- Kubernetes
 
--   [Flex Manager](https://github.com/newrelic/nr1-flex-manager)
-
-## Further Documentation
-
--   [Features & Support](#features--support)
--   [Existing Integrations](#integrations)
--   [Wiki](https://github.com/newrelic/nri-flex/wiki)
--   [Available Functions](https://github.com/newrelic/nri-flex/wiki/Functions)
--   [Using Service Discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery)
--   [Using Prometheus-Integrations-(Exporters)](<https://github.com/newrelic/nri-flex/wiki/Prometheus-Integrations-(Exporters)>)
--   [Creating your own Flex configuration(s)](https://github.com/newrelic/nri-flex/wiki/Creating-Flex-Configs)
-
----
+For more information on compatible distros and versions, see the [Infrastructure agent compatibility page](https://docs.newrelic.com/docs/infrastructure/new-relic-infrastructure/getting-started/compatibility-requirements-new-relic-infrastructure).
 
 ## Installation
 
--   Setup your configuration(s) see inside examples/flexConfigs for examples
--   Flex will run everything by default in the default flexConfigs/ folder (so keep what you want before deploy)
--   Flex provides two options for ingesting your events, via the New Relic Infrastructure Agent, & the New Relic Insights Event API
+Flex comes bundled with the New Relic infrastructure agent. To install the infrastructure agent, see [Install the infrastructure agent](https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/install-infrastructure-agent-new-relic).
 
-### New Relic Infrastructure Agent Install
+If you're using Kubernetes, see [Configure Flex in Kubernetes](https://github.com/newrelic/nri-flex/blob/master/docs/basics/k8s_configure.md).
 
-#### Installs Flex on Linux with defaults and without any Flex Configs
+## Getting started
 
-```
-sudo bash -c "$(curl -L https://newrelic-flex.s3-ap-southeast-2.amazonaws.com/install_linux_s3.sh)"
+The [Flex step-by-step tutorial](./docs/basic-tutorial.md) is a great starting point.
 
-# Unpacked in /tmp/nri-flex-linux-$VERSION/...
-```
+### Example integrations
 
-#### Standard Install
+All examples are located in [/examples](https://github.com/newrelic/nri-flex/tree/master/examples).
 
--   [Compiled Releases](https://github.com/newrelic/nri-flex/releases)
--   Review the commented out portions in the install_linux.sh and/or Dockerfile depending on your config setup
--   Run scripts/install_linux.sh or build the docker image
--   Alternatively use the scripts/install_linux.sh as a guide for setting up (or scripts/install_win.bat)
+> Note that some examples may use features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported) or [deprecated](https://github.com/newrelic/nri-flex/tree/master/docs/experimental).
 
-## Standard Configuration
+### Documentation
 
--   Default configuration looks for Flex config files in /flexConfigs.
--   Run ./nri-flex -help for all available flags.
--   Flex has an Event Limiter built in - the event_limit argument is available and there to ensure you don't spam heaps of events unknowingly, the default is 500 per execution/run, which can be dialled up if required.
-
-```
-The below two flags you could specific a single Flex Config, or another config directory.
-
--config_dir string
-        Set directory of config files (default "flexConfigs/")
--config_file string
-        Set a specific config file
-
-With these flags, you could also define multiple instances with different configurations of Flex within "nri-flex-config.yml"
-```
-
-#### Typical file/directory structure layout:
-
-```
-/etc/newrelic-infra/integrations.d/nri-flex-config.yml <- config
-(/examples/nri-flex-config.yml)
-
-/var/db/newrelic-infra/custom-integrations/nri-flex-def-nix.yml <- definition
-(/examples/nri-flex-def-nix.yml)
-
-/var/db/newrelic-infra/custom-integrations/nri-flex <- binary
-(compiled binary)
-
-/var/db/newrelic-infra/custom-integrations/flexConfigs/ <- standard flexConfigs (refer to examples here: /examples/flexConfigs)
-
-/var/db/newrelic-infra/custom-integrations/flexContainerDiscovery/ <- if using container discovery
-(refer to examples here: /examples/flexContainerDiscovery)
-```
-
-### New Relic Insights Event API
-
--   Able to execute the binary wherever and however you like
--   The Flex specific config folders will remain the same
--   To use this method, create an Insert API Key from here: https://insights.newrelic.com/accounts/YOUR_ACCOUNT_ID/manage/api_keys
--   Use the below flags to configure
-
-```
-  -insights_api_key string
-        Set Insights API key - from link above
-  -insights_url string
-        Set Insights URL eg. "https://insights-collector.newrelic.com/v1/accounts/YOUR_ACCOUNT_ID/events"
-  -insights_output bool
-        Output the events generated to standard out true/false
-```
-
--   Run ./nri-flex -help for all available options
-
-#### Typical file/directory structure layout:
-
-```
-From any location:
-
-nri-flex <- binary
-# below folders in the same location as the binary unless you've specific a different location
-flexConfigs/ <- folder
-flexContainerDiscovery/ <- folder (v1 service discovery, see v2)
-```
-
-### Serverless
-
-[Serverless README](examples/lambdaExample/README.md)
-
-### Kubernetes
-
--   Build your Docker Image, and deploy as a daemonset, view [examples/nri-flex-k8s.yml](examples/nri-flex-k8s.yml)
--   View wiki for information on how to use [service discovery](https://github.com/newrelic/nri-flex/wiki/Service-Discovery)
-
-## Testing
-
--   [Compiled Releases](https://github.com/newrelic/nri-flex/releases)
--   For additional logging use the `-verbose` flag
-
-```
-Testing a single config
-./nri-flex -config_file "examples/flexConfigs/redis-cmd-raw-example.yml"
-
-Running without any flags, will default to run all configs within ./flexConfigs
-./nri-flex
-
-Additional Logging
-./nri-flex -verbose
-```
+- [Flex usage documentation](docs/README.md)
+- [How to configure Flex](/docs/basics/configure.md)
+- [Flex under Kubernetes](/docs/basics/k8s_configure.md)
+- [Data sources / APIS](/docs/apis/README.md)
+- [Data transformation functions](docs/basics/functions.md)
+- [Experimental functions](docs/experimental/functions.md)
 
 ## Development
 
-### Requirements
+While developing your own Flex integrations, you can use Flex without the New Relic Infrastructure agent for debugging. For more information, see [Development](/docs/development.md).
 
--   Make
--   Go 1.13 or later
--   [dep](https://github.com/golang/dep) - Dependency management tool
--   [golangci-lint v1.22.2](https://github.com/golangci/golangci-lint)
--   Docker Compose (Integration tests)
+## Support
 
-### Setup
+Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.
 
-_Note:_ This assumes that you have a functional Go environment.
+If the issue has been confirmed as a bug or is a feature request, file a GitHub issue.
 
-```
-go get github.com/newrelic/nri-flex
+**Support Channels**
 
-cd ${GOPATH}/src/github.com/newrelic/nri-flex
+* Use the [Flex manager](https://github.com/newrelic/nr1-flex-manager) in New Relic One to visualize Flex data and manage the Flex integration.
+* [New Relic Community](https://discuss.newrelic.com/c/support-products-agents/new-relic-infrastructure): The best place to engage in troubleshooting questions
+* [New Relic Developer](https://developer.newrelic.com/): Resources for building a custom observability applications
+* [New Relic Technical Support](https://support.newrelic.com/) 24/7/365 ticketed support. Read more about our [Technical Support Offerings](https://docs.newrelic.com/docs/licenses/license-information/general-usage-licenses/support-plan).
 
-# Ensure a clean start
-make clean
+## Privacy
 
-# Download all required libraries
-make dep
-```
+At New Relic we take your privacy and the security of your information seriously, and are committed to protecting your information. We must emphasize the importance of not sharing personal data in public forums, and ask all users to scrub logs and diagnostic information for sensitive information, whether personal, proprietary, or otherwise.
 
-### Build
+We define “Personal Data” as any information relating to an identified or identifiable individual, including, for example, your name, phone number, post code or zip code, Device ID, IP address, and email address.
 
-```
-# Default command runs clean, linter, unit test, and compiles for the local OS
-make
+For more information, review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy).
 
-# run all tests + linter
-make test
+## Contribute
 
-# run integration tests
-make test-integration
+We encourage your contributions to improve this project! Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 
-# run unit tests
-make test-unit
+If you have any questions, or to execute our corporate CLA (which is required if your contribution is on behalf of a company), drop us an email at opensource@newrelic.com.
 
-# run only linter
-make lint
+**A note about vulnerabilities**
 
-# Create a coverage report
-make cover
+As noted in our [security policy](../../security/policy), New Relic is committed to the privacy and security of our customers and their data. We believe that providing coordinated disclosure by security researchers and engaging with the security community are important means to achieve our security goals.
 
-# Launch the coverage report into a web browser
-make cover-view
-```
+If you believe you have found a security vulnerability in this project or any of New Relic's products or websites, we welcome and greatly appreciate you reporting it to New Relic through [HackerOne](https://hackerone.com/newrelic).
 
-### Cross-Compiling
+If you would like to contribute to this project, review [these guidelines](./CONTRIBUTING.md).
 
-```
-# Build binary for current OS
-make build
+To all contributors, we thank you!  Without your contribution, this project would not be what it is today.
 
-# Build binaries for all supported OSes
-make build-all
+## License
 
-# Build binaries for a specific OS
-make build-darwin
-make build-linux
-make build-windows
-```
-
-### Packaging
-
-To build tar.gz files for distribution:
-
-```
-# Create a package for the current OS
-make package
-
-# Create packages for all supported OSes
-make package-all
-
-# Create packages for a specific OS
-make package-darwin
-make package-linux
-make package-windows
-```
-
-### Docker Related
-
-```
-# clean/remove any docker containers that have been created
-make docker-clean
-
-# Build a new docker image
-make docker-image
-
-# Run via docker-compose
-make docker-run
-
-# Testing within docker
-make docker-test
-
-# Testing with the Infrastructure Agent within Docker
-make docker-test-infra
-```
-
-### Other Utility Commands
-
-```
-# Use godocdown to create Markdown documentation for all commands and packages
-# this is run by default.
-make document
-```
-
-## Releasing
-
-The build process sets the package version based on the latest git tag. After
-all changes have been made for the lastest release, make a new tag with NO
-commits after, and then `make package-all` to create the artifacts.
-
-This process should be automated someday.
-
-Finally, upload the artifacts on Github to the tag release.
-
-## Contributing
-
--   Submit a pull request for review.
--   If it's a code change make sure you run "make test" to confirm it's all good.
--   Since Flex has a lot of moving parts, its best to write tests so all contributors don't impact each others work.
-
-## Docker
-
--   Set your configs, modify Dockerfile if need be
--   Build & Run Image
-
-```
-Example:
-
-BUILD
-docker build -t nri-flex .
-
-RUN - standard
-docker run -d --name nri-flex --network=host --cap-add=SYS_PTRACE -v "/:/host:ro" -v "/var/run/docker.sock:/var/run/docker.sock" -e NRIA_LICENSE_KEY="yourInfraLicenseKey" nri-flex:latest
-
-RUN - with container discovery reverse lookup (ensure -container_discovery is set to true nri-flex-config.yml)
-docker run -d --name nri-flex --network=host --cap-add=SYS_PTRACE -l flexDiscoveryRedis="t=redis,c=redis,tt=img,tm=contains,r=true"  -v "/:/host:ro" -v "/var/run/docker.sock:/var/run/docker.sock" -e NRIA_LICENSE_KEY="yourInfraLicenseKey" nri-flex:latest
-
-Example: Run Redis with a flex discovery label
-docker run -it -p 9696:6379 --label flexDiscoveryRedis="t=redis,c=redis,tt=img,tm=contains" --name redis-svr -d redis
-```
-
-## Features & Support
-
--   Run any HTTP/S request, read file, shell command, consume from any Prometheus Exporter, Database Query, or JMX Query. (Java 7+ is required for JMX to work)
--   Service / Container Discovery
--   Attempt to cleverly flatten to samples
--   Use environment variables anywhere within config files (eg. using double dollar signs -> \$\$MY_ENV_VAR)
--   Detect and flatten dimensional data from Prometheus style payloads (vector, matrix, targets supported)
--   Merge different samples and outputs together
--   Key Remover & Replacer
--   Metric Parser for RATE & DELTA support (has capability to auto set rates and deltas)
--   Define multiple APIs / commands or mix
--   event_type autoset or override
--   Define custom attributes (more granular control, compared to NR infra agent)
--   Command allows horizontal split (useful for table style data) (use only once per command set)
--   snake_case to CamelCase conversion
--   Percentage to Decimal conversion
--   ToLower conversion
--   SubParse functionality (see redis config for an example)
--   LookUp Store - save attributes from previously generated samples to use in requests later (see rabbit example)
--   LazyFlatten - for arrays
--   Inbuilt data caching - useful for processing samples at different points
--   [+more here](https://github.com/newrelic/nri-flex/wiki/Functions)
-
-## Integrations
-
-For all see within the examples directory as there are many more.
-
--   All Prometheus Exporters
--   Consul
--   Vault (shows merge functionality)
--   Bamboo
--   Teamcity
--   CircleCI
--   RabbitMQ (shows metric parser, and lookup store functionality)
--   Elasticsearch (shows inbuilt URL cache functionality)
--   Traefik
--   Kong
--   etcd (shows custom sample keys functionality)
--   Varnish
--   Redis (more metrics, multi instance support, multi db support) (shows snake to camel, perc to decimal, replace keys, rename keys & sub parse functionality)
--   Zookeeper
--   OpsGenie
--   VictorOps
--   PagerDuty (shows lazy_flatten functionality)
--   AlertOps (shows lazy_flatten functionality)
--   New Relic Alert Ingestion (provides similar output to nri-alerts-pipe)
--   New Relic App Status Health Ingestion (appSample to present your app health, language, and aggregated summary)
--   http/s testing & request performance via curl
--   Postgres Custom Querying
--   MySQL Custom Querying
--   MariaDB Custom Querying
--   Percona Server, Google CloudSQL or Sphinx (2.2.3+) Custom Querying
--   MS SQL Server Custom Querying
--   JMX via nrjmx // (nrjmx is targetted to work with Java 7+, see cassandra and tomcat examples)
--   cassandra - via jmx
--   tomcat - via jmx
--   bind9
--   df display disk & inode info (shows horizontal split functionality)
-
-## Disclaimer
-
-New Relic has open-sourced this integration to enable monitoring of various technologies. This integration is provided AS-IS WITHOUT WARRANTY OR SUPPORT, although you can report issues and contribute to this integration via GitHub. Support for this integration is available with an Expert Services subscription.
+nri-flex is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.

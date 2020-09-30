@@ -1,0 +1,11 @@
+[
+	{
+		"certificate":"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+	},
+	{
+		"certificate":"/etc/pki/ca-trust/extracted/pem/email-ca-bundle.pem"
+	},
+	{
+		"certificate":"/etc/pki/tls/cert.pem"
+	}
+]

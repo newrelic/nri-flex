@@ -26,9 +26,10 @@ type ArgumentList struct {
 	ContainerDiscoveryDir   string `default:"flexContainerDiscovery/" help:"Set directory of auto discovery config files"`
 	ContainerDiscovery      bool   `default:"false" help:"Enable container auto discovery"`
 	ContainerDiscoveryMulti bool   `default:"false" help:"Allow a container to be matched multiple times"`
+	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
-	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
@@ -49,7 +50,9 @@ type ArgumentList struct {
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
-	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
+	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
+	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -60,6 +63,9 @@ var StartTime int64
 
 // Integration Infrastructure SDK Integration
 var Integration *integration.Integration
+
+// IgnoredIntegrationData this is used for lookups with ignored output
+var IgnoredIntegrationData []map[string]interface{}
 
 // Entity Infrastructure SDK Entity
 var Entity *integration.Entity
@@ -106,7 +112,6 @@ const (
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "ora"
 	DefaultVertica     = "vertica"
-	DefaultJmxPath     = "./nrjmx/"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
 	DefaultJmxUser     = "admin"
@@ -119,6 +124,7 @@ const (
 	Img                = "img"
 	Image              = "image"
 	TypeContainer      = "container"
+	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
 	TypeColumns        = "columns"
@@ -151,6 +157,18 @@ type Metrics struct {
 	IntervalMs       int64                    `json:"interval.ms,omitempty"`  // required for count & summary
 	CommonAttributes map[string]interface{}   `json:"commonAttributes,omitempty"`
 	Metrics          []map[string]interface{} `json:"metrics"` // summaries have a different value structure then gauges or counters
+}
+
+// AgentConfig stores the information from a single V4 integrations file
+// This has been added so that Flex can understand the V4 agent format when users are using the config_file parameter
+type AgentConfig struct {
+	Integrations []ConfigEntry `yaml:"integrations"`
+}
+
+// ConfigEntry holds an integrations YAML configuration entry. It may define multiple types of tasks
+type ConfigEntry struct {
+	Name   string `yaml:"name"`
+	Config Config `yaml:"config"`
 }
 
 // Config YAML Struct
@@ -237,7 +255,8 @@ type API struct {
 	Events            map[string]string `yaml:"events"`         // set as events
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
-	Joinkey           string            `yaml:"joinkey"`        // merge into another eventType
+	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
 	URL               string            `yaml:"url"`
@@ -246,13 +265,14 @@ type API struct {
 	Prometheus        Prometheus        `yaml:"prometheus"`
 	Cache             string            `yaml:"cache"` // read data from datastore
 	Database          string            `yaml:"database"`
-	DbDriver          string            `yaml:"db_driver"`
-	DbConn            string            `yaml:"db_conn"`
+	DBDriver          string            `yaml:"db_driver"`
+	DBConn            string            `yaml:"db_conn"`
 	Shell             string            `yaml:"shell"`
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
-	DbQueries         []Command         `yaml:"db_queries"`
-	DbAsync           bool              `yaml:"db_async"` // perform db queries async
+	DBQueries         []Command         `yaml:"db_queries"`
+	DBAsync           bool              `yaml:"db_async"` // perform db queries async
+	Jq                string            `yaml:"jq"`       // parse data using jq
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -265,6 +285,7 @@ type API struct {
 	DisableParentAttr bool              `yaml:"disable_parent_attr"`
 	StartKey          []string          `yaml:"start_key"` // start from a different section of the payload
 	StoreLookups      map[string]string `yaml:"store_lookups"`
+	DedupeLookups     []string          `yaml:"dedupe_lookups"`
 	StoreVariables    map[string]string `yaml:"store_variables"`
 	LazyFlatten       []string          `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string `yaml:"sample_keys"`
@@ -273,6 +294,8 @@ type API struct {
 	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
 	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
 	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
+	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
+	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
@@ -291,7 +314,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
-	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	ValueMapper         map[string][]string `yaml:"value_mapper"`         // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	TimestampConversion map[string]string   `yaml:"timestamp_conversion"` // find keys with regex, convert date<=>timestamp
 
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
@@ -302,19 +326,26 @@ type API struct {
 	RowStart  int      `yaml:"row_start"`  // start from this line, to be used with SplitBy
 
 	// Filtering Options
-	EventFilter  []Filter            `yaml:"event_filter"` // filters events in/out
-	KeyFilter    []Filter            `yaml:"key_filter"`   // filters keys in/out
-	StripKeys    []string            `yaml:"strip_keys"`
-	RemoveKeys   []string            `yaml:"remove_keys"`
-	KeepKeys     []string            `yaml:"keep_keys"`     // inverse of removing keys
-	SampleFilter []map[string]string `yaml:"sample_filter"` // sample filter key pair values with regex
-	IgnoreOutput bool                `yaml:"ignore_output"` // ignore the output completely, useful when creating lookups
+	EventFilter                 []Filter            `yaml:"event_filter"` // filters events in/out
+	KeyFilter                   []Filter            `yaml:"key_filter"`   // filters keys in/out
+	StripKeys                   []string            `yaml:"strip_keys"`
+	RemoveKeys                  []string            `yaml:"remove_keys"`
+	KeepKeys                    []string            `yaml:"keep_keys"`                       // inverse of removing keys
+	SampleFilter                []map[string]string `yaml:"sample_filter"`                   // exclude sample filter key pair values with regex === sample_exclude_filter
+	SampleIncludeFilter         []map[string]string `yaml:"sample_include_filter"`           // include sample filter key pair values with regex
+	SampleExcludeFilter         []map[string]string `yaml:"sample_exclude_filter"`           // exclude sample filter key pair values with regex
+	SampleIncludeMatchAllFilter []map[string]string `yaml:"sample_include_match_all_filter"` //include samples where multiple keys match the specified
+	IgnoreOutput                bool                `yaml:"ignore_output"`                   // ignore the output completely, useful when creating lookups
+
+	SaveOutput string `yaml:"save_output"` // Save output samples to a file
 
 	// Debug Options
 	Debug   bool     `yaml:"debug"` // logs out additional data, should not be enabled for production use!
 	Logging struct { // log to insights
 		Open bool `yaml:"open"` // log open related errors
 	}
+
+	ReturnHeaders bool `yaml:"return_headers"`
 }
 
 // Filter struct
@@ -338,12 +369,13 @@ type Command struct {
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	Output           string            `yaml:"output"`            // jmx, raw, json
+	Output           string            `yaml:"output"`            // jmx, raw, json,xml
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout
 	Dial             string            `yaml:"dial"`              // eg. google.com:80
 	Network          string            `yaml:"network"`           // default tcp
+	OS               string            `yaml:"os"`                // default empty for any operating system, if set will check if the OS matches else will skip execution
 
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
@@ -468,4 +500,17 @@ type Namespace struct {
 // MakeTimestamp creates timestamp in milliseconds
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// SamplesToMerge keep merge sapmles
+type SamplesToMerge struct {
+	sync.RWMutex
+	Data map[string][]interface{}
+}
+
+// SampleAppend append sample with locking
+func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
+	s.Lock()
+	defer s.Unlock()
+	(s.Data)[key] = append((s.Data)[key], sample)
 }

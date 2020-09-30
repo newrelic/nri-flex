@@ -1,0 +1,34 @@
+# NOTE: 'pagination' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+# redmine api documentation https://www.redmine.org/projects/redmine/wiki/Rest_api
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: redmineFlex
+      global:
+        base_url: http://localhost:8080/redmine/
+        headers:
+          accept: application/json
+      apis:
+        - event_type: RedmineProject # import Redmine projects
+          url: projects.json?offset=${page}&limit=100
+          replace_keys:
+            id$: project.id # rename attribute "id" to "project.id" for facet linking
+          strip_keys:
+            - offset
+            - limit
+          pagination: # Redmine API returns max 100 records per query so paginate
+            page_start: 0
+            payload_key: projects # obj containing records, empty means last page
+            increment: 100 # increase offset by 100 when querying the next page
+        - event_type: RedmineIssue # import Redmine issues
+          url: issues.json?offset=${page}&limit=100
+          strip_keys:
+            - offset
+            - limit
+          pagination:
+            page_start: 0
+            payload_key: issues
+            increment: 100

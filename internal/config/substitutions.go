@@ -22,74 +22,91 @@ import (
 )
 
 // SubLookupFileData substitutes data from lookup files into config
-func SubLookupFileData(configs *[]load.Config, config load.Config) {
+func SubLookupFileData(configs *[]load.Config, config load.Config) error {
 	load.Logrus.WithFields(logrus.Fields{
 		"name": config.Name,
 	}).Debug("config: running lookup files")
 
 	tmpCfgBytes, err := yaml.Marshal(&config)
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{
-			"name": config.Name,
-			"err":  err,
-		}).Error("config: sub lookup file data marshal failed")
-	} else {
+		return fmt.Errorf("config name: %s: sub lookup file data marshal failed, error: %v", config.Name, err)
+	}
 
-		b, err := ioutil.ReadFile(config.LookupFile)
+	b, err := ioutil.ReadFile(config.LookupFile)
+	if err != nil {
+		return fmt.Errorf("config name: %s: failed to read lookup file, error: %v", config.LookupFile, err)
+	}
+
+	var jsonOut []interface{}
+	jsonErr := json.Unmarshal(b, &jsonOut)
+	if jsonErr != nil {
+		return fmt.Errorf("config name: %s: failed to unmarshal lookup file, error: %v", config.LookupFile, err)
+	}
+
+	// create a new config file per
+	for _, item := range jsonOut {
+		tmpCfgStr := string(tmpCfgBytes)
+		newCfg, err := fillTemplateConfigWithValues(item, tmpCfgStr)
+
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
-				"file": config.LookupFile,
-				"err":  err,
-			}).Error("config: failed to read lookup file")
-			return
+				"file":       config.LookupFile,
+				"name":       config.Name,
+				"suggestion": "check for errors or run yaml lint against the below output",
+			}).WithError(err).Error("config: new lookup file unmarshal failed")
+			load.Logrus.Error(tmpCfgStr)
 		}
 
-		jsonOut := []interface{}{}
-		jsonErr := json.Unmarshal(b, &jsonOut)
-		if jsonErr != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"file": config.LookupFile,
-				"err":  jsonErr,
-			}).Error("config: failed to unmarshal lookup file")
-			return
-		}
-
-		// create a new config file per
-		for _, item := range jsonOut {
-			switch obj := item.(type) {
-			case map[string]interface{}:
-				tmpCfgStr := string(tmpCfgBytes)
-				variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(tmpCfgStr, -1)
-				replaceOccured := false
-				for _, variableReplace := range variableReplaces {
-					variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
-					if obj[variableKey] != nil {
-						tmpCfgStr = strings.Replace(tmpCfgStr, variableReplace, fmt.Sprintf("%v", obj[variableKey]), -1)
-						replaceOccured = true
-					}
-				}
-				// if replace occurred convert string to config yaml and reload
-				if replaceOccured {
-					newCfg, err := ReadYML(tmpCfgStr)
-					if err != nil {
-
-						load.Logrus.WithFields(logrus.Fields{
-							"file":       config.LookupFile,
-							"err":        err,
-							"name":       config.Name,
-							"suggestion": "check for errors or run yaml lint against the below output",
-						}).Error("config: new lookup file unmarshal failed")
-						load.Logrus.Error(tmpCfgStr)
-
-					} else {
-						*configs = append(*configs, newCfg)
-					}
-				}
-			default:
-				load.Logrus.Debug("config: lookup file needs to contain an array of objects")
-			}
+		if newCfg != nil {
+			*configs = append(*configs, *newCfg)
 		}
 	}
+	return nil
+}
+
+func fillTemplateConfigWithValues(values interface{}, configTemplate string) (*load.Config, error) {
+	switch obj := values.(type) {
+	case map[string]interface{}:
+		variableReplaces := regexp.MustCompile(`\${lf:.*?}`).FindAllString(configTemplate, -1)
+		replaceOccurred := false
+		for _, variableReplace := range variableReplaces {
+			variableKey := strings.TrimSuffix(strings.Split(variableReplace, "${lf:")[1], "}") // eg. "channel"
+			if obj[variableKey] != nil {
+				value := obj[variableKey]
+				configTemplate = strings.Replace(
+					configTemplate,
+					variableReplace,
+					toString(value),
+					-1)
+				replaceOccurred = true
+			}
+		}
+		// if replace occurred convert string to values yaml and reload
+		if replaceOccurred {
+			newCfg, err := ReadYML(configTemplate)
+			if err != nil {
+				return nil, err
+			}
+			return &newCfg, nil
+		}
+	default:
+		load.Logrus.Debug("config: lookup file needs to contain an array of objects")
+	}
+	return nil, nil
+}
+
+func toString(value interface{}) string {
+	format := "%v"
+	switch value.(type) {
+	case int:
+		format = "%d"
+	case float64, float32:
+		format = "%f"
+	case string:
+		format = "%s"
+	}
+
+	return fmt.Sprintf(format, value)
 }
 
 // SubEnvVariables substitutes environment variables into config
@@ -131,32 +148,30 @@ func SubEnvVariables(strConf *string) {
 // ${timestamp:datetimeutctz} - datetime in date and time format utc timezone: 2006-01-02T15:04:05Z07:00
 
 // SubTimestamps - return timestamp/date/datetime of current date/time with optional adjustment in various format
-func SubTimestamps(strConf *string) {
-
-	current := time.Now()
-	currentUTC := time.Now().UTC()
+func SubTimestamps(strConf *string, currentTime time.Time) {
+	currentUTC := currentTime.UTC()
 
 	// date and datetime output format
 	dateFormat := "2006-01-02"
 	datetimeFormat := "2006-01-02T15:04:05"
 	datetimeFormatTZ := "2006-01-02T15:04:05Z07:00"
-	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(current.UnixNano()/1e+6), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(current.UnixNano()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(current.Unix()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ms}", fmt.Sprint(currentTime.UnixNano()/1e+6), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:ns}", fmt.Sprint(currentTime.UnixNano()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:s}", fmt.Sprint(currentTime.Unix()), -1)
 
-	*strConf = strings.Replace(*strConf, "${timestamp:date}", fmt.Sprint(current.Format(dateFormat)), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:datetime}", fmt.Sprint(current.Format(datetimeFormat)), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:datetimetz}", fmt.Sprint(current.Format(datetimeFormatTZ)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:date}", fmt.Sprint(currentTime.Format(dateFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetime}", fmt.Sprint(currentTime.Format(datetimeFormat)), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:datetimetz}", fmt.Sprint(currentTime.Format(datetimeFormatTZ)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:dateutc}", fmt.Sprint(currentUTC.Format(dateFormat)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutc}", fmt.Sprint(currentUTC.Format(datetimeFormat)), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:datetimeutctz}", fmt.Sprint(currentUTC.Format(datetimeFormatTZ)), -1)
 
-	*strConf = strings.Replace(*strConf, "${timestamp:year}", strconv.Itoa(current.Year()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:month}", strconv.Itoa(int(current.Month())), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:day}", strconv.Itoa(current.Day()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:hour}", strconv.Itoa(current.Hour()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:minute}", strconv.Itoa(current.Minute()), -1)
-	*strConf = strings.Replace(*strConf, "${timestamp:second}", strconv.Itoa(current.Second()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:year}", strconv.Itoa(currentTime.Year()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:month}", strconv.Itoa(int(currentTime.Month())), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:day}", strconv.Itoa(currentTime.Day()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:hour}", strconv.Itoa(currentTime.Hour()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:minute}", strconv.Itoa(currentTime.Minute()), -1)
+	*strConf = strings.Replace(*strConf, "${timestamp:second}", strconv.Itoa(currentTime.Second()), -1)
 
 	*strConf = strings.Replace(*strConf, "${timestamp:utcyear}", strconv.Itoa(currentUTC.Year()), -1)
 	*strConf = strings.Replace(*strConf, "${timestamp:utcmonth}", strconv.Itoa(int(currentUTC.Month())), -1)
@@ -169,7 +184,7 @@ func SubTimestamps(strConf *string) {
 	for _, timestamp := range timestamps {
 
 		durationType := time.Millisecond
-		timestampCurrent := current
+		timestampCurrent := currentTime
 		timestampUTC := currentUTC
 		timestampReturn := ""
 		defaultTimestamp := "${timestamp:ms}"
@@ -198,9 +213,8 @@ func SubTimestamps(strConf *string) {
 				case "h", "hr", "hour":
 					durationType = time.Hour
 				default:
-					load.Logrus.WithFields(logrus.Fields{
-						"err": err,
-					}).Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
+					load.Logrus.WithError(err).
+						Error("config: unable to parse " + timestamp + ", defaulting to " + defaultTimestamp)
 				}
 
 			} else {

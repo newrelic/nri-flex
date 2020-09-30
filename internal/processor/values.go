@@ -10,12 +10,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Knetic/govaluate"
-	"github.com/jeremywohl/flatten"
 	"github.com/newrelic/nri-flex/internal/formatter"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/sirupsen/logrus"
 )
 
 // RunValConversion performs percentage to decimal & nano second to millisecond
@@ -92,60 +91,6 @@ func RunPluckNumbers(v *interface{}, api load.API, key *string) {
 	}
 }
 
-// RunLazyFlatten lazy flattens the payload
-func RunLazyFlatten(ds *map[string]interface{}, cfg *load.Config, api int) {
-	// perform lazy flatten
-	for _, flattenKey := range cfg.APIs[api].LazyFlatten {
-		if strings.Contains(flattenKey, ">") {
-			flatSplit := strings.Split(flattenKey, ">")
-			if len(flatSplit) == 2 {
-				if (*ds)[flatSplit[0]] != nil {
-					switch (*ds)[flatSplit[0]].(type) {
-					case map[string]interface{}:
-						flat, err := flatten.Flatten((*ds)[flatSplit[0]].(map[string]interface{}), "", flatten.DotStyle)
-						if err == nil {
-							delete((*ds)[flatSplit[0]].(map[string]interface{}), flatSplit[1])
-							(*ds)[flatSplit[0]].(map[string]interface{})[flatSplit[1]] = flat
-						}
-					case []interface{}:
-						for i := range (*ds)[flatSplit[0]].([]interface{}) {
-							switch (*ds)[flatSplit[0]].([]interface{})[i].(type) {
-							case map[string]interface{}:
-								// we need to flatten top level, then loop through and find the new keys and add back into the sample
-								flat, err := flatten.Flatten((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), "", flatten.DotStyle)
-								if err == nil {
-									// delete old data
-									delete((*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{}), flatSplit[1])
-									// depending if nested it may not be targeted correctly so auto set something in remove_keys - hacky workaround
-									cfg.APIs[api].RemoveKeys = append(cfg.APIs[api].RemoveKeys, flatSplit[1]+"Samples")
-
-									// add back into the datasample
-									for k, v := range flat {
-										if strings.Contains(k, flatSplit[1]) {
-											(*ds)[flatSplit[0]].([]interface{})[i].(map[string]interface{})[k] = v
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			tmp := map[string]interface{}{"flat": (*ds)[flattenKey]}
-			flat, err := flatten.Flatten(tmp, "", flatten.DotStyle)
-			if err == nil {
-				delete((*ds), flattenKey)
-				(*ds)[flattenKey] = flat
-			} else {
-				load.Logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Error("processor: unable to lazy_flatten")
-			}
-		}
-	}
-}
-
 // RunMathCalculations performs math calculations
 func RunMathCalculations(math *map[string]string, currentSample *map[string]interface{}) {
 	for newMetric, formula := range *math {
@@ -159,15 +104,11 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 		}
 		expression, err := govaluate.NewEvaluableExpression(finalFormula)
 		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error(fmt.Sprintf("processor: %v math exp failed %v", newMetric, finalFormula))
+			load.Logrus.WithError(err).Errorf("processor-values: %v math exp failed %v", newMetric, finalFormula)
 		} else {
 			result, err := expression.Evaluate(nil)
 			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Error(fmt.Sprintf("processor: %v math evalute failed %v", newMetric, finalFormula))
+				load.Logrus.WithError(err).Errorf("processor-values: %v math evaluate failed %v", newMetric, finalFormula)
 			} else {
 				(*currentSample)[newMetric] = result
 			}
@@ -177,32 +118,112 @@ func RunMathCalculations(math *map[string]string, currentSample *map[string]inte
 
 // RunValueMapper map the value using regex grouping for keys e.g.  "*.?\s(Service Status)=>$1-Good" -> "Service Status-Good"
 func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]interface{}, key string, v *interface{}) {
-
-	if mapentries, found := (mapKeys)[key]; found {
-
-		replacedValue := false
-		for _, mapentry := range mapentries {
-			valueSplit := strings.Split(mapentry, "=>")
-			if len(valueSplit) == 2 {
-				regexPattern := valueSplit[0]
-				targetValue := valueSplit[1]
-				r := regexp.MustCompile(regexPattern)
-				res := r.FindStringSubmatch((*v).(string))
-				for i, value := range res {
-					if i != 0 {
-						targetValue = strings.ReplaceAll(targetValue, "$"+strconv.Itoa(i), value)
-						replacedValue = true
+	for mapKey, mapVal := range mapKeys {
+		keySplit := strings.Split(mapKey, "=>")
+		if key == keySplit[0] {
+			replacedValue := false
+			for _, mapEntry := range mapVal {
+				valueSplit := strings.Split(mapEntry, "=>")
+				if len(valueSplit) == 2 {
+					regexPattern := valueSplit[0]
+					targetValue := valueSplit[1]
+					r := regexp.MustCompile(regexPattern)
+					res := r.FindStringSubmatch((*v).(string))
+					for i, value := range res {
+						if i != 0 {
+							targetValue = strings.ReplaceAll(targetValue, "$"+strconv.Itoa(i), value)
+							replacedValue = true
+						}
+					}
+					if replacedValue {
+						if len(keySplit) == 2 {
+							(*currentSample)[keySplit[1]] = targetValue
+						} else {
+							*v = targetValue
+						}
+						break
 					}
 				}
-				if replacedValue {
-					*v = targetValue
-					break
-				}
-
 			}
-
 		}
+	}
+}
 
+// RunTimestampConversion find keys with regex, convert date<=>timestamp
+func RunTimestampConversion(v *interface{}, api load.API, key *string) {
+	for regexKey, regexVal := range api.TimestampConversion {
+		if formatter.KvFinder("regex", *key, regexKey) {
+			value := toString(v)
+			convertDateStamp(regexVal, &value)
+			*v = value
+		}
+	}
+}
+
+// convert value to string, float64 to string without decimal
+func toString(v *interface{}) string {
+	switch val := (*v).(type) {
+	case float32, float64:
+		return fmt.Sprintf("%0.f", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
+func convertDateStamp(timestampTamplate string, targetValue *string) {
+
+	DATEFORMAT := map[string]string{
+		"ANSIC":       "Mon Jan _2 15:04:05 2006",
+		"UnixDate":    "Mon Jan _2 15:04:05 MST 2006",
+		"RubyDate":    "Mon Jan 02 15:04:05 -0700 2006",
+		"ATOM":        "2006-01-02T15:04:05Z07:00",
+		"COOKIE":      "Monday, 02-Jan-06 15:04:05 MST",
+		"ISO8601":     "2006-01-02T15:04:05Z0700",
+		"RFC822":      "Mon, 02 Jan 06 15:04:05 Z0700",
+		"RFC850":      "Monday, 02-Jan-06 15:04:05 MST",
+		"RFC1036":     "Mon, 02 Jan 06 15:04:05 Z0700",
+		"RFC1123":     "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"RFC2822":     "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"RFC3339":     "2006-01-02T15:04:05Z07:00",
+		"RFC3339Nano": "2006-01-02T15:04:05.999999999Z07:00",
+		"RSS":         "Mon, 02 Jan 2006 15:04:05 Z0700",
+		"W3C":         "2006-01-02T15:04:05Z07:00",
 	}
 
+	timestampFormat := strings.Split(timestampTamplate, "::")
+	if len(timestampFormat) != 0 {
+		if timestampFormat[0] == "TIMESTAMP" {
+			srcDateformat := time.RFC3339
+			if len(timestampFormat) == 2 {
+				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {
+					srcDateformat = val
+				} else {
+					srcDateformat = timestampFormat[1]
+				}
+			}
+			resTime, err := time.Parse(srcDateformat, *targetValue)
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("processor-values: %v TimestampConversion failed %v", srcDateformat, *targetValue)
+			} else {
+				*targetValue = strconv.FormatInt(resTime.Unix(), 10)
+			}
+		}
+		if timestampFormat[0] == "DATE" {
+			dstDateformat := time.RFC3339
+			if len(timestampFormat) == 2 {
+				if val, ok := DATEFORMAT[timestampFormat[1]]; ok {
+					dstDateformat = val
+				} else {
+					dstDateformat = timestampFormat[1]
+				}
+			}
+			n, err := strconv.ParseInt(*targetValue, 10, 64)
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("processor-values: %v TimestampConversion failed %v", dstDateformat, *targetValue)
+			} else {
+				unixTimeUTC := time.Unix(n, 0)
+				*targetValue = unixTimeUTC.Format(dstDateformat)
+			}
+		}
+	}
 }

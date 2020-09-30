@@ -1,0 +1,33 @@
+### PHP-FPM Status Page Integration
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: phpfpm
+      global:
+        base_url: https://www.domain.com/
+      apis:
+        - event_type: phpfpmSample
+          url: fpm_status?json
+# To use this integration you must configure the FPM Status page on your server.
+# Typically this involves
+# Edit /etc/php-fpm.d/www.conf
+# Ensure pm.status_path = /fpm_status is uncommented
+# Save php config and test -  sudo php-fpm -t
+# Restart PHP
+# Edit Nginx config /etc/nginx/conf.d/default.conf
+# Define a status or ping url. Ensure that the pm.status_path has a matching entire in the location block - This is a sample block
+# and you may need to change fastcgi_pass to reference how your setup passes to PHP.
+# location ~ ^/(status|ping|fpm_status)$ {
+#       allow 127.0.0.1;
+#       fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#       fastcgi_index index.php;
+#       include fastcgi_params;
+#       #fastcgi_pass 127.0.0.1:9000;
+#       fastcgi_pass   unix:/var/run/php7.2-fpm.sock;
+#}
+# Test new Nginx config - nginx -t
+# Restart Nginx
+# Test access at yourdomain.com/fpm_status
+# You should see a test response similar to this - https://www.tecmint.com/wp-content/uploads/2018/10/View-PHP-FPM-Status-Page.png

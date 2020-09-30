@@ -1,0 +1,14 @@
+# To be used with NR Infrastructure v1.8+
+# https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180
+integrations:
+  - name: nri-flex
+    config:
+      name: digFlex
+      apis:
+        - name: dig
+          commands:
+            - name: google
+              run: dig google.com | egrep '^google|Query|status' | tr '\n' ' ' | awk '{print "status:"substr($6,1,length($6)-1)" domain:"substr($9,1,length($9)-1)" recordip:"$13" responsetime:"$17" unit:"$18}' | tr ' ' '\n'
+              split_by: ":"
+          custom_attributes:
+            myVar: someValue

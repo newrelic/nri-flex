@@ -9,24 +9,34 @@ import (
 	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	load.StartTime = load.MakeTimestamp()
 	integration.SetEnvs()
-	outputs.InfraIntegration()
 
-	if integration.LambdaCheck() {
-		integration.Lambda()
+	err := outputs.InfraIntegration()
+	if err != nil {
+		load.Logrus.WithError(err).Fatal("flex: failed to initialize integration")
+	}
+
+	if integration.IsLambda() {
+		err = integration.ValidateLambdaConfig()
+		if err != nil {
+			load.Logrus.WithError(err).Fatal("flex: failed to validate lambda required config")
+		}
+		integration.HandleLambda()
 	} else {
 		// default process
 		integration.SetDefaults()
-		integration.RunFlex("")
+		err = integration.RunFlex(integration.FlexModeDefault)
+		if err != nil {
+			load.Logrus.WithError(err).Fatal("flex: failed to run integration")
+		}
 	}
 
-	err := load.Integration.Publish()
+	err = load.Integration.Publish()
 	if err != nil {
-		load.Logrus.WithFields(logrus.Fields{"err": err}).Fatal("flex: unable to publish")
+		load.Logrus.WithError(err).Fatal("flex: failed to publish")
 	}
 }

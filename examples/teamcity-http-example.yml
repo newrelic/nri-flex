@@ -1,0 +1,33 @@
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: teamcityFlex
+      global:
+        base_url: http://localhost:8111/
+        user: teamcity
+        pass: teamcity
+        headers:
+          accept: application/json
+      apis:
+        - event_type: teamcityUserSample
+          url: app/rest/users/
+        - event_type: teamcityUserGroupSample
+          url: app/rest/userGroups/
+        - event_type: teamcityVcsRootSample
+          url: app/rest/vcs-roots
+        - event_type: teamcityBuildSample
+          url: app/rest/builds?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts,artifacts)"
+        - event_type: teamcityBuildQueueSample
+          url: app/rest/buildQueue?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts,artifacts)
+        - event_type: teamcityBuildTypeSample
+          url: app/rest/buildTypes/
+        - event_type: teamcityProjectSample
+          url: httpAuth/app/rest/projects/
+        - event_type: teamcityAgentSample
+          url: app/rest/buildTypes/
+        - event_type: teamcityAgentSample
+          url: app/rest/agents?locator=defaultFilter%3Afalse&fields=agent(id,ip,name,enabled,connected,authorized,uptodate,version,lastActivityTime,pool(id,name),enabledInfo(status,comment(text,timestamp,user(name,username)),statusSwitchTime),environment(osType),build(id,number,branchName,defaultBranch,startDate,running-info(percentageComplete,leftSeconds),statusText,status,state,personal,user(id),buildType(id,projectId,name,links(link(relativeUrl)))))
+        - event_type: teamcityAgentPoolSample
+          url: app/rest/agentPools

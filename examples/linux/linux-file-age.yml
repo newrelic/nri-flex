@@ -1,0 +1,15 @@
+# Used to query file age via File Status
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxFileAge
+      apis:
+        - name: linuxFileAge
+          commands:
+            - run: stat -c '%n;%Y' /etc/*conf
+              split: horizontal
+              set_header: [fileName, fileLastModified]
+              regex_match: false
+              split_by: ";"

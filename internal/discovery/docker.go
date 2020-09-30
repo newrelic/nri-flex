@@ -8,8 +8,6 @@ package discovery
 import (
 	"bufio"
 	"context"
-	"fmt"
-
 	"github.com/newrelic/nri-flex/internal/load"
 
 	"github.com/docker/docker/api/types"
@@ -24,7 +22,7 @@ func setDockerClient() (*client.Client, error) {
 	// var out []byte
 	var err error
 	if load.Args.DockerAPIVersion != "" {
-		load.Logrus.Debug(fmt.Sprintf("docker: setting client via argument %v", load.Args.DockerAPIVersion))
+		load.Logrus.Debugf("docker: setting client via argument %v", load.Args.DockerAPIVersion)
 		cli, err = client.NewClientWithOpts(client.WithVersion(load.Args.DockerAPIVersion))
 	} else {
 		load.Logrus.Debug("docker: setting client with API version negotiation")

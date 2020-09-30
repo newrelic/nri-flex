@@ -1,0 +1,53 @@
+# NOTE: 'sample_keys' is an experimental function at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/functions.md
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: elasticsearchFlex
+      global:
+        base_url: http://localhost:9200/
+        # user: elastic
+        # pass: elastic
+        headers:
+          accept: application/json
+      apis:
+        ### here we are calling the _stats endpoint, but splitting the stats sample to several samples to avoid overloading a single sample
+        ### since Flex has inbuilt caching we can retrieve URL data previously fetched and split the sample out
+        - event_type: elasticsearchTotalSample
+          url: _stats
+          start_key:
+            - _all
+            - total
+        - event_type: elasticsearchPrimarySample
+          cache: _stats ### we can use previously cached calls saved in memory
+          start_key:
+            - _all
+            - total
+        - event_type: elasticsearchShardSample
+          cache: _stats
+          start_key:
+            - _shards
+        # - event_type: elasticsearchIndiceSample ### use with care generates a lot of data!!!
+        #   cache: _stats
+        #   strip_keys:
+        #     - _all
+        #     - _shards
+        #   sample_keys:
+        #     indices: indices>name
+        - event_type: elasticsearchClusterHealthSample
+          url: _cluster/health
+        - event_type: elasticsearchPendingClusterTaskSample
+          url: _cluster/pending_tasks
+        - event_type: elasticsearchNodeSample
+          url: _nodes/stats
+          sample_keys:
+            nodes: nodes>node.id # there are objects within objects distinguished by key, we can create samples like so
+          rename_keys:
+            _nodes: parentNodes # bring the parent node attributes within the node sample
+          remove_keys:
+            - ingest.pipelines.xpack
+            - roleSampleSamples
+            - fs. ### no need for file system usage stats if infra collects it already

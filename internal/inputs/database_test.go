@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDrivers(t *testing.T) {
@@ -43,72 +44,70 @@ func TestDrivers(t *testing.T) {
 }
 
 func TestDatabase(t *testing.T) {
-	// temporarily disabling here
-	// this will still get run against the buildkite pipeline
-	if runtime.GOOS != "darwin" {
-		load.Refresh()
-		config := load.Config{
-			Name: "postgresDbFlex",
-			APIs: []load.API{
-				{
-					Name:     "postgres",
-					Database: "postgres",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
-					CustomAttributes: map[string]string{
-						"parentAttr": "myDbServer",
-					},
-					DbQueries: []load.Command{
-						{
-							Name: "pgStatActivitySample",
-							Run:  "select * FROM pg_stat_activity LIMIT 2",
-							CustomAttributes: map[string]string{
-								"nestedAttr": "nestedVal",
-							},
-						},
-					},
+	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
+		t.Skip("Darwin not supported yet")
+	}
+
+	load.Refresh()
+	config := load.Config{
+		Name: "postgresDbFlex",
+		APIs: []load.API{
+			{
+				Name:     "postgres",
+				Database: "postgres",
+				DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
+				CustomAttributes: map[string]string{
+					"parentAttr": "myDbServer",
 				},
-				{
-					Name:     "postgres",
-					Database: "pg",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
-					CustomAttributes: map[string]string{
-						"parentAttr": "myDbServer",
-					},
-					DbQueries: []load.Command{
-						{
-							Name: "pgStatActivitySample",
-							Run:  "select * FROM pg_stat_activity LIMIT 2",
-							CustomAttributes: map[string]string{
-								"nestedAttr": "nestedVal",
-							},
-						},
-					},
-				},
-				{
-					Name:     "postgres",
-					Database: "pq",
-					DbConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5433",
-					DbQueries: []load.Command{
-						{
-							Name: "pgStatActivitySample",
-							Run:  "select * FROM pg_stat_activity LIMIT 2",
+				DBQueries: []load.Command{
+					{
+						Name: "pgStatActivitySample",
+						Run:  "select * FROM pg_stat_activity LIMIT 2",
+						CustomAttributes: map[string]string{
+							"nestedAttr": "nestedVal",
 						},
 					},
 				},
 			},
-		}
-
-		dataStore := []interface{}{}
-		ProcessQueries(&dataStore, &config, 0)
-		ProcessQueries(&dataStore, &config, 1)
-		ProcessQueries(&dataStore, &config, 2)
-
-		if len(dataStore) != 4 {
-			t.Errorf("expected 4 samples, got %d", len(dataStore))
-		} else {
-			if dataStore[0].(map[string]interface{})["queryLabel"] != "pgStatActivitySample" {
-				t.Errorf("incorrect label %v", dataStore[0].(map[string]interface{})["queryLabel"])
-			}
-		}
+			{
+				Name:     "postgres",
+				Database: "pg",
+				DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
+				CustomAttributes: map[string]string{
+					"parentAttr": "myDbServer",
+				},
+				DBQueries: []load.Command{
+					{
+						Name: "pgStatActivitySample",
+						Run:  "select * FROM pg_stat_activity LIMIT 2",
+						CustomAttributes: map[string]string{
+							"nestedAttr": "nestedVal",
+						},
+					},
+				},
+			},
+			{
+				Name:     "postgres",
+				Database: "pq",
+				DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5433",
+				DBQueries: []load.Command{
+					{
+						Name: "pgStatActivitySample",
+						Run:  "select * FROM pg_stat_activity LIMIT 2",
+					},
+				},
+			},
+		},
 	}
+
+	dataStore := []interface{}{}
+	ProcessQueries(&dataStore, &config, 0)
+	ProcessQueries(&dataStore, &config, 1)
+	ProcessQueries(&dataStore, &config, 2)
+
+	assert.Lenf(t, dataStore, 4, "expected 4 samples, got %d", len(dataStore))
+
+	sampleName := dataStore[0].(map[string]interface{})["queryLabel"]
+	assert.Equalf(t, "pgStatActivitySample", sampleName,
+		"expected label %v, got %v", "pgStatActivitySample", sampleName)
 }
