@@ -1,0 +1,23 @@
+### Configure Flex to monitor Plex Media Server sessions
+name: plexServerFlex
+global:
+  base_url: http://<local server>:32400/
+  headers:
+    ### Get an authentication token
+    ### https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+    X-Plex-Token: <server token>
+    accept: application/json
+apis:
+  - event_type: PlexServerSessions
+    url: status/sessions
+    start_key:
+      - MediaContainer
+    ### these are removed to reduce noise but can be added back if desired
+    strip_keys:
+      - art
+      - createdAtAccuracy
+      - guid
+      - studio
+      - addedAt
+      - createdAtTZOffset
+      - Media
