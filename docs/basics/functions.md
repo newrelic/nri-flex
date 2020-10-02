@@ -2,7 +2,7 @@
 
 Flex functions can be combined in different ways to help you manipulate and tidy up your data. The following functions apply to all Flex APIs or data sources.
 
-For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](apis/README.md).
+For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](../apis/README.md).
 
 - [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
   - [Function precedence order](#function-precedence-order)
