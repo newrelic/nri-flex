@@ -5,17 +5,49 @@ integrations:
   - name: nri-flex
     # interval: 30s
     config:
-      name: mysqlDbFlex
+      name: MySQLDbFlex
       apis:
         - database: mysql
-          db_conn: hithere:byethere@tcp(apacmysql.adcasdasdfa.ap-southeast-2.rds.amazonaws.com:3306)/sys
+          # connection string for an rds mysql instance. Be sure to use the writer endpoint here.  /sys is the default database. newrelic:Password is the user:pass.
+          db_conn: newrelic:Password@tcp(rds-name.region.rds.amazonaws.com:3306)/sys 
           logging:
             open: true
           custom_attributes: # applies to all queries
-            host: myDbServer
+            host: AuroraMySQL # custom host name atribute
           db_async: true # process queries async
           db_queries:
-            - name: mysqlSessionSample
-              run: Select * from sys.dm_exec_sessions
+            - name: MySQLCustomQuery
+              run: SELECT * FROM INFORMATION_SCHEMA.PROCESSLIST # grab all processes from MySQL
               custom_attributes: # can apply additional at a nested level
-                nestedAttr: nestedVal
+                nestedAttr: info-schema-query
+            - name: MySQLBlockingQuery
+              run: SELECT r.trx_id waiting_trx_id,r.trx_mysql_thread_id waiting_thread,r.trx_query waiting_query,b.trx_id blocking_trx_id,b.trx_mysql_thread_id blocking_thread,b.trx_query blocking_query
+                   FROM information_schema.innodb_lock_waits w
+                   INNER JOIN information_schema.innodb_trx b
+                   ON b.trx_id = w.blocking_trx_id
+                   INNER JOIN information_schema.innodb_trx r
+                   ON r.trx_id = w.requesting_trx_id;
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: blocking-query
+        - database: mysql
+          # connection string for a local mysql instance. Be sure to use localhost here.  /sys is the default database. newrelic:Password is the user:pass.
+          db_conn: newrelic:Password@tcp(localhost:3306)/sys 
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: UbuntuMySQL # custom host name atribute
+          db_async: true # process queries async
+          db_queries:
+            - name: MySQLCustomQuery
+              run: SELECT * FROM INFORMATION_SCHEMA.PROCESSLIST # grab all processes from MySQL
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: info-schema-query
+            - name: MySQLBlockingQuery
+              run: SELECT r.trx_id waiting_trx_id,r.trx_mysql_thread_id waiting_thread,r.trx_query waiting_query,b.trx_id blocking_trx_id,b.trx_mysql_thread_id blocking_thread,b.trx_query blocking_query
+                   FROM information_schema.innodb_lock_waits w
+                   INNER JOIN information_schema.innodb_trx b
+                   ON b.trx_id = w.blocking_trx_id
+                   INNER JOIN information_schema.innodb_trx r
+                   ON r.trx_id = w.requesting_trx_id;
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: blocking-query
