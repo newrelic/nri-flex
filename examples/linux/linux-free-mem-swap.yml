@@ -1,0 +1,19 @@
+# To be used with NR Infrastructure v1.8+
+# https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180
+integrations:
+  - name: nri-flex
+    config:
+      name: linuxMem
+      apis:
+        - name: linuxMem
+          commands:
+            - run: free | grep Mem | awk '{print $2,$3,$4,$5,$6,$7}'
+              set_header: [memTotal,memUsed,memFree,memShared,memBuffCache,memAvailable]
+              split: horizontal
+              split_by: \s+
+        - name: linuxSwap
+          commands:
+            - run: free | grep Swap | awk '{print $2,$3,$4}'
+              set_header: [swapTotal,swapUsed,swapFree]
+              split: horizontal
+              split_by: \s+
