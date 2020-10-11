@@ -419,7 +419,8 @@ type Pagination struct {
 	NextCursorKey string `yaml:"next_cursor_key"` // watch for next cursor to query next
 	MaxCursorKey  string `yaml:"max_cursor_key"`  // watch for max cursor to stop at
 
-	NextLinkKey string `yaml:"next_link_key"` // look for a next link key to browse too
+	NextLinkKey  string `yaml:"next_link_key"`  // look for a next link key to browse too
+	NextLinkHost string `yaml:"next_link_host"` // set next link host - useful when next_link_key returns a partial URL, e.g "/mynextlinkABC", the next link will be {next_link_host}/mynextlinkABC
 }
 
 // RegMatch support for regex matches

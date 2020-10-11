@@ -313,7 +313,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 					"err": err,
 				}).Error("http: failed to compact json")
 			} else {
-				if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" {
+				if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" || Pagination.NextLinkKey != "" {
 					jsonString := buffer.String()
 					if Pagination.PageLimitKey != "" { // offset
 						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.PageLimitKey, Pagination.PageLimitKey), jsonString, nextLink)
@@ -356,9 +356,14 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 						}
 					}
 					if Pagination.NextLinkKey != "" {
-						matches := paginationRegex(fmt.Sprintf(`"%v":\"(\S+)\"`, Pagination.NextLinkKey), jsonString, nextLink)
+						matches := paginationRegex(fmt.Sprintf(`"%v":\"(.*?)\"`, Pagination.NextLinkKey), jsonString, nextLink)
 						if len(matches) >= 2 {
-							manualNextLink = matches[1]
+							if len(Pagination.NextLinkHost) > 0 {
+								manualNextLink = Pagination.NextLinkHost + matches[1]
+							} else {
+								manualNextLink = matches[1]
+							}
+
 						}
 					}
 					if Pagination.PayloadKey != "" {
