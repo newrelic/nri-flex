@@ -313,7 +313,7 @@ func handlePagination(url *string, Pagination *load.Pagination, nextLink *string
 					"err": err,
 				}).Error("http: failed to compact json")
 			} else {
-				if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" || Pagination.NextLinkKey != "" {
+				{ // if Pagination.PageLimitKey != "" || Pagination.PageNextKey != "" || Pagination.PayloadKey != "" || Pagination.MaxPagesKey != "" || Pagination.NextCursorKey != "" || Pagination.NextLinkKey != "" {
 					jsonString := buffer.String()
 					if Pagination.PageLimitKey != "" { // offset
 						matches := paginationRegex(fmt.Sprintf(`"%v":(\d+)|"%v":"(\d+)"`, Pagination.PageLimitKey, Pagination.PageLimitKey), jsonString, nextLink)
