@@ -97,6 +97,16 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 					}
 				}
+			case (contentType == "text/html" || contentType == "text/html; charset=utf-8") && api.ParseHTML:
+				body, _ := ioutil.ReadAll(resp.Body)
+				jsonBody, err := ParseToJSON(body)
+				if err != nil {
+					load.Logrus.WithError(err).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
+				} else {
+					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+						handleJSON(dataStore, []byte(jsonBody), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
+					}
+				}
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, err := ioutil.ReadAll(resp.Body)
