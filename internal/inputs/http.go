@@ -26,6 +26,7 @@ import (
 )
 
 // RunHTTP Executes HTTP Requests
+// nolint: gocyclo  - cyclomatic complexity but easy to understand
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
 	load.Logrus.Debugf("%v - running http requests", yml.Name)
 	for *doLoop {
