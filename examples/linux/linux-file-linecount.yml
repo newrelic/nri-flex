@@ -1,4 +1,6 @@
-# Counts total number of lines in file
+# Counts total number of lines in
+# Update linux-file-linecount.json lookup file and
+# place in /etc/newrelic-infra/integrations.d
 ---
 integrations:
   - name: nri-flex
