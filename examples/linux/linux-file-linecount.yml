@@ -1,4 +1,4 @@
-# Counts total number of lines in
+# Counts total number of lines in one or more files
 # Update linux-file-linecount.json lookup file and
 # place in /etc/newrelic-infra/integrations.d
 ---
