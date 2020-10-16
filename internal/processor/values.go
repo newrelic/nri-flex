@@ -128,7 +128,7 @@ func RunValueMapper(mapKeys map[string][]string, currentSample *map[string]inter
 					regexPattern := valueSplit[0]
 					targetValue := valueSplit[1]
 					r := regexp.MustCompile(regexPattern)
-					res := r.FindStringSubmatch(toString(*v))
+					res := r.FindStringSubmatch(toString(v))
 					for i, value := range res {
 						if i != 0 {
 							targetValue = strings.ReplaceAll(targetValue, "$"+strconv.Itoa(i), value)
@@ -161,19 +161,31 @@ func RunTimestampConversion(v *interface{}, api load.API, key *string) {
 }
 
 // convert value to string, float64 to string without decimal
-func toString(value interface{}) string {
-	format := "%v"
-	switch value.(type) {
+func toString(v *interface{}) string {
+	switch val := (*v).(type) {
 	case int:
-		format = "%d"
-	case float64, float32:
-		format = "%f"
-	case string:
-		format = "%s"
+		return fmt.Sprintf("%d", val)
+	case float32, float64:
+		return fmt.Sprintf("%0.f", val)
+	default:
+		return fmt.Sprintf("%v", val)
 	}
-
-	return fmt.Sprintf(format, value)
 }
+
+// convert value to string, float64 to string without decimal
+// func toString(value interface{}) string {
+// 	format := "%v"
+// 	switch value.(type) {
+// 	case int:
+// 		format = "%d"
+// 	case float64, float32:
+// 		format = "%0.f"
+// 	case string:
+// 		format = "%s"
+// 	}
+
+// 	return fmt.Sprintf(format, value)
+// }
 
 func convertDateStamp(timestampTamplate string, targetValue *string) {
 
