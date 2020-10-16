@@ -1,0 +1,12 @@
+# Counts total number of lines in file
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxFileLineCount
+      lookup_file: /etc/newrelic-infra/integrations.d/linux-file-linecount.json
+      apis:
+        - name: linuxFileLineCount
+          commands:
+            - run: echo "{\"fileName\":\"${lf:fileName}\",\"fullFilePath\":\"${lf:fullFilePath}\",\"lineCount\":\"$(cat ${lf:fullFilePath} | wc -l)\"}"
