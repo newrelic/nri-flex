@@ -26,6 +26,8 @@ import (
 )
 
 // RunHTTP Executes HTTP Requests
+// nolint: gocyclo
+// cyclomatic complexity but easy to understand
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string) {
 	load.Logrus.Debugf("%v - running http requests", yml.Name)
 	for *doLoop {
@@ -95,6 +97,16 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				} else {
 					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
 						handleJSON(dataStore, jsonBody.Bytes(), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
+					}
+				}
+			case (contentType == "text/html" || contentType == "text/html; charset=utf-8") && api.ParseHTML:
+				body, _ := ioutil.ReadAll(resp.Body)
+				jsonBody, err := ParseToJSON(body)
+				if err != nil {
+					load.Logrus.WithError(err).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
+				} else {
+					if api.Pagination.OriginalURL == "" || (api.Pagination.OriginalURL != "" && resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+						handleJSON(dataStore, []byte(jsonBody), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 					}
 				}
 			default:

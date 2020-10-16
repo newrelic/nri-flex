@@ -1,0 +1,21 @@
+# @format
+
+name: AzureStatusSample
+
+apis:
+  - name: AzureStatusSample
+    event_type: AzureStatusSample
+    url: https://status.azure.com/en-gb/status
+    parse_html: true
+    sample_include_filter:
+      - data-zone-name: ^asia$
+      - data-zone-name: ^americas$
+      - data-zone-name: ^europe$
+      - data-zone-name: ^middle-east-africa$
+      - data-zone-name: ^azure-government$
+      - data-zone-name: ^azure-china$      
+    sample_exclude_filter:
+      - \*Non-regional.*: ^$
+    value_mapper:
+      Products and services:
+        - (.*?)\s\s+.*=>$1
