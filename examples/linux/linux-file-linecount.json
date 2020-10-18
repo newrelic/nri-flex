@@ -1,0 +1,10 @@
+[
+    {
+    "fileName": "testfile.txt",
+    "fullFilePath": "/tmp/testfile.txt"
+    },
+    {
+    "fileName": "testfile2.txt",
+    "fullFilePath": "/tmp/testfile2.txt"
+    }
+]
