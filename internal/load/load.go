@@ -271,8 +271,9 @@ type API struct {
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
 	DBQueries         []Command         `yaml:"db_queries"`
-	DBAsync           bool              `yaml:"db_async"` // perform db queries async
-	Jq                string            `yaml:"jq"`       // parse data using jq
+	DBAsync           bool              `yaml:"db_async"`   // perform db queries async
+	Jq                string            `yaml:"jq"`         // parse data using jq
+	ParseHTML         bool              `yaml:"parse_html"` // parse text/html content type table element to JSON
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
