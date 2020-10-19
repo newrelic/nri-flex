@@ -21,12 +21,15 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
 	//Database Drivers
-	_ "github.com/SAP/go-hdb/driver"      //SAP HANA
-	_ "github.com/denisenkom/go-mssqldb"  //mssql | sql-server
-	_ "github.com/go-sql-driver/mysql"    //mysql
-	_ "github.com/lib/pq"                 //postgres
-	_ "github.com/vertica/vertica-sql-go" //HP Vertica
-	//
+	_ "github.com/SAP/go-hdb/driver"      // SAP HANA
+	_ "github.com/denisenkom/go-mssqldb"  // mssql | sql-server
+	_ "github.com/go-sql-driver/mysql"    // mysql
+	_ "github.com/lib/pq"                 // postgres
+	_ "github.com/vertica/vertica-sql-go" // HP Vertica
+	_ "github.com/ibmdb/go_ibm_db"        // IBM DB2
+	_ "github.com/godror/godror"          // Oracle
+	_ "github.com/SAP/go-ase/purego"      // Sybase | SAP ASE
+   //
 )
 
 // ProcessQueries processes database queries
@@ -200,16 +203,22 @@ func setDatabaseDriver(database, driver string) string {
 		return driver
 	}
 	switch database {
-	case "postgres", "pg", "pq":
-		return load.DefaultPostgres
-	case "mssql", "sqlserver":
-		return load.DefaultMSSQLServer
-	case "mysql", "mariadb":
-		return load.DefaultMySQL
-	case "hana", "go-hdb", "hdb":
-		return load.DefaultHANA
-	case "vertica", "hpvertica":
-		return load.DefaultVertica
+		case "postgres", "pg", "pq":
+			return load.DefaultPostgres
+		case "mssql", "sqlserver":
+			return load.DefaultMSSQLServer
+		case "mysql", "mariadb":
+			return load.DefaultMySQL
+		case "hana", "go-hdb", "hdb":
+			return load.DefaultHANA
+		case "vertica", "hpvertica":
+			return load.DefaultVertica
+		case "db2", "ibm_db2":
+			return load.DefaultDB2
+		case "ora", "oracle", "godror":
+			return load.DefaultOracle
+		case "ase", "sybase":
+			return load.DefaultSybase
 	}
 	return ""
 }

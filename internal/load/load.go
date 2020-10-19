@@ -107,10 +107,12 @@ const (
 	DefaultDialTimeout = 1000                     // 1 seconds, used for dial
 	DefaultPingTimeout = 5000                     // 5 seconds
 	DefaultHANA        = "hdb"
+	DefaultDB2         = "go_ibm_db"
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
-	DefaultOracle      = "ora"
+	DefaultOracle      = "godror"
+	DefaultSybase      = "ase"
 	DefaultVertica     = "vertica"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"

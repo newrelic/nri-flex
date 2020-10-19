@@ -6,6 +6,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/Microsoft/go-winio v0.4.12 // indirect
+	github.com/SAP/go-ase v0.0.0-20201019075708-83a9cf8c3439
 	github.com/SAP/go-hdb v0.14.1
 	github.com/aws/aws-lambda-go v1.11.1
 	github.com/aws/aws-sdk-go v1.21.10
@@ -20,10 +21,11 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
+	github.com/godror/godror v0.20.5
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/ibmdb/go_ibm_db v0.3.0
 	github.com/itchyny/gojq v0.11.0
 	github.com/jeremywohl/flatten v0.0.0-20180923035001-588fe0d4c603
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -45,7 +47,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vertica/vertica-sql-go v0.1.3
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
-	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9 // indirect
+	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6 // indirect
