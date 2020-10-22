@@ -113,6 +113,17 @@ func innerText(n *html.Node) string {
 	return result
 }
 
+func containTable(n *html.Node) bool {
+	if n.DataAtom == atom.Table {
+		return true
+	}
+	result := false
+	for x := n.FirstChild; x != nil && !result; x = x.NextSibling {
+		result = containTable(x)
+	}
+	return result
+}
+
 func parse(n *html.Node, tables *[]*Table) {
 	strip := strings.TrimSpace
 	switch n.DataAtom {
@@ -132,10 +143,17 @@ func parse(n *html.Node, tables *[]*Table) {
 		t := (*tables)[len(*tables)-1]
 		t.Rows = append(t.Rows, []string{})
 	case atom.Td:
+		if !containTable(n) {
+			t := (*tables)[len(*tables)-1]
+			l := len(t.Rows) - 1
+			t.Rows[l] = append(t.Rows[l], strip(innerText(n)))
+			return
+		}
 		t := (*tables)[len(*tables)-1]
 		l := len(t.Rows) - 1
-		t.Rows[l] = append(t.Rows[l], strip(innerText(n)))
-		return
+		// If the <td> contains <table> element, set the <td> content to "TableElement"
+		t.Rows[l] = append(t.Rows[l], "TableElement")
+
 	}
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
 		parse(child, tables)
