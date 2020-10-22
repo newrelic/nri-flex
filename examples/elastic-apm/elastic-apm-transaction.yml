@@ -60,8 +60,10 @@ integrations:
                 }
               ]
             }
-          jq: '.hits.hits | map({ "es.index": ._index,  "es.doc.id": ._id, "timestamp": .fields["@timestamp"][0] } + ._source)'
-
+          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id, "timestamp": .fields["@timestamp"][0] })'
+          lazy_flatten:
+            - http
+        
         # re-use the response to record the metadata of the request in a separate event.
         # the number of hits in this event should equal the number of inserted 
         # `ElasticApmTransaction` events as reported by the `flexStatusSample` 
