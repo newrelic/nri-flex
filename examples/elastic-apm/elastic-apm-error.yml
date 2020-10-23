@@ -60,7 +60,7 @@ integrations:
                 }
               ]
             }
-          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id, "timestamp": .fields["@timestamp"][0] })'
+          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id })'
 
         # re-use the response to record the metadata of the request in a separate event.
         # the number of hits in this event should equal the number of inserted 

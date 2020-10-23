@@ -60,7 +60,7 @@ integrations:
                 }
               ]
             }
-          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id, "timestamp": .fields["@timestamp"][0] })'
+          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id })'
           lazy_flatten:
             - http
         
