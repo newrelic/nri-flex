@@ -56,11 +56,11 @@ integrations:
               "docvalue_fields": [
                 {
                   "field": "@timestamp",
-                  "format": "epoch_millis"
+                  "format": "epoch_second"
                 }
               ]
             }
-          jq: '.hits.hits | map(._source + { "es.index": ._index,  "es.doc.id": ._id })'
+          jq: '.hits.hits | map(._source + { "es.index": ._index, "es.doc.id": ._id, "timestamp": .fields["@timestamp"][0] | tonumber | floor })'
           lazy_flatten:
             - http
         
