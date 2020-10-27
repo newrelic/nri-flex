@@ -1,0 +1,21 @@
+---
+integrations:
+  # you must install snowsql CLI: https://docs.snowflake.com/en/user-guide/snowsql-install-config.html
+  - name: nri-flex
+    interval: 60s
+    # Run the below command as a 1 minute cronjob
+    # snowsql -o output_format=json -o remove_comments=true -o header=true -o timing=false -o friendly=false -a <ACCOUNT> -u <USERNAME> -q 'USE <TABLE_NAME>; select * from table(information_schema.query_history()) order by start_time;' | tail -n +2 > /tmp/snowflake-table-metrics.json
+    config:
+      name: snowFlakeTable
+      apis:
+        - name: snowFlake
+          file: /tmp/snowflake-table-metrics.json
+  - name: nri-flex
+    interval: 60s
+    # Run the below command as a 1 minute cronjob
+    # snowsql -o output_format=json -o remove_comments=true -o header=true -o timing=false -o friendly=false -a <ACCOUNT> -u <USERNAME> -q 'USE <TABLE_NAME>; select * from table(information_schema.query_history_by_warehouse());' | tail -n +2 > /tmp/snowflake-warehouse-metrics.json
+    config:
+      name: snowFlakeWarehouse
+      apis:
+        - name: snowFlakeWarehouse
+          file: /tmp/snowflake-warehouse-metrics.json
