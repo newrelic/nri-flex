@@ -1,0 +1,85 @@
+# NOTE: this integration only works with Flex version 1.3.4 and above
+#
+# Flex has a default limit of 500 events per execution.  Depending on how many events
+# you are receiving, you may need to adjust the setting in the `env` key below
+# as well as the `size` in the payload.
+---
+integrations:
+  - name: nri-flex
+    # env:
+    #   EVENT_LIMIT: 500 ## default 500
+    interval: 1m
+    timeout: 5s
+    config:
+      name: elastic-apm-transaction
+      global:
+        base_url: http://localhost:9200/
+        # user: elastic
+        # pass: elastic
+        headers:
+          accept: application/json
+          # tls_config:
+          #   enable: true
+          #   ca: /etc/bundles/my-ca-cert.pem
+      apis:
+        # pull recent events from elasticsearch
+        # be sure that the difference in the range filter on `event.ingested` matches the
+        # interval of the integration. 
+        - name: elastic-apm-transaction-events
+          event_type: ElasticApmTransaction
+          url: apm-*-transaction-*/_search
+          method: POST
+
+          payload: >
+            {
+              "size": 498,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "match_all": {}
+                    }
+                  ],
+                  "filter": [
+                    {
+                      "range": {
+                        "event.ingested": {
+                          "gte": "now-1m",
+                          "lt": "now"
+                        }
+                      }
+                    }
+                  ],
+                  "should": [],
+                  "must_not": []
+                }
+              },
+              "docvalue_fields": [
+                {
+                  "field": "@timestamp",
+                  "format": "epoch_second"
+                }
+              ]
+            }
+          jq: >-
+           .hits.hits |
+            map(
+              (
+                (._source | with_entries(.key |= "elasticApm." + .)) |
+                .["elasticApm.http"] |= walk(if type == "array" then (. | join(",")) else . end)
+              ) +
+              {
+                "elasticSearch.index": ._index,
+                "elasticSearch.doc.id": ._id,
+                "timestamp": .fields["@timestamp"][0] | tonumber | floor
+              }
+            )
+        
+        # re-use the response to record the metadata of the request in a separate event.
+        # the number of hits in this event should equal the number of inserted 
+        # `ElasticApmTransaction` events as reported by the `flexStatusSample` 
+        - name: elastic-apm-transaction-status
+          event_type: ElasticApmTransactionStatus
+          cache: apm-*-transaction-*/_search
+          jq: '| { "shards": ._shards } + delpaths([["hits", "hits"],["_shards"]])'
+
