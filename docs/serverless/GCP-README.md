@@ -73,4 +73,4 @@ To see the available command line parameters use
 
     go run test/serverless/gcp/function.go -help
     
-The Test tab for the GCP Function in the GCP Console will run Flex once and show you the log, set `VERBOSE` environment variable to get more detail.
+The Test tab for the GCP Function in the GCP Console will run Flex once and show you the log, set the `VERBOSE` environment variable to get more detail.
