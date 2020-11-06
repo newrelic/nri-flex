@@ -37,11 +37,11 @@ func StatusSample() {
 	if load.IsFargate {
 		statusLog(flexStatusSample.SetMetric("flex.IsFargate", "true", metric.ATTRIBUTE))
 	}
-	if load.LambdaName != "" {
-		statusLog(flexStatusSample.SetMetric("flex.LambdaName", load.LambdaName, metric.ATTRIBUTE))
+	if load.ServerlessName != "" {
+		statusLog(flexStatusSample.SetMetric("flex.ServerlessName", load.ServerlessName, metric.ATTRIBUTE))
 	}
-	if load.AWSExecutionEnv != "" {
-		statusLog(flexStatusSample.SetMetric("flex.AWSExecutionEnv", load.AWSExecutionEnv, metric.ATTRIBUTE))
+	if load.ServerlessExecutionEnv != "" {
+		statusLog(flexStatusSample.SetMetric("flex.ServerlessExecutionEnv", load.ServerlessExecutionEnv, metric.ATTRIBUTE))
 	}
 	for counter, value := range load.FlexStatusCounter.M {
 		statusLog(flexStatusSample.SetMetric("flex.counter."+counter, value, metric.GAUGE))

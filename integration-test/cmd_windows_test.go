@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	sdk "github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/runtime"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +27,8 @@ func Test_WindowsCommands_ReturnsData(t *testing.T) {
 	load.Args.ConfigFile = filepath.Join(configDirPath, "windows-cmd-test.yml")
 
 	// when
-	err := integration.RunFlex(integration.FlexModeDefault)
+	r := runtime.GetDefaultRuntime()
+	err := runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -65,7 +66,8 @@ func Test_WindowsCommands_ConfigsFolder(t *testing.T) {
 	load.Args.ConfigDir = configDirPath
 
 	// when
-	err := integration.RunFlex(integration.FlexModeDefault)
+	r := runtime.GetDefaultRuntime()
+	err := runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then

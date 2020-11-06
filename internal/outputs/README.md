@@ -1,6 +1,6 @@
 # outputs
 --
-    import "github.com/newrelic/nri-flex/internal/outputs"
+    import "."
 
 
 ## Usage

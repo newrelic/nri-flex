@@ -1,6 +1,6 @@
 # utils
 --
-    import "github.com/newrelic/nri-flex/internal/utils"
+    import "."
 
 
 ## Usage

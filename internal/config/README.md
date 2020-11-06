@@ -1,6 +1,6 @@
 # config
 --
-    import "github.com/newrelic/nri-flex/internal/config"
+    import "."
 
 
 ## Usage
@@ -44,16 +44,23 @@ GitPull git pull
 #### func  LoadFile
 
 ```go
-func LoadFile(configs *[]load.Config, f os.FileInfo, path string) error
+func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error
 ```
 LoadFile loads a single Flex config file
 
 #### func  LoadFiles
 
 ```go
-func LoadFiles(configs *[]load.Config, files []os.FileInfo, path string) []error
+func LoadFiles(configs *[]load.Config, files []os.FileInfo, filePath string) []error
 ```
 LoadFiles Loads Flex config files
+
+#### func  LoadV4IntegrationConfig
+
+```go
+func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName string, filePath string) error
+```
+LoadV4IntegrationConfig Loads Agent/Flex config files
 
 #### func  ReadYML
 

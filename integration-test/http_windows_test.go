@@ -11,8 +11,8 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	sdk "github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/integration-test/gofile"
-	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/newrelic/nri-flex/internal/runtime"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,8 @@ func Test_WindowsHttp_ReturnsData(t *testing.T) {
 	load.Args.ConfigFile = filepath.Join(configDirPath, "windows-http-test.yml")
 
 	// when
-	err := integration.RunFlex(integration.FlexModeDefault)
+	r := runtime.GetDefaultRuntime()
+	err := runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -48,7 +49,8 @@ func Test_WindowsHttps_ReturnsData(t *testing.T) {
 	load.Args.ConfigFile = filepath.Join(configDirPath, "windows-https-test.yml")
 
 	// when
-	err := integration.RunFlex(integration.FlexModeDefault)
+	r := runtime.GetDefaultRuntime()
+	err := runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -70,7 +72,8 @@ func Test_WindowsHttps_ConfigFolder_ReturnsData(t *testing.T) {
 	load.Args.Verbose = true
 
 	// when
-	err := integration.RunFlex(integration.FlexModeDefault)
+	r := runtime.GetDefaultRuntime()
+	err := runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
