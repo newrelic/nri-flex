@@ -12,10 +12,13 @@ integrations:
           method: POST
           ignore_output: true
           payload: >
-            { "query": "query { viewer { zones { zoneTag httpRequests1mGroups( orderBy: [datetime_ASC] limit: 1000 filter: { datetime_geq: \"${timestamp:datetimeutc-2min}Z\" datetime_lt:  \"${timestamp:datetimeutc-1min}Z\" } ) { dimensions { datetime } sum { browserMap { pageViews uaBrowserFamily } bytes cachedBytes cachedRequests contentTypeMap { bytes requests edgeResponseContentTypeName } clientSSLMap { requests clientSSLProtocol } countryMap { bytes requests threats clientCountryName } encryptedBytes encryptedRequests ipClassMap { requests ipType } pageViews requests responseStatusMap { requests edgeResponseStatus } threats threatPathingMap { requests threatPathingName } } } } } }" }
+            { "query": "query { viewer { zones { zoneTag browserInsightsAdaptiveGroups(orderBy: [datetime_ASC], limit: 1000, filter: { datetime_geq: \"${timestamp:datetimeutc-2min}Z\" datetime_lt: \"${timestamp:datetimeutc-1min}Z\" } ) { dimensions { datetime } count avg { connectionTime dnsTime loadEventTime pageLoadTime pageRenderTime requestTime responseTime } quantiles { dnsTimeP50 dnsTimeP90 dnsTimeP99 } } httpRequests1mGroups( orderBy: [datetime_ASC] limit: 1000 filter: { datetime_geq: \"${timestamp:datetimeutc-2min}Z\" datetime_lt: \"${timestamp:datetimeutc-1min}Z\" } ) { dimensions { datetime } sum { browserMap { pageViews uaBrowserFamily } bytes cachedBytes cachedRequests contentTypeMap { bytes requests edgeResponseContentTypeName } clientSSLMap { requests clientSSLProtocol } countryMap { bytes requests threats clientCountryName } encryptedBytes encryptedRequests ipClassMap { requests ipType } pageViews requests responseStatusMap { requests edgeResponseStatus } threats threatPathingMap { requests threatPathingName } } } } } }" }
         - name: cloudflareZoneStats
           cache: https://api.cloudflare.com/client/v4/graphql
-          jq: '.data.viewer.zones[] | ( .httpRequests1mGroups[] | (.sum|with_entries(select(.key|endswith("Map")|not))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) * ( {"zoneTag": .zoneTag} )'
+          jq: '.data.viewer.zones[] | ( .httpRequests1mGroups[] | (.sum|with_entries(select(.key|endswith("Map")|not))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) + ( {"zoneTag": .zoneTag} )'
+        - name: cloudflareZoneBrowserStats
+          cache: https://api.cloudflare.com/client/v4/graphql
+          jq: '.data.viewer.zones[] | ( .browserInsightsAdaptiveGroups[] | ( ({"count": .count}) + (.quantiles|with_entries(.key|="quantiles."+.)) + (.avg|with_entries(.key|="avg."+.))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) * ( {"zoneTag": .zoneTag} )'
         - name: cloudflareZoneMapStats
           cache: https://api.cloudflare.com/client/v4/graphql
           jq: '.data.viewer.zones[] | ( .httpRequests1mGroups[] | ( .sum|with_entries(select(.key|endswith("Map")))|with_entries(.key|="cloudflare"+sub( "(?<first>[a-z])"; .first|ascii_upcase))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) * ( {"zoneTag": .zoneTag} )'
