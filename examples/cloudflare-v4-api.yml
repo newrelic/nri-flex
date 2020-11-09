@@ -1,0 +1,21 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: cloudflareFlex
+      global:
+        headers:
+          Accept: application/json
+          Authorization: Bearer your_secret_API_token_here
+      apis:
+        - name: cloudflareRaw
+          url: https://api.cloudflare.com/client/v4/graphql
+          method: POST
+          ignore_output: true
+          payload: >
+            { "query": "query { viewer { zones { zoneTag httpRequests1mGroups( orderBy: [datetime_ASC] limit: 1000 filter: { datetime_geq: \"${timestamp:datetimeutc-2min}Z\" datetime_lt:  \"${timestamp:datetimeutc-1min}Z\" } ) { dimensions { datetime } sum { browserMap { pageViews uaBrowserFamily } bytes cachedBytes cachedRequests contentTypeMap { bytes requests edgeResponseContentTypeName } clientSSLMap { requests clientSSLProtocol } countryMap { bytes requests threats clientCountryName } encryptedBytes encryptedRequests ipClassMap { requests ipType } pageViews requests responseStatusMap { requests edgeResponseStatus } threats threatPathingMap { requests threatPathingName } } } } } }" }
+        - name: cloudflareZoneStats
+          cache: https://api.cloudflare.com/client/v4/graphql
+          jq: '.data.viewer.zones[] | ( .httpRequests1mGroups[] | (.sum|with_entries(select(.key|endswith("Map")|not))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) * ( {"zoneTag": .zoneTag} )'
+        - name: cloudflareZoneMapStats
+          cache: https://api.cloudflare.com/client/v4/graphql
+          jq: '.data.viewer.zones[] | ( .httpRequests1mGroups[] | ( .sum|with_entries(select(.key|endswith("Map")))|with_entries(.key|="cloudflare"+sub( "(?<first>[a-z])"; .first|ascii_upcase))) * ( {"timestamp": .dimensions.datetime|fromdate} ) ) * ( {"zoneTag": .zoneTag} )'
