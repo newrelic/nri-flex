@@ -63,7 +63,7 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 
 	if pingError != nil {
 		load.Logrus.WithFields(logrus.Fields{
-			"err":      err,
+			"err":      pingError,
 			"name":     yml.Name,
 			"database": api.Database,
 		}).Debug("database: ping error")
