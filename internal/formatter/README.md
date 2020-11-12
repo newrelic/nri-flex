@@ -1,6 +1,6 @@
 # formatter
 --
-    import "github.com/newrelic/nri-flex/internal/formatter"
+    import "."
 
 
 ## Usage

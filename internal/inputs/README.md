@@ -1,6 +1,6 @@
 # inputs
 --
-    import "github.com/newrelic/nri-flex/internal/inputs"
+    import "."
 
 
 ## Usage
@@ -26,6 +26,13 @@ func ParseReader(in io.Reader, ch chan<- *dto.MetricFamily) error
 ```
 ParseReader consumes an io.Reader and pushes it to the MetricFamily channel. It
 returns when all MetricFamilies are parsed and put on the channel.
+
+#### func  ParseToJSON
+
+```go
+func ParseToJSON(s []byte) (string, error)
+```
+ParseToJSON parses a html fragment or whole document looking for HTML
 
 #### func  ProcessFile
 
@@ -60,7 +67,8 @@ RunCommands executes the given commands to create one merged sampled
 ```go
 func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.API, reqURL *string)
 ```
-RunHTTP Executes HTTP Requests
+RunHTTP Executes HTTP Requests nolint: gocyclo cyclomatic complexity but easy to
+understand
 
 #### func  RunScpWithTimeout
 
@@ -72,7 +80,7 @@ RunScpWithTimeout performs scp with timeout to gather data from a remote file.
 #### func  SetJMXCommand
 
 ```go
-func SetJMXCommand(dataStore *[]interface{}, runCommand *string, command load.Command, api load.API, config *load.Config)
+func SetJMXCommand(runCommand *string, command load.Command, api load.API, config *load.Config)
 ```
 SetJMXCommand Add parameters to JMX call
 
@@ -89,3 +97,23 @@ type Family struct {
 ```
 
 Family mirrors the MetricFamily proto message.
+
+#### type Table
+
+```go
+type Table struct {
+	Attributes map[string]string
+	Headers    []string
+	Rows       [][]string
+}
+```
+
+Table holds a simple table of headers and rows.
+
+#### func  Parse
+
+```go
+func Parse(s []byte) ([]*Table, error)
+```
+Parse parses a html fragment or whole document looking for HTML tables. It
+converts all cells into text, stripping away any HTML content.

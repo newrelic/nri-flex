@@ -19,3 +19,8 @@ LATEST
 dist
 .vscode
 .envrc
+
+envvars
+flexConfigs/
+results
+pkg/
