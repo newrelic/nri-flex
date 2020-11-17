@@ -171,7 +171,7 @@ func recurseDirectory(filePath string, configs *[]load.Config) {
 }
 
 func checkIngestConfigs(config *load.Config) {
-	if (*config).FileName == "flex-lambda-ingest.yml" && load.LambdaName != "" {
+	if (*config).FileName == "flex-lambda-ingest.yml" && load.ServerlessName != "" {
 		if load.IngestData != nil {
 			(*config).Datastore = map[string][]interface{}{}
 			(*config).Datastore["IngestData"] = []interface{}{load.IngestData}

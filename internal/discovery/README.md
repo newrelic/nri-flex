@@ -1,6 +1,6 @@
 # discovery
 --
-    import "github.com/newrelic/nri-flex/internal/discovery"
+    import "."
 
 
 ## Usage

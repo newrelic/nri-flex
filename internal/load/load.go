@@ -82,11 +82,11 @@ var IsKubernetes bool
 // IsFargate basic check if running on fargate
 var IsFargate bool
 
-// LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
-var LambdaName string
+// ServerlessName if running on serverless platform
+var ServerlessName string
 
-// AWSExecutionEnv AWS execution environment
-var AWSExecutionEnv string
+// ServerlessExecutionEnv serverless execution environment
+var ServerlessExecutionEnv string
 
 // DiscoveredProcesses discovered processes
 var DiscoveredProcesses map[string]string
