@@ -119,20 +119,20 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 			}
 			*dataStore = append(*dataStore, errorSample)
 			return
-		} else {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec":       command.Run,
-				"err":        err,
-				"suggestion": "if you are handling this error case, ignore",
-			}).Debug("command: failed")
-			errorSample := map[string]interface{}{
-				"error":      err,
-				"error_msg":  string(output),
-				"error_exec": command.Run,
-			}
-			*dataStore = append(*dataStore, errorSample)
-			return
 		}
+		load.Logrus.WithFields(logrus.Fields{
+			"exec":       command.Run,
+			"err":        err,
+			"suggestion": "if you are handling this error case, ignore",
+		}).Debug("command: failed")
+		errorSample := map[string]interface{}{
+			"error":      err,
+			"error_msg":  string(output),
+			"error_exec": command.Run,
+		}
+		*dataStore = append(*dataStore, errorSample)
+		return
+
 	}
 
 	err = ctx.Err()
