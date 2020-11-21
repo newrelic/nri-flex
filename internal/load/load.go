@@ -394,9 +394,6 @@ type Command struct {
 
 	// RegexMatches
 	RegexMatches []RegMatch `yaml:"regex_matches"`
-
-	// Mask run command
-	HideErrorExec bool `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
 }
 
 // Pagination handles request pagination

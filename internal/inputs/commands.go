@@ -106,6 +106,7 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
+<<<<<<< HEAD
 		if command.HideErrorExec {
 			load.Logrus.WithFields(logrus.Fields{
 				"exec":       command.Run,
@@ -133,6 +134,20 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 		*dataStore = append(*dataStore, errorSample)
 		return
 
+=======
+		load.Logrus.WithFields(logrus.Fields{
+			"exec":       command.Run,
+			"err":        err,
+			"suggestion": "if you are handling this error case, ignore",
+		}).Debug("command: failed")
+		errorSample := map[string]interface{}{
+			"error":      err,
+			"error_msg":  string(output),
+			"error_exec": command.Run,
+		}
+		*dataStore = append(*dataStore, errorSample)
+		return
+>>>>>>> parent of a8f7b80... Added option to hide error_exec output
 	}
 
 	err = ctx.Err()
