@@ -480,6 +480,10 @@ type Command struct {
 
 	// RegexMatches
 	RegexMatches []RegMatch `yaml:"regex_matches"`
+
+	// Hide exec command from output
+	HideErrorExec bool `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
+
 }
 ```
 
