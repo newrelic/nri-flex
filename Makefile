@@ -47,7 +47,7 @@ bin:
 	@mkdir -p $(BUILD_DIR)
 
 $(GORELEASER_BIN): bin
-	@echo "=== $(PROJECT) === [ release/deps ]: Installing goreleaser"
+	@echo "=== $(PROJECT_NAME) === [ release/deps ]: Installing goreleaser"
 	@(wget -qO /tmp/goreleaser.tar.gz https://github.com/goreleaser/goreleaser/releases/download/$(GORELEASER_VERSION)/goreleaser_$(GOOS)_x86_64.tar.gz)
 	@(tar -xf  /tmp/goreleaser.tar.gz -C bin/)
 	@(rm -f /tmp/goreleaser.tar.gz)
@@ -55,7 +55,7 @@ $(GORELEASER_BIN): bin
 release/deps: $(GORELEASER_BIN)
 
 release: clean release/deps compile-only
-	@echo "=== $(PROJECT) === [ release ]: Releasing new version..."
+	@echo "=== $(PROJECT_NAME) === [ release ]: Releasing new version..."
 	@$(GORELEASER_BIN) release
 
 # Import fragments
