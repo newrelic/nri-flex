@@ -38,19 +38,20 @@ func FlexPubSub(ctx context.Context, m PubSubMessage) error {
 	return nil
 }
 
+// One time only init
+var once sync.Once
+
 // Do the actual, common, work here
 func run() {
 	log.Debugf("nriflex.run: enter")
-	// One time only init
-	var once sync.Once
 	once.Do(func() {
 		log.Debugf("nriflex.run: once.Do: enter")
 		// Generate the Function runtime singleton
 		r = runtime.GetFlexRuntime()
+		runtime.CommonPreInit()
 		log.Debugf("nriflex.run: once.Do: exit")
 	})
 
-	runtime.CommonPreInit()
 	err := runtime.RunFlex(r)
 	if err != nil {
 		load.Logrus.WithError(err).Fatal("flex: failed to run runtime")
