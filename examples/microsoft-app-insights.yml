@@ -174,41 +174,55 @@ integrations:
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/traces?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/customEvents?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/pageViews?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/browserTimings?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/requests?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/dependencies?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
         - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
           url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/exceptions?timespan=${var:app-insights-timespan}&$top=5000
           #start_key: 
           #  - value
-          rename_keys:
-            timestamp: msai_timestamp
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
