@@ -163,3 +163,15 @@ func TestSubEnvVariables(t *testing.T) {
 		t.Errorf("failed to sub all variables %v", str)
 	}
 }
+
+func TestApplyFlexMeta(t *testing.T) {
+	os.Setenv("FLEX_META", "{\"abc\":\"def\",\"hello\":123}")
+	config := load.Config{}
+	applyFlexMeta(&config)
+
+	if config.CustomAttributes["abc"] != "def" {
+		t.Errorf("failed to apply flex meta variable abc expected %v got %v", "def", config.CustomAttributes["hello"])
+	} else if config.CustomAttributes["hello"] != "123" {
+		t.Errorf("failed to apply flex meta variable hello expected %v got %v", "123", config.CustomAttributes["hello"])
+	}
+}

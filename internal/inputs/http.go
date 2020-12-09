@@ -20,6 +20,7 @@ import (
 	"time"
 
 	xj "github.com/basgys/goxml2json"
+	"github.com/newrelic/nri-flex/internal/huaweihws"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/parnurzeal/gorequest"
 	"github.com/sirupsen/logrus"
@@ -254,6 +255,25 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		request = request.TLSClientConfig(&tmpAPITLSConfig)
 	}
 
+	if api.HWSigner.Key != "" && api.HWSigner.Secret != "" {
+		signer := huaweihws.Signer{
+			Key:    api.HWSigner.Key,
+			Secret: api.HWSigner.Secret,
+		}
+		r, err := request.MakeRequest()
+		if err != nil {
+			load.Logrus.WithError(err).Error("http: signer failed to convert request for HWSigner.")
+		} else {
+			err := signer.Sign(r)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: signer failed to sign the request.")
+			} else {
+				request = request.Set(huaweihws.HeaderAuthorization, r.Header.Get(huaweihws.HeaderAuthorization))
+				request = request.Set(huaweihws.HeaderXDate, r.Header.Get(huaweihws.HeaderXDate))
+			}
+
+		}
+	}
 	return request
 }
 

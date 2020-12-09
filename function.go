@@ -51,7 +51,6 @@ func run() {
 		log.Debugf("nriflex.run: once.Do: exit")
 	})
 	runtime.CommonPreInit()
-
 	err := runtime.RunFlex(r)
 	if err != nil {
 		load.Logrus.WithError(err).Fatal("flex: failed to run runtime")

@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-//var log = load.Logrus
-
 // Test the GCP Function path without having to run on GCP
 // Use: go run test/serverless/gcp/function.go
 //      use -help to see the command line params
