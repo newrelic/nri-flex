@@ -8,6 +8,7 @@ package inputs
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -84,6 +85,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 }
 
 func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
+	command.Run = os.Getenv("FLEX_CMD_PREPEND") + command.Run + os.Getenv("FLEX_CMD_APPEND")
 	runCommand := command.Run
 	if command.Output == load.Jmx {
 		SetJMXCommand(&runCommand, command, api, yml)
