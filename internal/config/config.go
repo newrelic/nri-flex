@@ -6,6 +6,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -122,6 +123,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 			}).WithError(err).Error("config: failed to load config file")
 			return err
 		}
+		applyFlexMeta(&config)
 
 		config.FileName = f.Name()
 		config.FilePath = dirPath
@@ -380,4 +382,24 @@ func runVariableProcessor(cfg *load.Config) error {
 		*cfg = newCfg
 	}
 	return nil
+}
+
+// applyFlexMeta reads the FLEX_META variable for JSON to apply as custom_attributes
+func applyFlexMeta(cfg *load.Config) {
+	flexMetaEnv := os.Getenv("FLEX_META")
+	jsonData := []byte(flexMetaEnv)
+
+	var flexMetaJSON map[string]interface{}
+	err := json.Unmarshal(jsonData, &flexMetaJSON)
+	if err != nil {
+		return
+	}
+
+	if cfg.CustomAttributes == nil {
+		cfg.CustomAttributes = map[string]string{}
+	}
+
+	for key, value := range flexMetaJSON {
+		cfg.CustomAttributes[key] = fmt.Sprintf("%v", value)
+	}
 }
