@@ -1,10 +1,12 @@
 integrations:
   - name: nri-flex # We're telling the Infra agent to run Flex!
+    interval: 300s # run every 5 minutes
     config: # Flex configuration starts here!
       name: ms_app_insights_metrics
       variable_store:
         app-insights-base-url: https://api.applicationinsights.io
         app-insights-api: /v1/apps/
+        app-insights-timespan: PT5M # return data for the last 5 minutes
         app-id: "<APP-INSIGHTS-API-ACCESS-APP-ID>"
         api-key: "<APP-INSIGHTS-API-ACCESS-API-KEY>"
       global:
@@ -13,156 +15,214 @@ integrations:
       apis:
         # Requests
         - event_type: msAppInsightsMetricsRequestsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsMetricsRequestsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/duration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/duration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsMetricsRequestsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/failed?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/requests/failed?timespan=${var:app-insights-timespan}
 
         # Page Views
         - event_type: msAppInsightsPageViewsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/pageViews/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/pageViews/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPageViewsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/pageViews/duration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/pageViews/duration?timespan=${var:app-insights-timespan}
 
         # Browser Timings
         - event_type: msAppInsightsBrowserTimingsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/networkDuration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/networkDuration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsBrowserTimingsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/sendDuration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/sendDuration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsBrowserTimingsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/receiveDuration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/receiveDuration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsBrowserTimingsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/processingDuration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/processingDuration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsBrowserTimingsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/totalDuration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/browserTimings/totalDuration?timespan=${var:app-insights-timespan}
 
         # Users
         - event_type: msAppInsightsUsersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/users/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/users/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsUsersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/users/authenticated?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/users/authenticated?timespan=${var:app-insights-timespan}
 
         # Sessions
         - event_type: msAppInsightsSessionsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/sessions/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/sessions/count?timespan=${var:app-insights-timespan}
 
         # Custom Events
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents/count?timespan=${var:app-insights-timespan}
 
         # Dependencies
         - event_type: msAppInsightsDependenciesSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsDependenciesSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/failed?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/failed?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsDependenciesSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/duration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/dependencies/duration?timespan=${var:app-insights-timespan}
 
         # Exceptions
         - event_type: msAppInsightsExceptionsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsExceptionsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/browser?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/browser?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsExceptionsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/server?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/exceptions/server?timespan=${var:app-insights-timespan}
 
         # Availability Results
         - event_type: msAppInsightsAvailabilityResultsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsAvailabilityResultsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/duration?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/duration?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsAvailabilityResultsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/availabilityPercentage?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/availabilityResults/availabilityPercentage?timespan=${var:app-insights-timespan}
 
         # Billing Meters
         - event_type: msAppInsightsBillingMetersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/billingMeters/telemetryCount?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/billingMeters/telemetryCount?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsBillingMetersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/billingMeters/telemetrySize?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/billingMeters/telemetrySize?timespan=${var:app-insights-timespan}
 
         # Performance Counters
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestExecutionTime?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestExecutionTime?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestsPerSecond?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestsPerSecond?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestsInQueue?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/requestsInQueue?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/memoryAvailableBytes?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/memoryAvailableBytes?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/exceptionsPerSecond?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/exceptionsPerSecond?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processCpuPercentage?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processCpuPercentage?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processCpuPercentageTotal?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processCpuPercentageTotal?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processIOBytesPerSecond?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processIOBytesPerSecond?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processPrivateBytes?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processPrivateBytes?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsPerformanceCountersSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processorCpuPercentage?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/performanceCounters/processorCpuPercentage?timespan=${var:app-insights-timespan}
 
         # Traces
         - event_type: msAppInsightsTracesSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/traces/count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/traces/count?timespan=${var:app-insights-timespan}
 
         # Custom Metrics
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CCPU%20Usage?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CCPU%20Usage?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CWorking%20Set?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CWorking%20Set?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGC%20Heap%20Size?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGC%20Heap%20Size?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%200%20GC%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%200%20GC%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%201%20GC%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%201%20GC%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%202%20GC%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%202%20GC%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CException%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CException%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Thread%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Thread%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CMonitor%20Lock%20Contention%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CMonitor%20Lock%20Contention%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Queue%20Length?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Queue%20Length?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Completed%20Work%20Item%20Count?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CThreadPool%20Completed%20Work%20Item%20Count?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7C%25%20Time%20in%20GC%20since%20last%20GC?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7C%25%20Time%20in%20GC%20since%20last%20GC?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%200%20Size?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%200%20Size?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%201%20Size?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%201%20Size?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%202%20Size?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CGen%202%20Size?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CLOH%20Size?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CLOH%20Size?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CAllocation%20Rate?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CAllocation%20Rate?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CNumber%20of%20Assemblies%20Loaded?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CNumber%20of%20Assemblies%20Loaded?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CNumber%20of%20Active%20Timers?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FSystem.Runtime%7CNumber%20of%20Active%20Timers?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomMetricsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FHeartbeatState?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customMetrics%2FHeartbeatState?timespan=${var:app-insights-timespan}
 
         # Custom Events
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSkippedExceptions?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSkippedExceptions?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FCannotSnapshotDueToMemoryUsage?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FCannotSnapshotDueToMemoryUsage?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FFirstChanceExceptions?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FFirstChanceExceptions?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnapshotDailyRateLimitReached?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnapshotDailyRateLimitReached?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnapshotRateLimitExceeded?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnapshotRateLimitExceeded?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnappointMatchExceptions?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FSnappointMatchExceptions?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FCollectionPlanComplete?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FCollectionPlanComplete?timespan=${var:app-insights-timespan}
         - event_type: msAppInsightsCustomEventsSample # Name of the event in New Relic
-          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FTrackExceptionCalls?timespan=P1D
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/metrics/customEvents%2Fcustom%2FTrackExceptionCalls?timespan=${var:app-insights-timespan}
+
+        # Event Requests
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/traces?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/customEvents?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/pageViews?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/browserTimings?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/requests?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/dependencies?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
+        - event_type: msAppInsightsEventRequestsSample # Name of the event in New Relic
+          url: ${var:app-insights-base-url}${var:app-insights-api}${var:app-id}/events/exceptions?timespan=${var:app-insights-timespan}&$top=5000
+          #start_key: 
+          #  - value
+          #rename_keys:
+          #  timestamp: msai_timestamp
+          timestamp_conversion:
+            timestamp: TIMESTAMP::ISO8601
