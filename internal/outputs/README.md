@@ -18,7 +18,6 @@ GetMetricBatches batch metrics by entity with a maximum batch size defined by
 ```go
 func InfraIntegration() error
 ```
-InfraIntegration Creates Infrastructure SDK Integration
 
 #### func  SendBatchToInsights
 

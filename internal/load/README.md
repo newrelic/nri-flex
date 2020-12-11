@@ -240,6 +240,7 @@ type API struct {
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
 	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
+	HWSigner          HWSigner          `yaml:"hw_signer"` // Huawei Cloud Service API signer
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -481,9 +482,8 @@ type Command struct {
 	// RegexMatches
 	RegexMatches []RegMatch `yaml:"regex_matches"`
 
-	// Hide exec command from output
+	// Mask run command
 	HideErrorExec bool `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
-
 }
 ```
 
@@ -628,6 +628,17 @@ type Global struct {
 ```
 
 Global struct
+
+#### type HWSigner
+
+```go
+type HWSigner struct {
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
+}
+```
+
+HWSigner struct
 
 #### type JMX
 

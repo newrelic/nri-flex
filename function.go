@@ -10,6 +10,8 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/runtime"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 )
 
@@ -56,5 +58,9 @@ func run() {
 		load.Logrus.WithError(err).Fatal("flex: failed to run runtime")
 	}
 	runtime.CommonPostInit()
+	if strings.ToLower(os.Getenv("RunOnce")) == "true" {
+		log.Debugf("nriflex.run: exiting with rc 0")
+		os.Exit(0)
+	}
 	log.Debugf("nriflex.run: exit")
 }
