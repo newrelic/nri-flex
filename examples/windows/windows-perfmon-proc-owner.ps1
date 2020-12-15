@@ -2,9 +2,16 @@ $computername = "DESKTOP-26GUTUU"
 $colProcs = Get-wmiobject win32_process -computername $computername  -Credential $credential | select *, @{Name = "Owner"; Expression = { ($_.GetOwner()).User } }
 $colPerfs = Get-wmiobject win32_perfformatteddata_perfproc_process -computername $computername  -Credential $credential
 $colTasklist = @()
+$NR_JSON = '['
+$cnt = 0;
+$results = New-Object -TypeName psobject
  
 foreach ($perf in $colPerfs) {
     if ($perf.Name.StartsWith("w3wp")) {
+        if ($cnt -gt 0) {
+            $NR_JSON += ','
+        }
+  
         $proc = $colProcs | Where-Object { $_.ProcessId -eq $perf.IDProcess }
         $process = New-Object System.Object
         $process | Add-Member -MemberType NoteProperty -name "PerfName" -value $perf.Name 
@@ -37,7 +44,18 @@ foreach ($perf in $colPerfs) {
         $process | Add-Member -MemberType NoteProperty -name "ProcOwner" -value $proc.Owner
 
         $colTasklist += $process
+		
+        $NR_JSON += '{'
+        $NR_JSON += "'PerfName': '" + $perf.Name + "',"
+        $NR_JSON += " 'ProcOwner': '" + $proc.Owner + "'"
+        $NR_JSON += '}'
+  
+        $cnt += 1
     }
 }
+$NR_JSON += ']'
 
 $colTasklist | ConvertTo-Json
+#$NR_JSON
+#Write-Host $NR_JSON 
+#$colTasklist | Sort-Object PercentProcessorTime -Desc
