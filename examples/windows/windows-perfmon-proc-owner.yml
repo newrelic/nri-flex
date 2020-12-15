@@ -6,5 +6,5 @@ integrations:
         # Event Requests
         - event_type: msPerfProcOwner # Name of the event in New Relic
           commands:
-            - run: "C:/Program Files/New Relic/newrelic-infra/integrations.d/msPerfProcOwner.bat"
+            - run: "C:/Program Files/New Relic/newrelic-infra/integrations.d/windows-perfmon-proc-owner.bat"
               timeout: 15000
