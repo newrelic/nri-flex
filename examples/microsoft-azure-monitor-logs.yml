@@ -7,5 +7,5 @@ integrations:
         - event_type: msAzureMonitorStatus # Name of the event in New Relic
           commands:
             #- run: /etc/newrelic-infra/integrations.d/exec.sh
-            - run: dotnet /etc/newrelic-infra/integrations.d/event-hubs-receiver.dll <NEWRELIC_LICENSE_KEY>
+            - run: dotnet /etc/newrelic-infra/integrations.d/ms_azure_monitor_event_hubs_receiver.dll <NEWRELIC_LICENSE_KEY>
               timeout: 59000
