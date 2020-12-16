@@ -53,6 +53,7 @@ type ArgumentList struct {
 	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
+	AllowEnvCommands     bool   `default:"false" help:"enable to allow the use of FLEX_CMD_PREPEND & FLEX_CMD_APPEND"`
 }
 
 // Args Infrastructure SDK Arguments List
