@@ -85,7 +85,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 }
 
 func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
-	command.Run = os.Getenv("FLEX_CMD_PREPEND") + command.Run + os.Getenv("FLEX_CMD_APPEND")
+	command.Run = envCommandCheck(command.Run)
 	runCommand := command.Run
 	if command.Output == load.Jmx {
 		SetJMXCommand(&runCommand, command, api, yml)
@@ -161,6 +161,19 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 			processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 		}
 	}
+}
+
+// checks if explicitedly enabled log
+func envCommandCheck(commandStr string) string {
+	if load.Args.AllowEnvCommands {
+		load.Logrus.WithFields(logrus.Fields{
+			"command": commandStr,
+			"prepend": os.Getenv("FLEX_CMD_PREPEND"),
+			"append":  os.Getenv("FLEX_CMD_APPEND"),
+		}).Info("command: environment modification enabled")
+		return os.Getenv("FLEX_CMD_PREPEND") + commandStr + os.Getenv("FLEX_CMD_APPEND")
+	}
+	return commandStr
 }
 
 func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
