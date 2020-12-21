@@ -6,6 +6,7 @@
 package inputs
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -221,4 +222,22 @@ func TestDf2(t *testing.T) {
 		actualValue := actual[key]
 		assert.Equal(t, expectedValue, actualValue)
 	}
+}
+
+func TestEnvCommandCheck(t *testing.T) {
+	load.Refresh()
+
+	os.Setenv("FLEX_CMD_PREPEND", "echo hi && ")
+
+	command := "echo hello"
+	command = envCommandCheck(command)
+
+	// should not be modified
+	assert.Equal(t, "echo hello", command)
+
+	// should now be modified
+	load.Args.AllowEnvCommands = true
+	command = envCommandCheck(command)
+	assert.Equal(t, "echo hi && echo hello", command)
+
 }
