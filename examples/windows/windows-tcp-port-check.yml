@@ -1,0 +1,17 @@
+# This config will test connections to remote and local TCP ports
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+# lookup_file: https://github.com/newrelic/nri-flex/blob/master/docs/basics/functions.md#lookup_file
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: winTCP
+      lookup_file: "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\flexAssets\\windows-tcp-port-check-lookup.json"
+      apis:
+        - event_type: tcpPortCheck
+          shell: powershell
+          # Increasing the default 10000ms (10s) timeout to allow for ~20s failure time on unresolved target hosts and ports
+          timeout: 25000
+          commands:
+            - run: "Test-NetConnection -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -ComputerName \"${lf:targetHost}\" -Port ${lf:targetPort} | Select-Object -Property @{ Name = \"TargetHost\"; Expression = { $_.ComputerName } }, @{ Name = \"TargetIP\"; Expression ={ if( $_.RemoteAddress.IPAddressToString -eq $null ){ \"\" }else{ $_.RemoteAddress.IPAddressToString } } }, @{ Name = \"TargetPort\"; Expression = { $_.RemotePort } },  @{ Name = \"SourceAddress\"; Expression ={ if( $_.SourceAddress.IPAddress -eq $null ){ \"\" }else{  $_.SourceAddress.IPAddress } } }, @{ Name = \"TestResult\"; Expression = { $_.TcpTestSucceeded } } | ConvertTo-Json" 
