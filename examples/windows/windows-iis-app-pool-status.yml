@@ -1,0 +1,13 @@
+# This config will enumerate the current status of all local IIS Application Pools
+# We're using "Get-Website | Get-WebAppPoolState" here so you don't have to load the IISAdministration module for more advanced cmdlets
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: iisAppPools
+      apis:
+        - event_type: appPoolCheck
+          shell: powershell
+          commands:
+            - run: "Get-Website | ForEach-Object{ $appPool = $_.applicationPool; Get-WebAppPoolState -Name $appPool } | Select-Object -Property @{ Name = 'AppPool'; Expression = { $appPool } }, @{ Name = 'Status'; Expression = { $_.Value } } | ConvertTo-Json"
