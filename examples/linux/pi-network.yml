@@ -1,0 +1,26 @@
+# Counts total number of lines in one or more files
+# Update linux-file-linecount.json lookup file and
+# place in /etc/newrelic-infra/integrations.d
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: pi-stats
+      #lookup_file: /etc/newrelic-infra/integrations.d/linux-file-linecount.json
+      apis:
+        - event_type: interfaceLinkSample
+          commands:
+            - run: ethtool eth0 2> /dev/null | egrep '(Speed|Duplex|Auto-negotiation|detected)' | sed 's/\t*//g' 
+              split_by: ": "
+  - name: nri-flex
+    config:
+      name: pi-stats2
+      apis:
+        - event_type: usbStatusSample
+          commands:
+            - run: /home/pi/flex/lsusb_parse.sh
+              split: horizontal
+              set_header: [bus,device,id,description]
+              split_by: ";"
+      
