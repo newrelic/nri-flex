@@ -1,6 +1,6 @@
-# Counts total number of lines in one or more files
-# Update linux-file-linecount.json lookup file and
-# place in /etc/newrelic-infra/integrations.d
+# Place both lsusb_parse.sh and pi-network.yml
+# in /etc/newrelic-infra/integrations.d
+
 ---
 integrations:
   - name: nri-flex
@@ -19,7 +19,7 @@ integrations:
       apis:
         - event_type: usbStatusSample
           commands:
-            - run: /home/pi/flex/lsusb_parse.sh
+            - run: /etc/newrelic-infra/integrations.d/lsusb_parse.sh
               split: horizontal
               set_header: [bus,device,id,description]
               split_by: ";"
