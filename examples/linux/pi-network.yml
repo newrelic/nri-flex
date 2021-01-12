@@ -1,26 +1,47 @@
-# Place both lsusb_parse.sh and pi-network.yml
-# in /etc/newrelic-infra/integrations.d
-
+# Place pi-network.yaml in /etc/newrelic-infra/integrations.d and restart the newrelic-infra agent
+# Tested on an armv7l Pi
 ---
 integrations:
   - name: nri-flex
-    # interval: 30s
     config:
-      name: pi-stats
-      #lookup_file: /etc/newrelic-infra/integrations.d/linux-file-linecount.json
+      name: interfaceLinkStatus
       apis:
-        - event_type: interfaceLinkSample
+        # Let's get a list of interfaces and save them for the next command
+        - name: interfaceLink
+          event_type: interfaceLookup
           commands:
-            - run: ethtool eth0 2> /dev/null | egrep '(Speed|Duplex|Auto-negotiation|detected)' | sed 's/\t*//g' 
+            - run: ip link | egrep '^[0-9]' | awk '{gsub(/:/,"",$2); print $2}'
+              set_header: [interface]
+              split: horizontal
+              split_by: ":"
+          ignore_output: true
+        # Use the lookup to loop through the interface list and parse the output
+        - name: interfaceLink
+          event_type: interfaceLinkSample
+          commands:
+            - run: ethtool ${lookup.interfaceLookup:interface} 2> /dev/null | egrep '(Speed|Duplex|Auto-negotiation|detected)' | sed 's/\t*//g'
               split_by: ": "
+          convert_space: "_"
+          to_lower: true
+          custom_attributes:
+            interface: ${lookup.interfaceLookup:interface}
   - name: nri-flex
     config:
-      name: pi-stats2
+      name: usbStatus
       apis:
+        # Captures all connected USB devices
         - event_type: usbStatusSample
           commands:
-            - run: /etc/newrelic-infra/integrations.d/lsusb_parse.sh
+            - run: lsusb | while read line; do PART1=$(echo $line | awk '{gsub(/:$/,"",$4); print $2";"$4";"$6}'); PART2=$(echo $line | cut -d" " -f 7-); echo $PART1\;$PART2; done
               split: horizontal
               set_header: [bus,device,id,description]
               split_by: ";"
+          metric_parser:
+            namespace:
+              existing_attr:
+                - device
+                - bus
+            metrics:
+              bus: ATTRIBUTE
+              device: ATTRIBUTE
       
