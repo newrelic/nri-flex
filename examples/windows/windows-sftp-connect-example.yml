@@ -9,11 +9,11 @@ integrations:
     config:
       name: sftpConnect
       apis:
-        - name: sftpConnect
+        - event_type: sftpConnect
           shell: powershell
           commands:
             - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-sftp-connect-script\" -TargetHost somehost.com -Username sftptest -Password password123"
-        - name: sftpConnect
+        - event_type: sftpConnect
           shell: powershell
           commands:
             # use back ticks to escape special chars

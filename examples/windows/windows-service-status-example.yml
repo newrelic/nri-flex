@@ -8,7 +8,7 @@ integrations:
     config:
       name: winServiceStatus
       apis:
-        - name: winServiceStatus
+        - event_type: winServiceStatus
           shell: powershell
           commands:
             - run: "Get-Service | Select-Object -Property @{ Name = \"ServiceName\"; Expression = { $_.Name } }, @{ Name = \"ServiceDisplayName\"; Expression = { $_.DisplayName } }, @{ Name = \"ServiceStatus\"; Expression = { switch ( $_.Status | ConvertTo-Json ) { 1 { \"Stopped\" } 2 { \"StartPending\" } 3 { \"StopPending\" } 4 { \"Running\" } 5 { \"ContinuePending\" } 6 { \"PausePending\" } 7 { \"Paused\" } } } } | ConvertTo-Json"
