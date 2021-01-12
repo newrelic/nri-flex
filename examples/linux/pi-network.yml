@@ -1,5 +1,6 @@
+# Ensure nri-flex is installed in /var/db/newrelic-infra/newrelic-integrations/bin
 # Place pi-network.yaml in /etc/newrelic-infra/integrations.d and restart the newrelic-infra agent
-# Tested on an armv7l Pi
+# Tested on an armv7l Rapsberry Pi
 ---
 integrations:
   - name: nri-flex
