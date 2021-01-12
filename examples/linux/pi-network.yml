@@ -4,7 +4,7 @@
 # 
 # NRQL Examples:
 # SELECT bus, device, id, description FROM usbStatusSample
-# SELECT speed, duplex, link_detected, auto_negotiation FROM interfaceLinkSample
+# SELECT interface, speed, duplex, link_detected, auto_negotiation FROM interfaceLinkSample
 ---
 integrations:
   - name: nri-flex
