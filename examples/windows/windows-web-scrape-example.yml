@@ -9,7 +9,7 @@ integrations:
     config:
       name: winScraper
       apis:
-        - name: winScraper
+        - event_type: winScraper
           shell: powershell
           commands:
             - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-web-scrape-script.ps1\" -Target \"www.swapi.co\""

@@ -5,7 +5,7 @@ integrations:
     config:
       name: winSvc
       apis:
-        - name: winSvc
+        - event_type: winSvc
           commands:
             - run: wmic service get DisplayName,ExitCode,Name,PathName,ProcessId,ServiceSpecificExitCode,Started,StartMode,StartName,State,Status,WaitHint /format:csv
               split: horizontal
