@@ -10,7 +10,7 @@ integrations:
       name: winPing
       lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-lookup.json"
       apis:
-        - name: winPing
+        - event_type: winPing
           shell: powershell
           commands:
             - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-ping-script\" -Target ${lf:target} -Count ${lf:count}"
