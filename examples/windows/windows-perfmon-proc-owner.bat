@@ -1,3 +1,3 @@
 @echo off
-Powershell -File "C:\Program Files\New Relic\newrelic-infra\integrations.d\msPerfProcOwner.ps1"
+Powershell -File "C:\Program Files\New Relic\newrelic-infra\integrations.d\windows-perfmon-proc-owner.ps1"
 exit /b 0
