@@ -245,6 +245,9 @@ func TestEnvCommandCheck(t *testing.T) {
 	os.Setenv("FLEX_CMD_WRAP", "true")
 	commandWrap := envCommandCheck("echo hello")
 	assert.Equal(t, "\"echo hello\"", commandWrap)
+
+	// disable modifications to not effect other tests
+	load.Args.AllowEnvCommands = false
 }
 
 func TestAssert(t *testing.T) {
