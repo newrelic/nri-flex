@@ -250,9 +250,9 @@ Note both options use regex.
 integrations:
   - name: nri-flex
     config:
-      name: VodafoneSpeedtestIntegration
+      name: SomeIntegration
       apis:
-        - event_type: VodafoneSpeedSample
+        - event_type: SomeSample
           commands:
             - run: "echo hi:bye"
               split_by: ":"
@@ -265,9 +265,9 @@ integrations:
 integrations:
   - name: nri-flex
     config:
-      name: VodafoneSpeedtestIntegration
+      name: SomeIntegration
       apis:
-        - event_type: VodafoneSpeedSample
+        - event_type: SomeSample
           commands:
             - run: "echo hi:bye"
               split_by: ":"
@@ -280,9 +280,9 @@ integrations:
 integrations:
   - name: nri-flex
     config:
-      name: VodafoneSpeedtestIntegration
+      name: SomeIntegration
       apis:
-        - event_type: VodafoneSpeedSample
+        - event_type: SomeSample
           commands:
             - run: "echo hi:bye"
               split_by: ":"
