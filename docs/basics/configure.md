@@ -237,3 +237,4 @@ integrations: # OHI configuration starts here
 - `FLEX_META` - setting this environment variable with a flat JSON payload will unpack this into global custom attributes.
 - `FLEX_CMD_PREPEND` - automatically prepend to commands being run (Requires AllowEnvCommands enabled).
 - `FLEX_CMD_APPEND` - automatically append to a commands being run (Requires AllowEnvCommands enabled).
+- `FLEX_CMD_WRAP` - automatically wrap the command in quotes (Requires AllowEnvCommands enabled).
