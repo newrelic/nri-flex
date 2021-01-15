@@ -121,7 +121,7 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 
 	output, err := cmd.CombinedOutput()
 
-	// check assertion, if the result is false return immediately
+	// check if a assertion is defined and successfully passes before continuing, see function for detailed comments
 	if !checkAssertion(command.Assert, output) {
 		load.Logrus.WithFields(logrus.Fields{
 			"name": yml.Name,
