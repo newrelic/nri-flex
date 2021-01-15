@@ -504,7 +504,11 @@ func buildCommand(ctx context.Context, api load.API, command load.Command) *exec
 	return exec.CommandContext(ctx, commandShell, secondParameter, command.Run)
 }
 
-// checkAssertion check the assertion
+// checkAssertion perform output based assertions
+// when a match or not_match value is defined in the command section an assertion will be performed
+// if only match is defined, and the output successfully matches it will continue
+// if only not_match is defined, and the output successfully does not contain the output it will continue
+// if both match and not_match is defined, both the above must be true to continue
 func checkAssertion(assert load.Assert, output []byte) bool {
 
 	// return true if no matches defined
