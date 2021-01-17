@@ -1,0 +1,78 @@
+# MongoDB Atlas Monitoring API Documentation https://docs.atlas.mongodb.com/reference/api/monitoring-and-logs
+# Special thanks to Haihong Ren for the assistance.
+integrations:
+  # Retrieve the list of processes. Then for each process, retrieve related databases.
+  - name: nri-flex
+    config:
+      name: mongoAtlas
+      apis:
+        - name: MongoDbAtlasProcessList
+          event_type: MongoDbAtlasProcessListSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL"
+          strip_keys:
+            - links
+          ignore_output: true
+        - name: MongoDbAtlasProcess
+          event_type: MongoDbAtlasProcessSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL/${lookup.MongoDbAtlasProcessListSample:id}/measurements?granularity=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&period=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&pretty=true"
+          jq: .measurements | map(select(.dataPoints[0].value != null)) | map({(.name):.dataPoints[0].value})|add
+          custom_attributes:
+            processId: ${lookup.MongoDbAtlasProcessListSample:id}
+            userAlias: ${lookup.MongoDbAtlasProcessListSample:userAlias}
+        - name: MongoDbAtlasDatabaseList
+          event_type: MongoDbAtlasDatabaseListSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL/${lookup.MongoDbAtlasProcessListSample:id}/databases"
+          strip_keys:
+            - links
+          ignore_output: true
+          add_attribute:
+            dblink: ${lookup.MongoDbAtlasProcessListSample:id}/databases/${databaseName}
+          custom_attributes:
+            processId: ${lookup.MongoDbAtlasProcessListSample:id}
+            userAlias: ${lookup.MongoDbAtlasProcessListSample:userAlias}
+        - name: MongoDbAtlasDatabase
+          event_type: MongoDbAtlasDatabaseSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL/${lookup.MongoDbAtlasDatabaseListSample:dblink}/measurements?granularity=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&period=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&pretty=true"
+          jq: .measurements | map(select(.dataPoints[0].value != null)) | map({(.name):.dataPoints[0].value}) | add
+          custom_attributes:
+            databaseName: ${lookup.MongoDbAtlasDatabaseListSample:databaseName}
+            processId: ${lookup.MongoDbAtlasDatabaseListSample:processId}
+            userAlias: ${lookup.MongoDbAtlasDatabaseListSample:userAlias}
+  # To circumvent a weird "index out of range" exception, the process list needs to be retrieved again. Then for each process, retrieve related disks.
+  - name: nri-flex
+    config:
+      name: mongoAtlas
+      apis:
+        - name: MongoDbAtlasProcessList2
+          event_type: MongoDbAtlasProcessListSample2
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL"
+          strip_keys:
+            - links
+          ignore_output: true
+        - name: MongoDbAtlasDiskList
+          event_type: MongoDbAtlasDiskListSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL/${lookup.MongoDbAtlasProcessListSample2:id}/disks"
+          strip_keys:
+            - links
+          ignore_output: true
+          add_attribute:
+            disklink: ${lookup.MongoDbAtlasProcessListSample2:id}/disks/${partitionName}
+          custom_attributes:
+            processId: ${lookup.MongoDbAtlasProcessListSample2:id}
+            userAlias: ${lookup.MongoDbAtlasProcessListSample2:userAlias}
+        - name: MongoDbAtlasDisk
+          event_type: MongoDbAtlasDiskSample
+          commands:
+            - run: curl -s -u "$$MONGODB_ATLAS_API_PUBLIC_KEY:$$MONGODB_ATLAS_API_PRIVATE_KEY" --digest "$$MONGODB_ATLAS_BASE_URL/${lookup.MongoDbAtlasDiskListSample:disklink}/measurements?granularity=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&period=$$MONGODB_ATLAS_PERIOD_AND_GRANULARITY&pretty=true"
+          jq: >-
+            .measurements | map(select(.dataPoints[0].value != null)) | map({(.name):.dataPoints[0].value}) | add
+          custom_attributes:
+            partitionName: ${lookup.MongoDbAtlasDiskListSample:partitionName}
+            processId: ${lookup.MongoDbAtlasDiskListSample:processId}
+            userAlias: ${lookup.MongoDbAtlasDiskListSample:userAlias}
