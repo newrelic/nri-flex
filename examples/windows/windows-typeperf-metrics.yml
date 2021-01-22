@@ -1,0 +1,24 @@
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: WindowsTypePerfMetrics
+      custom_attributes:
+        operatingSystem: windows
+      #  Other available counters https://github.com/craignicholson/typeperf/blob/master/counters.txt
+      apis:
+        - name: System
+          commands:
+            - run: typeperf -sc 1 "\Processor(_total)\% Processor Time" "\Memory\Committed Bytes" "\Memory\Available Bytes" "\LogicalDisk(*)\% Free Space" "\LogicalDisk(*)\Free Megabytes"
+              split_output: Processor
+              regex_matches:
+                - expression: .+,\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\"
+                  keys:
+                    [
+                      cpuPercent,
+                      memoryCommittedBytes,
+                      memoryAvailableBytes,
+                      logicalDiskFreeSpacePercent,
+                      logicalDiskFreeMegabytes,
+                    ]
