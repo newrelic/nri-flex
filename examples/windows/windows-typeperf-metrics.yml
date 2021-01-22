@@ -10,11 +10,11 @@ integrations:
       apis:
         - name: System
           commands:
-            - run: typeperf -sc 1 "\Processor(_total)\% Processor Time" "\Memory\Committed Bytes" "\Memory\Available Bytes" "\LogicalDisk(_total)\% Free Space" "\LogicalDisk(_total)\Free Megabytes"
-              shell: powershell
+            # intentionally accessing powershell like this rather then setting via shell so this can be used as a remote integration automatically
+            - run: powershell /c typeperf -sc 1 '\Processor(_total)\% Processor Time' '\Memory\Committed Bytes' '\Memory\Available Bytes' '\LogicalDisk(_total)\% Free Space' '\LogicalDisk(_total)\Free Megabytes' '\Network Interface(*)\Bytes Received/sec' '\Network Interface(*)\Bytes Sent/sec'
               split_output: Processor
               regex_matches:
-                - expression: .+,\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\"
+                - expression: .+,\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\"
                   keys:
                     [
                       cpuPercent,
@@ -22,4 +22,6 @@ integrations:
                       memoryAvailableBytes,
                       logicalDiskFreeSpacePercent,
                       logicalDiskFreeMegabytes,
+                      networkInterfaceBytesRecievedPerSec,
+                      networkInterfaceBytesSentsPerSec,
                     ]
