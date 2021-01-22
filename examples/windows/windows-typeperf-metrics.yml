@@ -10,10 +10,11 @@ integrations:
       apis:
         - name: System
           commands:
-            - run: typeperf -sc 1 "\Processor(_total)\% Processor Time" "\Memory\Committed Bytes" "\Memory\Available Bytes" "\LogicalDisk(*)\% Free Space" "\LogicalDisk(*)\Free Megabytes"
+            - run: typeperf -sc 1 "\Processor(_total)\% Processor Time" "\Memory\Committed Bytes" "\Memory\Available Bytes" "\LogicalDisk(_total)\% Free Space" "\LogicalDisk(_total)\Free Megabytes"
+              shell: powershell
               split_output: Processor
               regex_matches:
-                - expression: .+,\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\"
+                - expression: .+,\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\",\"(\d+.\d+)\"
                   keys:
                     [
                       cpuPercent,
