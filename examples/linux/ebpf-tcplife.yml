@@ -9,7 +9,7 @@ integrations:
           commands:
             # your tcplife binary may differ so update as needed
             # command is wrapped within script as tcplife outputs to tty and not stdout/stderr
-            - run: script -q -c 'timeout 20 tcplife-bpfcc -stT || true' # capture for 20 seconds
+            - run: script -q -c 'sudo timeout 20 tcplife-bpfcc -stT || true' # capture for 20 seconds
               timeout: 21000
               row_start: 3
               split: horizontal

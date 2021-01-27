@@ -63,6 +63,7 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 			newConfig := integration.Config
 			newConfig.FileName = fileName
 			newConfig.FilePath = filePath
+			applyFlexMeta(&newConfig)
 
 			if newConfig.Name == "" {
 				load.Logrus.WithFields(logrus.Fields{
@@ -123,6 +124,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 			}).WithError(err).Error("config: failed to load config file")
 			return err
 		}
+
 		applyFlexMeta(&config)
 
 		config.FileName = f.Name()
@@ -389,9 +391,15 @@ func applyFlexMeta(cfg *load.Config) {
 	flexMetaEnv := os.Getenv("FLEX_META")
 	jsonData := []byte(flexMetaEnv)
 
+
+	load.Logrus.Infof("FLEX META DEBUG - CONFIG: %v - OUTPUT: %v", cfg.Name, flexMetaEnv)
+
+
+
 	var flexMetaJSON map[string]interface{}
 	err := json.Unmarshal(jsonData, &flexMetaJSON)
 	if err != nil {
+		load.Logrus.Infof("FLEX META ERROR: %v", err.Error())
 		return
 	}
 
