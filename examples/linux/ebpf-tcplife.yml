@@ -1,0 +1,34 @@
+---
+integrations:
+  - name: nri-flex
+    interval: 30s
+    config:
+      name: EBPF-Tcplife
+      apis:
+        - name: Tcplife
+          commands:
+            # your tcplife binary may differ so update as needed
+            # command is wrapped within script as tcplife outputs to tty and not stdout/stderr
+            - run: script -q -c 'timeout 20 tcplife-bpfcc -stT || true' # capture for 20 seconds
+              timeout: 21000
+              row_start: 3
+              split: horizontal
+              regex_match: true
+              split_by: (\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+)
+              set_header:
+                [
+                  time,
+                  time.s,
+                  pid,
+                  comm,
+                  ip,
+                  localAddress,
+                  localAddressPort,
+                  foreignAddress,
+                  foreignAddressPort,
+                  txKb,
+                  rxKb,
+                  ms,
+                ]
+              assert:
+                not_match: not found
