@@ -125,7 +125,7 @@ func stripChars(input string) string {
 			result = append(result, " ") // replace tab with space
 		case unicode.IsPunct(i):
 			result = append(result, " ") // replace tab with space
-		case !unicode.IsSpace(i):
+		default:
 			result = append(result, string(i))
 		}
 	}
