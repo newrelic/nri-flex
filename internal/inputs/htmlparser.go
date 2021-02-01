@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -103,14 +104,32 @@ func Parse(s []byte) ([]*Table, error) {
 
 func innerText(n *html.Node) string {
 	if n.Type == html.TextNode {
-		stripCR := strings.Replace(n.Data, "\n", "", -1)
-		return stripCR
+		stripResult := stripChars(n.Data)
+		return stripResult
 	}
 	result := ""
 	for x := n.FirstChild; x != nil; x = x.NextSibling {
 		result += innerText(x)
 	}
 	return result
+}
+
+func stripChars(input string) string {
+	var result []string
+
+	for _, i := range input {
+		switch {
+		// all these considered as space, including tab \t
+		// '\t', '\n', '\v', '\f', '\r',' ', 0x85, 0xA0
+		case unicode.IsSpace(i):
+			result = append(result, " ") // replace tab with space
+		case unicode.IsPunct(i):
+			result = append(result, " ") // replace tab with space
+		case !unicode.IsSpace(i):
+			result = append(result, string(i))
+		}
+	}
+	return strings.Join(result, "")
 }
 
 func containTable(n *html.Node) bool {
