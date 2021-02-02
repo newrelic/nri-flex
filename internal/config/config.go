@@ -63,6 +63,7 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 			newConfig := integration.Config
 			newConfig.FileName = fileName
 			newConfig.FilePath = filePath
+			applyFlexMeta(&newConfig)
 
 			if newConfig.Name == "" {
 				load.Logrus.WithFields(logrus.Fields{
@@ -107,7 +108,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 
 	// Check if V4 Agent configuration
 	// The agent config check is intended for testing purposes only
-	if strings.Contains(ymlStr, "- name: nri-flex") {
+	if strings.Contains(ymlStr, "name: nri-flex") {
 		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
@@ -123,6 +124,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 			}).WithError(err).Error("config: failed to load config file")
 			return err
 		}
+
 		applyFlexMeta(&config)
 
 		config.FileName = f.Name()

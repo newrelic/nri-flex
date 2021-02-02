@@ -53,7 +53,8 @@ type ArgumentList struct {
 	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
-	AllowEnvCommands     bool   `default:"false" help:"enable to allow the use of FLEX_CMD_PREPEND & FLEX_CMD_APPEND"`
+	AllowEnvCommands     bool   `default:"false" help:"enable to allow the use of FLEX_CMD_PREPEND, FLEX_CMD_APPEND & FLEX_CMD_WRAP"`
+	StdinPipe            bool   `default:"false" help:"use cmd.StdinPipe for commands"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -379,7 +380,6 @@ type Command struct {
 	Dial             string            `yaml:"dial"`              // eg. google.com:80
 	Network          string            `yaml:"network"`           // default tcp
 	OS               string            `yaml:"os"`                // default empty for any operating system, if set will check if the OS matches else will skip execution
-
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
 	SplitBy     string `yaml:"split_by"`     // character/match to split by
@@ -398,7 +398,14 @@ type Command struct {
 	RegexMatches []RegMatch `yaml:"regex_matches"`
 
 	// Mask run command
-	HideErrorExec bool `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
+	HideErrorExec bool   `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
+	Assert        Assert `yaml:"assert"`          // use command as an assertion to block other commands unless successful
+}
+
+// Assert uses command as an assertion to block or pass following commands
+type Assert struct {
+	Match    string `yaml:"match"`     // containue if output matches this string
+	NotMatch string `yaml:"not_match"` // continue if output does not match this string
 }
 
 // Pagination handles request pagination

@@ -5,7 +5,7 @@ integrations:
     config:
       name: winDiskPerf
       apis:
-        - name: winDiskPerf
+        - event_type: winDiskPerf
           shell: powershell
           commands:
             - run: |

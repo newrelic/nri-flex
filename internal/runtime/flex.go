@@ -7,7 +7,6 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-flex/internal/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,6 +17,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/config"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/newrelic/nri-flex/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +60,7 @@ func CommonPostInit() {
 	}
 }
 
-// Pre-initialization common to all runtime types here
+// CommonPreInit Pre-initialization common to all runtime types here
 func CommonPreInit() {
 	load.StartTime = load.MakeTimestamp()
 	setEnvs()
@@ -71,7 +71,7 @@ func CommonPreInit() {
 	}
 }
 
-// Common run (once) function
+// RunFlex Common run (once) function
 func RunFlex(instance Instance) error {
 	setStatusCounters()
 	setupLogger()

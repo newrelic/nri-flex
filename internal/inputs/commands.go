@@ -8,6 +8,7 @@ package inputs
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -105,7 +106,29 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 
 	// Create the command with our context
 	cmd := buildCommand(ctx, api, command)
+
+	// https://golang.org/pkg/os/exec/#Cmd.StdinPipe
+	if load.Args.StdinPipe {
+		_, err := cmd.StdinPipe()
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"exec":       command.Run,
+				"err":        err,
+				"suggestion": "StdinPipe failed",
+			}).Debug("command: failed")
+		}
+	}
+
 	output, err := cmd.CombinedOutput()
+
+	// check if a assertion is defined and successfully passes before continuing, see function for detailed comments
+	if !checkAssertion(command.Assert, output) {
+		load.Logrus.WithFields(logrus.Fields{
+			"name": yml.Name,
+			"exe":  command.Run,
+		}).Debug("commands: assertion failed will not process")
+		return
+	}
 
 	if err != nil {
 		if command.HideErrorExec {
@@ -134,7 +157,6 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 		}
 		*dataStore = append(*dataStore, errorSample)
 		return
-
 	}
 
 	err = ctx.Err()
@@ -171,6 +193,18 @@ func envCommandCheck(commandStr string) string {
 			"prepend": os.Getenv("FLEX_CMD_PREPEND"),
 			"append":  os.Getenv("FLEX_CMD_APPEND"),
 		}).Info("command: environment modification enabled")
+
+		switch os.Getenv("FLEX_CMD_WRAP") {
+		case "\"":
+			commandStr = fmt.Sprintf("\"%v\"", commandStr)
+		case "'":
+			commandStr = fmt.Sprintf("'%v'", commandStr)
+		case "`":
+			commandStr = fmt.Sprintf("`%v`", commandStr)
+		case "true":
+			commandStr = fmt.Sprintf("\"%v\"", commandStr)
+		}
+
 		return os.Getenv("FLEX_CMD_PREPEND") + commandStr + os.Getenv("FLEX_CMD_APPEND")
 	}
 	return commandStr
@@ -468,4 +502,29 @@ func buildCommand(ctx context.Context, api load.API, command load.Command) *exec
 	}
 
 	return exec.CommandContext(ctx, commandShell, secondParameter, command.Run)
+}
+
+// checkAssertion perform output based assertions
+// when a match or not_match value is defined in the command section an assertion will be performed
+// if only match is defined, and the output successfully matches it will continue
+// if only not_match is defined, and the output successfully does not contain the output it will continue
+// if both match and not_match is defined, both the above must be true to continue
+func checkAssertion(assert load.Assert, output []byte) bool {
+
+	// return true if no matches defined
+	if assert.Match == "" && assert.NotMatch == "" {
+		return true
+	}
+
+	strOutput := string(output)
+
+	if assert.Match != "" && assert.NotMatch != "" && formatter.KvFinder("regex", strOutput, assert.Match) && formatter.KvFinder("regex", string(output), assert.NotMatch) {
+		return true
+	} else if assert.Match != "" && formatter.KvFinder("regex", strOutput, assert.Match) {
+		return true
+	} else if assert.NotMatch != "" && !formatter.KvFinder("regex", strOutput, assert.NotMatch) {
+		return true
+	}
+
+	return false
 }

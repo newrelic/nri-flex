@@ -1,0 +1,14 @@
+[
+	{
+		"targetHost":"www.newrelic.com",
+		"targetPort": 4433
+	},
+	{
+		"targetHost":"www.newrelic.com",
+		"targetPort": 443
+	},
+	{
+		"targetHost":"www.thisismeantto.fail",
+		"targetPort": 8080
+	}
+]
