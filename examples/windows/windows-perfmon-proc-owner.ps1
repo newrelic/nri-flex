@@ -1,5 +1,5 @@
-$colProcs = Get-wmiobject win32_process | select *,@{Name="Owner";Expression={($_.GetOwner()).User}}
-$colPerfs = Get-wmiobject win32_perfformatteddata_perfproc_process | Where-Object {$_.Name -contains 'w3wp'}
+$colProcs = Get-WmiObject win32_process | select *,@{Name="Owner";Expression={($_.GetOwner()).User}}
+$colPerfs = Get-CimInstance win32_perfformatteddata_perfproc_process | Where-Object {$_.Name -contains 'w3wp'}
 
 # in case you run this script for a remote computer, pls. specify computername and credentials
 #$computername = "<COMPUTERNAME>"
