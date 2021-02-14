@@ -110,6 +110,14 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						handleJSON(dataStore, []byte(jsonBody), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 					}
 				}
+			case contentType == "text/csv":
+				body, _ := ioutil.ReadAll(resp.Body)
+				stringBody := string(body)
+				err := processCsv(dataStore, "", "", &stringBody, api.SetHeader)
+				if err != nil {
+					load.Logrus.WithError(err).Errorf("http: URL %v failed to process text/csv body resp.Body", *reqURL)
+				}
+
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, err := ioutil.ReadAll(resp.Body)
