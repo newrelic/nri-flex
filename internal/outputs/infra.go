@@ -8,7 +8,6 @@ package outputs
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
@@ -27,7 +26,7 @@ func InfraIntegration() error {
 	storer, err := createStorer()
 	if err != nil {
 		return fmt.Errorf("can't create custom store: %s", err)
-	}	
+	}
 
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args), Integration.Storer(storer))
 	if err != nil {
@@ -66,14 +65,16 @@ func createEntity(isLocalEntity bool, entityName string) (*Integration.Entity, e
 func createStorer() (persist.Storer, error) {
 	storerAttributes := os.Getenv("STORER_ATTRIBUTES")
 	storerName := load.IntegrationName + storerAttributes
+
 	ttl := persist.DefaultTTL
-	storerTTL, err := strconv.Atoi(os.Getenv("STORER_TTL"))
+	// storerTTL, err := strconv.Atoi(os.Getenv("STORER_TTL"))
+	storerTTL, err := time.ParseDuration(os.Getenv("STORER_TTL"))
 	if err == nil && storerTTL > 0 {
-		ttl = time.Duration(storerTTL * int(time.Minute))
+		ttl = storerTTL
 	}
-	if os.Getenv("VERBOSE") == "true" || os.Getenv("VERBOSE") == "1"{
-		fmt.Fprintf(os.Stderr,"custom storer name: %s and TTL: %s\n", storerName, ttl)
+
+	if os.Getenv("VERBOSE") == "true" || os.Getenv("VERBOSE") == "1" {
+		fmt.Fprintf(os.Stderr, "custom storer name: %s and TTL: %s\n", storerName, ttl)
 	}
-	storer, err := persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
-	return storer, err
+	return persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
 }
