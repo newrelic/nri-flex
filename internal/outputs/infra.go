@@ -12,13 +12,14 @@ import (
 	"time"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/infra-integrations-sdk/log"
 	"github.com/newrelic/infra-integrations-sdk/persist"
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
 func InfraIntegration() error {
+	load.SetupLogger()
+
 	var err error
 	load.Hostname, err = os.Hostname() // set hostname
 	if err != nil {
@@ -71,7 +72,6 @@ func createStorer() (persist.Storer, error) {
 		ttl = time.Duration(storerTTL * int(time.Minute))
 	}
 	load.Logrus.Debugf("Custom Storer Name: %s and TTL: %d", storerName, ttl)
-	logger := log.NewStdErr(load.Args.Verbose)
-	storer, err := persist.NewFileStore(persist.DefaultPath(storerName), logger, ttl)
+	storer, err := persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
 	return storer, err
 }
