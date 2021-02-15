@@ -23,9 +23,7 @@ func InfraIntegration() error {
 	var err error
 	load.Hostname, err = os.Hostname() // set hostname
 	if err != nil {
-		load.Logrus.
-			WithError(err).
-			Debug("flex: failed to get the hostname while creating integration")
+		return fmt.Errorf("flex: failed to get the hostname while creating integration")
 	}
 
 	storer, err := createStorer()
@@ -71,7 +69,7 @@ func createStorer() (persist.Storer, error) {
 	if err == nil && storerTTL > 0 {
 		ttl = time.Duration(storerTTL * int(time.Minute))
 	}
-	load.Logrus.Debugf("Custom Storer Name: %s and TTL: %d", storerName, ttl)
+	load.Logrus.Debugf("Custom Storer Name: %s and TTL: %s", storerName, ttl)
 	storer, err := persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
 	return storer, err
 }
