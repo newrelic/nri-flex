@@ -18,8 +18,6 @@ import (
 
 // InfraIntegration Creates Infrastructure SDK Integration
 func InfraIntegration() error {
-	load.SetupLogger()
-
 	var err error
 	load.Hostname, err = os.Hostname() // set hostname
 	if err != nil {
@@ -29,11 +27,15 @@ func InfraIntegration() error {
 	storer, err := createStorer()
 	if err != nil {
 		return fmt.Errorf("can't create custom store: %s", err)
-	}
+	}	
+
 	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args), Integration.Storer(storer))
 	if err != nil {
 		return fmt.Errorf("flex: failed to create integration %v", err)
 	}
+
+	// when arguments have been set re-run logger setup to check verbose flag
+	load.SetupLogger()
 
 	// Accepts ConfigPath as alias for ConfigFile. This will allow the Infrastructure Agent
 	// passing an embedded config via the default CONFIG_PATH environment variable
@@ -69,7 +71,9 @@ func createStorer() (persist.Storer, error) {
 	if err == nil && storerTTL > 0 {
 		ttl = time.Duration(storerTTL * int(time.Minute))
 	}
-	load.Logrus.Debugf("Custom Storer Name: %s and TTL: %s", storerName, ttl)
+	if os.Getenv("VERBOSE") == "true" || os.Getenv("VERBOSE") == "1"{
+		fmt.Fprintf(os.Stderr,"custom storer name: %s and TTL: %s\n", storerName, ttl)
+	}
 	storer, err := persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
 	return storer, err
 }
