@@ -130,6 +130,7 @@ const (
 	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
+	TypeCSV            = "csv"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )

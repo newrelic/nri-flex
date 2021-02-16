@@ -313,6 +313,12 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 		case load.Jmx:
 			*processType = "jmx"
 			ParseJMX(dataStore, dataInterface, command, dataSample)
+		case load.TypeCSV:
+			err := processCsv(dataStore, "", "command output", &dataOutput, command.SetHeader)
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("Failed to process text/csv body")
+			}
+
 		}
 	}
 }
@@ -418,6 +424,9 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 // detectCommandOutput currently only supports checking if json output
 func detectCommandOutput(dataOutput string, commandOutput string) (string, interface{}) {
+	if commandOutput == load.TypeCSV {
+		return "csv", nil
+	}
 	if commandOutput == load.Jmx {
 		dataOutputLines := strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n")
 		startLine := 0
