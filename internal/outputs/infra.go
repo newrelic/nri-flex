@@ -8,12 +8,15 @@ package outputs
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-flex/internal/load"
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
+var initInfraOnce sync.Once
+
 func InfraIntegration() error {
 	var err error
 	load.Hostname, err = os.Hostname() // set hostname
@@ -23,7 +26,11 @@ func InfraIntegration() error {
 			Debug("flex: failed to get the hostname while creating integration")
 	}
 
-	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
+	// Do this only once so flag doesn't throw a redefined panic
+	initInfraOnce.Do(func() {
+		load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
+	})
+
 	if err != nil {
 		return fmt.Errorf("flex: failed to create integration %v", err)
 	}

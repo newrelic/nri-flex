@@ -10,6 +10,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/runtime"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -38,18 +39,18 @@ func FlexPubSub(ctx context.Context, m PubSubMessage) error {
 	return nil
 }
 
+// One time only init
+var once sync.Once
+
 // Do the actual, common, work here
 func run() {
 	log.Debugf("nriflex.run: enter")
-	// One time only init
-	var once sync.Once
 	once.Do(func() {
 		log.Debugf("nriflex.run: once.Do: enter")
 		// Generate the Function runtime singleton
 		r = runtime.GetFlexRuntime()
 		log.Debugf("nriflex.run: once.Do: exit")
 	})
-
 	runtime.CommonPreInit()
 	err := runtime.RunFlex(r)
 	if err != nil {
@@ -57,4 +58,5 @@ func run() {
 	}
 	runtime.CommonPostInit()
 	log.Debugf("nriflex.run: exit")
+	os.Exit(0)
 }
