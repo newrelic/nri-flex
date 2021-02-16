@@ -6,6 +6,7 @@
 package load
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -534,4 +535,15 @@ func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
 	s.Lock()
 	defer s.Unlock()
 	(s.Data)[key] = append((s.Data)[key], sample)
+}
+
+func SetupLogger() {
+	verboseLogging := os.Getenv("VERBOSE")
+	if Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		Logrus.SetLevel(logrus.TraceLevel)
+	}
+
+	if Args.StructuredLogs {
+		Logrus.SetFormatter(&logrus.JSONFormatter{})
+	}
 }
