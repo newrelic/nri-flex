@@ -61,9 +61,9 @@ func createEntity(isLocalEntity bool, entityName string) (*Integration.Entity, e
 	return load.Integration.Entity(entityName, "nri-flex")
 }
 
-// create custom storer with custom STORER_ATTRIBUTES and STORER_TTL
+// create custom storer with custom STORER_NAME and STORER_TTL
 func createStorer() (persist.Storer, error) {
-	storerAttributes := os.Getenv("STORER_ATTRIBUTES")
+	storerAttributes := os.Getenv("STORER_NAME")
 	storerName := load.IntegrationName + storerAttributes
 
 	ttl := persist.DefaultTTL
