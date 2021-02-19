@@ -1,0 +1,57 @@
+---
+name: Push/PR pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+env:
+  TAG: "v0.0.0" # needed for goreleaser windows builds
+  REPO_FULL_NAME: ${{ github.event.repository.full_name }}
+  ORIGINAL_REPO_NAME: "newrelic/nri-flex"
+  GO_VERSION: '1.16.0'
+
+jobs:
+  test-linux:
+    strategy:
+      matrix:
+        go: [ '1.16.0' ]
+        os: [ ubuntu-20.04 ]
+    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{matrix.go}}
+      - name: run integration tests
+        run: |
+          make build-ci
+
+  test-windows:
+    strategy:
+      matrix:
+        go: [ '1.16.0' ]
+        os: [ windows-2019 ]
+    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{matrix.go}}
+      - name: run unit tests
+        # we don't have 'make' on windows.
+        run: |
+          go test ./...
+      - name: run integration tests
+        # we don't have 'make' on windows.
+        run: |
+          go test --tags=integration ./...
