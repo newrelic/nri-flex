@@ -1,0 +1,28 @@
+name: zfs
+apis:
+  - name: Zpool
+    commands:
+      - run: 'zpool list -Hpo name,health,size,expandsize,allocated,free,fragmentation,capacity,dedup,comment,version'
+        split: horizontal
+        split_by: \s+
+        set_header: [name,health,size,expandsize,allocated,free,fragmentationPercent,capacityPercent,dedup,comment,version]
+  - name: Zfs
+    commands:
+      - run: zfs list -Hpo space,type,compressratio -t all
+        split: horizontal
+        split_by: \s+
+        set_header: [name,available,used,usedSnap,usedDds,usedRefReserv,usedChild,type,compressratio]
+  - name: ZfsModule
+    commands:
+      # l2arc metrics are grepped out since most people dont care or have l2arc enabled
+      - run: cat /proc/spl/kstat/zfs/arcstats | grep -v 'l2_' | sed -r 's/\s+[0-9]\s+/:/'
+        split_by: ":"
+        line_start: 2
+    snake_to_camel: true
+    metric_parser:
+      mode: regex
+      metrics:
+        Hits$: RATE
+        Misses$: RATE
+      namespace:
+        custom_attr: "zfsModuleArc"
