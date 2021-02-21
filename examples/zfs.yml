@@ -22,7 +22,7 @@ apis:
     metric_parser:
       mode: regex
       metrics:
-        Hits$: RATE
-        Misses$: RATE
+        Hits$: DELTA
+        Misses$: DELTA
       namespace:
         custom_attr: "zfsModuleArc"
