@@ -24,7 +24,7 @@ jobs:
       matrix:
         go: [ '1.16.0' ]
         os: [ ubuntu-20.04 ]
-    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
+    name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout code
@@ -33,9 +33,22 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{matrix.go}}
-      - name: run integration tests
+      - name: Run unit tests
         run: |
           make build-ci
+
+  integration-tests:
+    name: Run integration tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+#      - name: Login to DockerHub
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+#          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Run integration tests
+        run: make test-integration
 
   snyk:
     name: Run security checks via snyk
@@ -57,7 +70,7 @@ jobs:
       matrix:
         go: [ '1.16.0' ]
         os: [ windows-2019 ]
-    name: Run integration tests in ${{matrix.os}} with go ${{matrix.go}}
+    name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout

@@ -3,9 +3,8 @@ PROJECT_NAME  = nri-$(INTEGRATION)
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
 SRCDIR       ?= .
-BUILD_DIR    := ./bin/
-COVERAGE_DIR := ./coverage/
-COVERMODE     = atomic
+BUILD_DIR     ?= $(CURDIR)/bin
+COVERAGE_FILE ?= coverage.out
 
 GO_CMD = go
 GODOC = godocdown
@@ -34,14 +33,14 @@ BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 all: build
 
 # Humans running make:
-build: check-version clean lint test-unit coverage compile document
+build: check-version clean deps lint test-unit compile document
 
 # Build command for CI tooling
-build-ci: check-version clean lint test-integration
+build-ci: check-version clean deps lint test-coverage
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: removing binaries and coverage file..."
-	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_DIR)/*
+	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_FILE)
 
 bin:
 	@mkdir -p $(BUILD_DIR)
