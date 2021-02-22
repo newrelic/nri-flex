@@ -4,17 +4,21 @@ name: Push/PR pipeline
 on:
   push:
     branches:
-      - main
-      - master
-  pull_request:
+      - '**'
+    tags-ignore:
+      - '**'
+    paths-ignore:
+      - README.md
+      - 'docs/**'
+      - 'examples/**'
 
 env:
-  TAG: "v0.0.0" # needed for goreleaser windows builds
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   ORIGINAL_REPO_NAME: "newrelic/nri-flex"
   GO_VERSION: '1.16.0'
 
 jobs:
+
   test-linux:
     strategy:
       matrix:
