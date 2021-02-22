@@ -1,6 +1,6 @@
 [![Community Plus header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 
-[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.org/newrelic/nri-flex)
+![Build Status](https://github.com/newrelic/nri-flex/actions/workflows/push_pr.yml/badge.svg)
 
 # New Relic Flex
 
