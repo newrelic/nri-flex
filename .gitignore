@@ -24,3 +24,4 @@ envvars
 flexConfigs/
 results
 pkg/
+lcov.info

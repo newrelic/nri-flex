@@ -1,6 +1,7 @@
 [![Community Plus header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 
 ![Build Status](https://github.com/newrelic/nri-flex/actions/workflows/push_pr.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/newrelic/nri-flex/badge.svg?branch=master)](https://coveralls.io/github/newrelic/nri-flex?branch=master)
 
 # New Relic Flex
 

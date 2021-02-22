@@ -36,6 +36,18 @@ jobs:
       - name: Run unit tests
         run: |
           make build-ci
+      - name: Install gcov2lcov
+        working-directory: tools
+        run: go get github.com/jandelgado/gcov2lcov
+      - name: Convert coverage.out to lcov.info
+        run: make convert-coverage
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: lcov.info
+          flag-name: run-linux
+          parallel: true
 
   integration-tests:
     name: Run integration tests
@@ -87,3 +99,14 @@ jobs:
         # we don't have 'make' on windows.
         run: |
           go test --tags=integration ./...
+
+  finish:
+    name: Finish
+    needs: [ test-linux ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true

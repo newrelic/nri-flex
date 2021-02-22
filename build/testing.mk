@@ -37,6 +37,10 @@ test-coverage:
 	@echo "=== $(PROJECT_NAME) === [ test-coverage ]: running unit tests with coverage..."
 	@$(GO_CMD) $(GO_TEST)
 
+.PHONY : convert-coverage
+convert-coverage:
+	@(gcov2lcov -infile=$(COVERAGE_FILE) -outfile=lcov.info)
+
 .PHONY: test-integration
 test-integration: setup
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
