@@ -1,7 +1,7 @@
-PROJECT_NAME := $(shell basename $(shell pwd))
+INTEGRATION  := flex
+PROJECT_NAME  = nri-$(INTEGRATION)
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
-GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
 SRCDIR       ?= .
 BUILD_DIR    := ./bin/
 COVERAGE_DIR := ./coverage/
@@ -66,5 +66,6 @@ include build/testing.mk
 include build/util.mk
 include build/document.mk
 include build/docker.mk
+include build/ci.mk
 
 .PHONY: all build build-ci

@@ -37,6 +37,21 @@ jobs:
         run: |
           make build-ci
 
+  snyk:
+    name: Run security checks via snyk
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Scan code for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.COREINT_SNYK_TOKEN }}
+        run: make ci/snyk-test
+
   test-windows:
     strategy:
       matrix:
