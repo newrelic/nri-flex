@@ -35,10 +35,3 @@ apis:
         split: horizontal
         split_by: \s+
         set_header: [poolName,_garbage,_garbage,readIoPerSecond,writeIoPerSecond,readBytesPerSecond,writeBytesPerSecond,readLatencyNs,writeLatencyNs,readDiskLatencyNs,writeDiskLatencyNs]
-    metric_parser:
-      mode: regex
-      metrics:
-        IoPerSecond: PRATE
-      namespace:
-        existing_attr:
-          - poolName
