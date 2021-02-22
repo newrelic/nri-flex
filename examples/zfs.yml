@@ -12,17 +12,21 @@ apis:
         split: horizontal
         split_by: \s+
         set_header: [datasetName,available,used,usedSnap,usedDds,usedRefReserv,usedChild,type,compressratio]
-  - name: ZfsModule
+  - name: ZfsArc
     commands:
       - run: cat /proc/spl/kstat/zfs/arcstats | grep -v 'l2_' | sed -r 's/\s+[0-9]\s+/:/'
         split_by: ":"
         line_start: 2
     snake_to_camel: true
+    rename_keys:
+      Hits$: HitsPerSecond
+      Misses$: MissesPerSecond
+      ^hits$: hitsPerSecond
+      ^misses$: missesPerSecond
     metric_parser:
       mode: regex
-      metrics:
-        Hits$: PRATE
-        Misses$: PRATE
+      metrics: # Key names after processing snake_to_camel and rename_keys
+        PerSecond$: RATE
       namespace:
         custom_attr: "zfsModuleArc"
   - name: ZpoolIoStat
