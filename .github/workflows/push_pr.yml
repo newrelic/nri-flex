@@ -15,14 +15,14 @@ on:
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   ORIGINAL_REPO_NAME: "newrelic/nri-flex"
-  GO_VERSION: '1.16.0'
+  GO_VERSION: '1.16'
 
 jobs:
 
   test-nix:
     strategy:
       matrix:
-        go: [ '1.16.0' ]
+        go: [ '1.16' ]
         os: [ ubuntu-20.04 ]
     name: Run unit tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
@@ -54,11 +54,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-#      - name: Login to DockerHub
-#        uses: docker/login-action@v1
-#        with:
-#          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
-#          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
       - name: Run integration tests
         run: make test-integration
 
@@ -80,7 +80,7 @@ jobs:
   test-windows:
     strategy:
       matrix:
-        go: [ '1.16.0' ]
+        go: [ '1.16' ]
         os: [ windows-2019 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}

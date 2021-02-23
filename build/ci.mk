@@ -5,4 +5,4 @@ ci/snyk-test:
 		-v $(CURDIR):/go/src/github.com/newrelic/nri-$(INTEGRATION) \
 		-w /go/src/github.com/newrelic/nri-$(INTEGRATION) \
 			-e SNYK_TOKEN \
-			snyk/snyk:golang snyk test --severity-threshold=hig
+			snyk/snyk:golang snyk test --severity-threshold=high

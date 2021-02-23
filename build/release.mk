@@ -4,7 +4,7 @@ GORELEASER_CONFIG   ?= --config $(CURDIR)/build/goreleaser.yml
 PKG_FLAGS			?= --rm-dist
 IS_RELEASE			?= false # Default to safe mode which is pre-release
 
-ifneq ($(IS_RELEASE), "false")
+ifneq ($(IS_RELEASE), true)
 	PKG_FLAGS += --snapshot
 endif
 
