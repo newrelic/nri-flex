@@ -11,6 +11,7 @@ GOTOOLS		  ?=
 GOTOOLS       += github.com/axw/gocov/gocov
 GOTOOLS       += github.com/AlekSi/gocov-xml
 GOTOOLS       += github.com/robertkrimen/godocdown/godocdown
+GOTOOLS       += github.com/jandelgado/gcov2lcov
 
 
 VENDOR_CMD	= $(GO_CMD) mod vendor

@@ -1,13 +1,14 @@
-INTEGRATION  := flex
-PROJECT_NAME  = nri-$(INTEGRATION)
-NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
-NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
-SRCDIR       ?= .
-BUILD_DIR     ?= $(CURDIR)/bin
-COVERAGE_FILE ?= coverage.out
+INTEGRATION      := flex
+PROJECT_NAME     = nri-$(INTEGRATION)
+NATIVEOS         := $(shell go version | awk -F '[ /]' '{print $$4}')
+NATIVEARCH       := $(shell go version | awk -F '[ /]' '{print $$5}')
+SRCDIR           ?= .
+BUILD_DIR        ?= $(CURDIR)/bin
+COVERAGE_FILE    ?= coverage.out
 
-GO_CMD = go
-GODOC = godocdown
+GO_VERSION       ?= 1.15
+GO_CMD           ?= go
+GODOC            ?= godocdown
 
 GOLINTER         = golangci-lint
 GOLINTER_VERSION = v1.24.0
