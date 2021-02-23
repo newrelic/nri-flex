@@ -12,10 +12,6 @@ GODOC = godocdown
 GOLINTER         = golangci-lint
 GOLINTER_VERSION = v1.24.0
 
-GORELEASER_VERSION := v0.132.1
-GORELEASER_SHA256 := 6c0145df61140ec1bffe4048b9ef3e105e18a89734816e7a64f342d3f9267691
-GORELEASER_BIN ?= bin/goreleaser
-
 # Determine packages by looking into pkg/*
 ifneq ("$(wildcard ${SRCDIR}/pkg/*)","")
 	PACKAGES  = $(wildcard ${SRCDIR}/pkg/*)
@@ -45,18 +41,6 @@ clean:
 bin:
 	@mkdir -p $(BUILD_DIR)
 
-$(GORELEASER_BIN): bin
-	@echo "=== $(PROJECT_NAME) === [ release/deps ]: Installing goreleaser"
-	@(wget -qO /tmp/goreleaser.tar.gz https://github.com/goreleaser/goreleaser/releases/download/$(GORELEASER_VERSION)/goreleaser_$(GOOS)_x86_64.tar.gz)
-	@(tar -xf  /tmp/goreleaser.tar.gz -C bin/)
-	@(rm -f /tmp/goreleaser.tar.gz)
-
-release/deps: $(GORELEASER_BIN)
-
-release: clean release/deps compile-only
-	@echo "=== $(PROJECT_NAME) === [ release ]: Releasing new version..."
-	@$(GORELEASER_BIN) release
-
 # Import fragments
 include build/deps.mk
 include build/compile.mk
@@ -66,5 +50,6 @@ include build/util.mk
 include build/document.mk
 include build/docker.mk
 include build/ci.mk
+include build/release.mk
 
 .PHONY: all build build-ci
