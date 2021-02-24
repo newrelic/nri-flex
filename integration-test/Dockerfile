@@ -6,7 +6,6 @@ WORKDIR /app
 
 COPY go.mod go.sum /app/
 
-RUN go mod download
+RUN go mod vendor
 
 COPY . .
-
