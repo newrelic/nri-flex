@@ -42,7 +42,7 @@ convert-coverage:
 	@(gcov2lcov -infile=$(COVERAGE_FILE) -outfile=lcov.info)
 
 .PHONY: test-integration
-test-integration: setup
+test-integration: setup ci/deps
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@sh ./integration-test/ci-test.sh
 
