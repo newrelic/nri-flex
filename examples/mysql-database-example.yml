@@ -42,6 +42,10 @@ integrations:
             host: UbuntuMySQL # custom host name atribute
           db_async: true # process queries async
           db_queries:
+            - name: MySQLShowVars
+              run: SHOW VARIABLES;
+              custom_attributes: # can apply additional at a nested level
+                nestedAttr: max-conns
             - name: MySQLCustomQuery
               run: SELECT * FROM INFORMATION_SCHEMA.PROCESSLIST # grab all processes from MySQL
               custom_attributes: # can apply additional at a nested level
