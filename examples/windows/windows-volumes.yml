@@ -1,0 +1,16 @@
+# This config will query the name, capacity and freespace of all Windows volumes. 
+# This is usefull in Windows Cluster environments as our infra agent doesn't pick up all mounts
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: Win32Volumes
+      apis:
+        - name: Win32Volumes
+          commands:
+            - run: gwmi Win32_Volume -Computer localhost | Select-Object Name, Capacity, FreeSpace
+              shell: powershell
+              split: horizontal
+              split_by: ^(\S+)\s+(\d+)\s+(\d+)
+              regex_match: true
+              set_header: [Name, Capacity, FreeSpace]
