@@ -1,5 +1,5 @@
-# This config will query the name, capacity and freespace of all Windows volumes. 
-# This is usefull in Windows Cluster environments as our infra agent doesn't pick up all mounts
+# This config will query the name, capacity and free space of all Windows volumes. 
+# This is useful in Windows Cluster environments as our infra agent doesn't pick up all mounts
 ---
 integrations:
   - name: nri-flex
