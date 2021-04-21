@@ -47,6 +47,7 @@ type ArgumentList struct {
 	GitBranch               string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit               string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync      bool   `default:"false" help:"Process configs synchronously rather then async"`
+	AsyncRate               int    `default:"0" help:" When Process Configs in Async mode, limit the rate to run the configs, e.g. 20 per second (default: 0, unlimited)"`
 	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
@@ -139,6 +140,10 @@ const (
 var MetricsStore = struct {
 	sync.RWMutex
 	Data []Metrics
+}{}
+
+var CacheStoreLock = struct {
+	sync.RWMutex
 }{}
 
 // MetricsStoreAppend Append data to store
@@ -260,6 +265,7 @@ type API struct {
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
 	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	AsyncRate         int               `yaml:"async_rate"`     //Async Request Throttle Rate
 	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
