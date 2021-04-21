@@ -20,6 +20,7 @@ import (
 	"time"
 
 	xj "github.com/basgys/goxml2json"
+	"github.com/newrelic/nri-flex/internal/aliyun"
 	"github.com/newrelic/nri-flex/internal/huaweihws"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/parnurzeal/gorequest"
@@ -46,6 +47,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 
 		handlePagination(reqURL, &api.Pagination, nil, nil, 200)
 		*reqURL = yml.Global.BaseURL + *reqURL
+		requrl := strings.ToLower(*reqURL)
+		if !strings.HasPrefix(requrl, "http://") && !strings.HasPrefix(requrl, "https://") {
+			*reqURL = "http://" + *reqURL
+		}
 		switch {
 		case api.Method == http.MethodPost && api.Payload != "":
 			request = request.Post(*reqURL)
@@ -261,6 +266,24 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 			}
 		}
 		request = request.TLSClientConfig(&tmpAPITLSConfig)
+	}
+
+	if api.AliyunSigner.Key != "" && api.AliyunSigner.Secret != "" {
+		signer := aliyun.Signer{
+			Key:    api.AliyunSigner.Key,
+			Secret: api.AliyunSigner.Secret,
+		}
+		r, err := request.MakeRequest()
+		if err != nil {
+			load.Logrus.WithError(err).Error("http: signer failed to convert request for AliyunSigner.")
+		} else {
+			signerdURL, err := signer.Sign(r)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: signer failed to sign the request.")
+			} else {
+				request.Url = signerdURL
+			}
+		}
 	}
 
 	if api.HWSigner.Key != "" && api.HWSigner.Secret != "" {

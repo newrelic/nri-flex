@@ -308,7 +308,8 @@ type API struct {
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
 	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
-	HWSigner          HWSigner          `yaml:"hw_signer"` // Huawei Cloud Service API signer
+	HWSigner          HWSigner          `yaml:"hw_signer"`     // Huawei Cloud Service API signer
+	AliyunSigner      AliyunSigner      `yaml:"aliyun_signer"` // Huawei Cloud Service API signer
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -497,6 +498,12 @@ type SCP struct {
 
 // HWSigner struct
 type HWSigner struct {
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
+}
+
+// AliyunSigner struct
+type AliyunSigner struct {
 	Key    string `yaml:"key"`
 	Secret string `yaml:"secret"`
 }
