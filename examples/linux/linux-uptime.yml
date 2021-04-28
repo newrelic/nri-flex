@@ -1,0 +1,10 @@
+# Requires install of tuptime package
+integrations:
+  - name: nri-flex
+    interval: 15s
+    config:
+      name: LinuxUptime
+      apis:
+        - event_type: systemUptime
+          commands:
+                  - run: echo "{\"UptimePercent1Day\":$(tuptime --tsince -86400 | grep 'System uptime' | awk '{print $3}')}"
