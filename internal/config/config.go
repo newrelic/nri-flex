@@ -20,6 +20,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/processor"
 	"github.com/sirupsen/logrus"
 
+	"go.uber.org/ratelimit"
 	"gopkg.in/yaml.v2"
 )
 
@@ -237,7 +238,18 @@ func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPIN
 	var wgapi sync.WaitGroup
 	wgapi.Add(len(yml.APIs))
 
+	// Throttle to rate limit for Async request
+	rl := ratelimit.NewUnlimited()
+	if yml.APIs[originalAPINo].AsyncRate != 0 {
+		rl = ratelimit.New(yml.APIs[originalAPINo].AsyncRate)
+	}
+	load.Logrus.WithFields(logrus.Fields{
+		"Async Rate": yml.APIs[originalAPINo].AsyncRate,
+		"apis":       yml.APIs[originalAPINo].Name,
+	}).Debug("API Async Throttle Setting: ")
+
 	for i := range yml.APIs {
+		rl.Take()
 		go func(originalAPINo int, i int) {
 			defer wgapi.Done()
 			dataSets := FetchData(i, &yml, samplesToMerge)
@@ -308,9 +320,14 @@ func RunFiles(configs *[]load.Config) []error {
 			}
 		}()
 
+		rl := ratelimit.NewUnlimited()
+		if load.Args.AsyncRate != 0 {
+			rl = ratelimit.New(load.Args.AsyncRate)
+		}
 		var wg sync.WaitGroup
 		wg.Add(len(*configs))
 		for _, cfg := range *configs {
+			rl.Take()
 			go func(cfg load.Config) {
 				defer wg.Done()
 				err := verifyConfig(cfg)

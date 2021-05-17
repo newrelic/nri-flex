@@ -195,6 +195,11 @@ func setEnvs() {
 	if err == nil && configSync {
 		load.Args.ProcessConfigsSync = configSync
 	}
+	asyncRate, err := strconv.Atoi(os.Getenv("ASYNC_RATE"))
+	if err == nil && asyncRate > 0 {
+		load.Args.AsyncRate = asyncRate
+	}
+
 	fargate, err := strconv.ParseBool(os.Getenv("FARGATE"))
 	if err == nil && fargate {
 		load.Args.Fargate = fargate
