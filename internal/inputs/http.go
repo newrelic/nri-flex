@@ -247,6 +247,15 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		}
 	}
 
+	if yml.Global.TLSConfig.Key != "" && yml.Global.TLSConfig.Cert != "" {
+		cert, err := tls.LoadX509KeyPair(yml.Global.TLSConfig.Cert, yml.Global.TLSConfig.Key)
+		if err != nil {
+			load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+		} else {
+			tmpGlobalTLSConfig.Certificates = []tls.Certificate{cert}
+		}
+	}
+
 	request = request.TLSClientConfig(&tmpGlobalTLSConfig)
 
 	if api.TLSConfig.Enable {
@@ -265,6 +274,16 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 				tmpAPITLSConfig.RootCAs = rootCAs
 			}
 		}
+
+		if api.TLSConfig.Key != "" && api.TLSConfig.Cert != "" {
+			cert, err := tls.LoadX509KeyPair(api.TLSConfig.Cert, api.TLSConfig.Key)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+			} else {
+				tmpAPITLSConfig.Certificates = []tls.Certificate{cert}
+			}
+		}
+
 		request = request.TLSClientConfig(&tmpAPITLSConfig)
 	}
 
