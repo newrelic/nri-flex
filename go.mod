@@ -44,6 +44,7 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/stretchr/testify v1.6.1
 	github.com/vertica/vertica-sql-go v0.1.3
+	go.uber.org/ratelimit v0.2.0
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sys v0.0.0-20200905004654-be1d3432aa8f // indirect
