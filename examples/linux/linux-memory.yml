@@ -1,0 +1,17 @@
+# Requires install of dmidecode package
+# Used to query the system for hardware level details on the installed RAM. Useful for on-prem/bare metal instances.
+# This command is not as valuable in a cloud environment as most of the hardware data is hidden
+# All capacity numbers are reported in MiB.  
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: LinuxMemory
+      apis:
+        - event_type: systemMemory
+          commands:
+            - run: dmidecode -t memory | grep -E 'Manufacturer|Bank Locator|Size|Serial Number|Part Number|Locator|Speed' | sed 's/MB//'
+              split: horizontal
+              set_header: [DMILabel,DMIValue]
+              regex_match: false
+              split_by: ":"
