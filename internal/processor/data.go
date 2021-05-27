@@ -22,8 +22,8 @@ func RunDataHandler(dataSets []interface{}, samplesToMerge *load.SamplesToMerge,
 		"name": cfg.Name,
 	}).Debug("processor-data: running data handler")
 
-	if cfg.APIs[originalAPINo].Jq != "" {
-		dataSets = runJq(dataSets, cfg.APIs[originalAPINo])
+	if cfg.APIs[i].Jq != "" {
+		dataSets = runJq(dataSets, cfg.APIs[i])
 	}
 
 	for _, dataSet := range dataSets {

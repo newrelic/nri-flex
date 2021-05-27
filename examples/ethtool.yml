@@ -1,0 +1,16 @@
+---
+integrations:
+  - name: nri-flex
+    interval: 30s
+    config:
+      name: ethtoolFlex
+      apis:
+        - event_type: ethtoolSample
+          name: enaStats
+          commands:
+            - run: ethtool -S eth0
+              split_by: ":"
+          remove_keys:
+            - NICStatistics
+          rename_keys:
+            \s+: ""

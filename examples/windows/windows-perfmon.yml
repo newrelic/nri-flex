@@ -1,0 +1,13 @@
+# This config will query perfmon counters listed in the associated script
+# Note we have manually created a 'flexAssets' directory to hold scripts and lookup files
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: winPerfMon
+      apis:
+        - event_type: perfmonCounters
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/flexAssets/windows-perfmon-script.ps1\""

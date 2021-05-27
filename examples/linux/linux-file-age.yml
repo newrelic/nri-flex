@@ -1,15 +1,24 @@
-# Used to query file age via File Status
----
+# Used to query file age via find
+# secondsSinceModified would be the value you set a NRQL alert condition against to trigger alerts
 integrations:
   - name: nri-flex
-    # interval: 30s
+    interval: 300s
     config:
       name: linuxFileAge
       apis:
         - name: linuxFileAge
           commands:
-            - run: stat -c '%n;%Y' /etc/*conf
+            - run: find /etc -maxdepth 1 -iname "*conf" -type f -mmin +5  -printf '%p;%T@\n' | awk -F ';' -v time="$( date +%s )"  '{ print $1";"$2";" (time-$2 ) }'
+              # all files inside /etc, not including subdirectories, that are a case insensitive match to *conf and have not been modified in the last 5 minutes
               split: horizontal
-              set_header: [fileName, fileLastModified]
+              set_header: [fileName, fileLastModified, secondsSinceModified]
+              regex_match: false
+              split_by: ";"
+        - name: linuxFileAge
+          commands:
+            - run: find /tmp -type f -mmin -60  -printf '%p;%T@\n' | awk -F ';' -v time="$( date +%s )"  '{ print $1";"$2";" (time-$2 ) }'
+              # all files in /tmp including all subdirectories that have been modified in the last 60 minutes
+              split: horizontal
+              set_header: [fileName, fileLastModified, secondsSinceModified]
               regex_match: false
               split_by: ";"

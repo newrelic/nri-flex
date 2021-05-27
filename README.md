@@ -1,6 +1,7 @@
-[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Project.png)](https://github.com/newrelic/open-source-office/blob/master/examples/categories/index.md#category-community-project)
+[![Community Plus header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 
-[![Build Status](https://travis-ci.org/newrelic/nri-flex.svg?branch=master)](https://travis-ci.org/newrelic/nri-flex)
+![Build Status](https://github.com/newrelic/nri-flex/actions/workflows/push_pr.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/newrelic/nri-flex/badge.svg?branch=master)](https://coveralls.io/github/newrelic/nri-flex?branch=master)
 
 # New Relic Flex
 

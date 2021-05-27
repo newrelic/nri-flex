@@ -8,6 +8,8 @@ package inputs
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -84,6 +86,7 @@ func RunCommands(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 }
 
 func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command, api load.API, startTime int64, dataSample map[string]interface{}, processType string) {
+	command.Run = envCommandCheck(command.Run)
 	runCommand := command.Run
 	if command.Output == load.Jmx {
 		SetJMXCommand(&runCommand, command, api, yml)
@@ -103,47 +106,98 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 
 	// Create the command with our context
 	cmd := buildCommand(ctx, api, command)
+
+	// https://golang.org/pkg/os/exec/#Cmd.StdinPipe
+	if load.Args.StdinPipe {
+		_, err := cmd.StdinPipe()
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"exec":       command.Run,
+				"err":        err,
+				"suggestion": "StdinPipe failed",
+			}).Debug("command: failed")
+		}
+	}
+
 	output, err := cmd.CombinedOutput()
 
-	if err != nil {
+	// check if a assertion is defined and successfully passes before continuing, see function for detailed comments
+	if !checkAssertion(command.Assert, output) {
 		load.Logrus.WithFields(logrus.Fields{
-			"exec":       command.Run,
-			"err":        err,
-			"suggestion": "if you are handling this error case, ignore",
+			"name": yml.Name,
+			"exe":  command.Run,
+		}).Debug("commands: assertion failed will not process")
+		return
+	}
+
+	contextError := ctx.Err()
+
+	if err != nil || contextError != nil {
+		contextErrorStr := ""
+		if contextError != nil {
+			contextErrorStr = contextError.Error()
+		}
+
+		load.Logrus.WithFields(logrus.Fields{
+			"exec":        command.Run,
+			"err":         err,
+			"context_err": contextErrorStr,
+			"suggestion":  "if you are handling this error case, ignore",
 		}).Debug("command: failed")
+
+		if command.HideErrorExec {
+			errorSample := map[string]interface{}{
+				"error":         err,
+				"error_msg":     string(output),
+				"context_error": contextErrorStr,
+				"error_exec":    "COMMAND HIDDEN!",
+			}
+			*dataStore = append(*dataStore, errorSample)
+			return
+		}
+
 		errorSample := map[string]interface{}{
-			"error":      err,
-			"error_msg":  string(output),
-			"error_exec": command.Run,
+			"error":         err,
+			"error_msg":     string(output),
+			"context_error": contextErrorStr,
+			"error_exec":    command.Run,
 		}
 		*dataStore = append(*dataStore, errorSample)
 		return
 	}
 
-	err = ctx.Err()
-	if err != nil {
-		if err == context.DeadlineExceeded {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec": command.Run,
-				"err":  err,
-			}).Debug("command: timed out")
-		} else {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec": command.Run,
-				"err":  err,
-			}).Debug("command: execution failed")
-		}
-		errorSample := map[string]interface{}{
-			"error": err,
-		}
-		*dataStore = append(*dataStore, errorSample)
-	} else if len(output) > 0 {
+	if len(output) > 0 {
 		if command.SplitOutput != "" {
 			splitOutput(dataStore, string(output), command, startTime)
 		} else {
 			processOutput(dataStore, string(output), &dataSample, command, api, &processType)
 		}
 	}
+}
+
+// checks if explicitedly enabled log
+func envCommandCheck(commandStr string) string {
+	if load.Args.AllowEnvCommands {
+		load.Logrus.WithFields(logrus.Fields{
+			"command": commandStr,
+			"prepend": os.Getenv("FLEX_CMD_PREPEND"),
+			"append":  os.Getenv("FLEX_CMD_APPEND"),
+		}).Info("command: environment modification enabled")
+
+		switch os.Getenv("FLEX_CMD_WRAP") {
+		case "\"":
+			commandStr = fmt.Sprintf("\"%v\"", commandStr)
+		case "'":
+			commandStr = fmt.Sprintf("'%v'", commandStr)
+		case "`":
+			commandStr = fmt.Sprintf("`%v`", commandStr)
+		case "true":
+			commandStr = fmt.Sprintf("\"%v\"", commandStr)
+		}
+
+		return os.Getenv("FLEX_CMD_PREPEND") + commandStr + os.Getenv("FLEX_CMD_APPEND")
+	}
+	return commandStr
 }
 
 func splitOutput(dataStore *[]interface{}, output string, command load.Command, startTime int64) {
@@ -249,6 +303,12 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 		case load.Jmx:
 			*processType = "jmx"
 			ParseJMX(dataStore, dataInterface, command, dataSample)
+		case load.TypeCSV:
+			err := processCsv(dataStore, "", "command output", &dataOutput, command.SetHeader)
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("Failed to process text/csv body")
+			}
+
 		}
 	}
 }
@@ -354,6 +414,9 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 // detectCommandOutput currently only supports checking if json output
 func detectCommandOutput(dataOutput string, commandOutput string) (string, interface{}) {
+	if commandOutput == load.TypeCSV {
+		return "csv", nil
+	}
 	if commandOutput == load.Jmx {
 		dataOutputLines := strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n")
 		startLine := 0
@@ -438,4 +501,29 @@ func buildCommand(ctx context.Context, api load.API, command load.Command) *exec
 	}
 
 	return exec.CommandContext(ctx, commandShell, secondParameter, command.Run)
+}
+
+// checkAssertion perform output based assertions
+// when a match or not_match value is defined in the command section an assertion will be performed
+// if only match is defined, and the output successfully matches it will continue
+// if only not_match is defined, and the output successfully does not contain the output it will continue
+// if both match and not_match is defined, both the above must be true to continue
+func checkAssertion(assert load.Assert, output []byte) bool {
+
+	// return true if no matches defined
+	if assert.Match == "" && assert.NotMatch == "" {
+		return true
+	}
+
+	strOutput := string(output)
+
+	if assert.Match != "" && assert.NotMatch != "" && formatter.KvFinder("regex", strOutput, assert.Match) && formatter.KvFinder("regex", string(output), assert.NotMatch) {
+		return true
+	} else if assert.Match != "" && formatter.KvFinder("regex", strOutput, assert.Match) {
+		return true
+	} else if assert.NotMatch != "" && !formatter.KvFinder("regex", strOutput, assert.NotMatch) {
+		return true
+	}
+
+	return false
 }

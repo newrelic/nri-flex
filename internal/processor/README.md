@@ -1,6 +1,6 @@
 # processor
 --
-    import "github.com/newrelic/nri-flex/internal/processor"
+    import "."
 
 
 ## Usage
@@ -151,7 +151,7 @@ RunSampleFilter Filters samples generated
 ```go
 func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool)
 ```
-Sample Filter to match all keys
+RunSampleFilterMatchAll Sample Filter to match all keys
 
 #### func  RunSampleRenamer
 
@@ -168,6 +168,13 @@ func RunSubParse(subParse []load.Parse, currentSample *map[string]interface{}, k
 ```
 RunSubParse splits nested values out from one line eg.
 db0:keys=1,expires=0,avg_ttl=0
+
+#### func  RunTimestampConversion
+
+```go
+func RunTimestampConversion(v *interface{}, api load.API, key *string)
+```
+RunTimestampConversion find keys with regex, convert date<=>timestamp
 
 #### func  RunValConversion
 
@@ -209,7 +216,7 @@ SetEventType sets the metricSet's eventType
 #### func  StoreLookups
 
 ```go
-func StoreLookups(storeLookups map[string]string, key *string, lookupStore *map[string]map[string]struct{}, v *interface{})
+func StoreLookups(storeLookups map[string]string, lookupStore *map[string]map[string]struct{}, key string, v interface{})
 ```
 StoreLookups if key is found (using regex), store the values in the lookupStore
 as the defined lookupStoreKey for later use
@@ -224,7 +231,7 @@ StripKeys strip defined keys out
 #### func  VariableLookups
 
 ```go
-func VariableLookups(variableLookups map[string]string, key *string, variableStore *map[string]string, v *interface{})
+func VariableLookups(variableLookups map[string]string, variableStore *map[string]string, key string, v interface{})
 ```
 VariableLookups if key is found (using regex), store the value in the
 variableStore, as the defined by the variableStoreKey for later use

@@ -127,7 +127,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			// check if this contains any key pair values to filter out
 			excludeSample := true
 			// evalute sample_include_filter if sample_include_match_all_filter is not specified
-			if api.SampleIncludeMatchAllFilter != nil || len(api.SampleIncludeMatchAllFilter) != 0 {
+			if len(api.SampleIncludeMatchAllFilter) != 0 {
 				// don't exclude sample if the multi key filter is specified
 				excludeSample = false
 			} else {
@@ -308,7 +308,7 @@ func RunSampleFilter(currentSample map[string]interface{}, sampleFilters []map[s
 	}
 }
 
-// Sample Filter to match all keys
+// RunSampleFilterMatchAll Sample Filter to match all keys
 func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters []map[string]string, createSample *bool) {
 	for _, sampleFilter := range sampleFilters {
 		for fKey, fVal := range sampleFilter {
@@ -318,9 +318,9 @@ func RunSampleFilterMatchAll(currentSample map[string]interface{}, sampleFilters
 			for key, val := range currentSample {
 				if filterKey.MatchString(key) {
 					keyMatch = true
-				}
-				if filterVal.MatchString(cleanValue(&val)) {
-					valMatch = true
+					if filterVal.MatchString(cleanValue(&val)) {
+						valMatch = true
+					}
 				}
 			}
 			if keyMatch && valMatch {
@@ -563,7 +563,7 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	value := cleanValue(&v)
 	parsed, err := strconv.ParseFloat(value, 64)
 
-	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "nan") {
+	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "+inf") || strings.EqualFold(value, "nan") {
 		checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false

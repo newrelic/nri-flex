@@ -1,6 +1,6 @@
 # load
 --
-    import "github.com/newrelic/nri-flex/internal/load"
+    import "."
 
 
 ## Usage
@@ -38,11 +38,6 @@ const (
 ```
 
 ```go
-var AWSExecutionEnv string
-```
-AWSExecutionEnv AWS execution environment
-
-```go
 var ContainerID string
 ```
 ContainerID current container id
@@ -69,6 +64,11 @@ FlexStatusCounter count internal metrics
 var Hostname string
 ```
 Hostname current host
+
+```go
+var IgnoredIntegrationData []map[string]interface{}
+```
+IgnoredIntegrationData this is used for lookups with ignored output
 
 ```go
 var IngestData interface{}
@@ -106,11 +106,6 @@ var IsKubernetes bool
 IsKubernetes basic check if running on k8s
 
 ```go
-var LambdaName string
-```
-LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
-
-```go
 var Logrus = logrus.New()
 ```
 Logrus create instance of the logger
@@ -123,6 +118,16 @@ var MetricsStore = struct {
 ```
 MetricsStore for Dimensional Metrics to store data and lock and unlock when
 needed
+
+```go
+var ServerlessExecutionEnv string
+```
+ServerlessExecutionEnv serverless execution environment
+
+```go
+var ServerlessName string
+```
+ServerlessName if running on serverless platform
 
 ```go
 var StartTime int64
@@ -208,7 +213,9 @@ type API struct {
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
 	DBQueries         []Command         `yaml:"db_queries"`
-	DBAsync           bool              `yaml:"db_async"` // perform db queries async
+	DBAsync           bool              `yaml:"db_async"`   // perform db queries async
+	Jq                string            `yaml:"jq"`         // parse data using jq
+	ParseHTML         bool              `yaml:"parse_html"` // parse text/html content type table element to JSON
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -221,6 +228,7 @@ type API struct {
 	DisableParentAttr bool              `yaml:"disable_parent_attr"`
 	StartKey          []string          `yaml:"start_key"` // start from a different section of the payload
 	StoreLookups      map[string]string `yaml:"store_lookups"`
+	DedupeLookups     []string          `yaml:"dedupe_lookups"`
 	StoreVariables    map[string]string `yaml:"store_variables"`
 	LazyFlatten       []string          `yaml:"lazy_flatten"`
 	SampleKeys        map[string]string `yaml:"sample_keys"`
@@ -249,7 +257,8 @@ type API struct {
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
 
-	ValueMapper map[string][]string `yaml:"value_mapper"` // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	ValueMapper         map[string][]string `yaml:"value_mapper"`         // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
+	TimestampConversion map[string]string   `yaml:"timestamp_conversion"` // find keys with regex, convert date<=>timestamp
 
 	// Command based options
 	Split     string   `yaml:"split"`      // default vertical, can be set to horizontal (column) useful for tabular outputs
@@ -278,10 +287,24 @@ type API struct {
 	Logging struct {
 		Open bool `yaml:"open"` // log open related errors
 	}
+
+	ReturnHeaders bool `yaml:"return_headers"`
 }
 ```
 
 API YAML Struct
+
+#### type AgentConfig
+
+```go
+type AgentConfig struct {
+	Integrations []ConfigEntry `yaml:"integrations"`
+}
+```
+
+AgentConfig stores the information from a single V4 integrations file This has
+been added so that Flex can understand the V4 agent format when users are using
+the config_file parameter
 
 #### type ArgumentList
 
@@ -300,7 +323,7 @@ type ArgumentList struct {
 	ContainerDump           bool   `default:"false" help:"Dump all containers, useful for debugging"`
 	Fargate                 bool   `default:"false" help:"Enable Fargate discovery"`
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
-	EventLimit              int    `default:"500" help:"Event limiter - max amount of events per execution"`
+	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
@@ -321,7 +344,7 @@ type ArgumentList struct {
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
 	DiscoverProcessWin   bool   `default:"false" help:"Discover Process info on Windows OS"`
-	DiscoverProcessLinux bool   `default:"true" help:"Discover Process info on Linux OS"`
+	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
 }
@@ -433,7 +456,7 @@ type Command struct {
 	IgnoreOutput     bool              `yaml:"ignore_output"`     // can be useful for chaining commands together
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // not used yet
 	CustomAttributes map[string]string `yaml:"custom_attributes"` // set additional custom attributes
-	Output           string            `yaml:"output"`            // jmx, raw, json
+	Output           string            `yaml:"output"`            // jmx, raw, json,xml
 	LineEnd          int               `yaml:"line_end"`          // stop processing command output after a certain amount of lines
 	LineStart        int               `yaml:"line_start"`        // start from this line
 	Timeout          int               `yaml:"timeout"`           // command timeout
@@ -457,6 +480,10 @@ type Command struct {
 
 	// RegexMatches
 	RegexMatches []RegMatch `yaml:"regex_matches"`
+
+	// Hide exec command from output
+	HideErrorExec bool `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
+
 }
 ```
 
@@ -483,6 +510,18 @@ type Config struct {
 ```
 
 Config YAML Struct
+
+#### type ConfigEntry
+
+```go
+type ConfigEntry struct {
+	Name   string `yaml:"name"`
+	Config Config `yaml:"config"`
+}
+```
+
+ConfigEntry holds an integrations YAML configuration entry. It may define
+multiple types of tasks
 
 #### type Container
 
@@ -762,7 +801,8 @@ type Pagination struct {
 	NextCursorKey string `yaml:"next_cursor_key"` // watch for next cursor to query next
 	MaxCursorKey  string `yaml:"max_cursor_key"`  // watch for max cursor to stop at
 
-	NextLinkKey string `yaml:"next_link_key"` // look for a next link key to browse too
+	NextLinkKey  string `yaml:"next_link_key"`  // look for a next link key to browse too
+	NextLinkHost string `yaml:"next_link_host"` // set next link host - useful when next_link_key returns a partial URL, e.g "/mynextlinkABC", the next link will be {next_link_host}/mynextlinkABC
 }
 ```
 

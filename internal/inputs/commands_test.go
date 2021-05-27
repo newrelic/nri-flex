@@ -6,6 +6,7 @@
 package inputs
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -220,5 +221,112 @@ func TestDf2(t *testing.T) {
 	for key, expectedValue := range expected {
 		actualValue := actual[key]
 		assert.Equal(t, expectedValue, actualValue)
+	}
+}
+
+func TestEnvCommandCheck(t *testing.T) {
+	load.Refresh()
+
+	os.Setenv("FLEX_CMD_PREPEND", "echo hi && ")
+
+	command := "echo hello"
+	command = envCommandCheck(command)
+
+	// should not be modified
+	assert.Equal(t, "echo hello", command)
+
+	// should now be modified
+	load.Args.AllowEnvCommands = true
+	command = envCommandCheck(command)
+	assert.Equal(t, "echo hi && echo hello", command)
+
+	// check if wrap applies
+	os.Setenv("FLEX_CMD_PREPEND", "")
+	os.Setenv("FLEX_CMD_WRAP", "true")
+	commandWrap := envCommandCheck("echo hello")
+	assert.Equal(t, "\"echo hello\"", commandWrap)
+
+	// disable modifications to not effect other tests
+	load.Args.AllowEnvCommands = false
+}
+
+func TestAssert(t *testing.T) {
+	load.Refresh()
+	config := load.Config{
+		Name: "echoFlex",
+		APIs: []load.API{
+			{
+				Name: "echo",
+				Commands: []load.Command{
+					{
+						Run:     "echo hi:bye",
+						SplitBy: `:`,
+						Assert: load.Assert{
+							Match: "hi",
+						},
+					},
+				},
+			},
+			{
+				Name: "echo2",
+				Commands: []load.Command{
+					{
+						Run:     "echo abc:def",
+						SplitBy: `:`,
+						Assert: load.Assert{
+							NotMatch: "BYE",
+						},
+					},
+				},
+			},
+			{
+				Name: "echo3",
+				Commands: []load.Command{
+					{
+						Run:     "echo abc:def",
+						SplitBy: `:`,
+						Assert: load.Assert{
+							NotMatch: "abc",
+						},
+					},
+				},
+			},
+			{
+				Name: "echo3",
+				Commands: []load.Command{
+					{
+						Run:     "echo abc:def",
+						SplitBy: `:`,
+						Assert: load.Assert{
+							Match:    "abc",
+							NotMatch: "foo",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	dataStoreExpected := []interface{}{
+		map[string]interface{}{
+			"hi": "bye",
+		},
+	}
+
+	dataStore := []interface{}{}
+	RunCommands(&dataStore, &config, 0)
+	RunCommands(&dataStore, &config, 1)
+	RunCommands(&dataStore, &config, 2)
+	RunCommands(&dataStore, &config, 3)
+
+	assert.Len(t, dataStore, 3)
+
+	// we are only checking the first entry
+	expected := dataStoreExpected[0].(map[string]interface{})
+	actual := dataStore[0].(map[string]interface{})
+
+	for key, expectedValue := range expected {
+		actualValue := actual[key]
+		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }

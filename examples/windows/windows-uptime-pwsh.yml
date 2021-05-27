@@ -5,7 +5,7 @@ integrations:
     config:
       name: winUptime
       apis:
-        - name: WinUptime
+        - event_type: WinUptime
           shell: pwsh
           commands:
             - run: "Get-Uptime | ConvertTo-Json"

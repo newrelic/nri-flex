@@ -1,0 +1,12 @@
+# Used to query the system for hardware level details on the installed RAM. Useful for on-prem/bare metal instances.
+# Note: This command is not as valuable in a cloud environment as most of the hardware data is hidden
+# All capacity numbers are reported in MiB
+integrations:
+  - name: nri-flex
+    config:
+      name: windowsMemory
+      apis:
+        - event_type: systemMemory
+          shell: powershell
+          commands:
+            - run: "Get-WmiObject win32_physicalmemory | Select-Object -Property @{ Name = 'Manufacturer'; Expression = { $_.Manufacturer } }, @{ Name = 'Banklabel'; Expression = { $_.Banklabel } }, @{ Name = 'Capacity'; Expression = { $_.Capacity/1024/1024 } }, @{ Name = 'ConfiguredClockSpeed'; Expression = { $_.ConfiguredClockSpeed } }, @{ Name = 'SerialNumber'; Expression = { $_.Serialnumber } }, @{ Name = 'PartNumber'; Expression = { $_.PartNumber } }, @{ Name = 'DeviceLocator'; Expression = { $_.DeviceLocator } }, @{ Name = 'Speed'; Expression = { $_.Speed } } | ConvertTo-Json"

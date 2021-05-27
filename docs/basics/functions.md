@@ -2,7 +2,7 @@
 
 Flex functions can be combined in different ways to help you manipulate and tidy up your data. The following functions apply to all Flex APIs or data sources.
 
-For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](apis/README.md).
+For functions that are specific to data sources, such as `split_by` or `headers`, see [Flex APIs](../apis/README.md).
 
 - [Data parsing and transformation functions](#data-parsing-and-transformation-functions)
   - [Function precedence order](#function-precedence-order)
@@ -34,6 +34,8 @@ For functions that are specific to data sources, such as `split_by` or `headers`
     - [to_lower](#to_lower)
     - [value_parser](#value_parser)
     - [value_transformer](#value_transformer)
+    - [timestamp_conversion](#timestamp_conversion)
+
 
 ## Function precedence order
 
@@ -52,16 +54,17 @@ Flex applies data parsing and transformation functions in a specific order, rega
 11. [perc_to_decimal](#perc_to_decimal)
 12. [value_parser](#value_parser)
 13. [value_transformer](#value_transformer)
-14. [rename_keys / replace_keys](#rename_keys--replace_keys)
-15. [store_lookups](#store_lookups)
-16. [keep_keys](#keep_keys)
-17. [ignore_output](#ignore_output)
-18. [sample_include_filter](#sample_include_filter)
-19. [sample_filter](#sample_filter)
-20. [sample_exclude_filter](#sample_exclude_filter)
-21. [math](#math)
-22. [add_attribute](#add_attribute)
-23. [remove_keys](#remove_keys)
+14. [timestamp_conversion](#timestamp_conversion)
+15. [rename_keys / replace_keys](#rename_keys--replace_keys)
+16. [store_lookups](#store_lookups)
+17. [keep_keys](#keep_keys)
+18. [ignore_output](#ignore_output)
+19. [sample_include_filter](#sample_include_filter)
+20. [sample_filter](#sample_filter)
+21. [sample_exclude_filter](#sample_exclude_filter)
+22. [math](#math)
+23. [add_attribute](#add_attribute)
+24. [remove_keys](#remove_keys)
 
 > \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
@@ -1616,4 +1619,88 @@ Which would return something similar to:
   "leaderInfo.uptime": "10m59.322358947s",
   "name": "node/node3"
 }]
+```
+
+### timestamp_conversion
+
+Uses a regular expression to find a key and convert its value to DATE or TIMESTAMP.
+
+**Syntax** 
+
+- Option 1
+  ```yml
+  timestamp_conversion:
+        <keys regex>: DATE::<Date Format>
+        <keys regex>: TIMESTAMP::<Date Format>
+  ``` 
+- Option 2
+  ```yml
+  timestamp_conversion:
+        <keys regex>: DATE
+        <keys regex>: TIMESTAMP
+
+  #The <Date Format> defaults to RFC3339 if not specified
+  ```
+
+- Supported date format 
+  - A list of predefined date formats
+    ```yaml
+      "ANSIC":       "Mon Jan _2 15:04:05 2006",
+      "UnixDate":    "Mon Jan _2 15:04:05 MST 2006",
+      "RubyDate":    "Mon Jan 02 15:04:05 -0700 2006",
+      "ATOM":        "2006-01-02T15:04:05Z07:00",
+      "COOKIE":      "Monday, 02-Jan-06 15:04:05 MST",
+      "ISO8601":     "2006-01-02T15:04:05Z0700",
+      "RFC822":      "Mon, 02 Jan 06 15:04:05 Z0700",
+      "RFC850":      "Monday, 02-Jan-06 15:04:05 MST",
+      "RFC1036":     "Mon, 02 Jan 06 15:04:05 Z0700",
+      "RFC1123":     "Mon, 02 Jan 2006 15:04:05 Z0700",
+      "RFC2822":     "Mon, 02 Jan 2006 15:04:05 Z0700",
+      "RFC3339":     "2006-01-02T15:04:05Z07:00",
+      "RFC3339Nano": "2006-01-02T15:04:05.999999999Z07:00",
+      "RSS":         "Mon, 02 Jan 2006 15:04:05 Z0700",
+      "W3C":         "2006-01-02T15:04:05Z07:00",
+    ```
+  - Custom date format
+    ```
+    Any custom formats using the const from https://golang.org/src/time/format.go
+    ```
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+  "started_at": "2020-07-20T14:34:05Z",
+  "endtime": "1595598897"
+}
+```
+
+If you want to 
+  - convert the value of key `started_at` into a Unix TIMESTAMP
+  - convert the value of key `endtime`  into a DATE format
+
+you could use `timestamp_conversion` like this:
+
+```yaml
+name: test1
+
+apis:
+  - name: test1
+    url: http://127.0.0.1:8887/simpletime.json
+    timestamp_conversion:
+      started_at: DATE::RFC3339
+      endtime: TIMESTAMP::2006-01-02T03:04
+```
+
+Which would return something similar to:
+
+```json
+{
+    "api.StatusCode": 200,
+    "started_at": 1595255645,
+    "endtime": "2020-07-24T11:54",
+    "event_type": "test1Sample"
+}
 ```

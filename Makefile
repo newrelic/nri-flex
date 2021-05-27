@@ -1,21 +1,17 @@
-PROJECT_NAME := $(shell basename $(shell pwd))
-NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
-NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
-GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
-SRCDIR       ?= .
-BUILD_DIR    := ./bin/
-COVERAGE_DIR := ./coverage/
-COVERMODE     = atomic
+INTEGRATION      := flex
+PROJECT_NAME     = nri-$(INTEGRATION)
+NATIVEOS         := $(shell go version | awk -F '[ /]' '{print $$4}')
+NATIVEARCH       := $(shell go version | awk -F '[ /]' '{print $$5}')
+SRCDIR           ?= .
+BUILD_DIR        ?= $(CURDIR)/bin
+COVERAGE_FILE    ?= coverage.out
 
-GO_CMD = go
-GODOC = godocdown
+GO_VERSION       ?= 1.15
+GO_CMD           ?= go
+GODOC            ?= godocdown
 
 GOLINTER         = golangci-lint
 GOLINTER_VERSION = v1.24.0
-
-GORELEASER_VERSION := v0.132.1
-GORELEASER_SHA256 := 6c0145df61140ec1bffe4048b9ef3e105e18a89734816e7a64f342d3f9267691
-GORELEASER_BIN ?= bin/goreleaser
 
 # Determine packages by looking into pkg/*
 ifneq ("$(wildcard ${SRCDIR}/pkg/*)","")
@@ -34,29 +30,17 @@ BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 all: build
 
 # Humans running make:
-build: check-version clean lint test-unit coverage compile document
+build: check-version clean deps lint test-unit compile document
 
 # Build command for CI tooling
-build-ci: check-version clean lint test-integration
+build-ci: check-version clean deps lint test-coverage
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: removing binaries and coverage file..."
-	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_DIR)/*
+	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_FILE)
 
 bin:
 	@mkdir -p $(BUILD_DIR)
-
-$(GORELEASER_BIN): bin
-	@echo "=== $(PROJECT) === [ release/deps ]: Installing goreleaser"
-	@(wget -qO /tmp/goreleaser.tar.gz https://github.com/goreleaser/goreleaser/releases/download/$(GORELEASER_VERSION)/goreleaser_$(GOOS)_x86_64.tar.gz)
-	@(tar -xf  /tmp/goreleaser.tar.gz -C bin/)
-	@(rm -f /tmp/goreleaser.tar.gz)
-
-release/deps: $(GORELEASER_BIN)
-
-release: clean release/deps compile-only
-	@echo "=== $(PROJECT) === [ release ]: Releasing new version..."
-	@$(GORELEASER_BIN) release
 
 # Import fragments
 include build/deps.mk
@@ -66,5 +50,7 @@ include build/testing.mk
 include build/util.mk
 include build/document.mk
 include build/docker.mk
+include build/ci.mk
+include build/release.mk
 
 .PHONY: all build build-ci

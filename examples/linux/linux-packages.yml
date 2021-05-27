@@ -1,0 +1,43 @@
+# currently supports rpm, yum, zypper
+---
+integrations:
+  - name: nri-flex
+    interval: 300s # packages are usually static so it does not need high frequency
+    config:
+      name: LinuxPackages
+      custom_attributes:
+        operatingSystem: linux
+      apis:
+        - name: Package
+          custom_attributes:
+            packageManager: "apt"
+          commands:
+            - run: apt list --installed
+              split: horizontal
+              regex_match: true
+              split_by: (\S+)\/\S+\s+(\S+)\s+(\S+)\s+\[(.+)\]
+              set_header: [package, version, arch, message]
+              assert:
+                not_match: not found
+        - name: Package
+          commands:
+            - run: yum list installed
+              split: horizontal
+              regex_match: true
+              split_by: (\S+)\s+(\S+)\s+(\S+)
+              set_header: [package, version, repository]
+              assert:
+                not_match: not found
+          custom_attributes:
+            packageManager: "yum"
+        - name: Package
+          commands:
+            - run: zypper se --installed-only -s
+              split: horizontal
+              regex_match: true
+              split_by: i\s+\|\s+(\S+)\s+\|\s+\S+\s+\|\s+(\S+)\s+\|\s+(\S+)\s+\|\s+(.+)
+              set_header: [package, version, arch, repository]
+              assert:
+                not_match: not found
+          custom_attributes:
+            packageManager: "zypper"

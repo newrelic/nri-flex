@@ -6,6 +6,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,6 +20,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/processor"
 	"github.com/sirupsen/logrus"
 
+	"go.uber.org/ratelimit"
 	"gopkg.in/yaml.v2"
 )
 
@@ -62,6 +64,7 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 			newConfig := integration.Config
 			newConfig.FileName = fileName
 			newConfig.FilePath = filePath
+			applyFlexMeta(&newConfig)
 
 			if newConfig.Name == "" {
 				load.Logrus.WithFields(logrus.Fields{
@@ -106,7 +109,7 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 
 	// Check if V4 Agent configuration
 	// The agent config check is intended for testing purposes only
-	if strings.Contains(ymlStr, "- name: nri-flex") {
+	if strings.Contains(ymlStr, "name: nri-flex") {
 		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
@@ -122,6 +125,8 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 			}).WithError(err).Error("config: failed to load config file")
 			return err
 		}
+
+		applyFlexMeta(&config)
 
 		config.FileName = f.Name()
 		config.FilePath = dirPath
@@ -171,7 +176,7 @@ func recurseDirectory(filePath string, configs *[]load.Config) {
 }
 
 func checkIngestConfigs(config *load.Config) {
-	if (*config).FileName == "flex-lambda-ingest.yml" && load.LambdaName != "" {
+	if (*config).FileName == "flex-lambda-ingest.yml" && load.ServerlessName != "" {
 		if load.IngestData != nil {
 			(*config).Datastore = map[string][]interface{}{}
 			(*config).Datastore["IngestData"] = []interface{}{load.IngestData}
@@ -233,7 +238,18 @@ func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPIN
 	var wgapi sync.WaitGroup
 	wgapi.Add(len(yml.APIs))
 
+	// Throttle to rate limit for Async request
+	rl := ratelimit.NewUnlimited()
+	if yml.APIs[originalAPINo].AsyncRate != 0 {
+		rl = ratelimit.New(yml.APIs[originalAPINo].AsyncRate)
+	}
+	load.Logrus.WithFields(logrus.Fields{
+		"Async Rate": yml.APIs[originalAPINo].AsyncRate,
+		"apis":       yml.APIs[originalAPINo].Name,
+	}).Debug("API Async Throttle Setting: ")
+
 	for i := range yml.APIs {
+		rl.Take()
 		go func(originalAPINo int, i int) {
 			defer wgapi.Done()
 			dataSets := FetchData(i, &yml, samplesToMerge)
@@ -304,9 +320,14 @@ func RunFiles(configs *[]load.Config) []error {
 			}
 		}()
 
+		rl := ratelimit.NewUnlimited()
+		if load.Args.AsyncRate != 0 {
+			rl = ratelimit.New(load.Args.AsyncRate)
+		}
 		var wg sync.WaitGroup
 		wg.Add(len(*configs))
 		for _, cfg := range *configs {
+			rl.Take()
 			go func(cfg load.Config) {
 				defer wg.Done()
 				err := verifyConfig(cfg)
@@ -380,4 +401,24 @@ func runVariableProcessor(cfg *load.Config) error {
 		*cfg = newCfg
 	}
 	return nil
+}
+
+// applyFlexMeta reads the FLEX_META variable for JSON to apply as custom_attributes
+func applyFlexMeta(cfg *load.Config) {
+	flexMetaEnv := os.Getenv("FLEX_META")
+	jsonData := []byte(flexMetaEnv)
+
+	var flexMetaJSON map[string]interface{}
+	err := json.Unmarshal(jsonData, &flexMetaJSON)
+	if err != nil {
+		return
+	}
+
+	if cfg.CustomAttributes == nil {
+		cfg.CustomAttributes = map[string]string{}
+	}
+
+	for key, value := range flexMetaJSON {
+		cfg.CustomAttributes[key] = fmt.Sprintf("%v", value)
+	}
 }

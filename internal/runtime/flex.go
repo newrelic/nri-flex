@@ -3,11 +3,10 @@
 * SPDX-License-Identifier: Apache-2.0
  */
 
-package integration
+package runtime
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-flex/internal/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,29 +15,66 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/config"
-	"github.com/newrelic/nri-flex/internal/discovery"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/newrelic/nri-flex/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 
-// FlexRunMode is used to switch the mode of running flex.
-type FlexRunMode int
+// Serverless runtimes must implement this
+type Instance interface {
+	isAvailable() bool
+	loadConfigs(*[]load.Config) error
+	SetConfigDir(string)
+}
 
-const (
-	// FlexModeDefault is the usual way of running flex.
-	FlexModeDefault FlexRunMode = iota
-	// FlexModeLambda is used when flex is running within a lambda.
-	FlexModeLambda
-	// FlexModeTest is used when running tests.
-	FlexModeTest
-)
-
+// Add new  runtime types to this  list. Test & Default don't go here
+var runtimeTypes = [2]Instance{new(Lambda), new(Function)}
 var log = load.Logrus
 
-// RunFlex runs flex.
-func RunFlex(runMode FlexRunMode) error {
-	setupLogger()
+// Get the first available runtime type, defaults to the server-based (Linux | Windows) Default type
+func GetFlexRuntime() Instance {
+	for _, r := range runtimeTypes {
+		if r.isAvailable() {
+			return r
+		}
+	}
+	return GetDefaultRuntime()
+}
+
+// Get a server-based, default, runtime
+func GetDefaultRuntime() Instance {
+	return new(Default)
+}
+
+// Get the test runtime
+func GetTestRuntime() Instance {
+	return new(Test)
+}
+
+// Post-initialization common to all runtime types here
+func CommonPostInit() {
+	err := load.Integration.Publish()
+	if err != nil {
+		load.Logrus.WithError(err).Fatal("runtime.CommonPostInit: failed to publish")
+	}
+}
+
+// CommonPreInit Pre-initialization common to all runtime types here
+func CommonPreInit() {
+	load.SetupLogger()
+	load.StartTime = load.MakeTimestamp()
+	setEnvs()
+
+	err := outputs.InfraIntegration()
+	if err != nil {
+		load.Logrus.WithError(err).Fatal("runtime.CommonPreInit: failed to initialize runtime")
+	}
+}
+
+// RunFlex Common run (once) function
+func RunFlex(instance Instance) error {
+	setStatusCounters()
 
 	log.WithFields(logrus.Fields{
 		"version": load.IntegrationVersion,
@@ -46,73 +82,17 @@ func RunFlex(runMode FlexRunMode) error {
 		"GOARCH":  runtime.GOARCH,
 	}).Info(load.IntegrationName)
 
-	// store config yml
 	var configs []load.Config
 
-	switch runMode {
-	case FlexModeLambda:
-		errors := addConfigsFromPath("/var/task/pkg/flexConfigs/", &configs)
-		if len(errors) > 0 {
-			log.Error("flex: failed to read some configuration files, please review them")
-		}
-
-		isSyncGitConfigured, err := config.SyncGitConfigs("/tmp/")
-		if err != nil {
-			log.WithError(err).Warn("flex: failed to sync git configs")
-		} else if isSyncGitConfigured {
-			errors = addConfigsFromPath("/tmp/", &configs)
-			if len(errors) > 0 {
-				log.Error("flex: failed to load git sync configuration files, ignoring and continuing")
-			}
-		}
-
-	default:
-		if load.Args.EncryptPass != "" {
-			err := logEncryptPass()
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err := config.SyncGitConfigs("")
-		if err != nil {
-			log.WithError(err).Warn("flex: failed to sync git configs")
-		}
-
-		var errors []error
-		if load.Args.ConfigFile != "" {
-			err = addSingleConfigFile(load.Args.ConfigFile, &configs)
-			if err != nil {
-				return err
-			}
-		} else {
-			errors = addConfigsFromPath(load.Args.ConfigDir, &configs)
-			if len(errors) > 0 {
-				return fmt.Errorf("flex: failed to load configurations files")
-			}
-		}
-
-		// should we stop if this fails??
-		if load.Args.ContainerDiscovery || load.Args.Fargate {
-			discovery.Run(&configs)
-		}
+	// runtime instance specific run
+	err := instance.loadConfigs(&configs)
+	if err != nil {
+		return err
 	}
 
-	if load.ContainerID == "" && runMode == FlexModeDefault {
-		switch runtime.GOOS {
-		case "windows":
-			if load.Args.DiscoverProcessWin {
-				discovery.Processes()
-			}
-		case "linux":
-			if load.Args.DiscoverProcessLinux {
-				discovery.Processes()
-			}
-		}
-	}
 	errors := config.RunFiles(&configs)
 	if len(errors) > 0 {
-		return fmt.Errorf("flex: failed to run configuration files")
+		return fmt.Errorf("runtime.RunFlex: failed to run configuration files")
 	}
 
 	outputs.StatusSample()
@@ -120,28 +100,17 @@ func RunFlex(runMode FlexRunMode) error {
 	if load.Args.InsightsURL != "" && load.Args.InsightsAPIKey != "" {
 		for _, batch := range outputs.GetMetricBatches() {
 			if err := outputs.SendBatchToInsights(batch); err != nil {
-				log.WithError(err).Error("flex: failed to send batch to insights")
+				log.WithError(err).Error("runtime.RunFlex: failed to send batch to insights")
 			}
 		}
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		if err := outputs.SendToMetricAPI(); err != nil {
-			log.WithError(err).Error("flex: failed to send metrics")
+			log.WithError(err).Error("runtime.RunFlex: failed to send metrics")
 		}
 	} else if len(load.MetricsStore.Data) > 0 && (load.Args.MetricAPIUrl == "" || (load.Args.InsightsAPIKey == "" || load.Args.MetricAPIKey == "")) {
-		log.Debug("flex: metric_api is being used, but metric url and/or key has not been set")
+		log.Debug("runtime.RunFlex: metric_api is being used, but metric url and/or key has not been set")
 	}
 	return nil
-}
-
-func setupLogger() {
-	verboseLogging := os.Getenv("VERBOSE")
-	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
-		log.SetLevel(logrus.TraceLevel)
-	}
-
-	if load.Args.StructuredLogs {
-		log.SetFormatter(&logrus.JSONFormatter{})
-	}
 }
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) error {
@@ -190,8 +159,7 @@ func logEncryptPass() error {
 	return nil
 }
 
-// SetDefaults set flex defaults
-func SetDefaults() {
+func setStatusCounters() {
 	log.Out = os.Stderr
 	load.FlexStatusCounter.M = make(map[string]int)
 	load.FlexStatusCounter.M["EventCount"] = 0
@@ -199,9 +167,8 @@ func SetDefaults() {
 	load.FlexStatusCounter.M["ConfigsProcessed"] = 0
 }
 
-// SetEnvs set environment variable argument overrides
-func SetEnvs() {
-	load.AWSExecutionEnv = os.Getenv("AWS_EXECUTION_ENV")
+// setEnvs set environment variable argument overrides
+func setEnvs() {
 	gitService := os.Getenv("GIT_SERVICE")
 	if gitService != "" {
 		load.Args.GitService = gitService
@@ -228,6 +195,11 @@ func SetEnvs() {
 	if err == nil && configSync {
 		load.Args.ProcessConfigsSync = configSync
 	}
+	asyncRate, err := strconv.Atoi(os.Getenv("ASYNC_RATE"))
+	if err == nil && asyncRate > 0 {
+		load.Args.AsyncRate = asyncRate
+	}
+
 	fargate, err := strconv.ParseBool(os.Getenv("FARGATE"))
 	if err == nil && fargate {
 		load.Args.Fargate = fargate

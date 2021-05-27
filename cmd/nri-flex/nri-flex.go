@@ -6,37 +6,18 @@
 package main
 
 import (
-	"github.com/newrelic/nri-flex/internal/integration"
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/newrelic/nri-flex/internal/outputs"
+	"github.com/newrelic/nri-flex/internal/runtime"
 )
 
 func main() {
-	load.StartTime = load.MakeTimestamp()
-	integration.SetEnvs()
+	runtime.CommonPreInit()
 
-	err := outputs.InfraIntegration()
+	i := runtime.GetFlexRuntime()
+	err := runtime.RunFlex(i)
 	if err != nil {
-		load.Logrus.WithError(err).Fatal("flex: failed to initialize integration")
+		load.Logrus.WithError(err).Fatal("flex: failed to run runtime")
 	}
 
-	if integration.IsLambda() {
-		err = integration.ValidateLambdaConfig()
-		if err != nil {
-			load.Logrus.WithError(err).Fatal("flex: failed to validate lambda required config")
-		}
-		integration.HandleLambda()
-	} else {
-		// default process
-		integration.SetDefaults()
-		err = integration.RunFlex(integration.FlexModeDefault)
-		if err != nil {
-			load.Logrus.WithError(err).Fatal("flex: failed to run integration")
-		}
-	}
-
-	err = load.Integration.Publish()
-	if err != nil {
-		load.Logrus.WithError(err).Fatal("flex: failed to publish")
-	}
+	runtime.CommonPostInit()
 }

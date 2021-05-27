@@ -6,6 +6,7 @@
 package load
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -46,6 +47,7 @@ type ArgumentList struct {
 	GitBranch               string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit               string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync      bool   `default:"false" help:"Process configs synchronously rather then async"`
+	AsyncRate               int    `default:"0" help:" When Process Configs in Async mode, limit the rate to run the configs, e.g. 20 per second (default: 0, unlimited)"`
 	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
@@ -53,6 +55,8 @@ type ArgumentList struct {
 	DiscoverProcessLinux bool   `default:"false" help:"Discover Process info on Linux OS"`
 	NRJMXToolPath        string `default:"/usr/lib/nrjmx/" help:"Set a custom path for nrjmx tool"`
 	StructuredLogs       bool   `default:"false" help:"output logs in Json structure format for external tool parsing"`
+	AllowEnvCommands     bool   `default:"false" help:"enable to allow the use of FLEX_CMD_PREPEND, FLEX_CMD_APPEND & FLEX_CMD_WRAP"`
+	StdinPipe            bool   `default:"false" help:"use cmd.StdinPipe for commands"`
 }
 
 // Args Infrastructure SDK Arguments List
@@ -82,11 +86,11 @@ var IsKubernetes bool
 // IsFargate basic check if running on fargate
 var IsFargate bool
 
-// LambdaName if running on lambda add name from AWS_LAMBDA_FUNCTION_NAME
-var LambdaName string
+// ServerlessName if running on serverless platform
+var ServerlessName string
 
-// AWSExecutionEnv AWS execution environment
-var AWSExecutionEnv string
+// ServerlessExecutionEnv serverless execution environment
+var ServerlessExecutionEnv string
 
 // DiscoveredProcesses discovered processes
 var DiscoveredProcesses map[string]string
@@ -127,6 +131,7 @@ const (
 	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
+	TypeCSV            = "csv"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )
@@ -135,6 +140,10 @@ const (
 var MetricsStore = struct {
 	sync.RWMutex
 	Data []Metrics
+}{}
+
+var CacheStoreLock = struct {
+	sync.RWMutex
 }{}
 
 // MetricsStoreAppend Append data to store
@@ -234,7 +243,9 @@ type TLSConfig struct {
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 	MinVersion         uint16 `yaml:"min_version"`
 	MaxVersion         uint16 `yaml:"max_version"`
-	Ca                 string `yaml:"ca"` // path to ca to read
+	Ca                 string `yaml:"ca"`   // path to ca to read
+	Key                string `yaml:"key"`  // path to key to read
+	Cert               string `yaml:"cert"` // path to cert to read
 }
 
 // SampleMerge merge multiple samples into one (will remove previous samples)
@@ -256,6 +267,7 @@ type API struct {
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
 	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	AsyncRate         int               `yaml:"async_rate"`     //Async Request Throttle Rate
 	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
@@ -271,8 +283,9 @@ type API struct {
 	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
 	Commands          []Command         `yaml:"commands"`
 	DBQueries         []Command         `yaml:"db_queries"`
-	DBAsync           bool              `yaml:"db_async"` // perform db queries async
-	Jq                string            `yaml:"jq"`       // parse data using jq
+	DBAsync           bool              `yaml:"db_async"`   // perform db queries async
+	Jq                string            `yaml:"jq"`         // parse data using jq
+	ParseHTML         bool              `yaml:"parse_html"` // parse text/html content type table element to JSON
 	Jmx               JMX               `yaml:"jmx"`
 	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
 	User, Pass        string
@@ -297,6 +310,8 @@ type API struct {
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
 	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
+	HWSigner          HWSigner          `yaml:"hw_signer"`     // Huawei Cloud Service API signer
+	AliyunSigner      AliyunSigner      `yaml:"aliyun_signer"` // Huawei Cloud Service API signer
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -376,7 +391,6 @@ type Command struct {
 	Dial             string            `yaml:"dial"`              // eg. google.com:80
 	Network          string            `yaml:"network"`           // default tcp
 	OS               string            `yaml:"os"`                // default empty for any operating system, if set will check if the OS matches else will skip execution
-
 	// Parsing Options - Body
 	Split       string `yaml:"split"`        // default vertical, can be set to horizontal (column) useful for outputs that look like a table
 	SplitBy     string `yaml:"split_by"`     // character/match to split by
@@ -393,6 +407,16 @@ type Command struct {
 
 	// RegexMatches
 	RegexMatches []RegMatch `yaml:"regex_matches"`
+
+	// Mask run command
+	HideErrorExec bool   `yaml:"hide_error_exec"` // prevent executable command from getting displayed when there is an error
+	Assert        Assert `yaml:"assert"`          // use command as an assertion to block other commands unless successful
+}
+
+// Assert uses command as an assertion to block or pass following commands
+type Assert struct {
+	Match    string `yaml:"match"`     // containue if output matches this string
+	NotMatch string `yaml:"not_match"` // continue if output does not match this string
 }
 
 // Pagination handles request pagination
@@ -419,7 +443,8 @@ type Pagination struct {
 	NextCursorKey string `yaml:"next_cursor_key"` // watch for next cursor to query next
 	MaxCursorKey  string `yaml:"max_cursor_key"`  // watch for max cursor to stop at
 
-	NextLinkKey string `yaml:"next_link_key"` // look for a next link key to browse too
+	NextLinkKey  string `yaml:"next_link_key"`  // look for a next link key to browse too
+	NextLinkHost string `yaml:"next_link_host"` // set next link host - useful when next_link_key returns a partial URL, e.g "/mynextlinkABC", the next link will be {next_link_host}/mynextlinkABC
 }
 
 // RegMatch support for regex matches
@@ -473,6 +498,18 @@ type SCP struct {
 	SSHPEMFile string `yaml:"ssh_pem_file"`
 }
 
+// HWSigner struct
+type HWSigner struct {
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
+}
+
+// AliyunSigner struct
+type AliyunSigner struct {
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
+}
+
 // Parse struct
 type Parse struct {
 	Type    string   `yaml:"type"` // perform a contains, match, hasPrefix or regex for specified key
@@ -513,4 +550,15 @@ func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
 	s.Lock()
 	defer s.Unlock()
 	(s.Data)[key] = append((s.Data)[key], sample)
+}
+
+func SetupLogger() {
+	verboseLogging := os.Getenv("VERBOSE")
+	if Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		Logrus.SetLevel(logrus.TraceLevel)
+	}
+
+	if Args.StructuredLogs {
+		Logrus.SetFormatter(&logrus.JSONFormatter{})
+	}
 }

@@ -171,8 +171,7 @@ integrations:
               row_start: 1
               set_header: [fs,fsType,capacityBytes,usedBytes,availableBytes,usedPerc,mountedOn]
           perc_to_decimal: true
-      name: linuxOpenFD
-      apis:
+          
         - name: linuxOpenFD
           commands:
             - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
