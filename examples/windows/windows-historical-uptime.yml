@@ -1,0 +1,10 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: WindowsUptime
+      apis:
+        - event_type: systemUptime
+          shell: powershell
+          commands:
+            - run: "C:/Program` Files/New` Relic/newrelic-infra/integrations.d/GetUpTimeFromSystemLogPastDay.ps1"
+              timeout: 29000
