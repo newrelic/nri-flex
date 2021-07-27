@@ -10,4 +10,4 @@ integrations:
         - event_type: appPoolCheck
           shell: powershell
           commands:
-            - run: "Get-Website | ForEach-Object{ $appPool = $_.applicationPool; Get-WebAppPoolState -Name $appPool } | Select-Object -Property @{ Name = 'AppPool'; Expression = { $appPool } }, @{ Name = 'Status'; Expression = { $_.Value } } | ConvertTo-Json"
+            - run: "Get-Website | ForEach-Object{ $appPool = $_.applicationPool; Get-WebAppPoolState -Name $appPool } | Select-Object -Property @{ Name = 'appPoolName'; Expression = { $appPool } }, @{ Name = 'appPoolStatus'; Expression = { $_.Value } } | ConvertTo-Json"
