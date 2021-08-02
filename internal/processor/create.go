@@ -563,7 +563,7 @@ func AutoSetMetricInfra(k string, v interface{}, metricSet *metric.Set, metrics 
 	value := cleanValue(&v)
 	parsed, err := strconv.ParseFloat(value, 64)
 
-	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "nan") {
+	if err != nil || strings.EqualFold(value, "infinity") || strings.EqualFold(value, "inf") || strings.EqualFold(value, "+inf") || strings.EqualFold(value, "nan") {
 		checkError(metricSet.SetMetric(k, value, metric.ATTRIBUTE))
 	} else {
 		foundKey := false

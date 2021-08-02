@@ -1,0 +1,14 @@
+# Flex integration to get uptime of Linux systems
+# How it works: We grab two values from /proc/uptime. 1. Uptime in secs 2. Seconds idle of all cores
+integrations: 
+  - name: nri-flex 
+    config:
+      name: linuxUptime 
+      apis:
+        - name: linuxUptimeSeconds # Event type will be linuxUptimeSecondsSample
+          commands: 
+            - run: cat /proc/uptime | awk  '{print $0}' 
+              split: horizontal
+              set_header: [secondsUptime, secondsIdleCores]
+              regex_match: true 
+              split_by: (.*)\s+(.*)

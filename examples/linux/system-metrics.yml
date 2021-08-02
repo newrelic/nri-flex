@@ -10,7 +10,7 @@ integrations:
         - name: System
           commands:
             - run: >
-                echo cpuPercent:`cat /proc/stat | awk '/cpu/{printf("%.2f\n"), ($2+$4)*100/($2+$4+$5)}' |  awk '{print $0}' | head -1)` &&
+                echo cpuPercent:`cat /proc/stat | awk '/cpu/{printf("%.2f\n"), ($2+$4)*100/($2+$4+$5)}' |  awk '{print $0}' | head -1` &&
                 echo memoryUsedPercent:`free | awk '/Mem/{printf("%.2f"), $3/$2*100}'` && 
                 echo memorySwapPercent:`free | awk '/Swap/{printf("%.2f"), $3/$2*100}'` &&
                 echo diskUsedPercent:`df -lh | awk '{if ($6 == "/") { print $5 }}' | head -1 | cut -d'%' -f1`

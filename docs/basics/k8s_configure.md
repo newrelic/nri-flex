@@ -29,7 +29,7 @@ What approach to follow is up to you.
 
 Assuming that you have installed the Kubernetes integration following the [official instructions](https://docs.newrelic.com/docs/integrations/kubernetes-integration/installation/kubernetes-installation-configuration#install), you should have the Infrastructure agent running in your cluster, as well as two configMaps:
 
-- `nri-default-integration-cfg` : config map used to enable the New Relic Kubernetes integration. Can be removed if you do not want to use this integration.
+- `nri-default-integration-cfg` : config map used to enable the New Relic Kubernetes integration. Can be removed if you do not want to use this integration. If the installation is done with the command `helm install`,  the value `integrations_config` needs to be populated, as it's shown [here](https://github.com/newrelic/helm-charts/blob/master/charts/newrelic-infrastructure/values.yaml#L219-L239)
 - `nri-integration-cfg-example` : config map used to enable other integrations. You should this config map to enable Flex and other New Relic integrations.
 
 To enable Flex, create a `data` section in the config map and add an Infrastructure agent integration configuration under `data`:
