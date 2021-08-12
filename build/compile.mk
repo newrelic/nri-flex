@@ -85,3 +85,14 @@ compile-windows32: deps-only
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
 		GOARCH=386 CGO_ENABLED=1 GOOS=windows $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
+
+.PHONY: compile-for-debug-linux
+compile-for-debug-linux: deps-only
+	@echo "=== $(PROJECT_NAME) === [ compile-for-debug-linux    ]: building commands:"
+	@mkdir -p $(BUILD_DIR)/linux
+	@for b in $(BINS); do \
+		OUTPUT_FILE="$(BUILD_DIR)/linux/$$b" ; \
+		echo "=== $(PROJECT_NAME) === [ compile-for-debug-linux    ]:     $$OUTPUT_FILE"; \
+		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
+		GOOS=linux $(GO_CMD) build -gcflags 'all=-N -l' -o $$OUTPUT_FILE $$BUILD_FILES ; \
+	done
