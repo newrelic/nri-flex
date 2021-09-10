@@ -14,7 +14,7 @@ integrations:
               row_start: 3
               split: horizontal
               regex_match: true
-              split_by: (\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+)
+              split_by: (\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+),(\S+)
               set_header:
                 [
                   time,
