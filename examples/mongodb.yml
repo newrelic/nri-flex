@@ -2,7 +2,7 @@
 #
 # Permissions required for this integration include the cluster monitor role:
 ## Link here: https://docs.mongodb.com/manual/reference/built-in-roles/#mongodb-authrole-clusterMonitor
-# If running this integration from a Windows machine uncomment the shell: lines so the flex will use powershell. Cmd shell will not work.
+# If running this integration from a Windows machine uncomment the shell: powershell lines so the integration will use powershell. Cmd shell will not work.
 integrations:
   - name: nri-flex
     interval: 30s
@@ -13,9 +13,9 @@ integrations:
       apis:
         - event_type: MongoDBFlex
           commands:
-            - run: mongo --username AppDmon --password 'AppDmon$567' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.currentOp(true))"
+            - run: mongo --username MongoUser --password 'MongoPassword' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.currentOp(true))"
               # shell: powershell
-            - run: mongo --username AppDmon --password 'AppDmon$567' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.hostInfo())"
+            - run: mongo --username MongoUser --password 'MongoPassword' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.hostInfo())"
               # shell: powershell
-            - run: mongo --username AppDmon --password 'AppDmon$567' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.serverStatus())"
+            - run: mongo --username MongoUser --password 'MongoPassword' --authenticationDatabase admin --host 127.0.0.1 --port 27017 -quiet -eval "JSON.stringify(db.serverStatus())"
               # shell: powershell
