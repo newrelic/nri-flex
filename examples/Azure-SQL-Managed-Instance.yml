@@ -1,0 +1,238 @@
+# This custom integration uses flex to query Azure SQL for custom metrics. Notes are below.
+#
+# Permissions required for this integration are SHOW SERVER STATE and SHOW DATABASE STATE for every database. 
+# For the connection strings encrypt=true must be set to connect. port is also a required flag in the connection string.
+# Some of the metrics must be calculated and/or retrieved within each database, such as filegroup space, blocking, open transactions, etc
+# For each of those connections, need to fill in the user id, password, and database fields in the connection string
+## Those metrics are added at the end for ease of readibility since they all require a new connection
+### A separate connection per database is necessary due to Azure SQL not supporting the USE DATABASE command
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: AzureSQLDbFlex
+      apis:
+        - database: sqlserver
+          db_conn: server=azure-instance.database.windows.net;user id=newrelic-user;database=master;encrypt=true;password=NewRelic-Password-Here;port=1433
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: TechOpsAzureSQL
+          db_async: true # process queries async
+          db_queries:
+            - name: AzureSQLCustomBusiestDatabases
+              run: SELECT SUM(deqs.total_logical_reads) AS TotalPageReads,
+                   SUM(deqs.total_logical_writes) AS TotalPageWrites,
+                   CASE
+                   WHEN DB_NAME(dest.dbid) IS NULL THEN 'TechOps'
+                   ELSE DB_NAME(dest.dbid) END Databasename
+                   FROM sys.dm_exec_query_stats deqs
+                   CROSS APPLY sys.dm_exec_sql_text(deqs.sql_handle) AS dest
+                   GROUP BY DB_NAME(dest.dbid);
+            - name: AzureSQLCustomWaitTypes
+              run: WITH [Waits] AS
+                   (SELECT [wait_type],[wait_time_ms] / 1000.0 AS [WaitS],
+                   ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],
+                   signal_wait_time_ms / 1000.0 AS [Signals],[waiting_tasks_count] AS [WaitCount],
+                   100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],
+                   ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]
+                   FROM sys.dm_os_wait_stats
+                   WHERE [waiting_tasks_count] > 0
+                   )
+                   SELECT
+                   MAX ([W1].[wait_type]) AS [WaitType],
+                   CAST (MAX ([W1].[WaitS]) AS INT) AS [Wait_S],
+                   CAST (MAX ([W1].[ResourceS]) AS INT) AS [Resource_S],
+                   CAST (MAX ([W1].[SignalS]) AS INT) AS [Signal_S],
+                   MAX ([W1].[WaitCount]) AS [WaitCount],
+                   CAST (MAX ([W1].[Percentage]) AS INT) AS [WaitPercentage],
+                   CAST ((MAX ([W1].[WaitS]) / MAX ([W1].[WaitCount])) AS INT) AS [AvgWait_S],
+                   CAST ((MAX ([W1].[ResourceS]) / MAX ([W1].[WaitCount])) AS INT) AS [AvgRes_S],
+                   CAST ((MAX ([W1].[SignalS]) / MAX ([W1].[WaitCount])) AS INT) AS [AvgSig_S]
+                   FROM [Waits] AS [W1]
+                   INNER JOIN [Waits] AS [W2] ON [W2].[RowNum] <= [W1].[RowNum]
+                   GROUP BY [W1].[RowNum];
+            - name: AzureSQLCustomLogSpace
+              run: DBCC SQLPERF(LOGSPACE);
+            - name: AzureSQLCustomLongRunning
+              run: Select TOP 25 qp.query_plan,qs.execution_count AS "Execution Count",
+                   SUBSTRING(qt.text,qs.statement_start_offset/2 +1, 
+                   (CASE WHEN qs.statement_end_offset = -1 
+                   THEN LEN(CONVERT(NVARCHAR(MAX), qt.text)) * 2 
+                   ELSE qs.statement_end_offset END -
+                   qs.statement_start_offset)/2
+                   ) AS "Query Text", 
+                   DB_NAME(qr.dbid) AS "DB Name",qs.total_worker_time AS "Total CPU Time",
+                   qs.total_worker_time/qs.execution_count AS "Avg CPU Time (ms)",qs.total_physical_reads AS "Total Physical Reads",
+                   qs.total_physical_reads/qs.execution_count AS "Avg Physical Reads",qs.total_logical_reads AS "Total Logical Reads",
+                   qs.total_logical_reads/qs.execution_count AS "Avg Logical Reads",qs.total_logical_writes AS "Total Logical Writes",
+                   qs.total_logical_writes/qs.execution_count AS "Avg Logical Writes",qs.total_elapsed_time AS "Total Duration",
+                   qs.total_elapsed_time/qs.execution_count AS "Avg Duration (ms)"
+                   FROM sys.dm_exec_query_stats AS qs 
+                   CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS qt
+                   CROSS APPLY sys.dm_exec_sql_text(qs.plan_handle) AS qr 
+                   CROSS APPLY sys.dm_exec_text_query_plan(qs.plan_handle, qs.statement_start_offset, qs.statement_end_offset) AS qp
+                   WHERE qs.execution_count > 1 
+                   ORDER BY qs.execution_count DESC,qs.total_elapsed_time/qs.execution_count DESC,qs.total_worker_time/qs.execution_count DESC;
+            - name: AzureSQLCustomPLE
+              run: SELECT object_name, counter_name, cntr_value
+                   FROM sys.dm_os_performance_counters
+                   WHERE counter_name in ('Page life expectancy')
+                   AND object_name LIKE '%Buffer Manager%';
+            - name: AzureSQLCustomBufferCache
+              run: SELECT (a.cntr_value * 1.0 / b.cntr_value) * 100.0 as BufferCacheHitRatio
+                   FROM sys.dm_os_performance_counters  a
+                   JOIN  (
+                   SELECT cntr_value, OBJECT_NAME 
+                   FROM sys.dm_os_performance_counters  
+                   WHERE counter_name = 'Buffer cache hit ratio base'
+                   AND OBJECT_NAME LIKE '%:Buffer Manager%'
+                   ) b 
+                   ON  a.OBJECT_NAME = b.OBJECT_NAME
+                   WHERE a.counter_name = 'Buffer cache hit ratio'
+                   AND a.OBJECT_NAME LIKE '%:Buffer Manager%'
+            - name: AzureSQLCustomCompilations
+              run: DECLARE @CountVal BIGINT;
+
+                   SELECT @CountVal = cntr_value
+                   FROM sys.dm_os_performance_counters
+                   WHERE counter_name = 'SQL Compilations/sec';
+                   
+                   WAITFOR DELAY '00:00:05';
+ 
+                   SELECT (cntr_value - @CountVal) / 5 AS 'SQL Compilations'
+                   FROM sys.dm_os_performance_counters
+                   WHERE counter_name = 'SQL Compilations/sec';
+            - name: AzureSQLCustomLockWaits
+              run: DECLARE @CountVal2 BIGINT;
+
+                   SELECT @CountVal2 = cntr_value
+                   FROM sys.dm_os_performance_counters
+                   WHERE counter_name = 'Lock Waits/sec'
+                   AND instance_name='_Total';
+
+                   WAITFOR DELAY '00:00:05';
+
+                   SELECT (cntr_value - @CountVal2) / 5 AS 'Lock Waits'
+                   FROM sys.dm_os_performance_counters
+                   WHERE counter_name = 'Lock Waits/sec'
+                   AND instance_name='_Total';
+            - name: AzureSQLCustomFilegroupSpace
+              # must connect and run this query for every database  
+              run: SELECT @@SERVERNAME AS FG_ServerName, DB_NAME() AS FG_Database, ds.NAME AS Filegroup_Name, df.physical_name AS Physical_File_Name, df.name,
+                   CAST(df.size AS FLOAT) * 8.0 / 1024.0 AS FileSpaceSize_in_MB ,CAST(Fileproperty(df.name,'SpaceUsed')AS FLOAT) * 8.0 / 1024.0 AS FileSpaceUsed_in_MB ,
+                   CAST(Fileproperty(df.name,'SpaceUsed')AS FLOAT) /CAST(df.SIZE AS FLOAT) * 100.0 AS FileSpace_PercentUsed,fg_sum.FGSize_in_MB, fg_sum.FGSpaceUsed_in_MB, fg_sum.FG_PercentUsed 
+                   FROM   sys.database_files AS df 
+                   JOIN sys.data_spaces AS ds ON df.data_space_id = ds.data_space_id 
+                   JOIN (SELECT ds.data_space_id, CAST(SUM(cast(Fileproperty(df.name,'SpaceUsed') as bigint))AS FLOAT)/CAST(SUM(cast(df.SIZE as bigint))AS FLOAT) * 100.0 AS FG_PercentUsed, 
+                   CAST(SUM(cast(df.SIZE as bigint))AS FLOAT) * 8.0 / 1024.0 AS FGSize_in_MB ,
+                   CAST(SUM(cast(Fileproperty(df.name,'SpaceUsed')as bigint))AS FLOAT) * 8.0 / 1024.0 AS FGSpaceUsed_in_MB  
+                   FROM   sys.database_files AS df 
+                   JOIN sys.data_spaces AS ds ON df.data_space_id = ds.data_space_id 
+                   GROUP BY ds.data_space_id) AS fg_sum 
+                   ON ds.data_space_id = fg_sum.data_space_id 
+                   WHERE (fg_sum.FG_PercentUsed >= 0.0 AND fg_sum.FGSize_in_MB <= 1048576 ) 
+                   OR (fg_sum.FG_PercentUsed >= 75.0 AND fg_sum.FGSize_in_MB > 1048576 );
+            - name: AzureSQLCustomActiveProcesses
+              # must connect and run this query for every database  
+              run: SELECT es.session_Id as 'session_id', sp.hostname as 'sql_hostname', sp.cmd, 
+                   sp.cpu, es.logical_reads, sp.open_tran, sp.blocked, DB_NAME(sp.dbid) as 'database_name', 
+                   sp.loginame as 'login_name', sp.last_batch, sp.[status] as 'spid_status', sp.waittype as 'wait_type',
+                   qt.[text] as 'query_text', sp.[program_name] as 'program_name', es.last_request_start_time as 'start_time'
+                   FROM sys.sysprocesses sp
+                   INNER JOIN sys.dm_exec_sessions es ON sp.spid = es.session_id
+                   CROSS APPLY sys.dm_exec_sql_text(sp.sql_handle) qt
+                   WHERE session_Id NOT IN (@@SPID)     -- Ignore this current statement
+                   AND (sp.open_tran <> 0 OR sp.cmd <> 'AWAITING COMMAND');
+            - name: AzureSQLCustomBlocking
+              # must connect and run this query for every database  
+              run: SELECT t1.resource_type,db_name(resource_database_id) as 'database_name',
+                   t1.resource_associated_entity_id as 'block_object',t1.request_mode,t1.request_session_id as 'waiter_spid',
+                   (
+                   SELECT text FROM sys.dm_exec_requests as r
+                   CROSS APPLY sys.dm_exec_sql_text(r.sql_handle)
+                   WHERE r.session_id = t1.request_session_id
+                   ) as 'waiter_text',
+                   t2.blocking_session_id as 'blocking_spid',
+                   (
+                   SELECT TOP 1 request_mode
+                   FROM sys.dm_tran_locks t1
+                   JOIN sys.dm_os_waiting_tasks t2
+                   ON t1.request_session_id = t2.blocking_session_id
+                   WHERE request_mode NOT LIKE 'IX%'
+                   AND resource_type NOT LIKE 'DATABASE'
+                   AND resource_type NOT LIKE 'METADATA%'
+                   ORDER BY request_mode desc
+                   ) as 'blocking_lock',
+                   (
+                   SELECT text FROM sys.sysprocesses AS p
+                   CROSS APPLY sys.dm_exec_sql_text(p.sql_handle)
+                   WHERE p.spid = t2.blocking_session_id
+                   ) as 'blocking_text'
+                   FROM sys.dm_tran_locks as t1, sys.dm_os_waiting_tasks as t2
+                   WHERE t1.lock_owner_address = t2.resource_address;
+        - database: sqlserver
+          db_conn: server=techopsohi.database.windows.net;user id=newrelic-user;database=User-Database-Here;encrypt=true;password=NewRelic-Password-Here;port=1433
+          # opening another connection here to run the command below for a different database
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: TechOpsAzureSQL
+          db_async: true # process queries async
+          db_queries:
+            - name: AzureSQLCustomFilegroupSpace
+              # must connect and run this query for every database  
+              run: SELECT @@SERVERNAME AS FG_ServerName, DB_NAME() AS FG_Database, ds.NAME AS Filegroup_Name, df.physical_name AS Physical_File_Name, df.name,
+                   CAST(df.size AS FLOAT) * 8.0 / 1024.0 AS FileSpaceSize_in_MB ,CAST(Fileproperty(df.name,'SpaceUsed')AS FLOAT) * 8.0 / 1024.0 AS FileSpaceUsed_in_MB ,
+                   CAST(Fileproperty(df.name,'SpaceUsed')AS FLOAT) /CAST(df.SIZE AS FLOAT) * 100.0 AS FileSpace_PercentUsed,fg_sum.FGSize_in_MB, fg_sum.FGSpaceUsed_in_MB, fg_sum.FG_PercentUsed 
+                   FROM   sys.database_files AS df 
+                   JOIN sys.data_spaces AS ds ON df.data_space_id = ds.data_space_id 
+                   JOIN (SELECT ds.data_space_id, CAST(SUM(cast(Fileproperty(df.name,'SpaceUsed') as bigint))AS FLOAT)/CAST(SUM(cast(df.SIZE as bigint))AS FLOAT) * 100.0 AS FG_PercentUsed, 
+                   CAST(SUM(cast(df.SIZE as bigint))AS FLOAT) * 8.0 / 1024.0 AS FGSize_in_MB ,
+                   CAST(SUM(cast(Fileproperty(df.name,'SpaceUsed')as bigint))AS FLOAT) * 8.0 / 1024.0 AS FGSpaceUsed_in_MB  
+                   FROM   sys.database_files AS df 
+                   JOIN sys.data_spaces AS ds ON df.data_space_id = ds.data_space_id 
+                   GROUP BY ds.data_space_id) AS fg_sum 
+                   ON ds.data_space_id = fg_sum.data_space_id 
+                   WHERE (fg_sum.FG_PercentUsed >= 0.0 AND fg_sum.FGSize_in_MB <= 1048576 ) 
+                   OR (fg_sum.FG_PercentUsed >= 75.0 AND fg_sum.FGSize_in_MB > 1048576 );
+            - name: AzureSQLCustomActiveProcesses
+              # must connect and run this query for every database  
+              run: SELECT es.session_Id as 'session_id', sp.hostname as 'sql_hostname', sp.cmd, 
+                   sp.cpu, es.logical_reads, sp.open_tran, sp.blocked, DB_NAME(sp.dbid) as 'database_name', 
+                   sp.loginame as 'login_name', sp.last_batch, sp.[status] as 'spid_status', sp.waittype as 'wait_type',
+                   qt.[text] as 'query_text', sp.[program_name] as 'program_name', es.last_request_start_time as 'start_time'
+                   FROM sys.sysprocesses sp
+                   INNER JOIN sys.dm_exec_sessions es ON sp.spid = es.session_id
+                   CROSS APPLY sys.dm_exec_sql_text(sp.sql_handle) qt
+                   WHERE session_Id NOT IN (@@SPID)     -- Ignore this current statement
+                   AND (sp.open_tran <> 0 OR sp.cmd <> 'AWAITING COMMAND');
+            - name: AzureSQLCustomBlocking
+              # must connect and run this query for every database  
+              run: SELECT t1.resource_type,db_name(resource_database_id) as 'database_name',
+                   t1.resource_associated_entity_id as 'block_object',t1.request_mode,t1.request_session_id as 'waiter_spid',
+                   (
+                   SELECT text FROM sys.dm_exec_requests as r
+                   CROSS APPLY sys.dm_exec_sql_text(r.sql_handle)
+                   WHERE r.session_id = t1.request_session_id
+                   ) as 'waiter_text',
+                   t2.blocking_session_id as 'blocking_spid',
+                   (
+                   SELECT TOP 1 request_mode
+                   FROM sys.dm_tran_locks t1
+                   JOIN sys.dm_os_waiting_tasks t2
+                   ON t1.request_session_id = t2.blocking_session_id
+                   WHERE request_mode NOT LIKE 'IX%'
+                   AND resource_type NOT LIKE 'DATABASE'
+                   AND resource_type NOT LIKE 'METADATA%'
+                   ORDER BY request_mode desc
+                   ) as 'blocking_lock',
+                   (
+                   SELECT text FROM sys.sysprocesses AS p
+                   CROSS APPLY sys.dm_exec_sql_text(p.sql_handle)
+                   WHERE p.spid = t2.blocking_session_id
+                   ) as 'blocking_text'
+                   FROM sys.dm_tran_locks as t1, sys.dm_os_waiting_tasks as t2
+                   WHERE t1.lock_owner_address = t2.resource_address;
+                   
