@@ -1,0 +1,39 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: ActiveDirectoryPerf
+      apis:
+        - event_type: ActiveDirectoryPerf
+          shell: powershell
+          commands:
+            - run: Get-CimInstance -ClassName Win32_PerfFormattedData_DirectoryServices_DirectoryServices |
+                   Select-Object -Property DRAInboundBytesCompressedBetweenSitesAfterCompressionPersec,
+                              DRAInboundBytesCompressedBetweenSitesBeforeCompressionPersec,
+                              DRAInboundBytesNotCompressedWithinSitePersec,
+                              DRAInboundBytesTotalPersec,
+                              DRAInboundFullSyncObjectsRemaining,
+                              DRAInboundObjectUpdatesRemainingInPacket,
+                              DRAInboundObjectsAppliedPersec,
+                              DRAInboundObjectsFilteredPersec,
+                              DRAInboundObjectsPersec,
+                              DRAInboundPropertiesAppliedPersec,
+                              DRAInboundPropertiesFilteredPersec,
+                              DRAInboundPropertiesTotalPerSec,
+                              DRAInboundValuesDNsonlyPersec,
+                              DRAInboundValuesTotalPersec,
+                              DRAOutboundBytesCompressedBetweenSitesAfterCompressionPersec,
+                              DRAOutboundBytesCompressedBetweenSitesBeforeCompressionPersec,
+                              DRAOutboundBytesNotCompressedWithinSitePersec,
+                              DRAOutboundBytesTotalPersec,
+                              DRAOutboundObjectsFilteredPersec,
+                              DRAOutboundObjectsPersec,
+                              DRAOutboundPropertiesPersec,
+                              DRAOutboundValuesDNsonlyPersec,
+                              DRAOutboundValuesTotalPersec,
+                              DRAPendingReplicationSynchronizations,
+                              DRASyncRequestsMade,
+                              DSThreadsinUse,
+                              LDAPClientSessions,
+                              LDAPBindTime,
+                              LDAPSuccessfulBindsPersec,
+                              LDAPSearchesPersec| ConvertTo-Json
