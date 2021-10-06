@@ -24,9 +24,7 @@ integrations:
         - event_type: teamcityBuildTypeSample
           url: app/rest/buildTypes/
         - event_type: teamcityProjectSample
-          url: httpAuth/app/rest/projects/
-        - event_type: teamcityAgentSample
-          url: app/rest/buildTypes/
+          url: app/rest/projects/
         - event_type: teamcityAgentSample
           url: app/rest/agents?locator=defaultFilter%3Afalse&fields=agent(id,ip,name,enabled,connected,authorized,uptodate,version,lastActivityTime,pool(id,name),enabledInfo(status,comment(text,timestamp,user(name,username)),statusSwitchTime),environment(osType),build(id,number,branchName,defaultBranch,startDate,running-info(percentageComplete,leftSeconds),statusText,status,state,personal,user(id),buildType(id,projectId,name,links(link(relativeUrl)))))
         - event_type: teamcityAgentPoolSample
