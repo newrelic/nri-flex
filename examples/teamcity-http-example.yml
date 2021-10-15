@@ -18,9 +18,9 @@ integrations:
         - event_type: teamcityVcsRootSample
           url: app/rest/vcs-roots
         - event_type: teamcityBuildSample
-          url: app/rest/builds?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts,artifacts)"
+          url: app/rest/builds?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts)
         - event_type: teamcityBuildQueueSample
-          url: app/rest/buildQueue?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts,artifacts)
+          url: app/rest/buildQueue?fields=build(id,branch,revision,number,state,status,statusText,agent,startDate,finishDate,lastChange,tags,pinned,artifacts)
         - event_type: teamcityBuildTypeSample
           url: app/rest/buildTypes/
         - event_type: teamcityProjectSample
