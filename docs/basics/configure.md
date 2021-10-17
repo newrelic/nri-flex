@@ -110,7 +110,7 @@ These are all the possible `global` properties:
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `base_url`     | Base URL. See [specifying a common base URL](../apis/url.md#specifying-a-common-base-url-with-base_url)                        |
 | `user`         | Username for APIs that require user and password authentication                                                                |
-| `password`     | Password for APIs that require user and password authentication                                                                |
+| `pass`     | Password for APIs that require user and password authentication                                                                |
 | `pass_phrase`  | Pass phrase for encrypte `password` properties                                                                                 |
 | `proxy`        | Proxy URL for APIs whose connections require it                                                                                |
 | `timeout`      | Timeout for the API connections, in milliseconds                                                                               |
