@@ -1,0 +1,23 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/hirsute64"
+  config.vm.define "ubuntu-2104-nri-flex"
+  config.vm.hostname = "ubuntu-2104-nri-flex"
+  config.vm.network "private_network", ip: "10.0.2.77"
+  config.vm.synced_folder "../../../", "/srv"
+  config.vm.provider :virtualbox do |v|
+      v.name = "ubuntu-2104-nri-flex"
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+  end
+
+  # files can only be copied to vagrant used owned directories
+  config.vm.provision "files", type: "file", source: "./provision/files", destination: "/home/vagrant/files"
+  config.vm.provision "shell", inline: "mkdir -p /etc/newrelic-infra/integrations.d"
+  config.vm.provision "shell", inline: "cp /home/vagrant/files/nri-flex-config.yml /etc/newrelic-infra/integrations.d/nri-flex-config.yml"
+  config.vm.provision "shell", inline: "cp /home/vagrant/files/newrelic-infra.yml /etc/newrelic-infra.yml"
+  config.vm.provision "shell", inline: "cp /home/vagrant/files/just-numbers.sh /usr/local/bin/just-numbers.sh"
+
+  config.vm.provision "fix-network", type: "shell", path: "provision/fix-network.sh"
+  config.vm.provision "install-go", type: "shell", path: "provision/install-go.sh"
+  config.vm.provision "install-nri-flex", type: "shell", path: "provision/install-nri-flex.sh"
+end

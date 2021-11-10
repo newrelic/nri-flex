@@ -1,0 +1,11 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: RandomNumbers
+      apis:
+        - name: RandomNumbers
+          commands:
+            - run: '/usr/local/bin/just-numbers.sh'
+              split: horizontal
+              split_by: \s+
+              set_header: [duration]

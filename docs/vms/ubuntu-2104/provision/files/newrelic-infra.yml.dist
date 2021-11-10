@@ -1,0 +1,5 @@
+
+license_key: LICENSE_KEY
+display_name: ubuntu-2004-nri-flex
+verbose: 0
+log_file: /var/log/newrelic-infra.log
