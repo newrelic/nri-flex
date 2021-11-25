@@ -6,6 +6,13 @@
 # issue with memory temperature returning NA
 # https://forums.developer.nvidia.com/t/request-gpu-memory-junction-temperature-via-nvidia-smi-or-nvml-api/168346/118
 #
+# on windows the infra-agent may not have environment variables reqiured for newer versions of nvidia-smi to run.  Currently, the three required appear to be:
+#    - PATHEXT (may need additional entries not in nri-flex env by default)                       
+#    - ProgramData (may need to be set, not set by default in nri-flex env by default)
+#    - ProgramFiles (may need to be set, not set by default in nri-flex env by default)
+#   review the differences between your own, and the nri-flex environments to determine proper values for your system
+#
+#
 # dashboarding 
 # see nvidia-smi-gpu-monitoring-dashboard.json in the same examples directory and update the account id to your target account
 ---
