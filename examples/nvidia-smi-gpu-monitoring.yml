@@ -11,7 +11,8 @@
 #    - ProgramData (may need to be set, not set by default in nri-flex env by default)
 #    - ProgramFiles (may need to be set, not set by default in nri-flex env by default)
 #   review the differences between your own, and the nri-flex environments to determine proper values for your system
-#
+#   refer to the docs for configuring the infra-agent to passthrough these environment variables: 
+#   https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings/#passthrough_-environment
 #
 # dashboarding 
 # see nvidia-smi-gpu-monitoring-dashboard.json in the same examples directory and update the account id to your target account
