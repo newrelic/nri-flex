@@ -41,7 +41,7 @@ These arguments allow you to see in real-time how Flex is processing the config 
 
 ### Testing a config
 
-You can manually test a config file to ensure the output meets your expectations by running a command like this, replacing `<FILE_NAME>` with the name of your config file: 
+You can manually test a config file to ensure the output meets your expectations.  One caveat here is that running the commands in shells opened by your user identity may have significantly different environment variable values and other overall differences.  This is noticeable when a config run by the below is successful for you, but still fails to produce results when run by the infra-agent.  Testing a config can be accomplished by running a command like this, replacing `<FILE_NAME>` with the name of your config file: 
 
 ```shell
 # Linux
@@ -270,6 +270,7 @@ More information about assertion can be found in [command docs](apis/commands.md
 Flex is pretty forgiving, but there may be times that the data you aimed at capturing won't show up in New Relic. There may be several reasons to this. Here are the most common, by category.
 
 * [Configuration issues](#Configurationissues)
+	* [Command works for your shell, but not when agent runs it](#Worksforyounotforagent)
 	* [Wrong location of the data source](#Wronglocationofthedatasource)
 	* [Empty or non-responsive data source](#Emptyornon-responsivedatasource)
 	* [You asked Flex to perform something impossible](#YouaskedFlextoperformsomethingimpossible)
@@ -283,6 +284,12 @@ Flex is pretty forgiving, but there may be times that the data you aimed at capt
 	* [There's a communication problem between the agent and New Relic](#TheresacommunicationproblembetweentheagentandNewRelic)
 
 ### <a name='Configurationissues'></a>Configuration issues
+
+#### <a name='Worksforyounotforagent'></a>Command Works when you run it, but not when agent runs it
+
+THere are probably environment variables needed by the command that are not currently passing through from the infrastructure agent.  See this section of the documentation in order to configure passthrough variables:  https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings/#passthrough_-environment
+
+#Worksforyounotforagent
 
 #### <a name='Wronglocationofthedatasource'></a>Wrong location of the data source
 
