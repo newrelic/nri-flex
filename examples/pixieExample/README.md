@@ -1,6 +1,6 @@
 # Collect custom Pixie metrics from your k8s cluster and push to New Relic for Alerting and Dashboarding
 
-The following documentation explains how to configure the New Relic FLEX integration to collect custom Pixie metrics from your k8s cluster.
+The following documentation explains how to configure the New Relic Flex integration to collect custom Pixie metrics from your k8s cluster.
 
 Currently, for security reasons, when [Pixie](https://pixielabs.ai) is installed into your k8s cluster, New Relic only fetches and stores data that related to an application's performance. Therefore, you can only create Alert and Dashboard on a predefined subset of the data collected by Pixie [read more here](https://docs.newrelic.com/docs/kubernetes-pixie/auto-telemetry-pixie/pixie-data-security-overview/).
 
@@ -14,13 +14,13 @@ The persisted performance metrics include, but are not limited to:
 
 With New Relic Flex, you now can report and alert on all other available Pixie metrics by:
 
--   write custom [Pixie script](https://docs.pixielabs.ai/tutorials/pxl-scripts/write-pxl-scripts/)
--   use New Relic Flex to push the Pixie query result to NRDB as custom metrics
--   then create dashboard or alerts based on collected metrics
+-   Write custom [Pixie script](https://docs.pixielabs.ai/tutorials/pxl-scripts/write-pxl-scripts/)
+-   Use New Relic Flex to push the Pixie query result to NRDB as custom metrics
+-   Then create dashboard or alerts based on collected metrics
 
 ## Step 1: create custom New Relic Infrastructure docker image with Pixie CLI installed
 
--   build new docker image using the following Docker file
+-   Build new docker image using the following Docker file
 
 ```Dockerfile
 FROM newrelic/infrastructure:latest
@@ -34,7 +34,7 @@ RUN chmod +x ./install-pixie-no-auth-docker.sh
 RUN ./install-pixie-no-auth-docker.sh
 ```
 
--   push the docker image to your docker registry
+-   Push the docker image to your docker registry
 
 ## Step 2: Configure required Pixie secrets
 
@@ -52,10 +52,10 @@ kubectl create secret generic pixiesecrets --from-file=./pixiesecrets/pixieapike
 
 ## Step 3: Run New Relic infrastructure agent in your k8s cluster
 
--   deploy the following resource to your k8s cluster, replace the following
+-   Deploy the following resource to your k8s cluster, replace the following
     -   `YOUR_NEW_RELIC_INFRASTRUCTURE_IMAGE_NAME`: name of Docker image which you pushed to the Docker Registry
     -   `CUSTOM_EVENT_TYPE_NAME`: custom envent table name (e.g. PixieMongoDbConnections)
--   in this particular example, we extract MongoDB connections (port 27017) from `conn_stats` table, hence the value of `set_header` attribute
+-   In this particular example, we extract MongoDB connections (port 27017) from `conn_stats` table, hence the value of `set_header` attribute
 
 ```yaml
 apiVersion: apps/v1
@@ -178,6 +178,6 @@ data:
         px.display(df)
 ```
 
--   after couple minutes, you can query the data in New Relic like this
+-   After couple minutes, you can query the data in New Relic like this
 
 ![](querypixiedata.png)
