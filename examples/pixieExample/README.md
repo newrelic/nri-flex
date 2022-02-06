@@ -44,7 +44,7 @@ echo -n 'YOUR_NR_API_KEY' > nringestapi
 
 # create file containging PIXIE API key
 # you can get this by click on `Copy command` link under `Live debugging with Pixie` tab on New Relic Kubernetes Cluster Explorer page
-echo -n 'YOUR_NR_API_KEY' > pixieapikey
+echo -n 'YOUR_PIXIE_API_KEY' > pixieapikey
 
 # assuming your kubectl config file is at default location: $HOME/.kube/config
 kubectl create secret generic pixiesecrets --from-file=./pixiesecrets/pixieapikey --from-file=$HOME/.kube/config --from-file=./pixiesecrets/nringestapi
