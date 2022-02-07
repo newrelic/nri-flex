@@ -151,11 +151,11 @@ data:
               apis:
                 - event_type: PixieMongoDbConnections
                   commands:
-                    - run: export PX_API=$(cat /kubeconfig/pixieapikey) && px auth login --api_key=$PX_API --kubeconfig /kubeconfig/config && px run -f /custom-scripts/mongo-db-connections.pxl --kubeconfig /kubeconfig/config -o csv
-                      split: horizontal
-                      set_header: [tableid, remote_addr, remote_port, conn_open, conn_close, pod, service]
-                      row_start: 4
-                      split_by: \,
+                    - run: |
+                      export PX_API=$(cat /kubeconfig/pixieapikey) &&
+                      px auth login --api_key=$PX_API --kubeconfig /kubeconfig/config 2> /dev/null &&
+                      px run -f /custom-scripts/mongo-db-connections.pxl --kubeconfig /kubeconfig/config -o csv 2> /dev/null
+                    output: csv
 ---
 apiVersion: v1
 kind: ConfigMap
