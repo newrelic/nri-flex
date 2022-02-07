@@ -39,10 +39,10 @@ RUN ./install-pixie-no-auth-docker.sh
 ## Step 2: Configure required Pixie secrets
 
 ```bash
-# create file containging New Relic ingest API key
+# create file containing New Relic ingest API key
 echo -n 'YOUR_NR_API_KEY' > nringestapi
 
-# create file containging PIXIE API key
+# create file containing PIXIE API key
 # you can get this by click on `Copy command` link under `Live debugging with Pixie` tab on New Relic Kubernetes Cluster Explorer page
 echo -n 'YOUR_PIXIE_API_KEY' > pixieapikey
 
