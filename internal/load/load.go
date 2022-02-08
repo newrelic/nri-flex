@@ -246,7 +246,7 @@ type TLSConfig struct {
 	Ca                 string `yaml:"ca"`   // path to ca to read
 	Key                string `yaml:"key"`  // path to key to read
 	Cert               string `yaml:"cert"` // path to cert to read
-	ServerName         string `yaml:"servername"`
+	ServerName         string `yaml:"server_name"`
 }
 
 // SampleMerge merge multiple samples into one (will remove previous samples)
