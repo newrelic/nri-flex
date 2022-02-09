@@ -1,0 +1,24 @@
+---
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+      name: verticaDbFlex
+      apis:
+        - database: vertica
+          # tlsmode=mutual (mutual ssl to vertica db)
+          db_conn: vertica://dbuser:dbpass@127.0.0.1:5433/docker?tlsmode=mutual
+
+          # mutual ssl tls configuration
+          tls_config:
+            enable: true
+            insecure_skip_verify: true
+            ca: /mycert/rootCA.crt
+            cert: /mycert/client.crt
+            key: /mycert/client.key
+            # servername: "localhost"
+
+          db_queries:
+            - name: verticaQuery
+              event_type: verticaQuery
+              run: select game_id||' ' as id from bi_pipeline.failedpn;
