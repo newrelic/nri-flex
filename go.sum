@@ -223,6 +223,8 @@ github.com/tebeka/strftime v0.1.3 h1:5HQXOqWKYRFfNyBMNVc9z5+QzuBtIXy03psIhtdJYto
 github.com/tebeka/strftime v0.1.3/go.mod h1:7wJm3dZlpr4l/oVK0t1HYIc4rMzQ2XJlOMIUJUJH6XQ=
 github.com/vertica/vertica-sql-go v0.1.3 h1:trJfygrq2+SlJJs9i2MBioA2E5oufVSo/H3JWHZsh+U=
 github.com/vertica/vertica-sql-go v0.1.3/go.mod h1:2LGtkNSdFF5CTJYeUA5qWfREuvYaql+51fNzmoD5W7c=
+github.com/vertica/vertica-sql-go v1.2.1 h1:VL8K3RJ021bCjLF45koxwQV66WUkuumRl7omewpvdUk=
+github.com/vertica/vertica-sql-go v1.2.1/go.mod h1:fGr44VWdEvL+f+Qt5LkKLOT7GoxaWdoUCnPBU9h6t04=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 go.uber.org/atomic v1.7.0 h1:ADUqmZGgLDDfbSL9ZmPxKTybcoEYHgpYfELNoN+7hsw=
