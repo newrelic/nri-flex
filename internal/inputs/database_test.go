@@ -53,14 +53,14 @@ func TestDrivers(t *testing.T) {
 
 	// test switch
 	for db, driver := range drivers {
-		detectedDriver := setDatabaseDriver(db, "", config, config.APIs[0])
+		detectedDriver := setDatabaseDriver(db, "", &config, config.APIs[0])
 		if detectedDriver != driver {
 			t.Errorf("expected %v got %v", driver, detectedDriver)
 		}
 	}
 
 	// test manual driver
-	detectedDriver := setDatabaseDriver("", "superdb", config, config.APIs[0])
+	detectedDriver := setDatabaseDriver("", "superdb", &config, config.APIs[0])
 	if detectedDriver != "superdb" {
 		t.Errorf("expected superdb got %v", detectedDriver)
 	}
