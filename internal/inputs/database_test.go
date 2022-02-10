@@ -49,7 +49,7 @@ func TestDrivers(t *testing.T) {
 							},
 						},
 					},
-				}
+				},
 		}
 		detectedDriver := setDatabaseDriver(db, "", &config, config.APIs[0])
 		if detectedDriver != driver {
