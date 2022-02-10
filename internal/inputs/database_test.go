@@ -48,6 +48,7 @@ func TestDrivers(t *testing.T) {
 					},
 				},
 			},
+		},
 	}
 
 	// test switch
