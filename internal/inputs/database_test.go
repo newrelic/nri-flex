@@ -28,37 +28,38 @@ func TestDrivers(t *testing.T) {
 		"unknown":   "",
 	}
 
-	// test switch
-	for db, driver := range drivers {
-		config := load.Config{
-			Name: "postgresDbFlex",
-			APIs: []load.API{
-				{
-					Name:     "postgres",
-					Database: "postgres",
-					DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
-					CustomAttributes: map[string]string{
-						"parentAttr": "myDbServer",
-					},
-					DBQueries: []load.Command{
-						{
-							Name: "pgStatActivitySample",
-							Run:  "select * FROM pg_stat_activity LIMIT 2",
-							CustomAttributes: map[string]string{
-								"nestedAttr": "nestedVal",
-							},
+	config := load.Config{
+		Name: "postgresDbFlex",
+		APIs: []load.API{
+			{
+				Name:     "postgres",
+				Database: "postgres",
+				DBConn:   "user=postgres host=postgres-db sslmode=disable password=flex port=5432",
+				CustomAttributes: map[string]string{
+					"parentAttr": "myDbServer",
+				},
+				DBQueries: []load.Command{
+					{
+						Name: "pgStatActivitySample",
+						Run:  "select * FROM pg_stat_activity LIMIT 2",
+						CustomAttributes: map[string]string{
+							"nestedAttr": "nestedVal",
 						},
 					},
 				},
-		}
-		detectedDriver := setDatabaseDriver(db, "", &config, config.APIs[0])
+			},
+	}
+
+	// test switch
+	for db, driver := range drivers {
+		detectedDriver := setDatabaseDriver(db, "", config, config.APIs[0])
 		if detectedDriver != driver {
 			t.Errorf("expected %v got %v", driver, detectedDriver)
 		}
 	}
 
 	// test manual driver
-	detectedDriver := setDatabaseDriver("", "superdb", &config, config.APIs[0])
+	detectedDriver := setDatabaseDriver("", "superdb", config, config.APIs[0])
 	if detectedDriver != "superdb" {
 		t.Errorf("expected superdb got %v", detectedDriver)
 	}
