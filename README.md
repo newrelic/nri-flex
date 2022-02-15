@@ -42,7 +42,7 @@ All examples are located in [/examples](https://github.com/newrelic/nri-flex/tre
 - [Flex usage documentation](docs/README.md)
 - [How to configure Flex](/docs/basics/configure.md)
 - [Flex under Kubernetes](/docs/basics/k8s_configure.md)
-  - [Integration with Pixie](/examples/pixieExample/readme.md)
+  - [Integration with Pixie](/examples/pixieExample/README.md)
 - [Data sources / APIS](/docs/apis/README.md)
 - [Data transformation functions](docs/basics/functions.md)
 - [Experimental functions](docs/experimental/functions.md)
