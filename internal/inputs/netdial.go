@@ -57,8 +57,13 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 				reader := bufio.NewReader(dialConn)
 				tp := textproto.NewReader(reader)
 				for {
-					line, _ := tp.ReadLine()
-					data += line + "\n"
+					select {
+					case <-ctx.Done():
+						return
+					default:
+						line, _ := tp.ReadLine()
+						data += line + "\n"
+					}
 				}
 			}
 		}
