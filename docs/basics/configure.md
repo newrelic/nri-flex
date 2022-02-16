@@ -108,14 +108,14 @@ These are all the possible `global` properties:
 
 | Property       | Description                                                                                                                    |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `base_url`     | Base URL. See [specifying a common base URL](../apis/url.md#specifying-a-common-base-url-with-base_url)                        |
+| `base_url`     | Base URL. See [specifying a common base URL](../apis/url.md#SpecifyacommonbaseURL)                                             |
 | `user`         | Username for APIs that require user and password authentication                                                                |
-| `pass`     | Password for APIs that require user and password authentication                                                                |
+| `pass`     | Password for APIs that require user and password authentication                                                                    |
 | `pass_phrase`  | Pass phrase for encrypte `password` properties                                                                                 |
 | `proxy`        | Proxy URL for APIs whose connections require it                                                                                |
 | `timeout`      | Timeout for the API connections, in milliseconds                                                                               |
 | `headers`      | Key-value map of headers for the HTTP/HTTPS connections                                                                        |
-| `tls_config`   | TLS configuration. See [configuring your HTTPS connections](../apis/url.md#configuring-your-https-connections-with-tls_config) |
+| `tls_config`   | TLS configuration. See [configuring your HTTPS connections](../apis/url.md#ConfigureyourHTTPSconnections)                      |
 | `ssh_pem_file` | Path to PEM file to enable SSH authentication                                                                                  |
 | `JMX`          | See [JMX](../experimental/jmx.md) (experimental)                                                                               |
 
