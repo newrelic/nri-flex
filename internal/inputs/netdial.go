@@ -18,6 +18,7 @@ import (
 
 // NetDialWithTimeout performs network dial without timeout
 func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSample *map[string]interface{}, api load.API, processType *string) {
+
 	ctx := context.Background()
 	// Create a channel for signal handling
 	c := make(chan struct{})
@@ -42,25 +43,32 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 	var dialError error
 	var data string
 	// Run dial via a goroutine
-	go func() {
-		load.Logrus.Debugf("commands: dialling %v : %v", addr, netw)
-		dialConn, err := net.DialTimeout(netw, addr, time.Duration(timeout)*time.Millisecond)
+	load.Logrus.Debugf("commands: dialling %v : %v", addr, netw)
+	dialConn, err := net.DialTimeout(netw, addr, time.Duration(timeout)*time.Millisecond)
+	if err == nil {
+		defer dialConn.Close()
+	}
+	go func(dialConn net.Conn, err error) {
 		if err != nil {
 			dialError = err
 		} else {
-			defer dialConn.Close()
 			if command.Run != "" {
 				fmt.Fprintf(dialConn, command.Run)
 				reader := bufio.NewReader(dialConn)
 				tp := textproto.NewReader(reader)
 				for {
-					line, _ := tp.ReadLine()
-					data += line + "\n"
+					select {
+					case <-ctx.Done():
+						return
+					default:
+						line, _ := tp.ReadLine()
+						data += line + "\n"
+					}
 				}
 			}
 		}
 		c <- struct{}{}
-	}()
+	}(dialConn, err)
 
 	// Listen for signals
 	select {
