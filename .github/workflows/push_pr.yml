@@ -11,6 +11,7 @@ on:
       - README.md
       - 'docs/**'
       - 'examples/**'
+  pull_request:
 
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
