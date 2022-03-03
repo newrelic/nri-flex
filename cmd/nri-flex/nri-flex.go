@@ -18,6 +18,6 @@ func main() {
 	if err != nil {
 		load.Logrus.WithError(err).Fatal("flex: failed to run runtime")
 	}
-
+	load.Logrus.Info("test")
 	runtime.CommonPostInit()
 }
