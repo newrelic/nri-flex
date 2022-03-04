@@ -16,7 +16,7 @@ func StatusSample() {
 	endTimeNs := load.MakeTimestamp()
 	statusLog(flexStatusSample.SetMetric("flex.time.endMs", endTimeNs, metric.GAUGE))
 	statusLog(flexStatusSample.SetMetric("flex.time.startMs", load.StartTime, metric.GAUGE))
-	statusLog(flexStatusSample.SetMetric("flex.time.elaspedMs", endTimeNs-load.StartTime, metric.GAUGE))
+	statusLog(flexStatusSample.SetMetric("flex.time.elapsedMs", endTimeNs-load.StartTime, metric.GAUGE))
 
 	statusLog(flexStatusSample.SetMetric("flex.IntegrationVersion", load.IntegrationVersion, metric.ATTRIBUTE))
 	if load.Args.GitRepo != "" {
