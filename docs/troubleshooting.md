@@ -97,7 +97,7 @@ INFO[0004] flex: completed processing configs            configs=1
 					
 				DropCount": 0,
 					"flex.counter.pingTest": 1,
-					"flex.time.elaspedMs": 4031,
+					"flex.time.elapsedMs": 4031,
 					"flex.time.endMs": 1609978782729,
 					"flex.time.startMs": 1609978778698
 				}
@@ -179,7 +179,7 @@ The next JSON object(s) will represent the output of `nri-flex` executing the su
 					
 				DropCount": 0,
 					"flex.counter.pingTest": 1,
-					"flex.time.elaspedMs": 4031,
+					"flex.time.elapsedMs": 4031,
 					"flex.time.endMs": 1609978782729,
 					"flex.time.startMs": 1609978778698
 				}

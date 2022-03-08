@@ -30,7 +30,7 @@ func testSamples(expectedSamples []string, entityMetrics []*metric.Set, t *testi
 		for _, sample := range entityMetrics {
 			delete(sample.Metrics, "flex.time.startMs")
 			delete(sample.Metrics, "flex.time.endMs")
-			delete(sample.Metrics, "flex.time.elaspedMs")
+			delete(sample.Metrics, "flex.time.elapsedMs")
 			delete(sample.Metrics, "flex.commandTimeMs")
 			out, err := sample.MarshalJSON()
 			if err != nil {
