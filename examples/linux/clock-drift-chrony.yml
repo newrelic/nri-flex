@@ -7,4 +7,4 @@ integrations:
       apis:
         - name: clockDriftChrony
           commands:
-            - run: echo -e "{\"remote\":\"$(chronyc tracking | grep "Reference ID" | awk 'match($0,/\((.*)\)/) { print substr($0,RSTART+1,RLENGTH-2)}')\",\"ntpOffset\":$(printf '%.0f\n' $(echo "$(chronyc tracking | grep "Last offset" | awk 'match($0,/(\+|\-).*(\s)/) { print substr($0,RSTART+1,RLENGTH-2)}')*1000" | bc -l))}"
+            - run: echo -e "{\"clock.Remote\":\"$(chronyc tracking | grep "Reference ID" | awk 'match($0,/\((.*)\)/) { print substr($0,RSTART+1,RLENGTH-2)}')\",\"clock.Offset\":$(printf '%.0f\n' $(echo "$(chronyc tracking | grep "Last offset" | awk 'match($0,/(\+|\-).*(\s)/) { print substr($0,RSTART+1,RLENGTH-2)}')*1000" | bc -l))}"
