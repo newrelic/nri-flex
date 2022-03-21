@@ -7,7 +7,7 @@ integrations:
     interval: 30s
     timeout: 10s
     config:
-      name: PnpDevice
+      name: winPnpDevices
       apis:
         - event_type: winUSBPeripherals
           shell: powershell
