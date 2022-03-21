@@ -1,0 +1,18 @@
+# Ensure nri-flex is installed in /var/db/newrelic-infra/newrelic-integrations/bin
+# Place linux-usb-status.yaml in /etc/newrelic-infra/integrations.d
+# This config will enumerate through the USB Peripherals
+# We're using "lsusb" a utility for displaying information about linux USB buses
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#linux-example
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: linuxPnpDevices
+      apis:
+        - event_type: linuxUSBPeripherals
+          shell: /bin/bash
+          commands:
+            - run: lsusb | while read line; do PART1=$(echo $line | awk '{gsub(/:$/,"",$4); print $2";"$4";"$6}'); PART2=$(echo $line | cut -d" " -f 7-); echo $PART1\;$PART2; done
+              split: horizontal
+              set_header: [bus,device,id,description]
+              split_by: ";"
