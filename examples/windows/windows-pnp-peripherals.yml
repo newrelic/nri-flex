@@ -1,0 +1,18 @@
+# This config will enumerate through the USB Peripherals
+# We're using "Get-PnpDevice" and excluding common windows built-in device classes
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+---
+integrations:
+  - name: nri-flex
+    interval: 30s
+    timeout: 10s
+    config:
+      name: PnpDevice
+      apis:
+        - event_type: winUSBPeripherals
+          shell: powershell
+          commands:
+            - run: "Get-PnpDevice -ErrorAction SilentlyContinue -PresentOnly | Where-Object { $_.InstanceID -match '^USB' } | Where-Object {($_.FriendlyName -ne 'USB Input Device') -and ($_.Class -ne 'USB') -and ($_.Class -ne 'Bluetooth') -and ($_.Class -ne 'Camera') -and ($_.Class -ne 'MEDIA')} | Select-Object Status, FriendlyName, HardwareID, DeviceID, Problem | ForEach-Object {$_.Status+';'+$_.FriendlyName+';'+$_.HardwareID+';'+$_.DeviceID+';'+$_.Problem}"
+              split: horizontal
+              set_header: [status, friendlyName, hardwareId, deviceId, problem]
+              split_by: ";"
