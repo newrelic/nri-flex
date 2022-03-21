@@ -1,5 +1,3 @@
-# Ensure nri-flex is installed in /var/db/newrelic-infra/newrelic-integrations/bin
-# Place linux-usb-status.yaml in /etc/newrelic-infra/integrations.d
 # This config will enumerate through the USB Peripherals
 # We're using "lsusb" a utility for displaying information about linux USB buses
 # shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#linux-example
