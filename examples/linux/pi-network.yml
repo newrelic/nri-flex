@@ -39,11 +39,6 @@ integrations:
               split: horizontal
               set_header: [bus,device,id,description]
               split_by: ";"
-          metric_parser:
-            namespace:
-              existing_attr:
-                - device
-                - bus
             metrics:
               bus: ATTRIBUTE
               device: ATTRIBUTE
