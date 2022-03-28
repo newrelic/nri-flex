@@ -1,0 +1,15 @@
+# "run" script is returning 3 tilda separated values
+# field names are specified by the set_header option
+# note this integration leverages the lookupfile "urlcheck.json"
+integrations:
+  - name: nri-flex
+    config:
+      name: URLCheck
+      lookup_file: /etc/newrelic-infra/integrations.d/urlcheck.json
+      apis:
+        - event_type: URLCheck
+          commands:
+            - run: printf "${lf:url}~$(curl --connect-timeout 5 -s -o /dev/null -I -w "%{http_code}~%{time_total}" ${lf:url})"
+              split_by: "~"
+              split: horizontal
+              set_header: [urlcheck.targetURL,urlcheck.httpResponseCode,urlcheck.totalTimeSec]
