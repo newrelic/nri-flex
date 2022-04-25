@@ -1,0 +1,14 @@
+# https://developer.statuspage.io/#section/Rate-Limiting
+# Each API token is limited to 1 request / second as measured on a 60 second rolling window.
+# Sample Chart: SELECT latest(status) FROM Statuspage FACET name (Billboard)
+integrations:
+  - name: nri-flex
+    interval: 1m
+    config:
+      name: Statuspage
+      lookup_file: "C:/Program Files/New Relic/newrelic-infra/integrations.d/statuspage.json"
+      apis:
+        - event_type: Statuspage
+          shell: powershell
+          commands:
+            - run: "Invoke-WebRequest -Uri \"https://api.statuspage.io/v1/pages/${lf:pageId}/components/${lf:component}\" -Method GET -Headers @{\"Authorization\"=\"OAuth xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"} | Select-Object -Expand Content"
