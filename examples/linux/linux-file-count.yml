@@ -8,4 +8,4 @@ integrations:
       apis:
         - name: linuxFileCount
           commands:
-            - run: echo -e "{\"searchFilter\":\"/etc\",\"fileCount\":\"$(ls -1 /etc | wc -l)\"}"
+            - run: echo "{\"searchFilter\":\"/etc\",\"fileCount\":\"$(ls -1 /etc | wc -l)\"}"
