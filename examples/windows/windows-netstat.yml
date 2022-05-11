@@ -1,0 +1,16 @@
+# Windows Netstat
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+      name: winNetstat
+      apis:
+        - event_type: winNetstat
+          shell: powershell
+          commands:
+            - run: netstat -ano
+              split: horizontal
+              set_header: [proto, localAddress, foreignAddress, state, processId]
+              regex_match: true
+              row_start: 1
+              split_by: \s+(\w+)\s+(\S+)\s+(\S+)\s+(\w+|\s+)\s+(\d+)
