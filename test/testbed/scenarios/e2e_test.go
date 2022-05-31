@@ -19,18 +19,21 @@ func tmpFile(data string) (file *os.File, err error) {
 }
 
 func TestDiskLinux(t *testing.T) {
-	tmpConfig, err := tmpFile(fixtures.DiskTests[0].Config)
-	if err != nil {
-		t.Error(err)
-	}
+	for _, diskTest := range fixtures.DiskTests {
+		t.Run(diskTest.Name, func(t *testing.T) {
+			tmpConfig, err := tmpFile(diskTest.Config)
+			if err != nil {
+				t.Error(err)
+			}
 
-	defer func() {
-		os.Remove(tmpConfig.Name())
-	}()
-	validator, err := testbed.NewMetricValidator(fixtures.DiskTests[0].ExpectedStdout, "nothing")
-	if err != nil {
-		t.Error(err)
+			defer os.Remove(tmpConfig.Name())
+
+			validator, err := testbed.NewMetricValidator(diskTest.ExpectedStdout, "nothing")
+			if err != nil {
+				t.Error(err)
+			}
+			tc := testbed.NewTestCase(t, testbed.NewChildFlexRunner("/bin/nri-flex", tmpConfig.Name()), validator)
+			tc.RunTest()
+		})
 	}
-	tc := testbed.NewTestCase(t, testbed.NewChildFlexRunner("/bin/nri-flex", tmpConfig.Name()), validator)
-	tc.RunTest()
 }
