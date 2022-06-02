@@ -34,6 +34,7 @@ func NewMetricValidator(stdout, stderr string) (*MetricValidator, error) {
 
 func (e *MetricValidator) Validate(t *testing.T, stdout string, stderr string) error {
 	var actualDataset Integration.Integration
+
 	err := json.Unmarshal([]byte(stdout), &actualDataset)
 	if err != nil {
 		return err
@@ -42,14 +43,24 @@ func (e *MetricValidator) Validate(t *testing.T, stdout string, stderr string) e
 	// checks that the number of entities is the same
 	assert.Equal(t, len(e.matchStdout.Entities), len(actualDataset.Entities))
 
-	for i, expectedSet := range e.matchStdout.Entities {
+	totalExpectedMetrics := 0
+	totalActualMetrics := 0
+
+	// two loops because the order of the metrics can be different depending on the execution
+	for _, expectedSet := range e.matchStdout.Entities {
 		// TODO: check nil cases
-		actualMetrics := actualDataset.Entities[i].Metrics
-		assert.Equal(t, len(expectedSet.Metrics), len(actualMetrics))
-		for j, expectedMetrics := range expectedSet.Metrics {
-			assert.Equal(t, len(expectedMetrics.Metrics), len(actualMetrics[j].Metrics))
+		for _, expectedMetrics := range expectedSet.Metrics {
+			totalExpectedMetrics += len(expectedMetrics.Metrics)
 		}
 	}
+	for _, actualSet := range actualDataset.Entities {
+		// TODO: check nil cases
+		for _, actualMetrics := range actualSet.Metrics {
+			totalActualMetrics += len(actualMetrics.Metrics)
+		}
+	}
+
+	assert.Equal(t, totalExpectedMetrics, totalActualMetrics)
 
 	return nil
 }

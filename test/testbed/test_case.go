@@ -12,9 +12,6 @@ type TestCase struct {
 
 	// Execution validator
 	validator ExecutionValidator
-
-	// errorCause keeps the latest generated error
-	errorCause error
 }
 
 func NewTestCase(t *testing.T, f FlexRunner, v ExecutionValidator) *TestCase {
