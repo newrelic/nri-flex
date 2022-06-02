@@ -3,8 +3,13 @@ package scenarios
 import (
 	"github.com/newrelic/nri-flex/test/testbed"
 	"github.com/newrelic/nri-flex/test/testbed/scenarios/fixtures"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +34,40 @@ func TestDiskLinux(t *testing.T) {
 			defer os.Remove(tmpConfig.Name())
 
 			validator, err := testbed.NewMetricValidator(diskTest.ExpectedStdout, "nothing")
+			if err != nil {
+				t.Error(err)
+			}
+			tc := testbed.NewTestCase(t, testbed.NewChildFlexRunner("/bin/nri-flex", tmpConfig.Name()), validator)
+			tc.RunTest()
+		})
+	}
+}
+
+func TestAPI(t *testing.T) {
+	for _, apiTest := range fixtures.APITests {
+		t.Run(apiTest.Name, func(t *testing.T) {
+
+			tmpConfig, err := tmpFile(apiTest.Config)
+			if err != nil {
+				t.Error(err)
+			}
+
+			defer os.Remove(tmpConfig.Name())
+
+			srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if strings.Contains(r.URL.Path, "/"+apiTest.Endpoint) {
+					_, err := w.Write([]byte(apiTest.Payload))
+					assert.NoError(t, err)
+				} else {
+					_, err := w.Write([]byte{})
+					assert.NoError(t, err)
+				}
+			}))
+			l, _ := net.Listen("tcp", "127.0.0.1:"+apiTest.Port)
+			srv.Listener = l
+			srv.Start()
+			defer srv.Close()
+			validator, err := testbed.NewMetricValidator(apiTest.ExpectedStdout, "nothing")
 			if err != nil {
 				t.Error(err)
 			}
