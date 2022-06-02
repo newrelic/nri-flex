@@ -53,3 +53,10 @@ test-linux:
 	@(echo "=== $(PROJECT_NAME) === [ unit-test-linux ]: running unit tests for Linux...")
 	@(docker build -t nri-flex-test -f ./integration-test/Dockerfile .)
 	@(docker run --rm -it nri-flex-test make test-unit)
+
+
+.PHONY: test-e2e
+test-e2e: bin/nri-flex
+	@echo "=== $(PROJECT_NAME) === [ e2e-test ]: running e2e tests..."
+	@cd ./test/testbed && sh ./launch_e2e.sh
+

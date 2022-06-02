@@ -105,6 +105,19 @@ jobs:
       - name: Build all platforms:arch
         run: make ci/pre-release
 
+  test-e2e:
+    name: Run e2e tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Run e2e tests
+        run: make test-e2e
+
   finish:
     name: Finish
     needs: [ test-nix, test-windows ]
