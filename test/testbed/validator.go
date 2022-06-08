@@ -2,15 +2,9 @@ package testbed
 
 import (
 	"encoding/json"
-	"fmt"
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/stretchr/testify/assert"
 	"testing"
-)
-
-var (
-	errOutputsDoNotMatch = fmt.Errorf("Outputs do not match")
-	errDifferentMetrics  = fmt.Errorf("Outputs have different metrics")
 )
 
 type ExecutionValidator interface {
