@@ -85,11 +85,11 @@ jobs:
       - name: run unit tests
         # we don't have 'make' on windows.
         run: |
-          go test ./...
+          go test ./cmd/... ./integration-test/... ./internal/...
       - name: run integration tests
         # we don't have 'make' on windows.
         run: |
-          go test --tags=integration ./...
+          go test --tags=integration ./cmd/... ./integration-test/... ./internal/...
 
   test-build:
     name: Test binary compilation for all platforms:arch

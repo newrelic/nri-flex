@@ -2,7 +2,7 @@
 # Makefile fragment for Testing
 #
 
-SOURCE_FILES ?=./cmd/... ./integration-test/... ./internal/... ./test/...
+SOURCE_FILES ?=./cmd/... ./integration-test/... ./internal/...
 
 GOLINTER_BIN = bin/$(GOLINTER)
 TEST_PATTERN ?=.
