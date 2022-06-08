@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -43,15 +44,23 @@ func (e *IntegrationValidator) Validate(t *testing.T, stdout string, stderr stri
 	assert.Equal(t, len(e.expectedIntegration.Entities), len(actualDataset.Entities))
 
 	totalExpectedMetrics, totalExpectedEvents := 0, 0
+	expectedMetricsKeys := make(map[string]interface{})
 	totalActualMetrics, totalActualEvents := 0, 0
+	actualMetricsKeys := make(map[string]interface{})
 
 	for i, expectedSet := range e.expectedIntegration.Entities {
 		// two loops because the order of the metrics can be different depending on the execution
 		for _, expectedMetrics := range expectedSet.Metrics {
 			totalExpectedMetrics += len(expectedMetrics.Metrics)
+			for key, _ := range expectedMetrics.Metrics {
+				expectedMetricsKeys[key] = true
+			}
 		}
 		for _, actualMetrics := range actualDataset.Entities[i].Metrics {
 			totalActualMetrics += len(actualMetrics.Metrics)
+			for key, _ := range actualMetrics.Metrics {
+				actualMetricsKeys[key] = true
+			}
 		}
 		totalExpectedEvents += len(expectedSet.Events)
 		totalActualEvents += len(actualDataset.Entities[i].Events)
@@ -59,6 +68,7 @@ func (e *IntegrationValidator) Validate(t *testing.T, stdout string, stderr stri
 
 	assert.Equal(t, totalExpectedMetrics, totalActualMetrics)
 	assert.Equal(t, totalActualEvents, totalActualEvents)
+	assert.True(t, reflect.DeepEqual(expectedMetricsKeys, actualMetricsKeys))
 
 	return nil
 }
