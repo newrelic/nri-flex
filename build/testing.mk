@@ -2,6 +2,8 @@
 # Makefile fragment for Testing
 #
 
+SOURCE_FILES ?=./cmd/... ./integration-test/... ./internal/... ./test/...
+
 GOLINTER_BIN = bin/$(GOLINTER)
 TEST_PATTERN ?=.
 TEST_OPTIONS ?=
@@ -9,7 +11,7 @@ TEST_OPTIONS ?=
 TEST_FLAGS += -failfast
 TEST_FLAGS += -race
 
-GO_TEST ?= test $(TEST_OPTIONS) $(TEST_FLAGS) ./... -run $(TEST_PATTERN) -timeout=10m
+GO_TEST ?= test $(TEST_OPTIONS) $(TEST_FLAGS) $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=10m
 
 $(GOLINTER_BIN): bin
 	@echo "=== $(PROJECT_NAME) === [ lint ]: Installing $(GOLINTER)..."
