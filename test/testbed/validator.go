@@ -12,21 +12,23 @@ type ExecutionValidator interface {
 	Validate(*testing.T, string, string) error
 }
 
-type MetricValidator struct {
-	matchStdout Integration.Integration
-	matchStderr string
+// IntegrationValidator validates an integration stdout
+type IntegrationValidator struct {
+	expectedIntegration Integration.Integration
 }
 
-func NewMetricValidator(stdout, stderr string) (*MetricValidator, error) {
-	m := &MetricValidator{matchStderr: stderr}
-	err := json.Unmarshal([]byte(stdout), &m.matchStdout)
+// NewIntegrationValidator returns a new IntegrationValidator instance
+func NewIntegrationValidator(stdout, stderr string) (*IntegrationValidator, error) {
+	m := &IntegrationValidator{}
+	err := json.Unmarshal([]byte(stdout), &m.expectedIntegration)
 	if err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (e *MetricValidator) Validate(t *testing.T, stdout string, stderr string) error {
+// Validate verifies the number of entities, events and metrics of a given integration output, stderr is not validated
+func (e *IntegrationValidator) Validate(t *testing.T, stdout string, stderr string) error {
 	var actualDataset Integration.Integration
 
 	err := json.Unmarshal([]byte(stdout), &actualDataset)
@@ -34,16 +36,16 @@ func (e *MetricValidator) Validate(t *testing.T, stdout string, stderr string) e
 		return err
 	}
 
-	assert.Equal(t, e.matchStdout.Name, actualDataset.Name)
-	assert.Equal(t, e.matchStdout.ProtocolVersion, actualDataset.ProtocolVersion)
+	assert.Equal(t, e.expectedIntegration.Name, actualDataset.Name)
+	assert.Equal(t, e.expectedIntegration.ProtocolVersion, actualDataset.ProtocolVersion)
 
 	// checks that the number of entities is the same
-	assert.Equal(t, len(e.matchStdout.Entities), len(actualDataset.Entities))
+	assert.Equal(t, len(e.expectedIntegration.Entities), len(actualDataset.Entities))
 
 	totalExpectedMetrics, totalExpectedEvents := 0, 0
 	totalActualMetrics, totalActualEvents := 0, 0
 
-	for i, expectedSet := range e.matchStdout.Entities {
+	for i, expectedSet := range e.expectedIntegration.Entities {
 		// two loops because the order of the metrics can be different depending on the execution
 		for _, expectedMetrics := range expectedSet.Metrics {
 			totalExpectedMetrics += len(expectedMetrics.Metrics)

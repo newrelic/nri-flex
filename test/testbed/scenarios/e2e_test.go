@@ -33,7 +33,7 @@ func TestDiskLinux(t *testing.T) {
 
 			defer os.Remove(tmpConfig.Name())
 
-			validator, err := testbed.NewMetricValidator(diskTest.ExpectedStdout, "nothing")
+			validator, err := testbed.NewIntegrationValidator(diskTest.ExpectedStdout, "nothing")
 			if err != nil {
 				t.Error(err)
 			}
@@ -67,7 +67,7 @@ func TestAPI(t *testing.T) {
 			srv.Listener = l
 			srv.Start()
 			defer srv.Close()
-			validator, err := testbed.NewMetricValidator(apiTest.ExpectedStdout, "nothing")
+			validator, err := testbed.NewIntegrationValidator(apiTest.ExpectedStdout, "nothing")
 			if err != nil {
 				t.Error(err)
 			}
