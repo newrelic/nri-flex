@@ -34,27 +34,29 @@ func (e *MetricValidator) Validate(t *testing.T, stdout string, stderr string) e
 		return err
 	}
 
+	assert.Equal(t, e.matchStdout.Name, actualDataset.Name)
+	assert.Equal(t, e.matchStdout.ProtocolVersion, actualDataset.ProtocolVersion)
+
 	// checks that the number of entities is the same
 	assert.Equal(t, len(e.matchStdout.Entities), len(actualDataset.Entities))
 
-	totalExpectedMetrics := 0
-	totalActualMetrics := 0
+	totalExpectedMetrics, totalExpectedEvents := 0, 0
+	totalActualMetrics, totalActualEvents := 0, 0
 
-	// two loops because the order of the metrics can be different depending on the execution
-	for _, expectedSet := range e.matchStdout.Entities {
-		// TODO: check nil cases
+	for i, expectedSet := range e.matchStdout.Entities {
+		// two loops because the order of the metrics can be different depending on the execution
 		for _, expectedMetrics := range expectedSet.Metrics {
 			totalExpectedMetrics += len(expectedMetrics.Metrics)
 		}
-	}
-	for _, actualSet := range actualDataset.Entities {
-		// TODO: check nil cases
-		for _, actualMetrics := range actualSet.Metrics {
+		for _, actualMetrics := range actualDataset.Entities[i].Metrics {
 			totalActualMetrics += len(actualMetrics.Metrics)
 		}
+		totalExpectedEvents += len(expectedSet.Events)
+		totalActualEvents += len(actualDataset.Entities[i].Events)
 	}
 
 	assert.Equal(t, totalExpectedMetrics, totalActualMetrics)
+	assert.Equal(t, totalActualEvents, totalActualEvents)
 
 	return nil
 }
