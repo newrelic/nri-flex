@@ -12,20 +12,20 @@
 | Name | Test |  
 | ------ |------|
 |                `run` | X    |
-|              `shell` | TODO |
+|              `shell` | X    |
 |              `split` | X    |
 |           `split_by` | X    |
 |        `regex_match` | X    |
-|         `row_header` | TODO |
-|          `row_start` | TODO |
-|         `line_start` | TODO |
-|           `line_end` | TODO |
+|         `row_header` | X    |
+|          `row_start` | X    |
+|         `line_start` | X    |
+|           `line_end` | X    |
 |         `set_header` | X    |
 | `header_regex_match` | TODO |
-|    `header_split_by` | TODO |
+|    `header_split_by` | X    |
 |       `split_output` | TODO |
 |            `timeout` | TODO |
-|             `assert` | TODO |
+|             `assert` | X    |
 
 ### URL
 

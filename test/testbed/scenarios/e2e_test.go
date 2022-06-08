@@ -23,8 +23,8 @@ func tmpFile(data string) (file *os.File, err error) {
 	return
 }
 
-func TestDiskLinux(t *testing.T) {
-	for _, diskTest := range fixtures.DiskTests {
+func TestCommandAPI(t *testing.T) {
+	for _, diskTest := range fixtures.CommandTests {
 		t.Run(diskTest.Name, func(t *testing.T) {
 			tmpConfig, err := tmpFile(diskTest.Config)
 			if err != nil {
@@ -44,7 +44,7 @@ func TestDiskLinux(t *testing.T) {
 }
 
 func TestAPI(t *testing.T) {
-	for _, apiTest := range fixtures.APITests {
+	for _, apiTest := range fixtures.UrlTests {
 		t.Run(apiTest.Name, func(t *testing.T) {
 
 			tmpConfig, err := tmpFile(apiTest.Config)
