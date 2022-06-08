@@ -45,30 +45,30 @@
 | Name                       | Test |  
 |----------------------------|------|
 | `add_attributes`           | X    |
-| `jconvert_space`           | TODO |
-| `ignore_output`            | TODO |
-| `jq`                       | TODO |
-| `keep_keys`                | TODO |
-| `lazy_flatten`              | TODO |
+| `convert_space`           | TODO |
+| `ignore_output`            | X    |
+| `jq`                       | X    |
+| `keep_keys`                | X    |
+| `lazy_flatten`              | X    |
 | `lookup_file`               | TODO |
-| `math`                      | TODO |
-| `perc_to_decimal`           | TODO |
-| `remove_keys`               | TODO |
-| `rename_keys / replace_keys` | TODO |
-| `sample_filter`             | TODO |
-| `sample_include_filter`     | TODO |
-| `sample_exclude_filter`     | TODO |
-| `snake_to_camel`            | TODO |
+| `math`                      | X    |
+| `perc_to_decimal`           | X    |
+| `remove_keys`               | X    |
+| `rename_keys / replace_keys` | X    |
+| `sample_filter`             | X    |
+| `sample_include_filter`     | X    |
+| `sample_exclude_filter`     | X    |
+| `snake_to_camel`            | X    |
 | `split_array (leaf_array)`  | TODO |
-| `split_objects`             | TODO |
-| `start_key`                 | TODO |
+| `split_objects`             | X    |
+| `start_key`                 | X    |
 | `store_variables`           | TODO |
 | `lookups`                   | TODO |
 | `dedupe_lookups`            | TODO |
 | `store_lookups`             | TODO |
-| `strip_keys`                | TODO |
+| `strip_keys`                | X    |
 | `timestamp`                 | TODO |
-| `to_lower`                  | TODO |
-| `value_parser`              | TODO |
-| `value_transformer`         | TODO |
+| `to_lower`                  | X    |
+| `value_parser`              | X    |
+| `value_transformer`         | X    |
 | `timestamp_conversion`      | TODO |

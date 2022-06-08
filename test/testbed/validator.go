@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
 
@@ -52,14 +51,14 @@ func (e *IntegrationValidator) Validate(t *testing.T, stdout string, stderr stri
 		// two loops because the order of the metrics can be different depending on the execution
 		for _, expectedMetrics := range expectedSet.Metrics {
 			totalExpectedMetrics += len(expectedMetrics.Metrics)
-			for key, _ := range expectedMetrics.Metrics {
-				expectedMetricsKeys[key] = true
+			for key, value := range expectedMetrics.Metrics {
+				expectedMetricsKeys[key] = value
 			}
 		}
 		for _, actualMetrics := range actualDataset.Entities[i].Metrics {
 			totalActualMetrics += len(actualMetrics.Metrics)
-			for key, _ := range actualMetrics.Metrics {
-				actualMetricsKeys[key] = true
+			for key, value := range actualMetrics.Metrics {
+				actualMetricsKeys[key] = value
 			}
 		}
 		totalExpectedEvents += len(expectedSet.Events)
@@ -68,7 +67,11 @@ func (e *IntegrationValidator) Validate(t *testing.T, stdout string, stderr stri
 
 	assert.Equal(t, totalExpectedMetrics, totalActualMetrics)
 	assert.Equal(t, totalActualEvents, totalActualEvents)
-	assert.True(t, reflect.DeepEqual(expectedMetricsKeys, actualMetricsKeys))
+	// verify that all keys exists in both maps and types match
+	for expectedKey, expectedValue := range expectedMetricsKeys {
+		assert.Contains(t, actualMetricsKeys, expectedKey)
+		assert.IsType(t, expectedValue, actualMetricsKeys[expectedKey])
+	}
 
 	return nil
 }

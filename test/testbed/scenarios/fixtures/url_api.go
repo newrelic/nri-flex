@@ -1,7 +1,7 @@
 //nolint:lll
 package fixtures
 
-var UrlTests = []struct {
+var URLTests = []struct {
 	Name           string
 	Endpoint       string
 	Port           string
