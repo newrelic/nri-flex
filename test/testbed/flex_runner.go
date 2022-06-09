@@ -60,6 +60,7 @@ func (cr *ChildFlexRunner) Run() error {
 	err := cr.cmd.Run()
 	if err != nil {
 		log.Printf("Error running nri-flex (%s)", err)
+		log.Printf("Stderr: (%s)", cr.LogStderr.String())
 		return err
 	}
 
