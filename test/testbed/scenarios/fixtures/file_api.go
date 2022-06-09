@@ -150,4 +150,20 @@ apis:
 `,
 		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"readEtcdSelfLeaderInfoSample","id":12345,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","leaderinfo.abc.def1":123,"leaderinfo.abc.def2":234,"leaderinfo.starttime":"2014-10-24T13:15:51.186620747-07:00","leaderinfo.uptime":"10m59.322358947s"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.readEtcdSelfLeaderInfoSample":1,"flex.time.elapsedMs":3,"flex.time.endMs":1654769186564,"flex.time.startMs":1654769186561}],"inventory":{},"events":[]}]}`,
 	},
+	{
+		Name:        "Use split_array",
+		FileContent: `{"status":1,"appstatus":-128,"statusstring":null,"appstatusstring":null,"results":[{"status":-128,"schema":[{"name":"TIMESTAMP","type":6},{"name":"HOST_ID","type":5},{"name":"HOSTNAME","type":9},{"name":"PERCENT_USED","type":6}],"data":[[1582159853733,0,"7605f6bec898",0],[1582159853733,2,"067ea6fc4c22",0],[1582159853733,1,"62a10d3f45e3",0]]}]}`,
+		Config: `
+name: example
+apis:
+  - name: voltdb_cpu
+    event_type: voltdb
+    file: FILE_PATH
+    split_array: true
+    set_header: [TIMESTAMP, HOST_ID, HOSTNAME, PERCENT_USED]
+    start_key:
+      - results>data
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"HOSTNAME":"7605f6bec898","HOST_ID":0,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"HOSTNAME":"067ea6fc4c22","HOST_ID":2,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"HOSTNAME":"62a10d3f45e3","HOST_ID":1,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.voltdb":3,"flex.time.elapsedMs":45,"flex.time.endMs":1654776591203,"flex.time.startMs":1654776591158}],"inventory":{},"events":[]}]}`,
+	},
 }

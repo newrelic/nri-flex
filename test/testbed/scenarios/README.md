@@ -38,14 +38,14 @@
 
 | Name          | Test |  
 |---------------|------|
-| `set_headers` | TODO |
+| `set_headers` | X    |
 
 ## Supported transformation functions
 
 | Name                       | Test |  
 |----------------------------|------|
 | `add_attributes`           | X    |
-| `convert_space`           | TODO |
+| `convert_space`           | X    |
 | `ignore_output`            | X    |
 | `jq`                       | X    |
 | `keep_keys`                | X    |
@@ -59,13 +59,13 @@
 | `sample_include_filter`     | X    |
 | `sample_exclude_filter`     | X    |
 | `snake_to_camel`            | X    |
-| `split_array (leaf_array)`  | TODO |
+| `split_array (leaf_array)`  | X    |
 | `split_objects`             | X    |
 | `start_key`                 | X    |
-| `store_variables`           | TODO |
-| `lookups`                   | TODO |
-| `dedupe_lookups`            | TODO |
-| `store_lookups`             | TODO |
+| `store_variables`           | X    |
+| `lookups`                   | X    |
+| `dedupe_lookups`            | X    |
+| `store_lookups`             | X    |
 | `strip_keys`                | X    |
 | `timestamp`                 | TODO |
 | `to_lower`                  | X    |

@@ -140,4 +140,67 @@ integrations:
 `,
 		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"echoMessage","flex.commandTimeMs":3,"hi":"bye","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.echoMessage":1,"flex.time.elapsedMs":40,"flex.time.endMs":1654696788571,"flex.time.startMs":1654696788531}],"inventory":{},"events":[]}]}`,
 	},
+	{
+		Name: "Print message, store_variable and store_lookups",
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: jsonIntegrationTest
+      apis:
+        - name: post
+          commands:
+           - run: printf '{"id":123,"node":456}\n'
+          store_variables:
+            Id: id
+          store_lookups:
+            nodeId: node
+        - name: readIDInfo2
+          commands:
+            - run: printf '{"different_id":${var:Id}}\n'
+        - name: readIDInfo3
+          commands:
+            - run: printf '{"different_node":${lookup:nodeId}}\n'
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","node":456},{"different_id":123,"event_type":"readIDInfo2Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"different_node":456,"event_type":"readIDInfo3Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.postSample":1,"flex.counter.readIDInfo2Sample":1,"flex.counter.readIDInfo3Sample":1,"flex.time.elapsedMs":165,"flex.time.endMs":1654776136702,"flex.time.startMs":1654776136537}],"inventory":{},"events":[]}]}`,
+	},
+	{
+		Name: "Print message and lookup",
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: jsonIntegrationTest
+      apis:
+        - name: post
+          commands:
+           - run: printf '[{"id":123},{"id":456}]\n'
+        - name: readIDInfo2
+          commands:
+            - run: printf '{"different_id":${lookup.postSample:id}}\n'
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"postSample","id":456,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"different_id":123,"event_type":"readIDInfo2Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"different_id":456,"event_type":"readIDInfo2Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":4,"flex.counter.EventDropCount":0,"flex.counter.postSample":2,"flex.counter.readIDInfo2Sample":2,"flex.time.elapsedMs":52,"flex.time.endMs":1654775074784,"flex.time.startMs":1654775074732}],"inventory":{},"events":[]}]}`,
+	},
+	{
+		Name: "Print message, lookup and dedupe_lookups",
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: jsonIntegrationTest
+      apis:
+        - name: post
+          commands:
+           - run: printf '[{"id":123},{"id":123}]\n'
+        - name: readIDInfo2
+          commands:
+            - run: printf '{"different_id":${lookup.postSample:id}}\n'
+          dedupe_lookups:
+            - id
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"different_id":123,"event_type":"readIDInfo2Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.postSample":2,"flex.counter.readIDInfo2Sample":1,"flex.time.elapsedMs":144,"flex.time.endMs":1654775565835,"flex.time.startMs":1654775565691}],"inventory":{},"events":[]}]}`,
+	},
 }
