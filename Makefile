@@ -6,7 +6,7 @@ SRCDIR           ?= .
 BUILD_DIR        ?= $(CURDIR)/bin
 COVERAGE_FILE    ?= coverage.out
 
-GO_VERSION       ?= 1.15
+GO_VERSION       ?= 1.18
 GO_CMD           ?= go
 GODOC            ?= godocdown
 
@@ -33,7 +33,7 @@ all: build
 build: check-version clean deps lint test-unit compile document
 
 # Build command for CI tooling
-build-ci: check-version clean deps lint test-coverage
+build-ci: check-version clean deps test-coverage lint
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: removing binaries and coverage file..."

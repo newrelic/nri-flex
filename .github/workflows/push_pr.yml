@@ -15,7 +15,7 @@ on:
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   ORIGINAL_REPO_NAME: "newrelic/nri-flex"
-  GO_VERSION: '1.15'
+  GO_VERSION: '1.18'
 
 jobs:
 
@@ -71,7 +71,7 @@ jobs:
   test-windows:
     strategy:
       matrix:
-        go: [ '1.16' ]
+        go: [ '1.18' ]
         os: [ windows-2019 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
