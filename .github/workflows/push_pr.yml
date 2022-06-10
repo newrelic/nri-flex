@@ -15,7 +15,7 @@ on:
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   ORIGINAL_REPO_NAME: "newrelic/nri-flex"
-  GO_VERSION: '1.15'
+  GO_VERSION: '1.18'
 
 jobs:
 
@@ -28,6 +28,10 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v2
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
       - name: Run unit tests
         run:  make ci/test
       - name: Convert coverage.out to lcov.info
@@ -71,7 +75,7 @@ jobs:
   test-windows:
     strategy:
       matrix:
-        go: [ '1.16' ]
+        go: [ '1.18' ]
         os: [ windows-2019 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
@@ -115,6 +119,10 @@ jobs:
         with:
           username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
           password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
       - name: Run e2e tests
         run: make test-e2e
 
