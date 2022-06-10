@@ -21,6 +21,7 @@ tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools            ]: Installing tools required by the project..."
 	@cd $(TOOL_DIR)
 	@$(GO_CMD) get $(GOTOOLS)
+	@$(GO_CMD) install $(GOTOOLS)
 	@$(GO_CMD) mod tidy
 
 .PHONY: tools-update

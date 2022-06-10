@@ -32,8 +32,9 @@ all: build
 # Humans running make:
 build: check-version clean deps lint test-unit compile document
 
+# lint (golangci-lint) disabled as it does not support Go 1.18 yet https://github.com/golangci/golangci-lint/issues/2649
 # Build command for CI tooling
-build-ci: check-version clean deps test-coverage lint
+build-ci: check-version clean deps test-coverage
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: removing binaries and coverage file..."
