@@ -1,0 +1,16 @@
+# Monitor a single file or multiple files in a directory
+# SELECT gpuName, gpuDriverVersion, gpu3D_percent, gpuCopy_percent, gpuEncode_percent, gpuDecode_percent, gpuDedicatedMemoryUsage_GB, gpuSharedMemoryUsage_GB FROM GpuSample LIMIT MAX SINCE 5 MINUTES AGO
+# Example for NRQL Alert: SELECT count(*) FROM GpuSample WHERE error IS NOT NULL
+integrations:
+  - name: nri-flex
+    interval: 30s # This is the Infrastructure agent polling interval for this Flex configuration, set to one poll every 30 seconds
+    config:
+      name: GpuSample
+      apis:
+        - event_type: GpuSample
+          shell: C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+          commands:
+            - run: (Get-WmiObject Win32_VideoController).Name+';'+(Get-WmiObject Win32_VideoController).DriverVersion+';'+([math]::Round((((Get-Counter "\GPU Engine(*engtype_3D)\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))+';'+([math]::Round((((Get-Counter "\GPU Engine(*engtype_Copy)\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))+';'+([math]::Round((((Get-Counter "\GPU Engine(*engtype_VideoEncode)\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))+';'+([math]::Round((((Get-Counter "\GPU Engine(*engtype_VideoDecode)\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))+';'+([math]::Round((((Get-Counter "\GPU Process Memory(*)\Dedicated Usage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum/1GB,2))+';'+([math]::Round((((Get-Counter "\GPU Process Memory(*)\Shared Usage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum/1GB,2))
+              split: horizontal
+              set_header: [gpuName, gpuDriverVersion, gpu3D_percent, gpuCopy_percent, gpuEncode_percent, gpuDecode_percent, gpuDedicatedMemoryUsage_GB, gpuSharedMemoryUsage_GB]
+              split_by: ";"
