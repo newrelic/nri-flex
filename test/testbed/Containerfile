@@ -10,7 +10,7 @@ ARG flex_tests_bin
 
 # Add the nri-flex binary
 COPY $flex_bin /bin/nri-flex
-COPY $flex_tests_bin /tmp/flex_tests_bin
+COPY $flex_tests_bin /bin/flex_tests_bin
 
 
-ENTRYPOINT ["/tmp/flex_tests_bin", "-test.v"]
+CMD ["/bin/flex_tests_bin", "-test.v"]
