@@ -240,12 +240,12 @@ func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPIN
 
 	// Throttle to rate limit for Async request
 	rl := ratelimit.NewUnlimited()
-	if yml.APIs[originalAPINo].AsyncRate != 0 {
-		rl = ratelimit.New(yml.APIs[originalAPINo].AsyncRate)
+	if yml.APIs[0].AsyncRate != 0 {
+		rl = ratelimit.New(yml.APIs[0].AsyncRate)
 	}
 	load.Logrus.WithFields(logrus.Fields{
-		"Async Rate": yml.APIs[originalAPINo].AsyncRate,
-		"apis":       yml.APIs[originalAPINo].Name,
+		"Async Rate": yml.APIs[0].AsyncRate,
+		"apis":       yml.APIs[0].Name,
 	}).Debug("API Async Throttle Setting: ")
 
 	for i := range yml.APIs {
