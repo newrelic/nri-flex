@@ -3,7 +3,6 @@ integrations:
     timeout: 5m
     interval: 1h
     config:
-      
       name: linuxspeedtest 
       apis:
         - name: speedtest
