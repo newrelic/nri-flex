@@ -329,6 +329,8 @@ type API struct {
 	ValueParser      map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
+	ValueToLower     []string          `yaml:"value_to_lower"`    // target keys to set values to convert to lowercase
+	ValueToUpper     []string          `yaml:"value_to_upper"`    // target keys to set values to convert to uppercase
 
 	ValueMapper         map[string][]string `yaml:"value_mapper"`         // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
 	TimestampConversion map[string]string   `yaml:"timestamp_conversion"` // find keys with regex, convert date<=>timestamp
