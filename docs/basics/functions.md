@@ -364,8 +364,8 @@ name: example
 apis:
     - name: status
       url: http//some-service.com/status
-    lazy_flatten:
-      - contacts
+      lazy_flatten:
+        - contacts
 ```
 
 Which would return something similar to the following:
