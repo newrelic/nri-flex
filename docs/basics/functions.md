@@ -1583,16 +1583,17 @@ Consider a service that returns the following payload:
 Without declaring any other transformation you would get a result similar to:
 
 ```json
-"metrics": [{
-  "event_type": "someServiceSample",
-  "id": "eca0338f4ea31566",
-  "leaderTime.abc.def": 123,
-  "leaderTime.abc.hij": 234,
-  "leaderTime.leader": "8a69d5f6b7814500",
-  "leaderTime.startTime": "2014-10-24T13:15:51.186620747-07:00",
-  "leaderTime.uptime": "10m59.322358947s",
-  "name": "node3"
-}
+"metrics": [
+        {
+                "event_type": "someServiceSampleSample",
+                "id": "eca0338f4ea31566",
+                "integration_name": "com.newrelic.nri-flex",
+                "integration_version": "1.5.3",
+                "leaderInfo.abc.def": 123,
+                "leaderInfo.abc.hij": 234,
+                "leaderInfo.uptime": "10m59.322358947s",
+                "name": "node3"
+        }
 ```
 
 If you want to transform the value of key `name` into a format like for example **<node/name>**, you could use `value_transformer` like this:
