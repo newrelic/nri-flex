@@ -1651,7 +1651,7 @@ name: example
 apis:
   - name: someService
     url: http://some-service.com/status
-    value_to_lower:
+    value_to_upper:
       - name
 ```
 
