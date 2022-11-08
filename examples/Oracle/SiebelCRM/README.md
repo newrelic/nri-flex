@@ -4,7 +4,10 @@ Siebel Extension with New Relic Flex
 ## Technical Details:
 This does NOT support Siebel prior to IP17 due the SMC (Siebel Management Console) not being included. 
 The below was tested on **Siebel 19.6** and has not been tested on newer versions.
-The method we are using **Is UNSUPPORTED by Oracle** 
+
+### Example integration
+
+> Note that this example uses features that are [experimental](https://github.com/newrelic/nri-flex/tree/master/docs/experimental) (not officially supported).
 
 This integration extracts metrics from your existing Siebel Installation into New Relic Platform. Metrics are extrected as custom events - as demonstrated in the screenshot below.
 
