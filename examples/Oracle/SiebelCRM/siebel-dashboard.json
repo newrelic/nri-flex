@@ -1,0 +1,592 @@
+{
+  "name": "Siebel Dashboard",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Siebel Server Components",
+      "description": null,
+      "widgets": [
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "# ORACLE Siebel Dashboard\n![Logo](https://financesonline.com/uploads/2019/08/Siebel-CRM-logo1.png)\n\n[Home page](https://www.oracle.com/au/cx/siebel/)\n\n[Docs](https://docs.oracle.com/cd/F14158_13/homepage.htm)\n\n"
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "width": 8,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "SELECT count(*) as 'Running Servers' FROM Siebel_Server_Components WHERE CP_DISP_RUN_STATE='Running' FACET SV_NAME TIMESERIES since 1 hour ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "yAxisLeft": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "SELECT count(*) AS 'Running Components' FROM Siebel_Server_Components WHERE CP_DISP_RUN_STATE='Online' SINCE 90 seconds ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "COMPONENTS",
+          "layout": {
+            "column": 5,
+            "row": 4,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "SELECT count(*) as 'COMPONENTS' FROM Siebel_Server_Components FACET CC_ALIAS since 90 seconds ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "COMP PROCESSES",
+          "layout": {
+            "column": 9,
+            "row": 4,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Components SELECT uniqueCount(CP_DISP_RUN_STATE) FACET CC_NAME "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "CURRENT COMPONENT STATUS",
+          "layout": {
+            "column": 1,
+            "row": 7,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Components SELECT uniqueCount(CC_NAME) SINCE 1 minute ago FACET CP_RUN_STATE"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "COMPONENT STATUS",
+          "layout": {
+            "column": 1,
+            "row": 10,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Components SELECT latest(CP_NUM_RUN_TASKS), latest(CP_RUN_STATE) FACET CC_ALIAS LIMIT MAX "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Entity Status - COMPONENTS",
+          "layout": {
+            "column": 1,
+            "row": 13,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "d997a1e4-423d-4d01-b450-da8a4465f60e.entity-status-widget"
+          },
+          "rawConfiguration": {
+            "displayValue": "percentageOfHealthyEntities",
+            "enableFlash": true,
+            "entityGuids": [
+              {
+                "guid": "MTYxOTg4MHxJTkZSQXxOQXw2NjA1MjY1MTQxNDEwNTI3NTQy"
+              }
+            ],
+            "trackCritical": false,
+            "trackHealthy": true,
+            "trackNotConfigured": false,
+            "trackNotReporting": false,
+            "trackWarning": false,
+            "viewMode": "summarized"
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 5,
+            "row": 13,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM MYOB_Siebel_Components SELECT latest(CP_DISP_RUN_STATE) AS 'STATUS' FACET CC_ALIAS LIMIT MAX"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Siebel Server Tasks",
+      "description": null,
+      "widgets": [
+        {
+          "title": "LATEST RUNNING TASKS",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Tasks SELECT latest(TK_TASKID) FACET CC_ALIAS, CC_RUNMODE, TK_RUNSTATE SINCE 1 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "CURRENT TASK TYPE",
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Tasks SELECT uniqueCount(TK_TASKID) FACET CC_RUNMODE SINCE 90 seconds ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "TASK STATUS - 1 HOUR",
+          "layout": {
+            "column": 5,
+            "row": 4,
+            "width": 8,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Tasks SELECT uniqueCount(TK_TASKID) FACET TK_DISP_RUNSTATE SINCE 1 HOUR ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "TOP ERRORS",
+          "layout": {
+            "column": 1,
+            "row": 7,
+            "width": 7,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Tasks SELECT uniqueCount(TK_TASKID) WHERE TK_DISP_RUNSTATE='Exited with error' FACET TK_STATUS since 1 hour ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "USER MAPPING - FAILED TASKS",
+          "layout": {
+            "column": 8,
+            "row": 7,
+            "width": 5,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Tasks SELECT uniqueCount(TK_TASKID) WHERE TK_DISP_RUNSTATE != 'Running' FACET TK_LABEL SINCE 1 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Siebel Server Status",
+      "description": null,
+      "widgets": [
+        {
+          "title": "CURRENT SERVERS RUNNING",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Status SELECT uniqueCount(SBLMGR_PID) FACET SV_DISP_STATE, HOST_NAME  SINCE 15 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": [
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "width": 12,
+            "height": 4
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "SELECT average(SystemSample.cpuPercent) as 'CPU-avg.', (average(SystemSample.memoryUsedBytes)*100/average(SystemSample.memoryTotalBytes)) as 'RAM-avg.', average(SystemSample.diskUsedPercent) as 'Disk-avg.', average(NetworkSample.receiveBytesPerSecond/1000) as 'In-KB/sec', average(NetworkSample.transmitBytesPerSecond/1000) as 'Out-KB/sec' FROM SystemSample, NetworkSample, ProcessSample since 1 week ago WHERE hostname LIKE '%tst%' facet hostname, environment, coreCount, operatingSystem  limit 500"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Siebel Server Sessions",
+      "description": null,
+      "widgets": [
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Sessions SELECT uniqueCount(CG_ALIAS) FACET OM_LOGIN"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Siebel Server Statistics",
+      "description": null,
+      "widgets": [
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_Statistics_TSTSERVER01 SELECT latest(CURR_VAL) FACET SD_DESC, SBLSRVR_NAME SINCE 5 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "TSTSERVER02",
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_statistics_TSTSERVER02 SELECT latest(CURR_VAL) FACET SD_DESC, SBLSRVR_NAME SINCE 5 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "TSTSERVER03",
+          "layout": {
+            "column": 1,
+            "row": 7,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountId": 1234567,
+                "query": "FROM Siebel_Server_statistics_TSTSERVER03 SELECT latest(CURR_VAL) FACET SD_DESC, SBLSRVR_NAME SINCE 5 minute ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variables": []
+}
