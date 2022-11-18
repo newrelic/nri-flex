@@ -11,6 +11,7 @@ GOTOOLS		  ?=
 GOTOOLS       += github.com/axw/gocov/gocov
 GOTOOLS       += github.com/AlekSi/gocov-xml
 GOTOOLS       += github.com/robertkrimen/godocdown/godocdown
+GOTOOLS       += github.com/jandelgado/gcov2lcov
 
 
 VENDOR_CMD	= $(GO_CMD) mod vendor
@@ -20,6 +21,7 @@ tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools            ]: Installing tools required by the project..."
 	@cd $(TOOL_DIR)
 	@$(GO_CMD) get $(GOTOOLS)
+	@$(GO_CMD) install $(GOTOOLS)
 	@$(GO_CMD) mod tidy
 
 .PHONY: tools-update

@@ -44,8 +44,9 @@ apis:
 
 The following table describes the properties of the `commands` API, which accepts a list of commands, each requiring a `run` directive.
 
-|                 Name |       Type       |              Default              | Description                                                                                                                                                                                                                                                                                                                    |
-| -------------------: | :--------------: | :-------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+
+| Name | Type | Default | Description|  
+| ------ | ------ | ------ | ------ |
 |                `run` |      string      |                                   | Command or application that you want to run. It accepts any valid shell command. You can also use environment variables with the format `$$ENV_VAR_NAME`                                                                                                                                                                       |
 |              `shell` |      string      | `/bin/sh` (Linux) `cmd` (Windows) | Shell to use when executing the command defined in `run`. All native Linux shells, Windows CMD, and Windows PowerShell v1-5.x (`powershell`) and v6+ (`pwsh`) are supported.                                                                                                                                                   |
 |              `split` |      string      |            `vertical`             | Mode of processing of the command output, either vertical with one value per line, or horizontal with more than one value per line (table format). Only used when `ignore_output` is false                                                                                                                                     |
@@ -246,7 +247,7 @@ Add an assert block with a nested variable of `match` and/or `not_match`.
 Note both options use regex.
 
 ```yml
-#### Command output must contain the string "hi" - this will continue
+#### Command output must contain the string "hi" - this will returned in the payload
 integrations:
   - name: nri-flex
     config:
@@ -261,7 +262,7 @@ integrations:
 ```
 
 ```yml
-#### Command output must contain the string "foo" - this will NOT continue!
+#### Command output must contain the string "foo" - this will be discarded and not added to the payload
 integrations:
   - name: nri-flex
     config:
@@ -276,7 +277,7 @@ integrations:
 ```
 
 ```yml
-#### Command output must contain the string "hi" and not contain the string "foo - this will continue
+#### Command output must contain the string "hi" and not contain the string "foo - this will be added to the payload
 integrations:
   - name: nri-flex
     config:

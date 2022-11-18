@@ -171,8 +171,7 @@ integrations:
               row_start: 1
               set_header: [fs,fsType,capacityBytes,usedBytes,availableBytes,usedPerc,mountedOn]
           perc_to_decimal: true
-      name: linuxOpenFD
-      apis:
+          
         - name: linuxOpenFD
           commands:
             - run: cat /proc/sys/fs/file-nr | awk '{print $1-$2,$3}'
@@ -205,7 +204,7 @@ integrations:
     config_template_path: /path/to/flex/integration.yml
 ```
 
-In the Flex repo you can find more than [200 config examples](../examples/flexConfigs) of custom integrations. Remember to add them under `config` in your integrations config file, or link to them using `config_template_path` statements.
+In the Flex repo you can find more than [200 config examples](../examples) of custom integrations. Remember to add them under `config` in your integrations config file, or link to them using `config_template_path` statements.
 
 >We strongly recommend that you use a YAML linter in your code editor to check for indentation issues in your config files. Most of the times, Flex rejects badly indented configurations.
 

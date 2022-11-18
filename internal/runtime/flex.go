@@ -62,6 +62,7 @@ func CommonPostInit() {
 
 // CommonPreInit Pre-initialization common to all runtime types here
 func CommonPreInit() {
+	load.SetupLogger()
 	load.StartTime = load.MakeTimestamp()
 	setEnvs()
 
@@ -74,7 +75,6 @@ func CommonPreInit() {
 // RunFlex Common run (once) function
 func RunFlex(instance Instance) error {
 	setStatusCounters()
-	setupLogger()
 
 	log.WithFields(logrus.Fields{
 		"version": load.IntegrationVersion,
@@ -111,17 +111,6 @@ func RunFlex(instance Instance) error {
 		log.Debug("runtime.RunFlex: metric_api is being used, but metric url and/or key has not been set")
 	}
 	return nil
-}
-
-func setupLogger() {
-	verboseLogging := os.Getenv("VERBOSE")
-	if load.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
-		log.SetLevel(logrus.TraceLevel)
-	}
-
-	if load.Args.StructuredLogs {
-		log.SetFormatter(&logrus.JSONFormatter{})
-	}
 }
 
 func addSingleConfigFile(configFile string, configs *[]load.Config) error {
@@ -206,6 +195,11 @@ func setEnvs() {
 	if err == nil && configSync {
 		load.Args.ProcessConfigsSync = configSync
 	}
+	asyncRate, err := strconv.Atoi(os.Getenv("ASYNC_RATE"))
+	if err == nil && asyncRate > 0 {
+		load.Args.AsyncRate = asyncRate
+	}
+
 	fargate, err := strconv.ParseBool(os.Getenv("FARGATE"))
 	if err == nil && fargate {
 		load.Args.Fargate = fargate

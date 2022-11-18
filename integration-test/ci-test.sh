@@ -17,14 +17,18 @@ $KIND create cluster
 
 echo '=== building https-server container image'
 # build our http/s server
-docker build . -f integration-test/Dockerfile_https -t newrelic/https-server:integration-test
+docker build --target httpServer -f integration-test/Dockerfile -t newrelic/https-server:integration-test .
+
 # load the image into K8s cluster (we need it later when we apply the manifest)
 $KIND load docker-image newrelic/https-server:integration-test
+
 echo '=== building nri-flex container image'
 # build the Flex image
-docker build . -f integration-test/Dockerfile -t newrelic/nri-flex:integration-test
+docker build --target base -f integration-test/Dockerfile -t newrelic/nri-flex:integration-test .
+
 # load it into the K8s cluster (we need it to run the integration tests)
 $KIND load docker-image newrelic/nri-flex:integration-test
+
 echo '=== deploying to K8s'
 # deploy our required services in K8s (right now just the http/s server we use for the https tests)
 $KCTL apply -f integration-test/k8s.yaml

@@ -7,9 +7,12 @@ package inputs
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strconv"
 	"sync"
@@ -21,11 +24,11 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
 	//Database Drivers
-	_ "github.com/SAP/go-hdb/driver"      //SAP HANA
-	_ "github.com/denisenkom/go-mssqldb"  //mssql | sql-server
-	_ "github.com/go-sql-driver/mysql"    //mysql
-	_ "github.com/lib/pq"                 //postgres
-	_ "github.com/vertica/vertica-sql-go" //HP Vertica
+	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
+	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
+	_ "github.com/go-sql-driver/mysql"          //mysql
+	_ "github.com/lib/pq"                       //postgres
+	vertigo "github.com/vertica/vertica-sql-go" //HP Vertica
 	//
 )
 
@@ -39,7 +42,7 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	}).Debug("database: process queries")
 
 	// sql.Open doesn't open the connection, use a generic Ping() to test the connection
-	db, err := sql.Open(setDatabaseDriver(api.Database, api.DBDriver), api.DBConn)
+	db, err := sql.Open(setDatabaseDriver(api.Database, api.DBDriver, yml, api), api.DBConn)
 	if err != nil {
 
 		load.Logrus.WithFields(logrus.Fields{
@@ -195,7 +198,7 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 }
 
 // setDatabaseDriver returns driver if set, otherwise sets a default driver based on database
-func setDatabaseDriver(database, driver string) string {
+func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) string {
 	if driver != "" {
 		return driver
 	}
@@ -209,6 +212,13 @@ func setDatabaseDriver(database, driver string) string {
 	case "hana", "go-hdb", "hdb":
 		return load.DefaultHANA
 	case "vertica", "hpvertica":
+		tlsconfig, enabled := getTLSConfig(yml, api)
+		if enabled {
+			err := vertigo.RegisterTLSConfig("mutual", tlsconfig)
+			if err != nil {
+				load.Logrus.WithError(err).Error("Vertica: failed to register tlsconfig")
+			}
+		}
 		return load.DefaultVertica
 	}
 	return ""
@@ -291,4 +301,76 @@ func asString(src interface{}) string {
 	}
 
 	return fmt.Sprintf("%v", src)
+}
+
+func getTLSConfig(yml *load.Config, api load.API) (*tls.Config, bool) {
+	rootCAs := x509.NewCertPool()
+	enabled := false
+	if api.TLSConfig.Enable {
+		enabled = true
+		tmpAPITLSConfig := tls.Config{
+			InsecureSkipVerify: api.TLSConfig.InsecureSkipVerify,
+			MinVersion:         api.TLSConfig.MinVersion,
+			MaxVersion:         api.TLSConfig.MaxVersion,
+			ServerName:         api.TLSConfig.ServerName,
+		}
+
+		if api.TLSConfig.Ca != "" {
+			ca, err := ioutil.ReadFile(api.TLSConfig.Ca)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to read ca")
+				enabled = false
+			} else {
+				rootCAs.AppendCertsFromPEM(ca)
+				tmpAPITLSConfig.RootCAs = rootCAs
+			}
+		}
+
+		if api.TLSConfig.Key != "" && api.TLSConfig.Cert != "" {
+			cert, err := tls.LoadX509KeyPair(api.TLSConfig.Cert, api.TLSConfig.Key)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+				enabled = false
+			} else {
+				tmpAPITLSConfig.Certificates = []tls.Certificate{cert}
+			}
+		}
+
+		return &tmpAPITLSConfig, enabled
+	}
+
+	tmpGlobalTLSConfig := tls.Config{
+		InsecureSkipVerify: yml.Global.TLSConfig.InsecureSkipVerify,
+		MinVersion:         yml.Global.TLSConfig.MinVersion,
+		MaxVersion:         yml.Global.TLSConfig.MaxVersion,
+		ServerName:         yml.Global.TLSConfig.ServerName,
+	}
+
+	if yml.Global.TLSConfig.Enable {
+		enabled = true
+		if yml.Global.TLSConfig.Ca != "" {
+			ca, err := ioutil.ReadFile(yml.Global.TLSConfig.Ca)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to read ca")
+				enabled = false
+			} else {
+				rootCAs.AppendCertsFromPEM(ca)
+				tmpGlobalTLSConfig.RootCAs = rootCAs
+			}
+		}
+
+		if yml.Global.TLSConfig.Key != "" && yml.Global.TLSConfig.Cert != "" {
+			cert, err := tls.LoadX509KeyPair(yml.Global.TLSConfig.Cert, yml.Global.TLSConfig.Key)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+				enabled = false
+			} else {
+				tmpGlobalTLSConfig.Certificates = []tls.Certificate{cert}
+			}
+		}
+		return &tmpGlobalTLSConfig, enabled
+	}
+
+	return nil, false
+
 }

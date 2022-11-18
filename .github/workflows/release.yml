@@ -1,0 +1,125 @@
+---
+name: Release pipeline
+
+on:
+  release:
+    types:
+      - prereleased
+    tags:
+      - 'v*'
+
+env:
+  GO_VERSION: '1.18'
+  TAG: ${{ github.event.release.tag_name }}
+  IS_RELEASE: true
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # needed for goreleaser
+
+jobs:
+
+  test-nix:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04 ]
+    name: Run unit tests in ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Run unit tests
+        run:  make ci/test
+      - name: Convert coverage.out to lcov.info
+        run: make ci/convert-coverage
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: lcov.info
+          flag-name: run-linux
+          parallel: true
+
+  test-integration-nix:
+    name: Run integration tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Run integration tests
+        run: make test-integration
+
+  snyk:
+    name: Run security checks via snyk
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Scan code for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.CAOS_SNYK_TOKEN }}
+        run: make ci/snyk-test
+
+  test-windows:
+    strategy:
+      matrix:
+        go: [ '1.18' ]
+        os: [ windows-2019 ]
+    name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{matrix.go}}
+      - name: run unit tests
+        # we don't have 'make' on windows.
+        run: |
+          go test ./cmd/... ./integration-test/... ./internal/...
+      - name: run integration tests
+        # we don't have 'make' on windows.
+        run: |
+          go test --tags=integration  ./cmd/... ./integration-test/... ./internal/...
+
+  prerelease:
+    name: Build and release binaries
+    runs-on: ubuntu-20.04
+    needs: [ test-nix, test-windows, snyk, test-integration-nix ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
+          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
+      - name: Pre release
+        run: make ci/pre-release
+      - name: Notify failure via Slack
+        if: ${{ failure() }}
+        uses: archive/github-actions-slack@master
+        with:
+          slack-bot-user-oauth-access-token: ${{ secrets.COREINT_SLACK_TOKEN }}
+          slack-channel: ${{ secrets.COREINT_SLACK_CHANNEL }}
+          slack-text: "❌ `${{ env.REPO_FULL_NAME }}`: prerelease pipeline failed."
+
+  finish:
+    name: Finish
+    needs: [ prerelease ]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true

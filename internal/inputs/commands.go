@@ -130,53 +130,43 @@ func commandRun(dataStore *[]interface{}, yml *load.Config, command load.Command
 		return
 	}
 
-	if err != nil {
+	contextError := ctx.Err()
+
+	if err != nil || contextError != nil {
+		contextErrorStr := ""
+		if contextError != nil {
+			contextErrorStr = contextError.Error()
+		}
+
+		load.Logrus.WithFields(logrus.Fields{
+			"exec":        command.Run,
+			"err":         err,
+			"context_err": contextErrorStr,
+			"suggestion":  "if you are handling this error case, ignore",
+		}).Debug("command: failed")
+
 		if command.HideErrorExec {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec":       command.Run,
-				"err":        err,
-				"suggestion": "if you are handling this error case, ignore",
-			}).Debug("command: failed")
 			errorSample := map[string]interface{}{
-				"error":      err,
-				"error_msg":  string(output),
-				"error_exec": "COMMAND HIDDEN!",
+				"error":         err,
+				"error_msg":     string(output),
+				"context_error": contextErrorStr,
+				"error_exec":    "COMMAND HIDDEN!",
 			}
 			*dataStore = append(*dataStore, errorSample)
 			return
 		}
-		load.Logrus.WithFields(logrus.Fields{
-			"exec":       command.Run,
-			"err":        err,
-			"suggestion": "if you are handling this error case, ignore",
-		}).Debug("command: failed")
+
 		errorSample := map[string]interface{}{
-			"error":      err,
-			"error_msg":  string(output),
-			"error_exec": command.Run,
+			"error":         err,
+			"error_msg":     string(output),
+			"context_error": contextErrorStr,
+			"error_exec":    command.Run,
 		}
 		*dataStore = append(*dataStore, errorSample)
 		return
 	}
 
-	err = ctx.Err()
-	if err != nil {
-		if err == context.DeadlineExceeded {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec": command.Run,
-				"err":  err,
-			}).Debug("command: timed out")
-		} else {
-			load.Logrus.WithFields(logrus.Fields{
-				"exec": command.Run,
-				"err":  err,
-			}).Debug("command: execution failed")
-		}
-		errorSample := map[string]interface{}{
-			"error": err,
-		}
-		*dataStore = append(*dataStore, errorSample)
-	} else if len(output) > 0 {
+	if len(output) > 0 {
 		if command.SplitOutput != "" {
 			splitOutput(dataStore, string(output), command, startTime)
 		} else {
@@ -313,6 +303,12 @@ func processOutput(dataStore *[]interface{}, output string, dataSample *map[stri
 		case load.Jmx:
 			*processType = "jmx"
 			ParseJMX(dataStore, dataInterface, command, dataSample)
+		case load.TypeCSV:
+			err := processCsv(dataStore, "", "command output", &dataOutput, command.SetHeader)
+			if err != nil {
+				load.Logrus.WithError(err).Errorf("Failed to process text/csv body")
+			}
+
 		}
 	}
 }
@@ -418,6 +414,9 @@ func processRawCol(dataStore *[]interface{}, dataSample *map[string]interface{},
 
 // detectCommandOutput currently only supports checking if json output
 func detectCommandOutput(dataOutput string, commandOutput string) (string, interface{}) {
+	if commandOutput == load.TypeCSV {
+		return "csv", nil
+	}
 	if commandOutput == load.Jmx {
 		dataOutputLines := strings.Split(strings.TrimSuffix(dataOutput, "\n"), "\n")
 		startLine := 0
@@ -518,12 +517,12 @@ func checkAssertion(assert load.Assert, output []byte) bool {
 
 	strOutput := string(output)
 
-	if assert.Match != "" && assert.NotMatch != "" && formatter.KvFinder("regex", strOutput, assert.Match) && formatter.KvFinder("regex", string(output), assert.NotMatch) {
-		return true
-	} else if assert.Match != "" && formatter.KvFinder("regex", strOutput, assert.Match) {
-		return true
-	} else if assert.NotMatch != "" && !formatter.KvFinder("regex", strOutput, assert.NotMatch) {
-		return true
+	if assert.Match != "" && assert.NotMatch != "" {
+		return formatter.KvFinder("regex", strOutput, assert.Match) && !formatter.KvFinder("regex", strOutput, assert.NotMatch)
+	} else if assert.Match != "" {
+		return formatter.KvFinder("regex", strOutput, assert.Match)
+	} else if assert.NotMatch != "" {
+		return !formatter.KvFinder("regex", strOutput, assert.NotMatch)
 	}
 
 	return false

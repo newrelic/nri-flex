@@ -6,6 +6,7 @@
 package load
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -46,6 +47,7 @@ type ArgumentList struct {
 	GitBranch               string `default:"master" help:"Checkout to specified git branch"`
 	GitCommit               string `default:"" help:"Checkout to specified git commit, if set will not use branch"`
 	ProcessConfigsSync      bool   `default:"false" help:"Process configs synchronously rather then async"`
+	AsyncRate               int    `default:"0" help:" When Process Configs in Async mode, limit the rate to run the configs, e.g. 20 per second (default: 0, unlimited)"`
 	// ProcessDiscovery      bool   `default:"true" help:"Enable process discovery"`
 	EncryptPass          string `default:"" help:"Pass to be encypted"`
 	PassPhrase           string `default:"N3wR3lic!" help:"PassPhrase used to de/encrypt"`
@@ -129,6 +131,7 @@ const (
 	TypeCname          = "cname"
 	TypeJSON           = "json"
 	TypeXML            = "xml"
+	TypeCSV            = "csv"
 	TypeColumns        = "columns"
 	Contains           = "contains"
 )
@@ -137,6 +140,10 @@ const (
 var MetricsStore = struct {
 	sync.RWMutex
 	Data []Metrics
+}{}
+
+var CacheStoreLock = struct {
+	sync.RWMutex
 }{}
 
 // MetricsStoreAppend Append data to store
@@ -236,7 +243,10 @@ type TLSConfig struct {
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 	MinVersion         uint16 `yaml:"min_version"`
 	MaxVersion         uint16 `yaml:"max_version"`
-	Ca                 string `yaml:"ca"` // path to ca to read
+	Ca                 string `yaml:"ca"`   // path to ca to read
+	Key                string `yaml:"key"`  // path to key to read
+	Cert               string `yaml:"cert"` // path to cert to read
+	ServerName         string `yaml:"server_name"`
 }
 
 // SampleMerge merge multiple samples into one (will remove previous samples)
@@ -258,6 +268,7 @@ type API struct {
 	EventsOnly        bool              `yaml:"events_only"`    // only generate events
 	Merge             string            `yaml:"merge"`          // merge into another eventType
 	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	AsyncRate         int               `yaml:"async_rate"`     //Async Request Throttle Rate
 	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
 	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
 	File              string            `yaml:"file"`
@@ -300,7 +311,8 @@ type API struct {
 	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
 	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
 	Scp               SCP               `yaml:"scp"`
-	HWSigner          HWSigner          `yaml:"hw_signer"` // Huawei Cloud Service API signer
+	HWSigner          HWSigner          `yaml:"hw_signer"`     // Huawei Cloud Service API signer
+	AliyunSigner      AliyunSigner      `yaml:"aliyun_signer"` // Huawei Cloud Service API signer
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
@@ -493,6 +505,12 @@ type HWSigner struct {
 	Secret string `yaml:"secret"`
 }
 
+// AliyunSigner struct
+type AliyunSigner struct {
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
+}
+
 // Parse struct
 type Parse struct {
 	Type    string   `yaml:"type"` // perform a contains, match, hasPrefix or regex for specified key
@@ -533,4 +551,15 @@ func (s *SamplesToMerge) SampleAppend(key string, sample interface{}) {
 	s.Lock()
 	defer s.Unlock()
 	(s.Data)[key] = append((s.Data)[key], sample)
+}
+
+func SetupLogger() {
+	verboseLogging := os.Getenv("VERBOSE")
+	if Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		Logrus.SetLevel(logrus.TraceLevel)
+	}
+
+	if Args.StructuredLogs {
+		Logrus.SetFormatter(&logrus.JSONFormatter{})
+	}
 }

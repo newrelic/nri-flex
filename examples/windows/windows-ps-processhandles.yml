@@ -1,0 +1,11 @@
+# Windows Process Handles
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+      name: winProcessHandles
+      apis:
+        - event_type: winProcessHandles
+          shell: powershell
+          commands:
+            - run: Get-Process | Select-Object -Property ProcessName, Id, HandleCount | ConvertTo-Json

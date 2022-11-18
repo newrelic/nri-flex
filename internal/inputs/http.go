@@ -20,6 +20,7 @@ import (
 	"time"
 
 	xj "github.com/basgys/goxml2json"
+	"github.com/newrelic/nri-flex/internal/aliyun"
 	"github.com/newrelic/nri-flex/internal/huaweihws"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/parnurzeal/gorequest"
@@ -46,6 +47,10 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 
 		handlePagination(reqURL, &api.Pagination, nil, nil, 200)
 		*reqURL = yml.Global.BaseURL + *reqURL
+		requrl := strings.ToLower(*reqURL)
+		if !strings.HasPrefix(requrl, "http://") && !strings.HasPrefix(requrl, "https://") {
+			*reqURL = "http://" + *reqURL
+		}
 		switch {
 		case api.Method == http.MethodPost && api.Payload != "":
 			request = request.Post(*reqURL)
@@ -110,6 +115,14 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 						handleJSON(dataStore, []byte(jsonBody), &resp, doLoop, reqURL, nextLink, api.ReturnHeaders)
 					}
 				}
+			case contentType == "text/csv":
+				body, _ := ioutil.ReadAll(resp.Body)
+				stringBody := string(body)
+				err := processCsv(dataStore, "", "", &stringBody, api.SetHeader)
+				if err != nil {
+					load.Logrus.WithError(err).Errorf("http: URL %v failed to process text/csv body resp.Body", *reqURL)
+				}
+
 			default:
 				// some apis do not specify a content-type header, if not set attempt to detect if the payload is json
 				body, err := ioutil.ReadAll(resp.Body)
@@ -234,6 +247,15 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 		}
 	}
 
+	if yml.Global.TLSConfig.Key != "" && yml.Global.TLSConfig.Cert != "" {
+		cert, err := tls.LoadX509KeyPair(yml.Global.TLSConfig.Cert, yml.Global.TLSConfig.Key)
+		if err != nil {
+			load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+		} else {
+			tmpGlobalTLSConfig.Certificates = []tls.Certificate{cert}
+		}
+	}
+
 	request = request.TLSClientConfig(&tmpGlobalTLSConfig)
 
 	if api.TLSConfig.Enable {
@@ -252,7 +274,35 @@ func setRequestOptions(request *gorequest.SuperAgent, yml load.Config, api load.
 				tmpAPITLSConfig.RootCAs = rootCAs
 			}
 		}
+
+		if api.TLSConfig.Key != "" && api.TLSConfig.Cert != "" {
+			cert, err := tls.LoadX509KeyPair(api.TLSConfig.Cert, api.TLSConfig.Key)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: failed to load x509 keypair")
+			} else {
+				tmpAPITLSConfig.Certificates = []tls.Certificate{cert}
+			}
+		}
+
 		request = request.TLSClientConfig(&tmpAPITLSConfig)
+	}
+
+	if api.AliyunSigner.Key != "" && api.AliyunSigner.Secret != "" {
+		signer := aliyun.Signer{
+			Key:    api.AliyunSigner.Key,
+			Secret: api.AliyunSigner.Secret,
+		}
+		r, err := request.MakeRequest()
+		if err != nil {
+			load.Logrus.WithError(err).Error("http: signer failed to convert request for AliyunSigner.")
+		} else {
+			signerdURL, err := signer.Sign(r)
+			if err != nil {
+				load.Logrus.WithError(err).Error("http: signer failed to sign the request.")
+			} else {
+				request.Url = signerdURL
+			}
+		}
 	}
 
 	if api.HWSigner.Key != "" && api.HWSigner.Secret != "" {

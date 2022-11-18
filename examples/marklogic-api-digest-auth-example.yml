@@ -1,0 +1,197 @@
+# MarkLogic Management API Documentation https://docs.marklogic.com/REST/management
+# Tested with MarkLogic v10
+# This example hits a number of MarkLogic API endpoints to gather relevant 
+#   monitoring data
+# NOTE: This example works with Digest Authentication setup on the MarkLogic
+#   API.  If you are using Basic Authentication, you can alter the `curl`
+#   command or simply use the Basic Authentication example in this repo.
+---
+integrations:
+  - name: nri-flex
+    timeout: 60s
+    # interval: 30s ## deafult is 30s, can change if desired
+    # env:
+    #   EVENT_LIMIT: 500 ## default is 500, increase if needed
+    config:
+      name: marklogic-metric
+      secrets:
+        mylogin:
+          kind: local # Use Flex local/internal decryption function
+          key: P@ssphr@se # Your pass_phrase to encrypt/decrypt the Salesforce login info
+          data: <==YOUR ENCRYPTED LOGIN INFO from the command below==>
+          # Run the following command to generate a encrypted login info, paste it to the above -> data
+          # nri-flex -encrypt_pass 'username=<YOUR USERNAME>,password=<YOUR PASSWORD>' -pass_phrase 'P@ssphr@se'
+          # The decrypted username and password will be used to exchange for access_token
+          type: equal
+      variable_store:
+        base_url: http://localhost:8002/manage/LATEST # The base URL for your MarkLogic API
+        username: ${secret.mylogin:username}
+        password: ${secret.mylogin:password}
+        # Start of cURL command used in all the API calls, can add other
+        # options to your cURL if needed for certs, insecure, etc.
+        command: curl -s --anyauth --user 
+      apis:
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2@view=status
+        - event_type: marklogicSummarySample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}?view=status&format=json"
+          start_key:
+            - local-cluster-status
+            - status-relations
+          remove_keys:
+            - time
+            - units
+            - uriref
+            - typeref
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/hosts@view=status
+        - event_type: marklogicHostSummarySample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/hosts?view=status&format=json"
+          start_key:
+            - host-status-list
+            - status-list-summary
+          remove_keys:
+            - time
+            - units
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/servers@view=status
+        - event_type: marklogicServerSummarySample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/servers?view=status&format=json"
+          start_key:
+            - server-status-list
+            - status-list-summary
+          remove_keys:
+            - time
+            - units
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/forests@view=status
+        - event_type: marklogicForestSummarySample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/forests?view=status&format=json"
+          start_key:
+            - forest-status-list
+            - status-list-summary
+          remove_keys:
+            - time
+            - units
+        # API call to get list of databases to use in next API call
+        - event_type: marklogicDatabasesSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/databases?format=json"
+          start_key:
+            - database-default-list
+            - list-items
+            - list-item
+          ignore_output: true
+        # Loop through databases in above API call and get data for each
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/databases/[id-or-name]@view=status
+        - event_type: marklogicDatabaseDetailSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/databases/${lookup.marklogicDatabasesSample:nameref}?view=status&format=json"
+          dedupe_lookups:
+          start_key:
+            - database-status
+            - status-properties
+          remove_keys:
+            - meta
+            - relations
+            - time
+            - units
+          custom_attributes:
+            dbName: ${lookup.marklogicDatabasesSample:nameref}
+        # API call to get list of forests to use in next API call
+        - event_type: marklogicForestsSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/forests?format=json"
+          start_key:
+            - forest-default-list
+            - list-items
+            - list-item
+          ignore_output: true
+        # Loop through databases in above API call and get data for each
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/forests/[id-or-name]@view=status
+        - event_type: marklogicForestDetailSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/forests/${lookup.marklogicForestsSample:nameref}?view=status&format=json"
+          dedupe_lookups:
+            - nameref
+          start_key:
+            - forest-status
+            - status-properties
+          remove_keys:
+            - time
+            - units
+          custom_attributes:
+            forestName: ${lookup.marklogicForestsSample:nameref}
+        # API call to get list of servers to use in next API call
+        - event_type: mlServersSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/servers?format=json"
+          start_key:
+            - server-default-list
+            - list-items
+            - list-item
+          remove_keys:
+            - relation-id
+          ignore_output: true
+        # Loop through servers in above API call and get data for each
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/servers/[id-or-name]@view=status
+        - event_type: marklogicServerDetailSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/servers/${lookup.mlServersSample:nameref}?group-id=${lookup.mlServersSample:groupnameref}&view=status&format=json"
+          dedupe_lookups:
+            - nameref
+          start_key:
+            - server-status
+            - status-properties
+          remove_keys:
+            - units
+          custom_attributes:
+            serverName: ${lookup.mlServersSample:nameref}
+        # API call to get list of hosts to use in next API call
+        - event_type: marklogicHostsSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/hosts?format=json"
+          start_key:
+            - host-default-list
+            - list-items
+            - list-item
+          ignore_output: true
+        # Loop through hosts in above API call and get data for each
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/hosts/[id-or-name]@view=status
+        - event_type: marklogicHostDetailSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/hosts/${lookup.marklogicHostsSample:nameref}?view=status&format=json"
+          dedupe_lookups:
+            - nameref
+          start_key:
+            - host-status
+            - status-properties
+          remove_keys:
+            - time
+            - units
+          custom_attributes:
+            mlHostName: ${lookup.marklogicHostsSample:nameref}
+        # API call to get list of groups to use in next API call
+        - event_type: marklogicGroupsSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/groups?format=json"
+          start_key:
+            - group-default-list
+            - list-items
+            - list-item
+          ignore_output: true
+        # Loop through groups in above API call and get data for each
+        # API call documented here: https://docs.marklogic.com/REST/GET/manage/v2/groups/[id-or-name]@view=status
+        - event_type: marklogicGroupDetailSample
+          commands:
+            - run: ${var:command} "${var:username}:${var:password}"  "${var:base_url}/groups/${lookup.marklogicGroupsSample:nameref}?view=status&format=json"
+          dedupe_lookups:
+            - nameref
+          start_key:
+            - group-status
+            - status-properties
+          remove_keys:
+            - time
+            - units
+          custom_attributes:
+            groupName: ${lookup.marklogicGroupsSample:nameref}

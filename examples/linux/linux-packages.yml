@@ -36,7 +36,7 @@ integrations:
               split: horizontal
               regex_match: true
               split_by: i\s+\|\s+(\S+)\s+\|\s+\S+\s+\|\s+(\S+)\s+\|\s+(\S+)\s+\|\s+(.+)
-              set_header: [package, version, arch repository]
+              set_header: [package, version, arch, repository]
               assert:
                 not_match: not found
           custom_attributes:

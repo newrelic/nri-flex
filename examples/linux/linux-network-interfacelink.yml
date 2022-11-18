@@ -1,0 +1,26 @@
+# This config detect enumerate through the IP links to detect network interface usage
+# We're using "ethtool" to query network driver and hardware settings
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#specify-the-shell
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: interfaceLinkStatus
+      apis:
+        # Get a list of interfaces
+        - event_type: interfaceLookup
+          commands:
+            - run: ip link | egrep '^[0-9]' | awk '{gsub(/:/,"",$2); print $2}'
+              set_header: [interface]
+              split: horizontal
+              split_by: ":"
+          ignore_output: true
+        # Lookup and loop through the interface list
+        - event_type: interfaceLinkSample
+          commands:
+            - run: ethtool ${lookup.interfaceLookup:interface} 2> /dev/null | egrep '(Speed|Duplex|Auto-negotiation|detected)' | sed 's/\t*//g' | sed 's/\-/_/g'
+              split_by: ": "
+          convert_space: "_"
+          to_lower: true
+          custom_attributes:
+            interface: ${lookup.interfaceLookup:interface}
