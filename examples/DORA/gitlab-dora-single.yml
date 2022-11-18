@@ -1,0 +1,51 @@
+#repo level dora metrics
+---
+integrations:
+  - name: nri-flex
+    interval: 300s
+    env:
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<accountid>/events
+      INSIGHTS_API_KEY: <insertkey>
+    config:
+      name: gitlabDoraMetrics
+      variable_store:
+        projectId: <projectId> #your gitlab projectId
+      custom_attributes:
+        doraName: <doraName> # required for entity creation needs to be unique
+        pipeline: <pipeline>
+        team: <team>
+        repoName: <repoName>
+        org: <org>
+      global:
+        base_url: https://gitlab.com/api/v4      
+        headers:
+          PRIVATE-TOKEN: <accesstoken>
+      apis:
+        - name: deployment_frequency
+          run_async: true        
+          url: /projects/${var:projectId}/dora/metrics?metric=deployment_frequency
+          jq: >
+            .[-1]|{"deploymentFrequency":.value}
+          merge: DoraMetricsSample
+          join_key: projectid
+
+        - name: change_failure_rate
+          run_async: true        
+          url: /projects/${var:projectId}/dora/metrics?metric=change_failure_rate
+          jq: >
+            .[-1]|{"changeFailureRate":.value}
+          merge: DoraMetricsSample
+          join_key: projectid
+
+        - name: time_to_restore_service
+          run_async: true             
+          url: /projects/${var:projectId}/dora/metrics?metric=time_to_restore_service
+          jq: >
+            .[-1]|{"timeToRestoreService":.value}
+          merge: DoraMetricsSample
+        - name: lead_time_for_changes
+          run_async: true             
+          url: /projects/${var:projectId}/dora/metrics?metric=lead_time_for_changes
+          jq: >
+            .[-1]|{"leadTimeForChanges":.value}
+          merge: DoraMetricsSample
