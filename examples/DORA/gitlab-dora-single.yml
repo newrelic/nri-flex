@@ -23,7 +23,7 @@ integrations:
       apis:
         - name: deployment_frequency
           run_async: true        
-          url: /projects/${var:projectId}/dora/metrics?metric=deployment_frequency
+          url: /projects/${var:projectId}/dora/metrics?metric=deployment_frequency&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"deploymentFrequency":.value}
           merge: DoraMetricsSample
@@ -31,7 +31,7 @@ integrations:
 
         - name: change_failure_rate
           run_async: true        
-          url: /projects/${var:projectId}/dora/metrics?metric=change_failure_rate
+          url: /projects/${var:projectId}/dora/metrics?metric=change_failure_rate&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"changeFailureRate":.value}
           merge: DoraMetricsSample
@@ -39,13 +39,13 @@ integrations:
 
         - name: time_to_restore_service
           run_async: true             
-          url: /projects/${var:projectId}/dora/metrics?metric=time_to_restore_service
+          url: /projects/${var:projectId}/dora/metrics?metric=time_to_restore_service&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"timeToRestoreService":.value}
           merge: DoraMetricsSample
         - name: lead_time_for_changes
           run_async: true             
-          url: /projects/${var:projectId}/dora/metrics?metric=lead_time_for_changes
+          url: /projects/${var:projectId}/dora/metrics?metric=lead_time_for_changes&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"leadTimeForChanges":.value}
           merge: DoraMetricsSample
