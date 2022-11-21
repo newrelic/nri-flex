@@ -39,7 +39,7 @@ integrations:
 
         - name: DoraDeploymentSample
           run_async: true        
-          url: /projects/${lookup:projectId}/dora/metrics?metric=deployment_frequency
+          url: /projects/${lookup:projectId}/dora/metrics?metric=deployment_frequency&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"deploymentFrequency":.value,"projectid":"${lookup:projectId}"}
           metric_parser:
@@ -53,7 +53,7 @@ integrations:
 
         - name: change_failure_rate
           run_async: true        
-          url: /projects/${lookup:projectId}/dora/metrics?metric=change_failure_rate
+          url: /projects/${lookup:projectId}/dora/metrics?metric=change_failure_rate&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"changeFailureRate":.value,"projectid":"${lookup:projectId}"}
 
@@ -68,7 +68,7 @@ integrations:
 
         - name: time_to_restore_service
           run_async: true             
-          url: /projects/${lookup:projectId}/dora/metrics?metric=time_to_restore_service
+          url: /projects/${lookup:projectId}/dora/metrics?metric=time_to_restore_service&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"timeToRestoreService":.value,"projectid":"${lookup:projectId}"}
 
@@ -84,7 +84,7 @@ integrations:
 
         - name: lead_time_for_changes
           run_async: true             
-          url: /projects/${lookup:projectId}/dora/metrics?metric=lead_time_for_changes
+          url: /projects/${lookup:projectId}/dora/metrics?metric=lead_time_for_changes&start_date=${timestamp:dateutc-24hr}
           jq: >
             .[-1]|{"leadTimeForChanges":.value,"projectid":"${lookup:projectId}"}
 
