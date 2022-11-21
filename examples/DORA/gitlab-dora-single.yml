@@ -27,7 +27,6 @@ integrations:
           jq: >
             .[-1]|{"deploymentFrequency":.value}
           merge: DoraMetricsSample
-          join_key: projectid
 
         - name: change_failure_rate
           run_async: true        
@@ -35,7 +34,6 @@ integrations:
           jq: >
             .[-1]|{"changeFailureRate":.value}
           merge: DoraMetricsSample
-          join_key: projectid
 
         - name: time_to_restore_service
           run_async: true             
@@ -43,6 +41,7 @@ integrations:
           jq: >
             .[-1]|{"timeToRestoreService":.value}
           merge: DoraMetricsSample
+          
         - name: lead_time_for_changes
           run_async: true             
           url: /projects/${var:projectId}/dora/metrics?metric=lead_time_for_changes&start_date=${timestamp:dateutc-24hr}
