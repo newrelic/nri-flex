@@ -1,0 +1,24 @@
+# https://api.newrelic.com/
+---
+integrations:
+  - name: nri-flex
+    interval: 90s # For Siebel - Try and use a higher interval due to the load svrmgr puts on the gateways
+    config:
+      name: Siebel_Server
+      global:
+        base_url: http://yoursieblgateway.example.com/siebel/v1.0/cloudgateway/enterprises/ENTNAMEGOESHERE/ #Your enterprise name must replace ENTNAMEGOESHERE, e.g SIEBELENT, PRDENT, etc. Gateway address should be your primary gateway set in SMC
+        headers:
+          Authorization: "Basic 1234567890" #You need to use your BASE64 encoded username and password here
+      apis:
+        - event_type: siebelTasks
+          url: tasks
+        - event_type: siebelSessions
+          url: sessions
+        - event_type: siebelStatus
+          url: servers
+        - event_type: siebelComponents #This will query all servers within the enterprise for all components
+          url: components
+        - event_type: siebelServerStats_SERVERNAME #This has to be done _per_ server in your enterprise, e.g SIEBEL01 would replace SERVERNAME
+          url: /SERVERNAME/statistics
+        - event_type: siebelServerStats_SERVERNAME
+          url: /SERVERNAME02/statistics #this is an example of more than one server in an enterprise

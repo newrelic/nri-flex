@@ -195,6 +195,37 @@ Consider a service that returns the following payload:
   "name": "node3"
 }
 ```
+Without declaring any other transformation you would get a result similar to:
+
+```json
+"metrics": [{
+    "event_type": "someServiceSampleSample",
+    "id": "eca0338f4ea31566",
+    "leaderInfo.abc.def": 123,
+    "leaderInfo.abc.hij": 234,
+    "leaderInfo.leader": "8a69d5f6b7814500",
+    "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "leaderInfo.uptime": "10m59.322358947s",
+    "name": "node3"
+  }
+```
+
+If you use `ignore_output: true` like this:
+
+```yaml
+name: example
+apis:
+  - name: someService
+    url: http://some-service.com/status
+    ignore_output: true
+```
+
+We will not create a sample for the result, but still caches it:
+
+```json
+"metrics": [{
+}
+```
 
 ### jq
 
@@ -333,8 +364,8 @@ name: example
 apis:
     - name: status
       url: http//some-service.com/status
-    lazy_flatten:
-      - contacts
+      lazy_flatten:
+        - contacts
 ```
 
 Which would return something similar to the following:
@@ -1584,13 +1615,11 @@ Without declaring any other transformation you would get a result similar to:
 
 ```json
 "metrics": [{
-  "event_type": "someServiceSample",
+  "event_type": "someServiceSampleSample",
   "id": "eca0338f4ea31566",
-  "leaderTime.abc.def": 123,
-  "leaderTime.abc.hij": 234,
-  "leaderTime.leader": "8a69d5f6b7814500",
-  "leaderTime.startTime": "2014-10-24T13:15:51.186620747-07:00",
-  "leaderTime.uptime": "10m59.322358947s",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3"
 }
 ```

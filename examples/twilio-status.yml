@@ -1,0 +1,14 @@
+integrations:
+  - name: nri-flex
+    interval: 120s
+    config:
+      name: TwilioStatus
+      global:
+        base_url: https://status.twilio.com/api/v2
+      apis:
+        - event_type: TwilioStatusSample
+          url: /status.json
+          keep_keys:
+            - status
+        - event_type: TwilioComponentSample
+          url: /components.json

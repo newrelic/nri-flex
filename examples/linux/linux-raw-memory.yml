@@ -1,0 +1,34 @@
+# Flex configuration to retrieve all Linux memory metrics provided by the kernel
+# https://www.kernel.org/doc/html/latest/filesystems/proc.html?#meminfo
+#
+# meminfo values are provided in kilobytes so we multiply by 1024 to convert to bytes
+# https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/fs/proc/meminfo.c?id=39a8804455fb23f09157341d3ba7db6d7ae6ee76#n91
+#
+#
+# Parenthesis in fields are replaced by underscore:
+# Active(anon) -> Active_anon
+# Active(file) -> Active_file
+
+integrations:
+  - name: nri-flex
+    interval: 10s
+    config:
+      name: LinuxRawMemory
+      apis:
+        - name: LinuxRawMemory
+          commands:
+            - run: cat /proc/meminfo | tr "(" "_" | tr -d ")" | tr -d ":" | awk '{print $1":"$2 * 1024}'
+              split_by: ":"
+#          # Optional: Limit to specific memory metrics (regexp)
+#          keep_keys:
+#            - MemTotal
+#            - MemFree
+#            - MemAvailable
+#            - Swap
+#            - Reclaimable
+#          # Optional: Remove some memory metrics (regexp). Applied after keep_keys
+#          remove_keys:
+#            - KReclaimable
+#            - SwapFree
+
+
