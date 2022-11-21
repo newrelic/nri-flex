@@ -247,7 +247,7 @@ Add an assert block with a nested variable of `match` and/or `not_match`.
 Note both options use regex.
 
 ```yml
-#### Command output must contain the string "hi" - this will continue
+#### Command output must contain the string "hi" - this will returned in the payload
 integrations:
   - name: nri-flex
     config:
@@ -262,7 +262,7 @@ integrations:
 ```
 
 ```yml
-#### Command output must contain the string "foo" - this will NOT continue!
+#### Command output must contain the string "foo" - this will be discarded and not added to the payload
 integrations:
   - name: nri-flex
     config:
@@ -277,7 +277,7 @@ integrations:
 ```
 
 ```yml
-#### Command output must contain the string "hi" and not contain the string "foo - this will continue
+#### Command output must contain the string "hi" and not contain the string "foo - this will be added to the payload
 integrations:
   - name: nri-flex
     config:

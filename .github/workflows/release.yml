@@ -9,7 +9,7 @@ on:
       - 'v*'
 
 env:
-  GO_VERSION: '1.15'
+  GO_VERSION: '1.18'
   TAG: ${{ github.event.release.tag_name }}
   IS_RELEASE: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # needed for goreleaser
@@ -25,6 +25,10 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v2
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
       - name: Run unit tests
         run:  make ci/test
       - name: Convert coverage.out to lcov.info
@@ -62,13 +66,13 @@ jobs:
           password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
       - name: Scan code for vulnerabilities
         env:
-          SNYK_TOKEN: ${{ secrets.COREINT_SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.CAOS_SNYK_TOKEN }}
         run: make ci/snyk-test
 
   test-windows:
     strategy:
       matrix:
-        go: [ '1.15' ]
+        go: [ '1.18' ]
         os: [ windows-2019 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
@@ -82,11 +86,11 @@ jobs:
       - name: run unit tests
         # we don't have 'make' on windows.
         run: |
-          go test ./...
+          go test ./cmd/... ./integration-test/... ./internal/...
       - name: run integration tests
         # we don't have 'make' on windows.
         run: |
-          go test --tags=integration ./...
+          go test --tags=integration  ./cmd/... ./integration-test/... ./internal/...
 
   prerelease:
     name: Build and release binaries

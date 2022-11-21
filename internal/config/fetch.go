@@ -69,6 +69,7 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 	// cache output into datastore for later use
 	// if the source was a cache itself, we don't store it
 	if len(dataStore) > 0 {
+		load.CacheStoreLock.Lock()
 		if api.URL != "" {
 			if yml.Datastore == nil {
 				yml.Datastore = map[string][]interface{}{}
@@ -85,6 +86,8 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 			}
 			yml.Datastore[api.File] = dataStore
 		}
+
+		load.CacheStoreLock.Unlock()
 	}
 
 	return dataStore

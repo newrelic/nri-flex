@@ -517,12 +517,12 @@ func checkAssertion(assert load.Assert, output []byte) bool {
 
 	strOutput := string(output)
 
-	if assert.Match != "" && assert.NotMatch != "" && formatter.KvFinder("regex", strOutput, assert.Match) && formatter.KvFinder("regex", string(output), assert.NotMatch) {
-		return true
-	} else if assert.Match != "" && formatter.KvFinder("regex", strOutput, assert.Match) {
-		return true
-	} else if assert.NotMatch != "" && !formatter.KvFinder("regex", strOutput, assert.NotMatch) {
-		return true
+	if assert.Match != "" && assert.NotMatch != "" {
+		return formatter.KvFinder("regex", strOutput, assert.Match) && !formatter.KvFinder("regex", strOutput, assert.NotMatch)
+	} else if assert.Match != "" {
+		return formatter.KvFinder("regex", strOutput, assert.Match)
+	} else if assert.NotMatch != "" {
+		return !formatter.KvFinder("regex", strOutput, assert.NotMatch)
 	}
 
 	return false

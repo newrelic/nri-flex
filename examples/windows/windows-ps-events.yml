@@ -1,0 +1,14 @@
+#
+# Example Flex Integration to ingest Windows Event Log entries as Standard New Relic Telemetry Events
+# In this example, the integration is targeting the table "WindowsEventLog" with a subset of Event Ids from the System Log
+#
+integrations:
+  - name: nri-flex
+    config:
+      name: winevasev
+      apis:
+        - event_type: WindowsEventLog
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/windows-ps-events.ps1\" System 6006:6008:1074:41"
+

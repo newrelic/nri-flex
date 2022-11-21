@@ -1,0 +1,20 @@
+integrations:
+  # This integration curls the fluentbit health check endpoint for a status. 
+  # If 200 then ok is returned. 
+  # If 500 then error is returned.
+  # The health check endpoint is disabled by default.
+  # At the moment this integration only works with standalone fluent-bit
+  # The link to enable the health check endpoint is here: 
+  # https://docs.fluentbit.io/manual/administration/monitoring#health-check-for-fluent-bit
+  - name: nri-flex
+    config:
+      name: fbhealthcheck
+      apis:
+        - name: FBHealthCheck
+          event_type: FlexFBHealthCheck
+          commands:
+            - run: curl -s http://127.0.0.1:2020/api/v1/health
+              split: horizontal
+              set_header: [HealthResult]
+              regex_match: true
+              split_by: (\S+)

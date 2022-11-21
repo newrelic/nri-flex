@@ -7,9 +7,7 @@
 
 Flex is an application-agnostic, all-in-one [New Relic integration](https://docs.newrelic.com/docs/integrations) with which you can instrument any app that exposes metrics over a standard protocol (HTTP, file, shell) in a standard format (for example, JSON or plain text): you create a [config file](/docs/basics/configure.md), start the Infrastructure agent, and data starts pouring into New Relic.
 
-Flex can take any input using [data source APIs](/docs/apis/README.md), process it through [functions](/docs/basics/functions.md), and send metric samples to New Relic as if they came from an integration:
-
-![Flex diagram](https://newrelic-wpengine.netdna-ssl.com/wp-content/uploads/flex_diagram.jpg)
+Flex can take any input using [data source APIs](/docs/apis/README.md), process it through [functions](/docs/basics/functions.md), and send metric samples to New Relic as if they came from an integration.
 
 For a quick introduction on Flex, [read our blog post](https://blog.newrelic.com/product-news/how-to-use-new-relic-flex/). You can also have a look at the [200+ example integrations](#example-integrations)!
 
@@ -44,6 +42,7 @@ All examples are located in [/examples](https://github.com/newrelic/nri-flex/tre
 - [Flex usage documentation](docs/README.md)
 - [How to configure Flex](/docs/basics/configure.md)
 - [Flex under Kubernetes](/docs/basics/k8s_configure.md)
+  - [Integration with Pixie](/examples/pixieExample/README.md)
 - [Data sources / APIS](/docs/apis/README.md)
 - [Data transformation functions](docs/basics/functions.md)
 - [Experimental functions](docs/experimental/functions.md)

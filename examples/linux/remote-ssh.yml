@@ -1,0 +1,27 @@
+integrations:
+  - name: nri-flex
+    interval: 600
+    config:
+      name: sshFlex
+      lookup_file: /etc/newrelic-infra/integrations.d/remote-ssh.json
+      apis:
+        - event_type: ciscoSnmpContact # This will be the NRDB event name space
+          timeout: 5000
+          commands:
+            # The run command is anything you could execute from the shell, in this case we are using ssh to run a remote command on a network device
+            # This will fail against hosts that have not already been imported to ~/.ssh/known_hosts, or you could use -o StrictHostKeychecking=no 
+            - run: respond=$(ssh -i /path/to/key.pem user@${lf:host} 'show snmp contact')  && echo "target:${lf:host}" && echo "snmpContact":"$respond" | tr -d '[:space:]'
+              split_by: ":" # Tells the parser that our data is a set of Key:Value pairs, split on the : 
+
+        - event_type: ciscoFileSystems # This will be the NRDB event name space
+          timeout: 5000
+          commands:
+            - run: ssh -i /path/to/key.pem user@${lf:host} 'show file systems' 
+              # The parsing settings below would need to be adjusted depending on the results you expect to get back, these settings are for a specific tabular response
+              row_sart: 6 # Skipping the first 5 lines of response that we don't need
+              set_header: [size, free, type, flags, prefixes] # Defining the header attribute names
+              split: horizontal
+              regex_match: true
+              split_by: \s+([\w()-]+)\s+([\w()-]+)\s+([\w()-]+)\s+([\w()-]+)\s+([\w()-:]+)
+          custom_attributes:
+            target: ${lf:host} # So we know which remote host these metrics came from

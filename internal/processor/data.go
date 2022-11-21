@@ -90,6 +90,8 @@ func runJq(dataSets interface{}, api load.API) []interface{} {
 		return []interface{}{}
 	}
 
+	tempDataSets := []interface{}{}
+
 	iter := query.Run(dataSets)
 	for {
 		v, ok := iter.Next()
@@ -101,7 +103,7 @@ func runJq(dataSets interface{}, api load.API) []interface{} {
 		case []interface{}:
 			return value
 		case map[string]interface{}:
-			return []interface{}{value}
+			tempDataSets = append(tempDataSets, value)
 		case error:
 			load.Logrus.WithFields(logrus.Fields{
 				"api": api.Name,
@@ -112,5 +114,5 @@ func runJq(dataSets interface{}, api load.API) []interface{} {
 
 	}
 
-	return []interface{}{}
+	return tempDataSets
 }

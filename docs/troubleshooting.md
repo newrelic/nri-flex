@@ -97,7 +97,7 @@ INFO[0004] flex: completed processing configs            configs=1
 					
 				DropCount": 0,
 					"flex.counter.pingTest": 1,
-					"flex.time.elaspedMs": 4031,
+					"flex.time.elapsedMs": 4031,
 					"flex.time.endMs": 1609978782729,
 					"flex.time.startMs": 1609978778698
 				}
@@ -179,13 +179,91 @@ The next JSON object(s) will represent the output of `nri-flex` executing the su
 					
 				DropCount": 0,
 					"flex.counter.pingTest": 1,
-					"flex.time.elaspedMs": 4031,
+					"flex.time.elapsedMs": 4031,
 					"flex.time.endMs": 1609978782729,
 					"flex.time.startMs": 1609978778698
 				}
 ```
 
 The last major section shows the `flexStatusSample` event. This is a heartbeat event that is sent along with every successful execution of `nri-flex` and can be used to evaluate whether a problem lies in your config, or with the Flex binary itself.
+
+#### Timeout error
+When timeout is reached Flex ignores the output and returns an error. Note that Flex waits for the command to stop by itself.
+Example:
+```yaml
+integrations:
+  - name: nri-flex
+    config:
+      name: Timeout
+      apis:
+        - name: Timeout
+          commands:
+            - run: echo "key:5" && sleep 2
+              timeout: 1000
+              set_header: [key]
+              split_by: ":"
+```
+
+Payload:
+```json
+{
+  "name": "com.newrelic.nri-flex",
+  "protocol_version": "3",
+  "integration_version": "1.4.1",
+  "data": [
+    {
+      "metrics": [
+        {
+          "context_error": "context deadline exceeded",
+          "error": "signal: killed",
+          "error_exec": "echo \"key:5\" \u0026\u0026 sleep 2",
+          "error_msg": "key:5\n",
+          "event_type": "TimeoutSample",
+          "integration_name": "com.newrelic.nri-flex",
+          "integration_version": "1.4.1"
+        }
+      ],
+      "inventory": {},
+      "events": []
+    }
+  ]
+}
+```
+If `verbose` is enabled, error will be logged too:
+```
+DEBU[0002] command: failed context_err="context deadline exceeded" err="signal: killed" exec="echo \"key:5\" && sleep 2" suggestion="if you are handling this error case, ignore"
+```
+
+#### Assertion rule
+Assertion rules will filter output based on regular expressions. When the output doesn't match the regular expression, this will
+be ignored **and no error** will be returned. If `verbose` mode is enabled, a log line will be produced when data is discarded.
+
+Example:
+```yaml
+
+integrations:
+
+  - name: nri-flex
+    config:
+      name: Assertion
+      apis:
+        - name: Assertion
+          commands:
+            - run: echo "key:not a number"
+              set_header: [key]
+              split_by: ":"
+              assert:
+                match: \d
+```
+If verbose is enabled, error will be logged:
+```
+...
+DEBU[0000] commands: assertion failed will not process   exe="echo \"key:not a number\"" name=Assertion
+...
+
+```
+
+More information about assertion can be found in [command docs](apis/commands.md#assert-output-exists-before-processing)
 
 ## Common issues
 
