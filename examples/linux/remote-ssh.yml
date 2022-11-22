@@ -18,7 +18,7 @@ integrations:
           commands:
             - run: ssh -i /path/to/key.pem user@${lf:host} 'show file systems' 
               # The parsing settings below would need to be adjusted depending on the results you expect to get back, these settings are for a specific tabular response
-              row_sart: 6 # Skipping the first 5 lines of response that we don't need
+              row_start: 6 # Skipping the first 5 lines of response that we don't need
               set_header: [size, free, type, flags, prefixes] # Defining the header attribute names
               split: horizontal
               regex_match: true
