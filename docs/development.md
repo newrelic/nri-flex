@@ -87,6 +87,7 @@ Once you've tested your configuration and you're ready to use in production, you
 - [dep](https://github.com/golang/dep) - Dependency management tool (if not using `go mod`, which we advise you to use)
 - [golangci-lint v1.22.2](https://github.com/golangci/golangci-lint)
 - Docker Compose (for integration tests)
+- wget
 
 ### <a name='Setup'></a>Setup
 
@@ -101,7 +102,7 @@ cd ${GOPATH}/src/github.com/newrelic/nri-flex
 make clean
 
 # Download all required libraries
-make dep
+make deps
 ```
 
 ### <a name='Build'></a>Build

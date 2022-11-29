@@ -19,6 +19,7 @@ LATEST
 dist
 .vscode
 .envrc
+.dccache
 
 envvars
 flexConfigs/

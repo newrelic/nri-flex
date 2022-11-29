@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
@@ -57,6 +58,8 @@ func loadSecrets(config *load.Config) error {
 		results := map[string]interface{}{}
 
 		switch secret.Kind {
+		case "aws-ssm":
+			secretResult = awsssmFetch(name, tempSecret)
 		case "aws-kms":
 			if secret.Region == "" {
 				err = fmt.Errorf("config: secret needs 'region' parameter to be set")
@@ -183,6 +186,63 @@ func vaultFetch(name string, secret load.Secret, results map[string]interface{})
 			}
 		}
 	}
+}
+
+func awsssmFetch(name string, secret load.Secret) string {
+	load.Logrus.WithFields(logrus.Fields{"name": name}).Debug("config: fetching aws ssm parameter")
+
+	opts := session.Options{}
+
+	if secret.CredentialFile != "" {
+		opts.SharedConfigFiles = append(opts.SharedConfigFiles, secret.CredentialFile)
+	}
+
+	if secret.ConfigFile != "" {
+		opts.SharedConfigFiles = append(opts.SharedConfigFiles, secret.ConfigFile)
+	}
+
+	if len(opts.SharedConfigFiles) > 0 {
+		opts.SharedConfigState = session.SharedConfigEnable
+	} else {
+		opts.Config = aws.Config{Region: aws.String(secret.Region)}
+	}
+
+	sess, err := session.NewSessionWithOptions(opts)
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"name": name,
+			"err":  err,
+		}).Error("config: failed to create aws session")
+
+		return ""
+	}
+
+	client := ssm.New(sess)
+
+	result, err := client.GetParameter(&ssm.GetParameterInput{
+		Name:           aws.String(name),
+		WithDecryption: aws.Bool(true),
+		// TODO how would the user indicate determine whether or not to decrypt?
+	})
+
+	if err != nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"name": name,
+			"err":  err,
+		}).Error("config: failed to fetch parameter")
+
+		return ""
+	}
+
+	if result.Parameter.Value == nil {
+		load.Logrus.WithFields(logrus.Fields{
+			"name": name,
+		}).Error("config: parameter value was empty")
+
+		return ""
+	}
+
+	return *result.Parameter.Value
 }
 
 // awskmsDecrypt perform aws kms decrypt and return plaintext
