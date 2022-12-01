@@ -59,6 +59,14 @@ func loadSecrets(config *load.Config) error {
 
 		switch secret.Kind {
 		case "aws-ssm":
+			if secret.Data == "" {
+				err = fmt.Errorf("config: secret needs 'data' parameter to be set")
+				load.Logrus.WithFields(logrus.Fields{
+					"secret": name,
+					"kind":   secret.Kind,
+				}).Error(err.Error())
+				break
+			}
 			secretResult = awsssmFetch(name, tempSecret)
 		case "aws-kms":
 			if secret.Region == "" {
@@ -221,8 +229,7 @@ func awsssmFetch(name string, secret load.Secret) string {
 
 	result, err := client.GetParameter(&ssm.GetParameterInput{
 		Name:           aws.String(name),
-		WithDecryption: aws.Bool(true),
-		// TODO how would the user indicate determine whether or not to decrypt?
+		WithDecryption: aws.Bool(secret.Type != "plain"),
 	})
 
 	if err != nil {
