@@ -16,6 +16,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+var lookupsRegex = regexp.MustCompile(`\${lookup\.([^:]+):([^}]+)}`)
+
 // FetchData fetches data from various inputs
 // Also handles paginated responses for HTTP requests (tested against NR APIs)
 func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge) []interface{} {
@@ -256,10 +258,14 @@ func loopLookups(loopNo int, sliceIndexes []int, sliceLookups [][]string, combin
 	}
 }
 
+func findLookups(content string) [][]string {
+	return lookupsRegex.FindAllStringSubmatch(content, -1)
+}
+
 // automaticLookup check existing samples to create lookups
 func automaticLookup(tmpCfgStr string, cfg *load.Config, apiNo int) []string {
 	var newAPIs []string
-	lookupsFound := regexp.MustCompile(`\${lookup\.(.+):(.+)}`).FindAllStringSubmatch(tmpCfgStr, -1)
+	lookupsFound := findLookups(tmpCfgStr)
 	// if no lookups, do not continue running the processor
 	if len(lookupsFound) == 0 {
 		return []string{}
