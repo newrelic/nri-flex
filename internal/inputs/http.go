@@ -107,7 +107,7 @@ func RunHTTP(dataStore *[]interface{}, doLoop *bool, yml *load.Config, api load.
 				}
 			case (strings.Contains(strings.ToLower(contentType), "text/html")) && api.ParseHTML:
 				body, _ := ioutil.ReadAll(resp.Body)
-				jsonBody, err := ParseToJSON(body, api.ParseHtmlAttribues)
+				jsonBody, err := ParseToJSON(body, api.ParseHtmlAttributes)
 				if err != nil {
 					load.Logrus.WithError(err).Errorf("http: URL %v failed to convert XML to Json resp.Body", *reqURL)
 				} else {
