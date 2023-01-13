@@ -21,6 +21,7 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.32.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
+	github.com/sijms/go-ora/v2 v2.5.21
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.2.2
 	github.com/stretchr/testify v1.7.1
