@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 /*
@@ -25,6 +26,7 @@ func TestDrivers(t *testing.T) {
 		"mysql":     load.DefaultMySQL,
 		"mariadb":   load.DefaultMySQL,
 		"hana":      load.DefaultHANA,
+		"oracle":    load.DefaultOracle,
 		"unknown":   "",
 	}
 
