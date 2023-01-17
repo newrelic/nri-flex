@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 /*
 * Copyright 2019 New Relic Corporation. All rights reserved.
