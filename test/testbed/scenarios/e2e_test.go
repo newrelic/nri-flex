@@ -1,9 +1,6 @@
 package scenarios
 
 import (
-	"github.com/newrelic/nri-flex/test/testbed"
-	"github.com/newrelic/nri-flex/test/testbed/scenarios/fixtures"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -11,6 +8,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/newrelic/nri-flex/test/testbed"
+	"github.com/newrelic/nri-flex/test/testbed/scenarios/fixtures"
+	"github.com/stretchr/testify/assert"
 )
 
 func tmpFile(data string) (file *os.File, err error) {
