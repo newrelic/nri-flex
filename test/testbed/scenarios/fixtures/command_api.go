@@ -203,4 +203,42 @@ integrations:
 `,
 		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"postSample","id":123,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"different_id":123,"event_type":"readIDInfo2Sample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.postSample":2,"flex.counter.readIDInfo2Sample":1,"flex.time.elapsedMs":144,"flex.time.endMs":1654775565835,"flex.time.startMs":1654775565691}],"inventory":{},"events":[]}]}`,
 	},
+	{
+		Name: "Echo message and convert value to upper case",
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: EchoHi
+      apis:
+        - name: echoHi
+          event_type: echoMessage
+          commands:
+            - run: "echo hi:bye"
+              split_by: ":"
+          value_to_upper:
+            - hi
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"echoMessage","flex.commandTimeMs":3,"hi":"BYE","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.echoMessage":1,"flex.time.elapsedMs":40,"flex.time.endMs":1654696788571,"flex.time.startMs":1654696788531}],"inventory":{},"events":[]}]}`,
+	},
+  {
+		Name: "Echo message and convert value to lower case",
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: EchoHi
+      apis:
+        - name: echoHi
+          event_type: echoMessage
+          commands:
+            - run: "echo hi:BYE"
+              split_by: ":"
+          value_to_lower:
+            - hi
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"event_type":"echoMessage","flex.commandTimeMs":3,"hi":"bye","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.echoMessage":1,"flex.time.elapsedMs":40,"flex.time.endMs":1654696788571,"flex.time.startMs":1654696788531}],"inventory":{},"events":[]}]}`,
+	},
 }
