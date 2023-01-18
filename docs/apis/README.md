@@ -30,6 +30,6 @@ integrations:
 ```
 The following APIs are still experimental. 'Experimental' here means that New Relic does not yet provides support for them:
 
-- [Database queries](experimental/db.md)
-- [Net dial](experimental/dial.md)
-- [Git configuration synchronization](experimental/git_sync.md)
+- [Database queries](../experimental/db.md)
+- [Net dial](../experimental/dial.md)
+- [Git configuration synchronization](../experimental/git_sync.md)

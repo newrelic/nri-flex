@@ -1,6 +1,10 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestDimensionalLookup(t *testing.T) {
 	lookupStore := map[string][]string{}
@@ -65,5 +69,49 @@ func TestDimensionalLookup(t *testing.T) {
 				t.Errorf("want: %v, got: %v", expected[i][z], comboKey)
 			}
 		}
+	}
+}
+
+func Test_findLookups(t *testing.T) {
+	testCases := []struct {
+		name            string
+		content         string
+		expectedLookups [][]string
+	}{
+		{
+			name:            "no lookups",
+			content:         "",
+			expectedLookups: nil,
+		},
+		{
+			name:    "one lookup",
+			content: "http://some-other-service.com/users/${lookup.postSample:userId}",
+			expectedLookups: [][]string{
+				{
+					"${lookup.postSample:userId}", "postSample", "userId",
+				},
+			},
+		},
+		{
+			name:    "multiple lookup",
+			content: "http://some-other-service.com/users/${lookup.postSample:userId}_${lookup.postSample:name}__${lookup.anotherSample:anotherValue}",
+			expectedLookups: [][]string{
+				{
+					"${lookup.postSample:userId}", "postSample", "userId",
+				},
+				{
+					"${lookup.postSample:name}", "postSample", "name",
+				},
+				{
+					"${lookup.anotherSample:anotherValue}", "anotherSample", "anotherValue",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expectedLookups, findLookups(tc.content))
+		})
 	}
 }
