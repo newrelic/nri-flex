@@ -175,3 +175,41 @@ func TestApplyFlexMeta(t *testing.T) {
 		t.Errorf("failed to apply flex meta variable hello expected %v got %v", "123", config.CustomAttributes["hello"])
 	}
 }
+
+func TestLoadAgentConfig(t *testing.T) {
+	testCases := []struct {
+		name        string
+		config      string
+		expectedErr error
+	}{
+		{
+			name: "v4 configuration",
+			config: `
+integrations:
+  - name: nri-flex
+    config:
+      name: linuxFiles
+`,
+			expectedErr: nil,
+		},
+		{
+			name: "old configuration",
+			config: `
+name: linuxFileAge
+apis:
+  - event_type: newrelicApmSample
+    url: https://api.newrelic.com/v2/applications.json
+    remove_keys:
+      - links
+`,
+			expectedErr: errNoV4IntegrationsFound,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var ymls []load.Config
+			err := LoadV4IntegrationConfig(tt.config, &ymls, "", "")
+			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
+}

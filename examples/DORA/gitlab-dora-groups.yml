@@ -1,0 +1,98 @@
+#group level dora metrics
+---
+integrations:
+  - name: nri-flex
+    interval: 300s
+    env:
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<accountid>/events
+      INSIGHTS_API_KEY: <insertkey>
+    config:
+      name: gitlabDoraMetrics
+      global:
+        base_url: https://gitlab.com/api/v4      
+        headers:
+          PRIVATE-TOKEN: <accesstoken>
+      apis:
+        - name: doraGroup
+          url: /groups/<groupid>/projects
+          jq: .[]|with_entries(select([.key] | inside(["id", "namespace.path", "path"])))
+          store_lookups:
+            projectId: id
+          rename_keys:
+            namespace.name: org
+            path: repoName
+          add_attribute:
+            doraName: "${org}-${repoName}"
+          value_parser:
+            id: '[0-9]+'
+          metric_parser:
+            metrics:
+              id: ATTRIBUTE
+            namespace:
+              custom_attr: 'dora'
+
+          value_parser:
+            .*: 'nil'
+                    
+          merge: DoraMetricsSample
+          join_key: id
+
+        - name: DoraDeploymentSample
+          run_async: true        
+          url: /projects/${lookup:projectId}/dora/metrics?metric=deployment_frequency&start_date=${timestamp:dateutc-24hr}
+          jq: >
+            .[-1]|{"deploymentFrequency":.value,"projectid":"${lookup:projectId}"}
+          metric_parser:
+            metrics:
+              projectid: ATTRIBUTE
+            namespace:
+              custom_attr: 'dora'
+
+          merge: DoraMetricsSample
+          join_key: projectid
+
+        - name: change_failure_rate
+          run_async: true        
+          url: /projects/${lookup:projectId}/dora/metrics?metric=change_failure_rate&start_date=${timestamp:dateutc-24hr}
+          jq: >
+            .[-1]|{"changeFailureRate":.value,"projectid":"${lookup:projectId}"}
+
+          metric_parser:
+            metrics:
+              projectid: ATTRIBUTE
+            namespace:
+              custom_attr: 'dora'
+
+          merge: DoraMetricsSample
+          join_key: projectid
+
+        - name: time_to_restore_service
+          run_async: true             
+          url: /projects/${lookup:projectId}/dora/metrics?metric=time_to_restore_service&start_date=${timestamp:dateutc-24hr}
+          jq: >
+            .[-1]|{"timeToRestoreService":.value,"projectid":"${lookup:projectId}"}
+
+          metric_parser:
+            metrics:
+              projectid: ATTRIBUTE
+            namespace:
+              custom_attr: 'dora'
+
+          merge: DoraMetricsSample
+          join_key: projectid
+
+
+        - name: lead_time_for_changes
+          run_async: true             
+          url: /projects/${lookup:projectId}/dora/metrics?metric=lead_time_for_changes&start_date=${timestamp:dateutc-24hr}
+          jq: >
+            .[-1]|{"leadTimeForChanges":.value,"projectid":"${lookup:projectId}"}
+
+          metric_parser:
+            metrics:
+              projectid: ATTRIBUTE
+            namespace:
+              custom_attr: 'dora'
+
+          merge: DoraMetricsSample
+          join_key: projectid

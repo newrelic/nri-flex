@@ -1,8 +1,8 @@
 integrations:
   - name: nri-flex
     timeout: 5m
+    interval: 120s
     config:
-      interval: 120s
       name: linuxspeedtest 
       apis:
         - name: speedtest
