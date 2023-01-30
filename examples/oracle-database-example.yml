@@ -1,9 +1,11 @@
 # NOTE: 'database' is an experimental API at this time
 # ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+# You can run multiple queries by adding queries in apis block, as below
+# Below example has multiple nri-flex blocks to demonstrate multiple queries with different intervals.
 ---
 integrations:
   - name: nri-flex
-    # interval: 30s
+    interval: 60s
     config:
       name: OracleDbFlex
       apis:
@@ -16,8 +18,38 @@ integrations:
           db_async: true # process queries async
           db_queries:
             - name: OracleDBProcesses
-              run: SELECT PROCESS pid, sess.process, sess.status, sess.username, sess.schemaname, sql.sql_text
-                FROM v$session sess, v$sql sql WHERE sql.sql_id(+) = sess.sql_id AND sess.type = 'USER' # grab all processes from OracleDB
+              run: SELECT sess.process FROM v$session sess, v$sql sql WHERE sql.sql_id(+) = sess.sql_id AND sess.type = 'USER' # grab all processes from OracleDB
+              custom_attributes: # can apply additional at a nested level
+                attype: show processes
+                host: OracleDB
+        - database: oracle
+          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: OracleDB
+          db_async: true # process queries async
+          db_queries:
+            - name: OracleDBProcessesTest2
+              run: SELECT sess.process FROM v$session sess, v$sql sql WHERE sql.sql_id(+) = sess.sql_id AND sess.type = 'USER' # grab all processes related information from OracleDB
+              custom_attributes: # can apply additional at a nested level
+                attype: show processes
+                host: OracleDB
+  - name: nri-flex
+    interval: 90s
+    config:
+      name: OracleDbFlex
+      apis:
+        - database: oracle
+          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: OracleDB
+          db_async: true # process queries async
+          db_queries:
+            - name: OracleDBProcessesIds
+              run: SELECT sess.process FROM v$session sess, v$sql sql WHERE sql.sql_id(+) = sess.sql_id AND sess.type = 'USER' # grab all processes ids from OracleDB
               custom_attributes: # can apply additional at a nested level
                 attype: show processes
                 host: OracleDB
