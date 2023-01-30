@@ -31,6 +31,19 @@ func RunValConversion(v *interface{}, api load.API, key *string) {
 		*v = newValue
 		*key += ".ms"
 	}
+
+	for _, targetKey := range api.ValueToLower {
+		if *key == targetKey {
+			*v = strings.ToLower(value)
+		}
+	}
+
+	for _, targetKey := range api.ValueToUpper {
+		if *key == targetKey {
+			*v = strings.ToUpper(value)
+		}
+	}
+
 }
 
 // RunSubParse splits nested values out from one line eg. db0:keys=1,expires=0,avg_ttl=0
