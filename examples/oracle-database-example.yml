@@ -8,9 +8,18 @@ integrations:
     interval: 60s
     config:
       name: OracleDbFlex
+      secrets:
+        login:
+          kind: local # Use Flex local/internal decryption function
+          key: N3wR3lic! # Your pass_phrase to encrypt/decrypt the database access credentials info
+          data: <==YOUR ENCRYPTED LOGIN INFO from the command below==>
+          # Run the following command to generate a encrypted login info, paste it to the above -> data
+          # nri-flex -encrypt_pass 'username=<YOUR USERNAME>,password=<YOUR PASSWORD>' -pass_phrase 'N3wR3lic!'
+          # The decrypted username and password will be used to exchange for access_token
+          type: equal
       apis:
         - database: oracle
-          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          db_conn: oracle://${secret.login:username}:${secret.login:password}@rds-name.region.rds.amazonaws.com:1521/db-name
           logging:
             open: true
           custom_attributes: # applies to all queries
@@ -23,7 +32,7 @@ integrations:
                 attype: show processes
                 host: OracleDB
         - database: oracle
-          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          db_conn: oracle://${secret.login:username}:${secret.login:password}@rds-name.region.rds.amazonaws.com:1521/db-name
           logging:
             open: true
           custom_attributes: # applies to all queries
@@ -41,7 +50,7 @@ integrations:
       name: OracleDbFlex
       apis:
         - database: oracle
-          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          db_conn: oracle://${secret.login:username}:${secret.login:password}@rds-name.region.rds.amazonaws.com:1521/db-name
           logging:
             open: true
           custom_attributes: # applies to all queries
