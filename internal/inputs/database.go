@@ -28,6 +28,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
 	_ "github.com/lib/pq"                       //postgres
+	_ "github.com/sijms/go-ora/v2"              //Oracle
 	vertigo "github.com/vertica/vertica-sql-go" //HP Vertica
 	//
 )
@@ -209,6 +210,8 @@ func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) 
 		return load.DefaultMSSQLServer
 	case "mysql", "mariadb":
 		return load.DefaultMySQL
+	case "oracle":
+		return load.DefaultOracle
 	case "hana", "go-hdb", "hdb":
 		return load.DefaultHANA
 	case "vertica", "hpvertica":

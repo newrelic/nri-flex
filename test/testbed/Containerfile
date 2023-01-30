@@ -1,0 +1,16 @@
+# Pull specific ubuntu 22.04 image
+FROM ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+
+
+# Path of nri-flex
+ARG flex_bin
+
+# Path of the binary tests
+ARG flex_tests_bin
+
+# Add the nri-flex binary
+COPY $flex_bin /bin/nri-flex
+COPY $flex_tests_bin /bin/flex_tests_bin
+
+
+CMD ["/bin/flex_tests_bin", "-test.v"]

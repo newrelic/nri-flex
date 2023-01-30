@@ -1,0 +1,23 @@
+# NOTE: 'database' is an experimental API at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: OracleDbFlex
+      apis:
+        - database: oracle
+          db_conn: oracle://username:password@rds-name.region.rds.amazonaws.com:1521/db-name
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: OracleDB
+          db_async: true # process queries async
+          db_queries:
+            - name: OracleDBProcesses
+              run: SELECT PROCESS pid, sess.process, sess.status, sess.username, sess.schemaname, sql.sql_text
+                FROM v$session sess, v$sql sql WHERE sql.sql_id(+) = sess.sql_id AND sess.type = 'USER' # grab all processes from OracleDB
+              custom_attributes: # can apply additional at a nested level
+                attype: show processes
+                host: OracleDB

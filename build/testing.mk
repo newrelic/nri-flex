@@ -2,6 +2,8 @@
 # Makefile fragment for Testing
 #
 
+SOURCE_FILES ?=./cmd/... ./integration-test/... ./internal/...
+
 GOLINTER_BIN = bin/$(GOLINTER)
 TEST_PATTERN ?=.
 TEST_OPTIONS ?=
@@ -9,7 +11,7 @@ TEST_OPTIONS ?=
 TEST_FLAGS += -failfast
 TEST_FLAGS += -race
 
-GO_TEST ?= test $(TEST_OPTIONS) $(TEST_FLAGS) ./... -run $(TEST_PATTERN) -timeout=10m
+GO_TEST ?= test $(TEST_OPTIONS) $(TEST_FLAGS) $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=10m
 
 $(GOLINTER_BIN): bin
 	@echo "=== $(PROJECT_NAME) === [ lint ]: Installing $(GOLINTER)..."
@@ -53,3 +55,10 @@ test-linux:
 	@(echo "=== $(PROJECT_NAME) === [ unit-test-linux ]: running unit tests for Linux...")
 	@(docker build -t nri-flex-test -f ./integration-test/Dockerfile .)
 	@(docker run --rm -it nri-flex-test make test-unit)
+
+
+.PHONY: test-e2e
+test-e2e: bin/nri-flex
+	@echo "=== $(PROJECT_NAME) === [ e2e-test ]: running e2e tests..."
+	@cd ./test/testbed && sh ./launch_e2e.sh
+
