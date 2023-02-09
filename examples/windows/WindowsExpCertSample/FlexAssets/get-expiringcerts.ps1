@@ -1,4 +1,4 @@
-$Certs = get-childitem -path cert: -recurse -Expiringindays 30 | Select-Object Issuer, NotAfter, Subject, FriendlyName
+$Certs = get-childitem -path cert: -recurse -Expiringindays 300 | Select-Object Issuer, NotAfter, Subject, FriendlyName
 $StartDate = (Get-Date)
 $CertsToSend = @()
 Foreach ($Cert in $Certs) {
@@ -12,3 +12,4 @@ Foreach ($Cert in $Certs) {
     $CertsToSend += $CertsObject
 
 }
+$CertsToSend | ConvertTo-Json
