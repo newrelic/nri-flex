@@ -1,0 +1,23 @@
+# this example will read the files in the defined targetDirectory
+# it will then use those file names as a lookup to read each csv file and dynamically set the event type as the file name itself
+---
+integrations:
+  - name: nri-flex
+    interval: 30s
+    config:
+      name: CsvProcessor
+      variable_store:
+        targetDirectory: C:\FlexTest\filesToRead # update to appropriate target
+      apis:
+        - name: FileList
+          commands:
+            - run: dir ${var:targetDirectory}
+              split_output: csv
+              regex_matches:
+                - expression: (\S+).csv
+                  keys: [fileName]
+          ignore_output: true
+          # when using a lookup this block will occur multiple times for each lookup found, in this case each file name in the target directory
+        - name: ReadCsvFile
+          event_type: ${lookup.FileListSample:fileName}DynamicSample # adjust event type suffix if required
+          file: ${var:targetDirectory}\${lookup.FileListSample:fileName}.csv
