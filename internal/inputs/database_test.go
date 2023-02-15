@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 /*
 * Copyright 2019 New Relic Corporation. All rights reserved.
@@ -25,6 +25,7 @@ func TestDrivers(t *testing.T) {
 		"mysql":     load.DefaultMySQL,
 		"mariadb":   load.DefaultMySQL,
 		"hana":      load.DefaultHANA,
+		"oracle":    load.DefaultOracle,
 		"unknown":   "",
 	}
 

@@ -330,3 +330,24 @@ func TestAssert(t *testing.T) {
 		assert.Equalf(t, expectedValue, actualValue, "%s doesnt match - want: %v  got: %v", key, expectedValue, actualValue)
 	}
 }
+
+func TestCheckAssertion(t *testing.T) {
+	var assertTest = []struct {
+		name         string
+		assertConfig load.Assert
+		input        string
+		expected     bool
+	}{
+		{name: "Input with matching word", assertConfig: load.Assert{Match: "hi"}, input: "hi:bye", expected: true},
+		{name: "Input with the word that should not match", assertConfig: load.Assert{NotMatch: "hi"}, input: "hi:bye", expected: false},
+		{name: "Input without the word that should not be matched", assertConfig: load.Assert{NotMatch: "foo"}, input: "hi:bye", expected: true},
+		{name: "Assertion should match, using match and not match", assertConfig: load.Assert{Match: "hi", NotMatch: "foo"}, input: "hi:bye", expected: true},
+		{name: "Assertion should not match, using match and not match", assertConfig: load.Assert{Match: "hi", NotMatch: "bye"}, input: "hi:bye", expected: false},
+	}
+
+	for _, tt := range assertTest {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, checkAssertion(tt.assertConfig, []byte(tt.input)))
+		})
+	}
+}
