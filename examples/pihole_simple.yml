@@ -1,0 +1,15 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: pihole_simple
+      apis:
+        - name: pihole_simple
+#          url: http://pi.hole/admin/api.php?summaryRaw&auth= #<your API Key Here>
+          headers:
+            accept: application/json
+      remove_keys:
+        - timestamp
+
+# In order for this integration to work, you need to include your pihole API key.
+# You can get the token by loggin into your pihole and going to Settings/API/Show API token 
+#   or by connecting directly to the pihole device and getting the WEBPASSWORD variable from /etc/pihole/setupVars.conf
