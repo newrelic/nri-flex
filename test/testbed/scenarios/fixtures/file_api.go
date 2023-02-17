@@ -166,4 +166,21 @@ apis:
 `,
 		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"HOSTNAME":"7605f6bec898","HOST_ID":0,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"HOSTNAME":"067ea6fc4c22","HOST_ID":2,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"HOSTNAME":"62a10d3f45e3","HOST_ID":1,"PERCENT_USED":0,"TIMESTAMP":1582159853733,"event_type":"voltdb","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"flexStatusSample","flex.Hostname":"0e0a965295ba","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.voltdb":3,"flex.time.elapsedMs":45,"flex.time.endMs":1654776591203,"flex.time.startMs":1654776591158}],"inventory":{},"events":[]}]}`,
 	},
+	{
+		Name:        "Use lookup",
+		FileContent: `[{"brand":"honda","car":"civic"},{"brand":"toyota","car":"supra"},{"brand":"mistsubishi","car":"lancer"}]`,
+		Config: `
+name: LookUps
+apis:
+  - name: read
+    event_type: read
+    file: FILE_PATH
+
+  - name: world
+    commands:
+      - run: echo "${lookup.read:brand}:${lookup.read:car}"
+        split_by: ":"
+`,
+		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"brand":"honda","car":"civic","event_type":"read","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"brand":"toyota","car":"supra","event_type":"read","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"brand":"mistsubishi","car":"lancer","event_type":"read","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"worldSample","flex.commandTimeMs":3,"honda":"civic","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT"},{"event_type":"worldSample","flex.commandTimeMs":0,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","toyota":"supra"},{"event_type":"worldSample","flex.commandTimeMs":0,"integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","mistsubishi":"lancer"},{"event_type":"flexStatusSample","flex.Hostname":"ubuntu-2004-vm","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":6,"flex.counter.EventDropCount":0,"flex.counter.read":3,"flex.counter.worldSample":3,"flex.time.elapsedMs":22,"flex.time.endMs":1672415688172,"flex.time.startMs":1672415688150}],"inventory":{},"events":[]}]}`,
+	},
 }

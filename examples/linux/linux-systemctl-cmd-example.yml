@@ -7,7 +7,7 @@ integrations:
       apis:
         - name: systemctl
           commands:
-            - run: systemctl --type=service --no-page --no-legend
+            - run: systemctl --type=service --no-page --no-legend --all
               split: horizontal
               set_header: [service, load, active, sub, description]
               regex_match: true
