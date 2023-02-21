@@ -87,6 +87,76 @@ func TestRunValueParser(t *testing.T) {
 	}
 }
 
+func TestRunValConversionToLower(t *testing.T) {
+
+	getConfig := func(valueToLower []string) load.API {
+		return load.API{
+			ValueToLower: valueToLower,
+		}
+	}
+
+	testCases := map[string]struct {
+		transformerCfg load.API
+		value          interface{}
+		key            string
+		expected       string
+	}{
+
+		"TransformString": {
+			transformerCfg: getConfig(
+				[]string{
+					"test",
+				}),
+			key:      `test`,
+			value:    `WORLD`,
+			expected: `"world"`,
+		},
+	}
+	for testName, testCase := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			RunValConversion(&testCase.value, testCase.transformerCfg, &testCase.key)
+
+			got, _ := json.Marshal(testCase.value)
+			assert.Equal(t, testCase.expected, string(got))
+		})
+	}
+}
+
+func TestRunValConversionToUpper(t *testing.T) {
+
+	getConfig := func(valueToUpper []string) load.API {
+		return load.API{
+			ValueToUpper: valueToUpper,
+		}
+	}
+
+	testCases := map[string]struct {
+		transformerCfg load.API
+		value          interface{}
+		key            string
+		expected       string
+	}{
+
+		"TransformString": {
+			transformerCfg: getConfig(
+				[]string{
+					"test",
+				}),
+			key:      `test`,
+			value:    `world`,
+			expected: `"WORLD"`,
+		},
+	}
+	for testName, testCase := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			RunValConversion(&testCase.value, testCase.transformerCfg, &testCase.key)
+
+			got, _ := json.Marshal(testCase.value)
+			assert.Equal(t, testCase.expected, string(got))
+		})
+	}
+}
+
 func TestRunValueTransformer(t *testing.T) {
 
 	getConfig := func(valueTransformer map[string]string) load.API {
