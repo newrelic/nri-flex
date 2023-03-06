@@ -7,7 +7,7 @@ integrations:
       apis:
         - name: speedtest
           commands:
-            - run: speedtest --accept-license -f json
+            - run: speedtest --accept-license --accept-gdpr -f json
               timeout: 300000
           remove_keys:
             - timestamp
