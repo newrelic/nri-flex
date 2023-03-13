@@ -9,4 +9,6 @@ COPY tools /app/tools
 
 COPY go.mod go.sum Makefile /app/
 
+ENV GOFLAGS="-buildvcs=false"
+
 RUN make deps
