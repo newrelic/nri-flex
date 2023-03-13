@@ -1,4 +1,5 @@
 ---
+project_name: nri-flex
 builds:
   - id: nri-flex
     main: ./cmd/nri-flex/
