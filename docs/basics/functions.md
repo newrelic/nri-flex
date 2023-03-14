@@ -1796,7 +1796,7 @@ apis:
     url: http://127.0.0.1:8887/simpletime.json
     timestamp_conversion:
       endtime: DATE::RFC3339      
-      started_at: TIMESTAMP::2006-01-02T03:04
+      started_at: TIMESTAMP::RFC3339
 ```
 
 Which would return something similar to:
