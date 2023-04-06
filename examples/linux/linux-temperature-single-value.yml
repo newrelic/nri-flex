@@ -1,0 +1,16 @@
+#
+# Gathers the temperature of a given thermal zone from the 
+# sysfs see doc https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-thermal
+# An example output of the run command would be: temp=41141
+# The "temp" string is necessary as it will define the metric name in the event metric format
+#
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+        name: linuxTemperature
+        apis:
+          - name: Temperature
+            commands:
+              - run: echo "temp="`cat /sys/class/thermal/thermal_zone0/temp`
+                split_by: =
