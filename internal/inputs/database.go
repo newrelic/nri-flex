@@ -58,6 +58,20 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		return
 	}
 
+	defer func(db *sql.DB) {
+		if db == nil {
+			return
+		}
+		err := db.Close()
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err":      err,
+				"name":     yml.Name,
+				"database": api.Database,
+			}).Error("database: cannot close db connection")
+		}
+	}(db)
+
 	// wrapping dbPingWithTimeout out as db.Ping is not reliable currently
 	// https://stackoverflow.com/questions/41618428/golang-ping-succeed-the-second-time-even-if-database-is-down/41619206#41619206
 	var pingError error
