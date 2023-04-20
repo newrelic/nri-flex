@@ -1,7 +1,7 @@
 version: "3"
 services:
   golang:
-    image: golang:1.20.2-buster
+    image: golang:1.19.8-bullseye
     volumes:
       - .:/go/src/github.com/newrelic/nri-flex
     working_dir: /go/src/github.com/newrelic/nri-flex
