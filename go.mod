@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
-	github.com/SAP/go-hdb v1.2.4
+	github.com/SAP/go-hdb v0.107.3
 	github.com/aws/aws-lambda-go v1.41.0
-	github.com/aws/aws-sdk-go v1.44.257
+	github.com/aws/aws-sdk-go v1.44.69
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v23.0.5+incompatible
@@ -73,7 +73,7 @@ require (
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 // indirect
+	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
