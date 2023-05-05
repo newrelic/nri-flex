@@ -92,7 +92,7 @@ jobs:
       - name: run integration tests
         # we don't have 'make' on windows.
         run: |
-          go test --tags=integration ./cmd/... ./integration-test/... ./internal/...
+          go test --tags=integration  ./cmd/... ./integration-test/... ./internal/...
 
   test-build:
     name: Test binary compilation for all platforms:arch
