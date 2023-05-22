@@ -1,0 +1,11 @@
+# Sample integration to send Windows uptime info using PowerShell 5.x
+integrations:
+  - name: nri-flex
+    interval: 120s
+    config:
+      name: WindowsExpCertSample
+      apis:
+        - event_type: WindowsExpCertSample
+          shell: powershell
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/FlexAssets/Get-ExpiringCerts.ps1\""

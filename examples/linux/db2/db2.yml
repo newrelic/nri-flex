@@ -1,0 +1,390 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+      name: db2Flex
+      variable_store:
+        db2-instance: db2-instance-name
+        db2-db-name: db2-database-name
+      apis:
+        - name: db2-partition-memory
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-partition-memory.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header: 
+                [
+                  DBPARTITIONNUM, 
+                  MAX_MEM_MB, 
+                  CURRENT_MEM_MB
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-partition-memory.sh
+        - name: db2-log-utilization-space
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-log-utilization-space.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  TOTAL_LOG_USED_KB,
+                  TOTAL_LOG_AVAILABLE_KB,
+                  TOTAL_LOG_USED_TOP_KB
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-log-utilization-space.sh
+        - name: db2-tablespace-utilization
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-tablespace-utilization.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  TBSP_UTILIZATION_PERCENT,
+                  TBSP_TYPE,
+                  TBSP_CONTENT_TYPE,
+                  TBSP_USING_AUTO_STORAGE,
+                  TBSP_AUTO_RESIZE_ENABLED,
+                  TBSP_STATE,
+                  TBSP_TOTAL_SIZE_KB,
+                  TBSP_USED_SIZE_KB,
+                  TBSP_PAGE_RATIO
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\w+)\s+(\w+)\s+(\d+)\s+([0-9.-]*)\s+(.{1,268})\s+(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-tablespace-utilization.sh
+        - name: db2-top-dynamic-sql
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-top-dynamic-sql.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  NUM_EXECUTIONS,
+                  AVERAGE_EXECUTION_TIME_S,
+                  STMT_SORTS,
+                  SORTS_PER_EXECUTION,
+                  STMT_TEXT,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(.{1,800})\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-top-dynamic-sql.sh
+        - name: db2-tbsp-utilization
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-tbsp-utilization.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  TBSP_ID,
+                  TBSP_NAME,
+                  TBSP_TYPE,
+                  TBSP_CONTENT_TYPE,
+                  TBSP_CREATE_TIME,
+                  TBSP_STATE,
+                  TBSP_TOTAL_SIZE_KB,
+                  TBSP_USABLE_SIZE_KB,
+                  TBSP_USED_SIZE_KB,
+                  TBSP_FREE_SIZE_KB,
+                  TBSP_UTILIZATION_PERCENT,
+                  TBSP_TOTAL_PAGES,
+                  TBSP_USABLE_PAGES,
+                  TBSP_USED_PAGES,
+                  TBSP_FREE_PAGES,
+                  TBSP_PAGE_TOP,
+                  TBSP_PAGE_SIZE,
+                  TBSP_EXTENT_SIZE,
+                  TBSP_PREFETCH_SIZE,
+                  TBSP_MAX_SIZE,
+                  TBSP_INCREASE_SIZE,
+                  TBSP_INCREASE_SIZE_PERCENT,
+                  TBSP_LAST_RESIZE_TIME,
+                  TBSP_LAST_RESIZE_FAILED,
+                  TBSP_USING_AUTO_STORAGE,
+                  TBSP_AUTO_RESIZE_ENABLED,
+                  DBPGNAME,
+                  TBSP_NUM_CONTAINERS,
+                  REMARKS,
+                  DBPARTITIONNUM
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(\d+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+([0-9.-]*)\s+([0-9.-]*)\s+(.{1,26})\s+([0-9.-]*)\s+([0-9.-]*)\s+([0-9.-]*)\s+(\w+)\s+(\d+)\s+(.{1,256})\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-tbsp-utilization.sh
+        - name: db2-appl-performance
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-appl-performance.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  AUTHID,
+                  APPL_NAME,
+                  AGENT_ID,
+                  PERCENT_ROWS_SELECTED,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,128})\s+(.{1,256})\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-appl-performance.sh
+        - name: db2-bp-hitratio
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-bp-hitratio.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  DB_NAME,
+                  BP_NAME,
+                  TOTAL_LOGICAL_READS,
+                  TOTAL_PHYSICAL_READS,
+                  TOTAL_HIT_RATIO_PERCENT,
+                  DATA_LOGICAL_READS,
+                  DATA_PHYSICAL_READS,
+                  DATA_HIT_RATIO_PERCENT,
+                  INDEX_LOGICAL_READS,
+                  INDEX_PHYSICAL_READS,
+                  INDEX_HIT_RATIO_PERCENT,
+                  XDA_LOGICAL_READS,
+                  XDA_PHYSICAL_READS,
+                  XDA_HIT_RATIO_PERCENT,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,128})\s+(.{1,128})\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-bp-hitratio.sh
+        - name: db2-bp-read-io
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-bp-read-io.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  BP_NAME,
+                  TOTAL_PHYSICAL_READS,
+                  AVERAGE_READ_TIME_MS,
+                  TOTAL_ASYNC_READS,
+                  AVERAGE_ASYNC_READ_TIME_MS,
+                  TOTAL_SYNC_READS,
+                  AVERAGE_SYNC_READ_TIME_MS,
+                  PERCENT_SYNC_READS,
+                  ASYNC_NOT_READ_PERCENT,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,128})\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+([0-9.-]*)\s+(\d+)\s+([0-9.-]*)\s+([0-9.-]*)\s+([0-9.-]*)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-bp-read-io.sh
+        - name: db2-log-utilization
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-log-utilization.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  TOTAL_LOG_USED_KB,
+                  TOTAL_LOG_AVAILABLE_KB,
+                  TOTAL_LOG_USED_TOP_KB
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-log-utilization.sh
+        - name: db2-query-preparation-cost
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-query-preparation-cost.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  NUM_EXECUTIONS,
+                  AVERAGE_EXECUTION_TIME_S,
+                  AVERAGE_EXECUTION_TIME_MS,
+                  PREP_TIME_MS,
+                  PREP_TIME_PERCENT,
+                  STMT_TEXT,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+\.?\d+)\s+(.{1,800})\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-query-preparation-cost.sh
+        - name: db2-locks-held
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-locks-held.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  DB_NAME,
+                  AGENT_ID,
+                  APPL_NAME,
+                  AUTHID,
+                  TBSP_NAME,
+                  TABSCHEMA,
+                  TABNAME,
+                  TAB_FILE_ID,
+                  LOCK_OBJECT_TYPE,
+                  LOCK_NAME,
+                  LOCK_MODE,
+                  LOCK_STATUS,
+                  LOCK_ESCALATION,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,128})\s+(\d+)\s+(.{1,128})\s+(.{1,128})\s+(.{1,128})\s+(.{1,128})\s+(.{1,128})\s+(\d+)\s+(.{1,18})\s+(.{1,32})\s+(.{1,10})\s+(.{1,24})\s+(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-locks-held.sh
+        - name: db2-lock-waits
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-lock-waits.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  SNAPSHOT_TIMESTAMP,
+                  DB_NAME,
+                  AGENT_ID,
+                  APPL_NAME,
+                  AUTHID,
+                  TBSP_NAME,
+                  TABSCHEMA,
+                  TABNAME,
+                  SUBSECTION_NUMBER,
+                  LOCK_OBJECT_TYPE,
+                  LOCK_WAIT_START_TIME,
+                  LOCK_NAME,
+                  LOCK_MODE,
+                  LOCK_MODE_REQUESTED,
+                  AGENT_ID_HOLDING_LK,
+                  APPL_ID_HOLDING_LK,
+                  LOCK_ESCALATION,
+                  DBPARTITIONNUM,
+                  MEMBER
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,128})\s+(\d+)\s+(.{1,128})\s+(.{1,128})\s+(\w+)\s+(\w+)\s+(\w+)\s+([0-9.-]*)\s+(.*)\s+(\d+-\d+-\d+-\d+.\d+.\d+.\d+)\s+(.{1,32})\s+(.{1,10})\s+(.{1,36})\s+(\d+)\s+(.{1,128})\s+([0-9.-]*)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-lock-waits.sh
+        - name: db2-cpu-utilization
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-cpu-utilization.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  APPLICATION_HANDLE,
+                  TOTAL_CPU_TIME,
+                  ROWS_READ,
+                  ROWS_RETURNED,
+                  TOTAL_WAIT_TIME,
+                  TOTAL_SORTS
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-cpu-utilization.sh
+        - name: db2-long-running-queries
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-long-running-queries.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  STMT_TEXT,
+                  AGENT_ID,
+                  ELAPSED_TIME_MIN,
+                  APPL_STATUS,
+                  DBPARTITIONNUM
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(.{1,60})\s+(\d+)\s+([0-9.-]*)\s+(\w+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-long-running-queries.sh
+        - name: db2-log-utilization-percent
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-log-utilization-percent.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  LOG_UTILIZATION_PERCENT,
+                  TOTAL_LOG_USED_MB,
+                  TOTAL_LOG_AVAILABLE_MB,
+                  TOTAL_LOG_USED_TOP_MB
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-log-utilization-percent.sh
+        - name: db2-tablespaces
+          event_type: db2FlexSample # Name of the event in New Relic
+          commands:
+            - run: /var/db/newrelic-infra/integrations.d/db2-tablespaces.sh ${var:db2-instance} ${var:db2-db-name}
+              set_header:
+                [
+                  tbsp_name,
+                  reclaimable_space_enabled,
+                  tbsp_free_pages,
+                  tbsp_page_top,
+                  tbsp_usable_pages
+                ]
+              regex_match: true # Splits horizontally matching a regular expression
+              split_by: \s*(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)
+              split: horizontal
+          custom_attributes:
+            instance: ${var:db2-instance}
+            db-name: ${var:db2-db-name}
+            script-name: db2-tablespaces.sh

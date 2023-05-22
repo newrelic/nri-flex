@@ -28,6 +28,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
 	_ "github.com/lib/pq"                       //postgres
+	_ "github.com/sijms/go-ora/v2"              //Oracle
 	vertigo "github.com/vertica/vertica-sql-go" //HP Vertica
 	//
 )
@@ -56,6 +57,20 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 		}
 		return
 	}
+
+	defer func(db *sql.DB) {
+		if db == nil {
+			return
+		}
+		err := db.Close()
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"err":      err,
+				"name":     yml.Name,
+				"database": api.Database,
+			}).Error("database: cannot close db connection")
+		}
+	}(db)
 
 	// wrapping dbPingWithTimeout out as db.Ping is not reliable currently
 	// https://stackoverflow.com/questions/41618428/golang-ping-succeed-the-second-time-even-if-database-is-down/41619206#41619206
@@ -209,6 +224,8 @@ func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) 
 		return load.DefaultMSSQLServer
 	case "mysql", "mariadb":
 		return load.DefaultMySQL
+	case "oracle":
+		return load.DefaultOracle
 	case "hana", "go-hdb", "hdb":
 		return load.DefaultHANA
 	case "vertica", "hpvertica":
