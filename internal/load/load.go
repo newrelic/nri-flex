@@ -115,7 +115,6 @@ const (
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "oracle"
-	DefaultSQLite  	   = "sqlite"
 	DefaultVertica     = "vertica"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
