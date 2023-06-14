@@ -1,0 +1,13 @@
+# This executes an external PowerShell script that inventories all Active Directory Group Policy Objects.
+---
+integrations:
+  - name: nri-flex
+    interval: 300s
+    config:
+      name: activeDirectoryGPOStatus
+      apis:
+        - event_type: activeDirectoryGPOs
+          shell: powershell
+          timeout: 299000
+          commands:
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/windows-active-directory-gpos.ps1\""
