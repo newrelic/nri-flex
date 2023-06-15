@@ -24,6 +24,7 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
 	//Database Drivers
+	_ "github.com/MonetDB/MonetDB-Go/src"       //MonetDB
 	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
 	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
@@ -226,6 +227,8 @@ func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) 
 		return load.DefaultMySQL
 	case "oracle":
 		return load.DefaultOracle
+	case "monetdb":
+		return load.DefaultMonetDB
 	case "hana", "go-hdb", "hdb":
 		return load.DefaultHANA
 	case "vertica", "hpvertica":
