@@ -1,0 +1,23 @@
+# This executes an external PowerShell script that measures multiple Active Directory health metrics.
+---
+integrations:
+  - name: nri-flex
+    interval: 300s
+    config:
+      name: activeDirectoryHealthChecks
+      apis:
+        - event_type: activeDirectoryOUSearch
+          ignore_output: true
+          shell: powershell
+          timeout: 119000
+          commands:
+            # Edit this line to target specific OUs; you can use a variety of options like -Filter, -Identity, and -LDAPFilter
+            # https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adorganizationalunit?view=windowsserver2022-ps
+            - run: Get-ADOrganizationalUnit -Filter 'Name -like "*_division*"' | Select-Object DistinguishedName | ConvertTo-Json
+
+        - event_type: activeDirectoryHealthChecks
+          shell: powershell
+          timeout: 179000
+          commands:
+            # This is using the results of the above command to loop through as parameters for the health check script
+            - run: "& \"C:/Program Files/New Relic/newrelic-infra/integrations.d/windows-active-directory-health-checks.ps1\" -OU \"${lookup.activeDirectoryOUSearch:DistinguishedName}\""
