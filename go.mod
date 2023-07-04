@@ -14,6 +14,7 @@ require (
 	github.com/itchyny/gojq v0.12.12
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/newrelic/infra-integrations-sdk v3.2.0+incompatible
 	github.com/parnurzeal/gorequest v0.2.15
 	github.com/pkg/errors v0.9.1
