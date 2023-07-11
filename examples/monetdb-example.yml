@@ -1,0 +1,15 @@
+# NOTE: 'database' is an experimental API at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: monetDbFlex
+      apis:
+        - database: monetdb
+          db_conn: username:password@hostname:50000/database
+          db_async: true # process queries async
+          db_queries:
+            - name: monetdbStatActivitySample
+              run: SELECT * FROM sys.tables

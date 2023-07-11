@@ -1,0 +1,5 @@
+version: v1.5.0
+ignore:
+    'snyk:lic:golang:github.com:monetdb:monetdb-go:MPL-2.0':
+     - '*':
+        reason: 'approved by security'
