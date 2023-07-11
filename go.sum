@@ -48,6 +48,8 @@ github.com/Knetic/govaluate v3.0.0+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8L
 github.com/Microsoft/go-winio v0.5.2/go.mod h1:WpS1mjBmmwHBEWmogvA2mj8546UReBk4v8QkMxJ6pZY=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
+github.com/MonetDB/MonetDB-Go v1.0.2 h1:ovqY//8De9OzoJJbc1YkW4peNfGdLTgQhjc+fhBr4vI=
+github.com/MonetDB/MonetDB-Go v1.0.2/go.mod h1:camniXrjGJnMoXXgZWhUY+2nKPVfjKmcA5mmrjuV2+A=
 github.com/SAP/go-hdb v0.107.3 h1:tX7CI+fsUFVNzR9LIAuX1mzyzRtuMiUkvuVVUgNSGss=
 github.com/SAP/go-hdb v0.107.3/go.mod h1:EAlLPK5So38imnv2/aBADHZBjl76RVIWvu9Tkiu6LbY=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
