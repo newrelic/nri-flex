@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
+	github.com/MonetDB/MonetDB-Go v1.0.2
 	github.com/SAP/go-hdb v0.107.3
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go v1.44.69
@@ -37,7 +38,6 @@ require (
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/MonetDB/MonetDB-Go v1.0.2 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
