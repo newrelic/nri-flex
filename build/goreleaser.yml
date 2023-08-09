@@ -17,7 +17,7 @@ builds:
     - arm64
     env:
       - >-
-        {{- if eq .Os "linux" }}
+        {{- if eq .Os "linux" -}}
         CGO_ENABLED=0
         {{- end }}
     # overrides:
