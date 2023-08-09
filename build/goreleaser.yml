@@ -15,10 +15,15 @@ builds:
     - amd64
     - arm
     - arm64
-    overrides:
-      - goos: linux
-        env:
-        - CGO_ENABLED=0
+    env:
+      - >-
+        {{- if eq .Os "linux" }}
+        CGO_ENABLED=0
+        {{- end }}
+    # overrides:
+    #   - goos: linux
+    #     env:
+    #     - CGO_ENABLED=0
 archives:
   - files:
       - LICENSE
