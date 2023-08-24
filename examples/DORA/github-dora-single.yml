@@ -1,0 +1,33 @@
+integrations:
+  - name: nri-flex
+    interval: 30s
+    config:
+      name: GitHub DORA Test
+      variable_store:
+        repo: $$GITHUB_REPOSITORY
+        run_id: $$GITHUB_RUN_ID
+        bearer: $$BEARER_TOKEN
+      global:
+        headers:
+          Accept: application/vnd.github+json
+          Authorization: ${var:bearer}
+          X-GitHub-Api-Version: 2022-11-28
+      apis:
+        - event_type: GHWorkFlowJobsEvent
+          url: 'https://api.github.com/repos/${var:repo}/actions/runs/${var:run_id}/jobs'
+          inherit_attributes: true
+          start_key:
+            - jobs>steps
+          rename_keys:
+            parent.0: 'job'
+          # timestamp_conversion:
+          #   job.created_at: TIMESTAMP::ISO8601
+          #   job.completed_at: TIMESTAMP::ISO8601
+        - event_type: GHWorkFlowCommitsEvent
+          url: 'https://api.github.com/repos/${var:repo}/commits'
+          rename_keys:
+            commit.committer.date: timestamp
+          # timestamp_conversion:
+          #   timestamp: TIMESTAMP::ISO8601
+        - event_type: GHWorkFlowDuration
+          url: 'https://api.github.com/repos/${var:repo}/actions/runs/${var:run_id}/timing'
