@@ -1,0 +1,9 @@
+[
+  {
+    "alias": "cluster_1",
+    "serial": "000111111111",
+    "user": "local_admin",
+    "ip": "<unisphere_IP>",
+    "port": "8443"
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "ip": "<fqdn>",
+    "token": "<token>",
+    "alias": "<cluster_alias_name>",
+    "clusterCI": "<hostname>",
+    "flex_host": "<flex_hostname>"
+  }
+]

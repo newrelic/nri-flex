@@ -1,0 +1,84 @@
+integrations:
+  - name: nri-flex
+    interval: 300s
+    env:
+      EVENT_LIMIT: 50000
+      INSIGHTS_API_KEY: <removed>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<removed>/events
+    config:
+      name: vnx
+      secrets:
+        vnx: #generate seceret for vnx password here
+          kind: local
+          key: <removed>
+          data: <removed>
+          type: equal
+      variable_store:
+        password: ${secret.vnx:password}
+      lookup_file: /etc/newrelic-infra/integrations.d/vnx_arrays.json
+      apis:
+        - event_type: vnx_alerts
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} alerts "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vnx_capacity
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} capacity "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vnx_diskGroup
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} diskGroup "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vnx_drives
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} drives "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vnx_hardware
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} hardware "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vnx_lun
+          commands:
+            - run: /opt/vnx/bin/python3 /opt/vnx/vnx.py "${lf:clusterCI}" ${lf:user} ${lf:ip} ${lf:port} ${lf:ssl} lun "${secret.vnx:password}"
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}

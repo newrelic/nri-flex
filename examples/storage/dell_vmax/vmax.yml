@@ -1,0 +1,79 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    env:
+      EVENT_LIMIT: 130000 ## default 500
+      INSIGHTS_API_KEY: <account>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<account>/events
+    config:
+      name: vmax
+      secrets:
+        vmaxs:
+          kind: local
+          key: <removed>
+          data: <removed>
+          type: equal
+      variable_store:
+        password: ${secret.vmaxs:password}
+      lookup_file: /etc/newrelic-infra/integrations.d/vmax_arrays2.json
+      apis:
+        - event_type: vmax_performance
+          commands:
+            - run: /opt/vmaxapi/bin/python3 /opt/vmaxapi/vmaxapi2.py performance ${lf:alias} ${lf:serial} ${lf:user} ${lf:ip} ${lf:port} "${secret.vmaxs:password}"
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              clusterCI: ${lf:serial}
+              flex_hostname: ${lf:flex_host}
+          metric_parser:
+            metrics:
+              array: ATTRIBUTE
+            namespace:
+              existing_attr:
+                - clusterCI
+
+        - event_type: vmax_capacity
+          commands:
+            - run: /opt/vmaxapi/bin/python3 /opt/vmaxapi/vmaxapi2.py capacity ${lf:alias} ${lf:serial} ${lf:user} ${lf:ip} ${lf:port} "${secret.vmaxs:password}"
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              clusterCI: ${lf:serial}
+              flex_hostname: ${lf:flex_host}
+          metric_parser:
+            metrics:
+              array: ATTRIBUTE
+            namespace:
+              existing_attr:
+                - clusterCI
+
+        - event_type: vmax_directors
+          commands:
+            - run: /opt/vmaxapi/bin/python3 /opt/vmaxapi/vmaxapi2.py get_directors ${lf:alias} ${lf:serial} ${lf:user} ${lf:ip} ${lf:port} "${secret.vmaxs:password}"
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              clusterCI: ${lf:serial}
+              flex_hostname: ${lf:flex_host}
+          metric_parser:
+            metrics:
+              array: ATTRIBUTE
+            namespace:
+              existing_attr:
+                - clusterCI
+
+        - event_type: vmax_health
+          commands:
+            - run: /opt/vmaxapi/bin/python3 /opt/vmaxapi/vmaxapi2.py get_health ${lf:alias} ${lf:serial} ${lf:user} ${lf:ip} ${lf:port} "${secret.vmaxs:password}"
+              split_by: ": "
+              hide_error_exec: true
+              jq: '.health_score_metric | map(del(.instance_metrics) + .instance_metrics[]) '
+          custom_attributes:
+              clusterCI: ${lf:serial}
+              flex_hostname: ${lf:flex_host}
+          metric_parser:
+            metrics:
+              array: ATTRIBUTE
+            namespace:
+              existing_attr:
+                - clusterCI

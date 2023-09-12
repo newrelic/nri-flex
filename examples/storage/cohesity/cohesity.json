@@ -1,0 +1,8 @@
+[
+ {
+   "fqdn": "<fqdn>",
+   "cluster_name": "<name>",
+   "cluster_alias": "<alias>",
+   "flex_host": "<flex_host>"
+ }
+]

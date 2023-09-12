@@ -1,0 +1,8 @@
+[
+  {
+    "name": "<cluster_alias>",
+    "addr": "<FQDN:8080>",
+    "host": "<hostname>",
+    "flex_host": "<flexhost>"
+  }
+]
