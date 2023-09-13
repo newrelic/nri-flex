@@ -1,0 +1,10 @@
+[
+  {
+    "clusterCI": "<name>",
+    "user": "<user>",
+    "ip": "<ip>",
+    "port": "443",
+    "ssl": "false",
+    "flex_host": "flex_host"
+  }
+]

@@ -1,0 +1,105 @@
+integrations:
+  - name: nri-flex
+    interval: 300s
+    env:
+      EVENT_LIMIT: 50000
+      INSIGHTS_API_KEY: <removed>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<removed>/events
+    config:
+      name: vplex
+      secrets:
+        vplex:
+          kind: local
+          key: <removed>
+          data: <removed>
+          type: equal
+      variable_store:
+        password: ${secret.vplex:password}
+      lookup_file: /etc/newrelic-infra/integrations.d/vplex_arrays.json
+      apis:
+        - event_type: vplex_ups
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ups ${lf:ip} ${lf:port} ${lf:user} ${lf:name} "${secret.vplex:password}"
+              timeout: 90000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_psu
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} psu "${secret.vplex:password}"
+              timeout: 90000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_engines
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} engines "${secret.vplex:password}"
+              timeout: 90000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+        - event_type: vplex_devices
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} devices "${secret.vplex:password}"
+              timeout: 120000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_alerts
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} alerts "${secret.vplex:password}"
+              timeout: 60000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_ports
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} ports "${secret.vplex:password}"
+              timeout: 100000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_sfps
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} sfps "${secret.vplex:password}"
+              timeout: 100000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}
+
+        - event_type: vplex_iomodule
+          commands:
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} iomodule "${secret.vplex:password}"
+              timeout: 250000
+              split_by: ": "
+              hide_error_exec: true
+          custom_attributes:
+              cluster: ${lf:array_CI}
+              clusterCI: ${lf:clusterCI}
+              flex_hostname: ${lf:flex_host}

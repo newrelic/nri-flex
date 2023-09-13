@@ -1,0 +1,507 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    env:
+      EVENT_LIMIT: 100000 ## default 500
+      INSIGHTS_API_KEY: <removed>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<removed>/events
+    config:
+      name: IsilonCheck
+      lookup_file: /etc/newrelic-infra/integrations.d/powerscale_hosts.json
+      secrets:
+        isilon:
+          kind: local
+          key: <removed>
+          data: <removed>
+          type: equal
+      variable_store:
+         password: ${secret.isilon:password}
+
+      apis:
+        - event_type: PowerscalePools
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/1/storagepool/storagepools" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+            dataType: pool
+
+        - event_type: PowerscaleNodeClientStats
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/1/statistics/current?keys=node.clientstats.active.smb1,node.clientstats.active.nfs,node.clientstats.connected.nfs,node.clientstats.active.smb2,node.clientstats.connected.cifs,node.clientstats.active.hdfs,node.clientstats.connected.hdfs,node.clientstats.active.http,node.clientstats.connected.http,node.clientstats.active.papi,node.clientstats.active.siq,node.clientstats.connected.siq&degraded=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeClientProtoStats
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/1/statistics/current?keys=node.clientstats.proto.smb1,node.clientstats.proto.hdfs,node.clientstats.proto.http,node.clientstats.proto.papi,node.clientstats.proto.siq,node.clientstats.proto.smb2,node.clientstats.proto.nfs3&degraded=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          jq: '.stats | map(del(.value) + .value[]) | map(del(.op_class_values) + .op_class_values[])'
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleEvents
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/event/eventgroup-occurrences?resolved=false" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - stats>causes
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+          lazy_flatten:
+            - eventgroups>causes
+            - eventgroups>channels
+
+        - event_type: PowerscaleSnapshots
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/snapshot/snapshots-summary" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleCluster
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=cluster.dedupe.estimated.saved.bytes,cluster.dedupe.logical.deduplicated.bytes,cluster.dedupe.logical.saved.bytes,cluster.dedupe.estimated.deduplicated.bytes&degraded=true&memory_only=true" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: dedupe
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleCluster
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=cluster.health" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: health
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleIfs
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=ifs.bytes.total,ifs.bytes.avail,ifs.bytes.free&degraded=true&memory_only=true" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ifsdisk
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleIfs
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=ifs.ssd.bytes.total,ifs.ssd.bytes.free,ifs.ssd.bytes.avail&degraded=true&memory_only=true" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ssd
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNode
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.cpu.idle.avg,cluster.cpu.idle.avg&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: cpu
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleDisk
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.disk.access.latency.all,node.disk.access.slow.all,node.disk.busy.all,node.disk.iosched.latency.all,node.disk.iosched.queue.all&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          jq: '.[]|[.stats[] | {devid,key} + (.value[] | to_entries[] | {diskId: .key|tonumber, value})]'
+          custom_attributes:
+            dataType: disk
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNode
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.ifs.bytes.out.rate,node.ifs.bytes.in.rate&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ifsRate
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNode
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.ifs.bytes.total,node.ifs.bytes.used&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ifs
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNode
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.ifs.ssd.bytes.used,node.ifs.ssd.bytes.total&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ifsSsd
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNode
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.uptime&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: uptime
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeIfsHeatTOTAL
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.ifs.heat.lock.total,node.ifs.heat.link.total,node.ifs.heat.getattr.total,node.ifs.heat.deadlocked.total,node.ifs.heat.contended.total,node.ifs.heat.blocked.total,node.ifs.heat.write.total,node.ifs.heat.unlink.total,node.ifs.heat.write.total,node.ifs.heat.unlink.total,node.ifs.heat.lookup.total,node.ifs.heat.read.total,node.ifs.heat.rename.total,node.ifs.heat.setattr.total&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: heat_total
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeWorker
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.je.num_workers&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - stats>value
+          rename_keys:
+            parent.0.devid: devid
+            parent.0.error: error
+            parent.0.errorCode: errorCode
+            parent.0.key: key
+            parent.0.time: time
+          custom_attributes:
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeNet
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.net.ext.packets.in.rate,node.net.ext.errors.in.rate,node.net.ext.bytes.out.rate,node.net.ext.errors.out.rate,node.net.ext.bytes.in.rate,node.net.ext.packets.out.rate&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: external
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeNet
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.net.iface.bytes.out.rate.0,node.net.iface.bytes.out.rate.1,node.net.iface.bytes.out.rate.2,node.net.iface.bytes.out.rate.3,node.net.iface.bytes.out.rate.4,node.net.iface.bytes.out.rate.5,node.net.iface.bytes.out.rate.6,node.net.iface.bytes.out.rate.7,node.net.iface.bytes.out.rate.8,node.net.iface.bytes.out.rate.9,node.net.iface.errors.in.rate.0,node.net.iface.errors.in.rate.1,node.net.iface.errors.in.rate.2,node.net.iface.errors.in.rate.3,node.net.iface.errors.in.rate.4,node.net.iface.errors.in.rate.5,node.net.iface.errors.in.rate.6,node.net.iface.errors.in.rate.7,node.net.iface.errors.in.rate.8,node.net.iface.errors.in.rate.9,node.net.iface.errors.out.rate.0,node.net.iface.errors.out.rate.1,node.net.iface.errors.out.rate.2,node.net.iface.errors.out.rate.3,node.net.iface.errors.out.rate.4,node.net.iface.errors.out.rate.5&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: internal
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeProtocol
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.protostats.ftp,node.protostats.hdfs,node.protostats.http,node.protostats.nfs3,node.protostats.nfs4,node.protostats.nlm,node.protostats.papi,node.protostats.siq,node.protostats.smb1,node.protostats.smb2&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - stats>value
+          rename_keys:
+            parent.0.devid: devid
+            parent.0.error: error
+            parent.0.errorCode: errorCode
+            parent.0.key: key
+            parent.0.time: time
+          custom_attributes:
+            dataType: protostats
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeIfs
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=ifs.ssd.bytes.avail&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: ssd
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleCluster
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=cluster.protostats.nfs.total,cluster.protostats.nlm.total,cluster.protostats.smb2.total,cluster.protostats.ftp.total,cluster.protostats.http.total,cluster.protostats.siq.total,cluster.protostats.jobd.total,cluster.protostats.smb2.total,cluster.protostats.nfs4.total,cluster.protostats.irp.total,cluster.protostats.lsass_in.total,cluster.protostats.lsass_out.total,cluster.protostats.papi.total,cluster.protostats.hdfs.total&degraded=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - stats>value
+          rename_keys:
+            parent.0.devid: devid
+            parent.0.error: error
+            parent.0.errorCode: errorCode
+            parent.0.key: key
+            parent.0.time: time
+          custom_attributes:
+            dataType: proto
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleClusterJob
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/job/statistics" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - jobs>nodes
+          rename_keys:
+            parent.0.jobId: jobId
+            parent.0.phase: phase
+            parent.0.total: total
+          strip_keys:
+            - nodes>workers
+          custom_attributes:
+            dataType: job
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleHardwareStatus
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/cluster/nodes/ALL/status" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              timeout: 30000
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+            dataType: status
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+          lazy_flatten:
+            - nodes>nvram
+            - nodes>powersupplies
+            - nodes>capacity
+
+        - event_type: PowerscaleSync
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/sync/policies" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: sync
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleSyncJobs
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/sync/jobs" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: syncjob
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleCert
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/4/certificate/server" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: certificate
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleDrives
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/cluster/nodes/ALL/drives" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              timeout: 20000
+              hide_error_exec: true
+          snake_to_camel: true
+          jq: '.nodes | map(del(.drives) + .drives[]) | map(del(.firmware))'
+          custom_attributes:
+            dataType: PowerscaleDrives
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscalePartition
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/5/cluster/nodes" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              timeout: 20000
+              hide_error_exec: true
+          snake_to_camel: true
+          jq: '.nodes |map(del(.drives)) |map(del(.hardware)) |map(del(.drive_d_config))  |map(del(.sensors)) |map(del(.sleds)) |map(del(.status))'
+          custom_attributes:
+            dataType: PowerscalePartition
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleSnap
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/1/snapshot/snapshots?sort=size&limit=10&dir=DESC" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              timeout: 20000
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - snapshots
+          remove_keys:
+            - hasLocks
+            - pctFilesystem
+            - pctReserve
+            - schedule
+            - shadowBytes
+            - state
+            - targetId
+            - targetName
+            - total
+            - parent.0.resume
+          custom_attributes:
+            dataType: PowerscaleSnapshotsTop
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleNodeIfsHeat
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/statistics/current?keys=node.ifs.heat.lock,node.ifs.heat.deadlocked,node.ifs.heat.contended,node.ifs.heat.blocked&degraded=true&memory_only=true&devid=all" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          start_key:
+            - stats>value
+          rename_keys:
+            parent.0.: ""
+          custom_attributes:
+            dataType: heat_node
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleQuotas
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/8/quota/quotas" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          custom_attributes:
+            dataType: IsilonQuotas
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleAuth
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/11/auth/providers/summary" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          remove_keys:
+            - connections
+          custom_attributes:
+            dataType: proto
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+
+        - event_type: PowerscaleHardwareStatus
+          commands:
+            - run: curl -s "https://${lf:addr}/platform/3/cluster/nodes/ALL/status" --insecure --basic --user DOMAIN\\user:${secret.powerscale:password}
+              split_by: ": "
+              timeout: 30000
+              hide_error_exec: true
+          snake_to_camel: true
+          inherit_attributes: true
+          custom_attributes:
+            dataType: status
+            cluster: ${lf:name}
+            cluster_CI: ${lf:host}
+            flex_hostname: ${lf:flex_host}
+          lazy_flatten:
+            - nodes>nvram
+            - nodes>powersupplies
+            - nodes>capacity
+
