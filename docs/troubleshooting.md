@@ -2,11 +2,12 @@
 
 ## Command Line arguments
 
-The Infrastructure agent installs bundled binaries together in the following directory: 
+The Infrastructure agent installs bundled binaries together in the following directories: 
 
 ```shell
 # Linux
-/opt/newrelic-infra/newrelic-integrations/bin/
+/opt/newrelic-infra/newrelic-integrations/bin/		# versions >= 1.48.0 of the infrastructure agent
+/var/db/newrelic-infra/newrelic-integrations/bin/	# versions < 1.48.0 of the infrastructure agent
 
 # Windows
 C:\Program Files\New Relic\newrelic-infra\newrelic-integrations\
@@ -26,7 +27,8 @@ Flex itself comes with several command line arguments that can assist you during
 
 ```shell
 # Linux
-/opt/newrelic-infra/newrelic-integrations/bin/nri-flex -help
+/opt/newrelic-infra/newrelic-integrations/bin/nri-flex -help		# versions >= 1.48.0 of the infrastructure agent
+/var/db/newrelic-infra/newrelic-integrations/bin/nri-flex -help	# versions < 1.48.0 of the infrastructure agent
 
 # Windows
 C:\Program Files\New Relic\newrelic-infra\newrelic-integrations\nri-flex.exe -help
