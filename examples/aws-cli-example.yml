@@ -1,0 +1,12 @@
+# This example tests access for nri-flex to use the AWS CLI by executing the get-caller-identity command from Security Token Service (STS)
+# The root user that executes nri-flex will need access to the credentials for AWS that you want to use
+# NRQL validation: FROM aws_cli_test SELECT *
+integrations:
+    - name: nri-flex
+      interval: 300s
+      config:
+        name: aws_cli_test
+        apis:
+          - event_type: aws_cli_test
+            commands:
+              - run: "aws sts get-caller-identity"
