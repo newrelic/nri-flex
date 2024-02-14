@@ -76,5 +76,8 @@ func createStorer() (persist.Storer, error) {
 	if os.Getenv("VERBOSE") == "true" || os.Getenv("VERBOSE") == "1" {
 		fmt.Fprintf(os.Stderr, "custom storer name: %s and TTL: %s\n", storerName, ttl)
 	}
-	return persist.NewFileStore(persist.DefaultPath(storerName), load.Logrus, ttl)
+
+	tempDir := os.Getenv("TEMP_DIR")
+
+	return persist.NewFileStore(persist.TmpPath(tempDir, storerName), load.Logrus, ttl)
 }

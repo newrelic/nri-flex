@@ -16,7 +16,7 @@ require (
 	github.com/itchyny/gojq v0.12.12
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.10.9
-	github.com/newrelic/infra-integrations-sdk v3.2.0+incompatible
+	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
 	github.com/parnurzeal/gorequest v0.2.15
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.5
