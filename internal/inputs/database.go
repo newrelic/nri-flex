@@ -228,7 +228,7 @@ func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) 
 		return load.DefaultMySQL
 	case "oracle":
 		return load.DefaultOracle
-	case "sybase":
+	case "sybase", "ase":
 		return load.DefaultSybase
 	case "monetdb":
 		return load.DefaultMonetDB
