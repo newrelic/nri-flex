@@ -54,6 +54,10 @@ github.com/MonetDB/MonetDB-Go v1.0.2 h1:ovqY//8De9OzoJJbc1YkW4peNfGdLTgQhjc+fhBr
 github.com/MonetDB/MonetDB-Go v1.0.2/go.mod h1:camniXrjGJnMoXXgZWhUY+2nKPVfjKmcA5mmrjuV2+A=
 github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 h1:kkhsdkhsCvIsutKu5zLMgWtgh9YxGCNAw8Ad8hjwfYg=
 github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
+github.com/SAP/go-ase v0.0.0-20230911093826-e06baafeece3 h1:S2BdRIWytdt7gHV+39ZC9Fl8PbQlhlnWmBfQTy7iSUg=
+github.com/SAP/go-ase v0.0.0-20230911093826-e06baafeece3/go.mod h1:RJNsL+XbiV4Ux3aTLlk5WIQy6kq6VW7OvAasNkq3j4U=
+github.com/SAP/go-dblib v0.0.0-20220825075032-c1f3f4d6e7b3 h1:bX6dkWrQMTAO8IwVGZqXoNdWjZVQ3YnRU01p+x4X+Jw=
+github.com/SAP/go-dblib v0.0.0-20220825075032-c1f3f4d6e7b3/go.mod h1:pyB1BEipxjxMcCYlymW+x6sgucc0N45V7LVPUnpDr/I=
 github.com/SAP/go-hdb v0.107.3 h1:tX7CI+fsUFVNzR9LIAuX1mzyzRtuMiUkvuVVUgNSGss=
 github.com/SAP/go-hdb v0.107.3/go.mod h1:EAlLPK5So38imnv2/aBADHZBjl76RVIWvu9Tkiu6LbY=
 github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 h1:MzBOUgng9orim59UnfUTLRjMpd09C5uEVQ6RPGeCaVI=
@@ -199,6 +203,11 @@ github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5m
 github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8/go.mod h1:dvDLG8qkwmyD9a/MJJN3XJcT3xFxOKAvTZGvuZmac9g=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGaHF6qqu48+N2wcFQ5qg5FXgOdqsJ5d8=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
+github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
+github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
+github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
