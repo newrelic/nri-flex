@@ -5,12 +5,13 @@ go 1.20
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/MonetDB/MonetDB-Go v1.0.2
+	github.com/SAP/go-ase v0.0.0-20230911093826-e06baafeece3
 	github.com/SAP/go-hdb v0.107.3
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go v1.44.69
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
-	github.com/docker/docker v23.0.8+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/itchyny/gojq v0.12.12
@@ -40,7 +41,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
-	github.com/SAP/go-ase v0.0.0-20230911093826-e06baafeece3 // indirect
 	github.com/SAP/go-dblib v0.0.0-20220825075032-c1f3f4d6e7b3 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
