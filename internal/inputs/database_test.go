@@ -26,7 +26,7 @@ func TestDrivers(t *testing.T) {
 		"mariadb":   load.DefaultMySQL,
 		"hana":      load.DefaultHANA,
 		"oracle":    load.DefaultOracle,
-		"ase":       load.DefaultSybase,
+		// "ase":       load.DefaultSybase,
 		"monetdb":   load.DefaultMonetDB,
 		"unknown":   "",
 	}

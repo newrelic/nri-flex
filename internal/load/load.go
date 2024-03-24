@@ -119,7 +119,7 @@ const (
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "oracle"
-	DefaultSybase      = "ase"
+	// DefaultSybase      = "ase"
 	DefaultMonetDB     = "monetdb"
 	DefaultVertica     = "vertica"
 	DefaultJmxHost     = "127.0.0.1"
