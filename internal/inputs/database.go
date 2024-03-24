@@ -25,7 +25,7 @@ import (
 
 	//Database Drivers
 	_ "github.com/MonetDB/MonetDB-Go/src"       //MonetDB
-	_ "github.com/SAP/go-ase"                   //Sybase
+	// _ "github.com/SAP/go-ase"                   //Sybase
 	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
 	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
@@ -228,8 +228,8 @@ func setDatabaseDriver(database, driver string, yml *load.Config, api load.API) 
 		return load.DefaultMySQL
 	case "oracle":
 		return load.DefaultOracle
-	case "sybase", "ase":
-		return load.DefaultSybase
+	// case "sybase", "ase":
+	// 	return load.DefaultSybase
 	case "monetdb":
 		return load.DefaultMonetDB
 	case "hana", "go-hdb", "hdb":

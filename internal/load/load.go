@@ -32,6 +32,10 @@ type ArgumentList struct {
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
 	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
+	LogApiURL               string `default:"" help:"Set Log API URL"`
+	LogApiKey               string `default:"" help:"Set Log API key"`
+	LogBatchSize            int    `default:"5000" help:"Batch Size - number of metrics per post call to log endpoint"`
+	LogOutput               bool   `default:"false" help:"Output the events generated to standard out"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
 	InsightsOutput          bool   `default:"false" help:"Output the events generated to standard out"`
@@ -115,7 +119,7 @@ const (
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "oracle"
-	DefaultSybase      = "ase"
+	// DefaultSybase      = "ase"
 	DefaultMonetDB     = "monetdb"
 	DefaultVertica     = "vertica"
 	DefaultJmxHost     = "127.0.0.1"
