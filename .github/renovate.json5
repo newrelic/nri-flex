@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "github>newrelic/coreint-automation:renovate-base.json5"
+  ]
+}
