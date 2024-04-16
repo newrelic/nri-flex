@@ -12,7 +12,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v23.0.8+incompatible
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/itchyny/gojq v0.12.12
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.10.9
@@ -37,6 +37,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
