@@ -7,15 +7,16 @@ require (
 	github.com/MonetDB/MonetDB-Go v1.0.2
 	github.com/SAP/go-hdb v0.107.3
 	github.com/aws/aws-lambda-go v1.41.0
-	github.com/aws/aws-sdk-go v1.44.69
+	github.com/aws/aws-sdk-go v1.51.22
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v23.0.8+incompatible
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/itchyny/gojq v0.12.12
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.10.9
+	github.com/newrelic-experimental/go-ase v1.2.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
 	github.com/parnurzeal/gorequest v0.2.15
 	github.com/pkg/errors v0.9.1
@@ -37,11 +38,10 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
-	github.com/SAP/go-ase v0.0.0-20230911093826-e06baafeece3 // indirect
-	github.com/SAP/go-dblib v0.0.0-20220825075032-c1f3f4d6e7b3 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
@@ -73,6 +73,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
+	github.com/newrelic-experimental/go-dblib v1.2.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
