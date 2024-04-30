@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/newrelic/infra-integrations-sdk/data/attribute"
 	"github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -276,7 +277,7 @@ func RunSampleRenamer(renameSamples map[string]string, currentSample *map[string
 	}
 }
 
-//Save samples to a JSON file
+// Save samples to a JSON file
 func saveSamples(samples []interface{}, outputPath string) {
 	outputs.StoreJSON(samples, outputPath)
 }
@@ -484,12 +485,12 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 	if len(api.MetricParser.Metrics) > 0 {
 		useDefaultNamespace := false
 		if api.MetricParser.Namespace.CustomAttr != "" {
-			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
+			metricSet = workingEntity.NewMetricSet(eventType, attribute.Attr("namespace", api.MetricParser.Namespace.CustomAttr))
 		} else if len(api.MetricParser.Namespace.ExistingAttr) == 1 {
 			nsKey := api.MetricParser.Namespace.ExistingAttr[0]
 			switch nsVal := (*currentSample)[nsKey].(type) {
 			case string:
-				metricSet = workingEntity.NewMetricSet(eventType, metric.Attr(nsKey, nsVal))
+				metricSet = workingEntity.NewMetricSet(eventType, attribute.Attr(nsKey, nsVal))
 				delete((*currentSample), nsKey) // can delete from sample as already set via namespace key
 			default:
 				useDefaultNamespace = true
@@ -508,7 +509,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 				}
 			}
 			if finalValue != "" {
-				metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", finalValue))
+				metricSet = workingEntity.NewMetricSet(eventType, attribute.Attr("namespace", finalValue))
 			} else {
 				useDefaultNamespace = true
 			}
@@ -516,7 +517,7 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 
 		if useDefaultNamespace {
 			load.Logrus.Debugf("flex: defaulting a namespace for:%v", api.Name)
-			metricSet = workingEntity.NewMetricSet(eventType, metric.Attr("namespace", api.Name))
+			metricSet = workingEntity.NewMetricSet(eventType, attribute.Attr("namespace", api.Name))
 		}
 	} else {
 		metricSet = workingEntity.NewMetricSet(eventType)

@@ -1,0 +1,19 @@
+# NOTE: 'database' is an experimental API at this time
+# ref: https://github.com/newrelic/nri-flex/blob/master/docs/experimental/db.md
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: sybaseDbFlex
+      apis:
+        - database: sybase
+          db_conn: ase://user:pass@host:port/
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: myDbServer
+          db_async: true # process queries async
+          db_queries:
+            - name: sybaseExample
+              run: select * from data
