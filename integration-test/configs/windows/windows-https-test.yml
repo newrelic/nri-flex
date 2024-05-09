@@ -1,7 +1,7 @@
 name: httpsTest
 apis:
   - name: httpsTest
-    url: https://localhost:8043/json
+    url: https://localhost:$$TEST_HTTPS_SERVER_PORT/json
     event_type: WindowsHttpSample
     start_key: 
       - metrics
