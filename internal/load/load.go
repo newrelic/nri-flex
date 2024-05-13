@@ -116,7 +116,7 @@ const (
 	DefaultPingTimeout = 5000                     // 5 seconds
 	DefaultHANA        = "hdb"
 	DefaultPostgres    = "postgres"
-	DefaultMSSQLServer = "sqlserver"
+	DefaultMSSQLServer = "azuresql"
 	DefaultMySQL       = "mysql"
 	DefaultOracle      = "oracle"
 	// DefaultSybase      = "ase"
