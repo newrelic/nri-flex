@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/AlekSi/gocov-xml v1.1.0
 	github.com/axw/gocov v1.1.0
-	github.com/jandelgado/gcov2lcov v1.0.4
+	github.com/jandelgado/gcov2lcov v1.0.6
 	github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481
 )
 
