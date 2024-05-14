@@ -103,6 +103,12 @@ func RunFlex(instance Instance) error {
 				log.WithError(err).Error("runtime.RunFlex: failed to send batch to insights")
 			}
 		}
+	} else if load.Args.LogApiURL != "" && load.Args.LogApiKey != "" {
+		for _, batch := range outputs.GetLogMetricBatches() {
+			if err := outputs.SendBatchToLogApi(batch); err != nil {
+				log.WithError(err).Error("runtime.RunFlex: failed to send batch to log api")
+			}
+		}
 	} else if load.Args.MetricAPIUrl != "" && (load.Args.InsightsAPIKey != "" || load.Args.MetricAPIKey != "") && len(load.MetricsStore.Data) > 0 {
 		if err := outputs.SendToMetricAPI(); err != nil {
 			log.WithError(err).Error("runtime.RunFlex: failed to send metrics")

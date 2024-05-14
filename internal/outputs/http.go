@@ -9,12 +9,12 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/pkg/errors"
 )
 
 // postRequest wraps request and attaches needed headers and zlib compression
@@ -31,7 +31,7 @@ func postRequest(url string, key string, data []byte) error {
 	}
 
 	load.Logrus.
-		Debugf("http: insights - bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
+		Debugf("http: bytes %d events %d", len(zlibCompressedPayload.Bytes()), len(load.Entity.Metrics))
 
 	tr := &http.Transport{IdleConnTimeout: 15 * time.Second, Proxy: http.ProxyFromEnvironment}
 	client := &http.Client{Transport: tr}

@@ -29,6 +29,7 @@ $counters = @(
     [ PSCustomObject ]@{ CounterName = "percentProcessorTime"; CounterPath = "\Processor(*)\% Processor Time" }
     [ PSCustomObject ]@{ CounterName = "memoryPercentCommitedBytes"; CounterPath = "\Memory\% Committed Bytes In Use" }
     [ PSCustomObject ]@{ CounterName = "diskWritesPerSecond"; CounterPath = "\PhysicalDisk(*)\Disk Writes/sec" }
+    [ PSCustomObject ]@{ CounterName = "currentDiskQueueLength"; CounterPath = "\LogicalDisk(*)\Current Disk Queue Length" }
 
 )
 

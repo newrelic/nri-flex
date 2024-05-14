@@ -1,23 +1,26 @@
-// +build integration
-// +build windows
+//go:build integration && windows
+// +build integration,windows
 
 package integration_test
 
 import (
-	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	sdk "github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-flex/integration-test/gofile"
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/newrelic/nri-flex/internal/runtime"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_WindowsHttp_ReturnsData(t *testing.T) {
-	go startServer(false)
+	err := os.Setenv("TEST_HTTP_SERVER_PORT", startServer(t, false))
+	require.NoError(t, err)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -29,7 +32,7 @@ func Test_WindowsHttp_ReturnsData(t *testing.T) {
 
 	// when
 	r := runtime.GetDefaultRuntime()
-	err := runtime.RunFlex(r)
+	err = runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -38,7 +41,8 @@ func Test_WindowsHttp_ReturnsData(t *testing.T) {
 }
 
 func Test_WindowsHttps_ReturnsData(t *testing.T) {
-	go startServer(true)
+	err := os.Setenv("TEST_HTTPS_SERVER_PORT", startServer(t, true))
+	require.NoError(t, err)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -50,7 +54,7 @@ func Test_WindowsHttps_ReturnsData(t *testing.T) {
 
 	// when
 	r := runtime.GetDefaultRuntime()
-	err := runtime.RunFlex(r)
+	err = runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -59,8 +63,10 @@ func Test_WindowsHttps_ReturnsData(t *testing.T) {
 }
 
 func Test_WindowsHttps_ConfigFolder_ReturnsData(t *testing.T) {
-	go startServer(false)
-	go startServer(true)
+	err := os.Setenv("TEST_HTTP_SERVER_PORT", startServer(t, false))
+	require.NoError(t, err)
+	err = os.Setenv("TEST_HTTPS_SERVER_PORT", startServer(t, true))
+	require.NoError(t, err)
 
 	load.Refresh()
 	i, _ := sdk.New(load.IntegrationName, load.IntegrationVersion)
@@ -73,7 +79,7 @@ func Test_WindowsHttps_ConfigFolder_ReturnsData(t *testing.T) {
 
 	// when
 	r := runtime.GetDefaultRuntime()
-	err := runtime.RunFlex(r)
+	err = runtime.RunFlex(r)
 	require.NoError(t, err)
 
 	//then
@@ -99,10 +105,32 @@ func checkOutput(t *testing.T, metrics []*metric.Set, expectedCount int) {
 	require.Equal(t, expectedCount, actualCount)
 }
 
-func startServer(tls bool) {
-	serverFile, _ := filepath.Abs(filepath.Join("https-server", "server.go"))
-	_, err := gofile.Run(serverFile, fmt.Sprint(tls))
-	if err != nil {
-		fmt.Println(err)
+func startServer(t *testing.T, tls bool) (port string) {
+	t.Helper()
+
+	srv := &httptest.Server{}
+	if tls {
+		srv = httptest.NewTLSServer(http.HandlerFunc(serveJSON))
+	} else {
+		srv = httptest.NewServer(http.HandlerFunc(serveJSON))
 	}
+
+	url, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	return url.Port()
+}
+
+func serveJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json")
+	_, _ = w.Write([]byte(`
+	{
+		"metrics": [
+			{
+			 "cpu": 10.0,
+			 "memory": 3500,
+			 "disk": 500
+			} 
+		]
+	}
+	`))
 }
