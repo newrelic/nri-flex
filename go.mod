@@ -25,7 +25,7 @@ require (
 	github.com/prometheus/common v0.43.0
 	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/sijms/go-ora/v2 v2.7.3
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.9.5
 	github.com/stretchr/testify v1.8.4
 	github.com/vertica/vertica-sql-go v1.3.2
