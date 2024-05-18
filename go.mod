@@ -26,7 +26,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.4
 	github.com/sijms/go-ora/v2 v2.8.18
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/afero v1.9.5
+	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vertica/vertica-sql-go v1.3.3
 	go.uber.org/ratelimit v0.2.0
@@ -93,7 +93,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.0 // indirect
