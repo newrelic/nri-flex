@@ -2,11 +2,11 @@
 
 Follow this tutorial to get started with Flex!
 
-1. [Install the Infrastructure agent](#InstalltheInfrastructureagent)
-2. [Check that Flex is up and running](#CheckthatFlexisupandrunning)
-3. [Your first Flex integration](#YourfirstFlexintegration)
-4. [How to add more integrations](#Howtoaddmoreintegrations)
-5. [What's next?](#Whatsnext)
+1. [Install the Infrastructure agent](#1-install-the-infrastructure-agent)
+2. [Check that Flex is up and running](#2-check-that-flex-is-up-and-running)
+3. [Your first Flex integration](#3-your-first-flex-integration)
+4. [How to add more integrations](#4-how-to-add-more-flex-integrations)
+5. [What's next?](#5-whats-next)
 
 ## Prerequisites
 

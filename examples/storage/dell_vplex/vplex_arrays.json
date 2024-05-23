@@ -1,0 +1,12 @@
+[
+  {
+    "name": "cluster_1",
+    "ip": "<IP>",
+    "port": "<port>",
+    "user": "username",
+    "array_CI": "<serial_number>",
+    "array": "<alias>",
+    "clusterCI": "cluster1_hostname",
+    "flex_host": "<flex_host>"
+  }
+]

@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/shirou/gopsutil/net"
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/net"
+	"github.com/shirou/gopsutil/v3/process"
 	"github.com/sirupsen/logrus"
 )
 

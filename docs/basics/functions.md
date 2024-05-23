@@ -33,6 +33,8 @@ For functions that are specific to data sources, such as `split_by` or `headers`
     - [timestamp](#timestamp)
     - [to_lower](#to_lower)
     - [value_parser](#value_parser)
+    - [value_to_lower](#value_to_lower)
+    - [value_to_upper](#value_to_upper)
     - [value_transformer](#value_transformer)
     - [timestamp_conversion](#timestamp_conversion)
 
@@ -52,19 +54,21 @@ Flex applies data parsing and transformation functions in a specific order, rega
 9. [convert_space](#convert_space)
 10. [snake_to_camel](#snake_to_camel)
 11. [perc_to_decimal](#perc_to_decimal)
-12. [value_parser](#value_parser)
-13. [value_transformer](#value_transformer)
-14. [timestamp_conversion](#timestamp_conversion)
-15. [rename_keys / replace_keys](#rename_keys--replace_keys)
-16. [store_lookups](#store_lookups)
-17. [keep_keys](#keep_keys)
-18. [ignore_output](#ignore_output)
-19. [sample_include_filter](#sample_include_filter)
-20. [sample_filter](#sample_filter)
-21. [sample_exclude_filter](#sample_exclude_filter)
-22. [math](#math)
-23. [add_attribute](#add_attribute)
-24. [remove_keys](#remove_keys)
+12. [value_to_lower](#value_to_lower)
+13. [value_to_upper](#value_to_upper)
+14. [value_parser](#value_parser)
+15. [value_transformer](#value_transformer)
+16. [timestamp_conversion](#timestamp_conversion)
+17. [rename_keys / replace_keys](#rename_keys--replace_keys)
+18. [store_lookups](#store_lookups)
+19. [keep_keys](#keep_keys)
+20. [ignore_output](#ignore_output)
+21. [sample_include_filter](#sample_include_filter)
+22. [sample_filter](#sample_filter)
+23. [sample_exclude_filter](#sample_exclude_filter)
+24. [math](#math)
+25. [add_attribute](#add_attribute)
+26. [remove_keys](#remove_keys)
 
 > \* Happens before attribute modification and autoflattening. This is useful to get rid of unwanted data and arrays early on.
 
@@ -193,6 +197,37 @@ Consider a service that returns the following payload:
     }
   },
   "name": "node3"
+}
+```
+Without declaring any other transformation you would get a result similar to:
+
+```json
+"metrics": [{
+    "event_type": "someServiceSampleSample",
+    "id": "eca0338f4ea31566",
+    "leaderInfo.abc.def": 123,
+    "leaderInfo.abc.hij": 234,
+    "leaderInfo.leader": "8a69d5f6b7814500",
+    "leaderInfo.startTime": "2014-10-24T13:15:51.186620747-07:00",
+    "leaderInfo.uptime": "10m59.322358947s",
+    "name": "node3"
+  }
+```
+
+If you use `ignore_output: true` like this:
+
+```yaml
+name: example
+apis:
+  - name: someService
+    url: http://some-service.com/status
+    ignore_output: true
+```
+
+We will not create a sample for the result, but still caches it:
+
+```json
+"metrics": [{
 }
 ```
 
@@ -333,8 +368,8 @@ name: example
 apis:
     - name: status
       url: http//some-service.com/status
-    lazy_flatten:
-      - contacts
+      lazy_flatten:
+        - contacts
 ```
 
 Which would return something similar to the following:
@@ -1558,6 +1593,78 @@ Which would return the following:
 }]
 ```
 
+### value_to_lower
+
+Finds keys and convert all their values to lowercase
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+  "id": "eca0338f4ea31566",
+  "name": "NODE"
+}
+```
+
+You could use `value_to_lower` to transform the value to lower case.
+
+```yaml
+name: example
+apis:
+  - name: someService
+    url: http://some-service.com/status
+    value_to_lower:
+      - name
+```
+
+Which would return the following:
+
+```json
+"metrics": [{
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "name": "node",
+}]
+```
+
+### value_to_upper
+
+Finds keys and convert all their values to uppercase
+
+**Example**
+
+Consider a service that returns the following payload:
+
+```json
+{
+  "id": "eca0338f4ea31566",
+  "name": "node"
+}
+```
+
+You could use `value_to_upper` to transform the value to lower case.
+
+```yaml
+name: example
+apis:
+  - name: someService
+    url: http://some-service.com/status
+    value_to_upper:
+      - name
+```
+
+Which would return the following:
+
+```json
+"metrics": [{
+  "event_type": "someServiceSample",
+  "id": "eca0338f4ea31566",
+  "name": "NODE",
+}]
+```
+
 ### value_transformer
 
 Uses a regular expression to find a key and transforms its value.
@@ -1584,13 +1691,11 @@ Without declaring any other transformation you would get a result similar to:
 
 ```json
 "metrics": [{
-  "event_type": "someServiceSample",
+  "event_type": "someServiceSampleSample",
   "id": "eca0338f4ea31566",
-  "leaderTime.abc.def": 123,
-  "leaderTime.abc.hij": 234,
-  "leaderTime.leader": "8a69d5f6b7814500",
-  "leaderTime.startTime": "2014-10-24T13:15:51.186620747-07:00",
-  "leaderTime.uptime": "10m59.322358947s",
+  "leaderInfo.abc.def": 123,
+  "leaderInfo.abc.hij": 234,
+  "leaderInfo.uptime": "10m59.322358947s",
   "name": "node3"
 }
 ```

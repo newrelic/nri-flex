@@ -1,7 +1,7 @@
-GORELEASER_VERSION  ?= v0.157.0
+GORELEASER_VERSION  ?= v1.19.2
 GORELEASER_BIN      ?= $(CURDIR)/bin/goreleaser
 GORELEASER_CONFIG   ?= --config $(CURDIR)/build/goreleaser.yml
-PKG_FLAGS			?= --rm-dist
+PKG_FLAGS			?= --clean
 IS_RELEASE			?= false # Default to safe mode which is pre-release
 
 ifneq ($(IS_RELEASE), true)

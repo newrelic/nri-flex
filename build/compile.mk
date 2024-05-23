@@ -28,7 +28,7 @@ fmt:
 	@($(GO_CMD) fmt ./...)
 
 bin/nri-flex:
-	@($(GO_CMD) build -ldflags="$(LDFLAGS)" -trimpath -o ./bin/nri-flex ./cmd/nri-flex/)
+	@(CGO_ENABLED=0 $(GO_CMD) build -ldflags="$(LDFLAGS)" -trimpath -o ./bin/nri-flex ./cmd/nri-flex/)
 
 .PHONY: build-linux
 build-linux: compile-linux

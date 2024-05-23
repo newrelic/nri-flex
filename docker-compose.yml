@@ -1,7 +1,7 @@
 version: "3"
 services:
   golang:
-    image: golang:1.13.6-stretch
+    image: golang:1.21-bullseye
     volumes:
       - .:/go/src/github.com/newrelic/nri-flex
     working_dir: /go/src/github.com/newrelic/nri-flex
@@ -10,7 +10,7 @@ services:
     links:
       - postgres-db
   postgres-db:
-    image: postgres:11.2
+    image: postgres:11.16
     restart: always
     environment:
       POSTGRES_PASSWORD: flex

@@ -1,0 +1,15 @@
+# This config demonstrates the usage of the IBM® Informix onstat utility to count the number of lines in the output that do NOT contain the letter 'B'
+# shell: https://github.com/newrelic/nri-flex/blob/master/docs/apis/commands.md#linux-example
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: backedupLogsIntegration
+      apis:
+        - event_type: informixBackedupLogs
+          commands:  
+            - run: echo "{$(onstat -l | grep -cv B)}"
+              split: horizontal
+              set_header: [numberBackedupLogs]
+              regex_match: true
+              split_by: (\d+)

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+cd /home/$1/sqllib
+
+. ./db2profile
+
+db2 connect to $2
+
+db2 -x "SELECT SNAPSHOT_TIMESTAMP, AUTHID, APPL_NAME, AGENT_ID, PERCENT_ROWS_SELECTED, DBPARTITIONNUM, MEMBER FROM SYSIBMADM.APPL_PERFORMANCE"
+
+exit 0

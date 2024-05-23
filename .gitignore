@@ -25,3 +25,6 @@ flexConfigs/
 results
 pkg/
 lcov.info
+
+test/testbed/nri-flex
+test/testbed/scenarios.test

@@ -1,0 +1,28 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    env:
+      EVENT_LIMIT: 80000 ## default 500
+      INSIGHTS_API_KEY: <removed>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<removed>/events
+    config:
+      name: cohesity
+      secrets:
+        cohesity: #generate seceret for cohesity password here
+          kind: local
+          key: <removed>
+          data:
+          type: equal
+      variable_store:
+        password: ${secret.cohesity:password}
+      lookup_file: /etc/newrelic-infra/integrations.d/cohesity.json
+      apis:
+        - event_type: cohesity
+          commands:
+            - run: /opt/cohesity/bin/python3 /opt/cohesity/cohesity.py ${lf:fqdn} ${lf:cluster_name} ${lf:cluster_alias} main "${secret.cohesity:password}"
+              split_by: ": "
+              timeout: 30000
+              hide_error_exec: true
+          custom_attributes:
+              clusterCI: ${lf:cluster_name}
+              flex_hostname: ${lf:flex_host}

@@ -1,0 +1,48 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: pihole
+      variable_store:
+        authkey: abcdefg1234567890 #your auth key goes here
+# In order for this integration to work, you need to include your pihole API key.
+# You can get the token by loggin into your pihole and going to Settings/API/Show API token 
+#   or by connecting directly to the pihole device and getting the WEBPASSWORD variable from /etc/pihole/setupVars.conf
+
+      apis:
+        - name: pihole_summary
+          url: http://pi.hole/admin/api.php?summaryRaw&auth=${var:authkey}
+          headers:
+            accept: application/json
+
+        - name: pihole_topitems
+          url: http://pi.hole/admin/api.php?topItems=10&auth=${var:authkey}
+          headers:
+            accept: application/json
+          jq: > 
+            .[]|.top_queries|to_entries|map({queryname:.key,querycount:.value})
+
+        - name: pihole_topclients
+          url: http://pi.hole/admin/api.php?topClients=10&auth=${var:authkey}
+          headers:
+            accept: application/json
+          jq: > 
+            .[]|.top_sources|to_entries|map({clientname:.key,clientcount:.value})
+
+        - name: pihole_toforwarddest
+          url: http://pi.hole/admin/api.php?getForwardDestinations&auth=${var:authkey}
+          headers:
+            accept: application/json
+          jq: > 
+            .[]|.forward_destinations|to_entries|map({destinationname:.key,destinationcount:.value})
+
+        - name: pihole_querytypes
+          url: http://pi.hole/admin/api.php?getQueryTypes&auth=${var:authkey}
+          headers:
+            accept: application/json
+          jq: > 
+            .[]|.querytypes|to_entries|map({querytype:.key,querycount:.value})
+
+        - name: pihole_recentblocked
+          url: http://pi.hole/admin/api.php?recentBlocked&auth=${var:authkey}
+          headers:
+            accept: application/json

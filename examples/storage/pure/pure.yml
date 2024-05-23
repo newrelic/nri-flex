@@ -1,0 +1,48 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    env:
+      EVENT_LIMIT: 100000 ## default 500
+      INSIGHTS_API_KEY: <removed>
+      INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<removed>/events
+    config:
+      name: purestorageCapacity
+      lookup_file: /etc/newrelic-infra/integrations.d/pure_hosts.json
+      apis:
+        - event_type: pureCapacity
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" capacity
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}
+        - event_type: pureVolumeCapacity
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" volumes
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}
+        - event_type: puredisks
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" drives
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}
+        - event_type: pureHardware
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" hardware
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}
+        - event_type: pureMessages
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" messages
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}
+        - event_type: pureCerts
+          commands:
+            - run: /opt/purestorageapi/bin/python3 /opt/purestorageapi/purestorage/rest-client/pure.py "${lf:ip}" "${lf:token}" "${lf:alias}" "${lf:clusterCI}" certs
+              timeout: 400000
+              split_by: ": "
+          custom_attributes:
+            flex_hostname: ${lf:flex_host}

@@ -1,4 +1,5 @@
 ---
+project_name: nri-flex
 builds:
   - id: nri-flex
     main: ./cmd/nri-flex/
@@ -14,6 +15,15 @@ builds:
     - amd64
     - arm
     - arm64
+    env:
+      - >-
+        {{- if eq .Os "linux" -}}
+        CGO_ENABLED=0
+        {{- end }}
+    # overrides:
+    #   - goos: linux
+    #     env:
+    #     - CGO_ENABLED=0
 archives:
   - files:
       - LICENSE

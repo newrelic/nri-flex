@@ -32,6 +32,10 @@ type ArgumentList struct {
 	DockerAPIVersion        string `default:"" help:"Force Docker client API version"`
 	EventLimit              int    `default:"0" help:"Event limiter - limit events per execution, 0 to disable"`
 	Entity                  string `default:"" help:"Manually set a remote entity name"`
+	LogApiURL               string `default:"" help:"Set Log API URL"`
+	LogApiKey               string `default:"" help:"Set Log API key"`
+	LogBatchSize            int    `default:"5000" help:"Batch Size - number of metrics per post call to log endpoint"`
+	LogOutput               bool   `default:"false" help:"Output the events generated to standard out"`
 	InsightsURL             string `default:"" help:"Set Insights URL"`
 	InsightsAPIKey          string `default:"" help:"Set Insights API key"`
 	InsightsOutput          bool   `default:"false" help:"Output the events generated to standard out"`
@@ -114,7 +118,9 @@ const (
 	DefaultPostgres    = "postgres"
 	DefaultMSSQLServer = "sqlserver"
 	DefaultMySQL       = "mysql"
-	DefaultOracle      = "ora"
+	DefaultOracle      = "oracle"
+	DefaultSybase      = "ase"
+	DefaultMonetDB     = "monetdb"
 	DefaultVertica     = "vertica"
 	DefaultJmxHost     = "127.0.0.1"
 	DefaultJmxPort     = "9999"
@@ -329,6 +335,8 @@ type API struct {
 	ValueParser      map[string]string `yaml:"value_parser"`      // find keys with regex, and parse the value with regex
 	ValueTransformer map[string]string `yaml:"value_transformer"` // find key(s) with regex, and modify the value
 	MetricParser     MetricParser      `yaml:"metric_parser"`     // to use the MetricParser for setting deltas and gauges a namespace needs to be set
+	ValueToLower     []string          `yaml:"value_to_lower"`    // target keys to set values to convert to lowercase
+	ValueToUpper     []string          `yaml:"value_to_upper"`    // target keys to set values to convert to uppercase
 
 	ValueMapper         map[string][]string `yaml:"value_mapper"`         // Map the value of the key based on regex pattern,  "*.?\s(Service Status)=>$1-Good"
 	TimestampConversion map[string]string   `yaml:"timestamp_conversion"` // find keys with regex, convert date<=>timestamp

@@ -1,5 +1,5 @@
 # Pull specific ubuntu 22.04 image
-FROM ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+FROM ubuntu@sha256:3f85b7caad41a95462cf5b787d8a04604c8262cdcdf9a472b8c52ef83375fe15
 
 
 # Path of nri-flex
@@ -10,7 +10,7 @@ ARG flex_tests_bin
 
 # Add the nri-flex binary
 COPY $flex_bin /bin/nri-flex
-COPY $flex_tests_bin /tmp/flex_tests_bin
+COPY $flex_tests_bin /bin/flex_tests_bin
 
 
-ENTRYPOINT ["/tmp/flex_tests_bin", "-test.v"]
+CMD ["/bin/flex_tests_bin", "-test.v"]

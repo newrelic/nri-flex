@@ -7,6 +7,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,6 +23,10 @@ import (
 
 	"go.uber.org/ratelimit"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	errNoV4IntegrationsFound = fmt.Errorf("configuration does not specify any V4 integration")
 )
 
 // LoadFiles Loads Flex config files
@@ -54,6 +59,8 @@ func LoadV4IntegrationConfig(v4Str string, configs *[]load.Config, fileName stri
 	if err != nil {
 		load.Logrus.WithError(err).Error("config: failed to unmarshal v4 config file")
 		return err
+	} else if len(c.Integrations) == 0 {
+		return errNoV4IntegrationsFound
 	}
 
 	load.Logrus.Warn("config: testing agent config, agent features will not be available")
@@ -107,48 +114,47 @@ func LoadFile(configs *[]load.Config, f os.FileInfo, dirPath string) error {
 	SubEnvVariables(&ymlStr)
 	SubTimestamps(&ymlStr, time.Now())
 
-	// Check if V4 Agent configuration
-	// The agent config check is intended for testing purposes only
-	if strings.Contains(ymlStr, "name: nri-flex") {
-		err := LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
-		if err != nil {
+	err = LoadV4IntegrationConfig(ymlStr, configs, f.Name(), dirPath)
+	if err != nil {
+		// load old configuration
+		if errors.Is(err, errNoV4IntegrationsFound) {
+			config, err := ReadYML(ymlStr)
+			if err != nil {
+				load.Logrus.WithFields(logrus.Fields{
+					"file": filePath,
+				}).WithError(err).Error("config: failed to load config file")
+				return err
+			}
+
+			applyFlexMeta(&config)
+
+			config.FileName = f.Name()
+			config.FilePath = dirPath
+			if config.Name == "" {
+				load.Logrus.WithFields(logrus.Fields{
+					"file": filePath,
+				}).WithError(err).Error("config: flexConfig requires name")
+				return err
+			}
+
+			checkIngestConfigs(&config)
+
+			// if lookup files exist we need to potentially create multiple config files
+			if config.LookupFile != "" {
+				err = SubLookupFileData(configs, config)
+				if err != nil {
+					load.Logrus.WithFields(logrus.Fields{
+						"file": filePath,
+					}).WithError(err).Error("config: failed to sub lookup file data")
+				}
+			} else {
+				*configs = append(*configs, config)
+			}
+		} else {
 			load.Logrus.WithFields(logrus.Fields{
 				"file": filePath,
 			}).WithError(err).Error("config: failed to load v4 config file")
 			return err
-		}
-	} else {
-		config, err := ReadYML(ymlStr)
-		if err != nil {
-			load.Logrus.WithFields(logrus.Fields{
-				"file": filePath,
-			}).WithError(err).Error("config: failed to load config file")
-			return err
-		}
-
-		applyFlexMeta(&config)
-
-		config.FileName = f.Name()
-		config.FilePath = dirPath
-		if config.Name == "" {
-			load.Logrus.WithFields(logrus.Fields{
-				"file": filePath,
-			}).WithError(err).Error("config: flexConfig requires name")
-			return err
-		}
-
-		checkIngestConfigs(&config)
-
-		// if lookup files exist we need to potentially create multiple config files
-		if config.LookupFile != "" {
-			err = SubLookupFileData(configs, config)
-			if err != nil {
-				load.Logrus.WithFields(logrus.Fields{
-					"file": filePath,
-				}).WithError(err).Error("config: failed to sub lookup file data")
-			}
-		} else {
-			*configs = append(*configs, config)
 		}
 	}
 	return nil
@@ -240,12 +246,12 @@ func RunAsync(yml load.Config, samplesToMerge *load.SamplesToMerge, originalAPIN
 
 	// Throttle to rate limit for Async request
 	rl := ratelimit.NewUnlimited()
-	if yml.APIs[originalAPINo].AsyncRate != 0 {
-		rl = ratelimit.New(yml.APIs[originalAPINo].AsyncRate)
+	if yml.APIs[0].AsyncRate != 0 {
+		rl = ratelimit.New(yml.APIs[0].AsyncRate)
 	}
 	load.Logrus.WithFields(logrus.Fields{
-		"Async Rate": yml.APIs[originalAPINo].AsyncRate,
-		"apis":       yml.APIs[originalAPINo].Name,
+		"Async Rate": yml.APIs[0].AsyncRate,
+		"apis":       yml.APIs[0].Name,
 	}).Debug("API Async Throttle Setting: ")
 
 	for i := range yml.APIs {
