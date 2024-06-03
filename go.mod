@@ -7,7 +7,7 @@ require (
 	github.com/MonetDB/MonetDB-Go v1.1.0
 	github.com/SAP/go-hdb v0.107.3
 	github.com/aws/aws-lambda-go v1.47.0
-	github.com/aws/aws-sdk-go v1.53.14
+	github.com/aws/aws-sdk-go v1.53.15
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v23.0.12+incompatible
