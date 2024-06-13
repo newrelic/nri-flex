@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go v1.54.1
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
-	github.com/docker/docker v23.0.12+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/itchyny/gojq v0.12.12
