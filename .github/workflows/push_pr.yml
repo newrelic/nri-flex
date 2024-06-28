@@ -45,7 +45,7 @@ jobs:
 
   test-integration-nix:
     name: Run integration tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -58,7 +58,7 @@ jobs:
 
   snyk:
     name: Run security checks via snyk
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -96,7 +96,7 @@ jobs:
 
   test-build:
     name: Test binary compilation for all platforms:arch
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -110,7 +110,7 @@ jobs:
 
   test-e2e:
     name: Run e2e tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -128,7 +128,7 @@ jobs:
   finish:
     name: Finish
     needs: [ test-nix, test-windows ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Coveralls Finished
         uses: coverallsapp/github-action@master
