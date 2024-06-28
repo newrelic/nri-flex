@@ -29,7 +29,7 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vertica/vertica-sql-go v1.3.3
-	go.uber.org/ratelimit v0.2.0
+	go.uber.org/ratelimit v0.3.1
 	golang.org/x/crypto v0.23.0
 	golang.org/x/net v0.25.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -43,6 +43,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
