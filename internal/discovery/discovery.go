@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
@@ -40,7 +41,7 @@ func Run(configs *[]load.Config) {
 			}).Error("discovery: unable to set docker client")
 		} else {
 			ctx := context.Background()
-			containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+			containerList, err := cli.ContainerList(ctx, container.ListOptions{})
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
