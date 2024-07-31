@@ -18,7 +18,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/newrelic-experimental/go-ase v1.2.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
-	github.com/parnurzeal/gorequest v0.2.15
+	github.com/parnurzeal/gorequest v0.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.6
 	github.com/prometheus/client_model v0.4.0
