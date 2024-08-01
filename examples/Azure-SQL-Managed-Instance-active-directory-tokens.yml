@@ -1,0 +1,25 @@
+# This custom integration uses flex to query Azure SQL for custom metrics. Notes are below.
+#
+# Azure Entra ID(formerly Active Directory) authentication uses temporary authentication tokens to authenticate and connect to your Azure SQL database.   
+# The Azure SQL database needs to be configured to use Entra ID admin service principal as a way to connect. 
+# You can authenticate using either fedauth=ActiveDirectoryServicePrincipal or fedauth=ActiveDirectoryApplication 
+# Which authenticates using an Azure Active Directory application client ID and client secret or certificate.
+# The certifcate format should be clientcertpath=<path to certificate file>;password=<certificate password>
+# Other options including using Azure Managed Identity or Active directory passwords are also available and are explained here https://github.com/denisenkom/go-mssqldb?tab=readme-ov-file#azure-active-directory-authentication
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: AzureSQLDbFlex
+      apis:
+        - database: sqlserver
+          db_conn: server=azure.database.windows.net;user id=<clientId@tenantId>;password=<client secret>;database=master;fedauth=ActiveDirectoryServicePrincipal
+          logging:
+            open: true
+          custom_attributes: # applies to all queries
+            host: azure.database.windows.net
+          db_async: true # process queries async
+          db_queries:
+            - name: AzureSQLCustomLogSpace
+              run: DBCC SQLPERF(LOGSPACE);
