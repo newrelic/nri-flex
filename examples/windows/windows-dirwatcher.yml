@@ -8,7 +8,7 @@ integrations:
       name: DirWatcher
       apis:
         - event_type: DirWatcher
-          shell: C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+          shell: powershell
           commands:
             - run: "Get-ChildItem -Path \"C:/Temp/logs.txt\" | Foreach-Object {$_.Name+';'+$_.length+';'+$_.length/1KB+';'+$_.length/1MB+';'+$_.length/1GB+';'+$_.DirectoryName+';'+$_.IsReadOnly+';'+$_.Exists+';'+$_.FullName+';'+$_.Extension+';'+$_.CreationTime+';'+$_.CreationTimeUtc+';'+$_.LastAccessTime+';'+$_.LastAccessTimeUtc+';'+$_.LastWriteTime+';'+$_.LastAccessTimeUtc+';'+$_.Attributes+';'+$_.Mode+';'+$_.BaseName+';'+$_.LinkType+';'+((Get-Date)-$_.LastWriteTime).TotalHours}"
               split: horizontal
