@@ -10,7 +10,7 @@ Follow this tutorial to get started with Flex!
 
 ## Prerequisites
 
-To follow this tutorial you only need some knowledge of your operating system and basic proficiency with its shell. No previous coding experience is required. Since you want to send data to New Relic, we assume that you know the basics of [New Relic Infrastructure](https://learn.newrelic.com/getting-started-with-infrastructure) and the [New Relic Query Language (NRQL)](https://learn.newrelic.com/writing-nrql-queries).
+To follow this tutorial you only need some knowledge of your operating system and basic proficiency with its shell. No previous coding experience is required. Since you want to send data to New Relic, we assume that you know the basics of [New Relic Infrastructure](https://learn.newrelic.com/instrumenting-your-infrastructure) and the [New Relic Query Language (NRQL)](https://learn.newrelic.com/writing-nrql-queries).
 
 Flex integrations are written as YAML files, a human-readable language for describing data. If you are not familiar with YAML, give a look at the excellent [Learn YAML in Y minutes](https://learnxinyminutes.com/docs/yaml/) guide.
 
