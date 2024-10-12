@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/AlekSi/gocov-xml v1.1.0
 	github.com/axw/gocov v1.2.1
-	github.com/jandelgado/gcov2lcov v1.0.6
+	github.com/jandelgado/gcov2lcov v1.1.0
 	github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481
 )
 
