@@ -12,6 +12,7 @@ github.com/jandelgado/gcov2lcov v1.0.4 h1:ADwQPyNsxguqzznIbfQTENwY9FU88JdXEvpdHR
 github.com/jandelgado/gcov2lcov v1.0.4/go.mod h1:NnSxK6TMlg1oGDBfGelGbjgorT5/L3cchlbtgFYZSss=
 github.com/jandelgado/gcov2lcov v1.0.6/go.mod h1:zO6+Sxfj8LomaOUzsobA5IrA12/TcWxOgrjl9w/EKno=
 github.com/jandelgado/gcov2lcov v1.1.0/go.mod h1:tMVUlMVtS1po2SB8UkADWhOT5Y5Q13XOce2AYU69JuI=
+github.com/jandelgado/gcov2lcov v1.1.1/go.mod h1:tMVUlMVtS1po2SB8UkADWhOT5Y5Q13XOce2AYU69JuI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481 h1:jMxcLa+VjJKhpCwbLUXAD15wJ+hhvXMLujCl3MkXpfM=
