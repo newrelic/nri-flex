@@ -26,7 +26,7 @@ jobs:
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install go
         uses: actions/setup-go@v4
         with:
@@ -47,7 +47,7 @@ jobs:
     name: Run integration tests
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -60,7 +60,7 @@ jobs:
     name: Run security checks via snyk
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -80,7 +80,7 @@ jobs:
     runs-on: ${{matrix.os}}
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: install go
         uses: actions/setup-go@v4
         with:
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -112,7 +112,7 @@ jobs:
     name: Run e2e tests
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
