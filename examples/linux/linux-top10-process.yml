@@ -1,0 +1,21 @@
+# This is will capture the TOP 10 processes from the system
+#
+# Query the events : `FROM filteredProcessSample SELECT *` 
+#
+# NOTE: Events-to-Metrics can be configured to push the specific events (memory and/or cpu) to metrics dimension
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: linuxProcessFiltered
+      apis:
+        - name: filteredProcess
+          commands:
+            - run: ps -eo pid,ppid,time,euser,cmd,%mem,%cpu --sort -%mem | head -n10
+              split: horizontal
+              set_header: [processID, parentID, time, userName, commandLine,memory,cpu]
+              regex_match: true
+              split_by: (\d+)\s+(\d+)\s+(\d{2,3}:\d{2}:\d{2})\s+(\S+)\s+(.+?)\s+(\d+\.\d+)\s+(\d+\.\d+)$
+              custom_attributes:
+                processFilter: top10Processes
+                hostname: localhost
