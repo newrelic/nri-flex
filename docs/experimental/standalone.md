@@ -12,17 +12,17 @@ Flex can run without the infrastructure agent reporting telemetry directly to Ne
 
     You can also download the lastest package from [Github releases](https://github.com/newrelic/nri-flex/releases) and extract it in your target host.
 
-2. Prepare the execution command with the expected parameters as explained below. 
+2. Prepare the execution command with the expected parameters as [explained below](#running-flex-without-the-infrastructure-agent). 
 
 3. Determine when and how Flex should be executed. For example, define a cronjob to execute it on a fixed interval. 
 
-4. Check data is reported as expected in New Relic UI.
+4. Check that the custom events are reported as expected in the New Relic UI.
 
 Refer to [troubleshooting](https://docs.newrelic.com/docs/infrastructure/host-integrations/host-integrations-list/flex-integration-tool-build-your-own-integration/#troubleshooting) documentation for help. 
 
 ## Running Flex without the infrastructure agent
 
-Command examle:
+Command example:
 ```
   /path/to/nri-flex -insights_api_key YOUR_LICENSE_KEY -insights_url https://insights-collector.newrelic.com/v1/accounts/YOUR_ACCOUNT_ID/events -config_path /path/to/YOUR_CONFIG.yml
 ```
