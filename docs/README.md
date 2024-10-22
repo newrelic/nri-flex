@@ -27,6 +27,7 @@ Flex implements the following experimental features. 'Experimental' here means t
 - [Net dial](experimental/dial.md)
 - [Git configuration synchronization](experimental/git_sync.md)
 - [JMX](experimental/jmx.md)
+- [Standalone mode](experimental/standalone.md)
 
 ## Deprecated features
 
