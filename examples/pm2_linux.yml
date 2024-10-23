@@ -1,0 +1,51 @@
+# Prerequisites for Linux:
+# Ensure node and pm2 are available or mapped to root/sudo user at:
+# `/usr/local/bin/pm2` & `/usr/local/bin/node`
+#
+# This is necessary because PM2 runs in non-root mode while Flex requires sudo
+# 
+# Commands to setup mapping
+# sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pm2" "/usr/local/bin/pm2"
+# sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node" 
+# 
+integrations:
+  - name: nri-flex
+    timeout: 60s
+    interval: 30s
+    config:
+      name: PM2status
+      apis:
+        - name: PM2Process
+          event_type: PM2Sample
+          commands:
+            - run: USER=ubuntu; su - $USER bash -c "pm2 jlist"
+            # - run: npx pm2 jlist
+          jq: >- 
+              [] | { 
+                  pid,
+                  name,
+                  pm2_env: {
+                    script: .pm2_env.script?,
+                    out_file: .pm2_env.out_file?,
+                    error_file: .pm2_env.error_file?,
+                    watch: .pm2_env.watch?,
+                    exit_code: .pm2_env.exit_code?,
+                    node_version: .pm2_env.node_version?,
+                    versioning: .pm2_env.versioning?,
+                    version: .pm2_env.version?,
+                    unstable_restarts: .pm2_env.unstable_restarts?,
+                    restart_time: .pm2_env.restart_time?,
+                    created_at: .pm2_env.created_at?,
+                    pm_uptime: .pm2_env.pm_uptime?,
+                    status: .pm2_env.status?,
+                    unique_id: .pm2_env.unique_id?
+                  },
+                  pm_id,
+                  monit
+                } | del(.pm2_env.versioning.remotes) | [.] | . + [{total_cpu: ([.[].monit.cpu?] | add)}] + [{total_memory: ([.[].monit.memory?] | add)}]
+          remove_keys:
+            - pm_id
+          rename_keys:
+            name: appName
+          custom_attributes:
+            hostId: localhost
