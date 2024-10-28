@@ -8,6 +8,9 @@
 # sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pm2" "/usr/local/bin/pm2"
 # sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node" 
 # 
+# For windows and mac simply uncomment the 2nd block with `npx pm2 jlist` 
+# 
+# Query the events : `FROM PM2Sample SELECT *` 
 integrations:
   - name: nri-flex
     timeout: 60s
@@ -42,7 +45,7 @@ integrations:
                   },
                   pm_id,
                   monit
-                } | del(.pm2_env.versioning.remotes) | [.] | . + [{total_cpu: ([.[].monit.cpu?] | add)}] + [{total_memory: ([.[].monit.memory?] | add)}]
+                } | del(.pm2_env.versioning.remotes)
           remove_keys:
             - pm_id
           rename_keys:

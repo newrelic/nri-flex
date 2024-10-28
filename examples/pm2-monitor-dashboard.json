@@ -1,0 +1,238 @@
+{
+  "name": "PM2 Monitor with Flex",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "PM2 Monitor",
+      "description": null,
+      "widgets": [
+        {
+          "title": "Memory Usage by App (mb)",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "dataFormatters": [
+              {
+                "name": "Mb",
+                "precision": 2,
+                "type": "decimal"
+              }
+            ],
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1234567
+                ],
+                "query": "FROM PM2Sample select average(monit.memory)/1048576 as 'Mb' facet appName "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": [
+              {
+                "alertSeverity": "WARNING",
+                "value": 50
+              },
+              {
+                "alertSeverity": "CRITICAL",
+                "value": 60
+              }
+            ]
+          }
+        },
+        {
+          "title": "CPU Usage by App (%)",
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1234567
+                ],
+                "query": "FROM PM2Sample select average(monit.cpu) as 'CPU Usage %' facet appName "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": [
+              {
+                "columnName": "CPU Usage %",
+                "from": 0,
+                "severity": "success",
+                "to": 0.2
+              },
+              {
+                "columnName": "CPU Usage %",
+                "from": 0.2,
+                "severity": "severe",
+                "to": 1
+              }
+            ]
+          }
+        },
+        {
+          "title": "Total CPU vs Memory ",
+          "layout": {
+            "column": 9,
+            "row": 1,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.area"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1234567
+                ],
+                "query": "FROM PM2Sample select average(monit.memory)/1048576 as 'Avg Memory M/b' , average(monit.cpu) as 'Avg CPU%' EXTRAPOLATE TIMESERIES"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Latest CPU & Memory by App",
+          "layout": {
+            "column": 1,
+            "row": 4,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "d997a1e4-423d-4d01-b450-da8a4465f60e.status-table-widget"
+          },
+          "rawConfiguration": {
+            "accountId": 1234567,
+            "cellConfigs": [
+              {
+                "bgColor": "warning",
+                "highlightRow": false,
+                "priority": "0",
+                "targetAttribute": "latest.monit.memory",
+                "valueAbove": 50000000,
+                "zeroHandling": false
+              },
+              {
+                "bgColor": "critical",
+                "emptyHandling": true,
+                "highlightRow": false,
+                "nullHandling": true,
+                "priority": "0",
+                "targetAttribute": "latest.monit.cpu",
+                "valueAbove": 1,
+                "valueBelow": 0,
+                "zeroHandling": false
+              },
+              {
+                "alignmentType": "LEFT",
+                "bgColor": "red",
+                "highlightRow": true,
+                "regexMatch": "stopped",
+                "targetAttribute": "pm2_env.status"
+              }
+            ],
+            "headerConfigs": [
+              {
+                "renameHeader": "Memory(Mb)",
+                "targetAttribute": "latest.monit.memory",
+                "valueType": "BYTES"
+              },
+              {
+                "renameHeader": "CPU (%)",
+                "targetAttribute": "latest.monit.cpu",
+                "valueType": "normal"
+              },
+              {
+                "renameHeader": "App Status",
+                "targetAttribute": "pm2_env.status"
+              },
+              {
+                "alignmentType": "LEFT",
+                "hideHeader": false,
+                "renameHeader": "Last Update Time",
+                "targetAttribute": "latest.pm2_env.created_at",
+                "valueType": "TIMESTAMP"
+              }
+            ],
+            "query": "FROM PM2Sample select latest(monit.memory), latest(monit.cpu), latest(pm2_env.created_at) facet appName,pm2_env.status",
+            "showKey": true,
+            "useTimeRange": true
+          }
+        },
+        {
+          "title": "App Revision Details",
+          "layout": {
+            "column": 5,
+            "row": 4,
+            "width": 8,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "initialSorting": {
+              "direction": "desc",
+              "name": "Pm2 Env.versioning.update Time"
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1234567
+                ],
+                "query": "FROM PM2Sample select latest(pm2_env.version),latest(pm2_env.versioning.branch), latest(pm2_env.versioning.comment), latest(pm2_env.versioning.url), latest(pm2_env.versioning.update_time) ,latest(pm2_env.versioning.revision) as 'commit ID'  facet appName "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variables": []
+}
