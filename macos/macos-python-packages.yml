@@ -1,0 +1,24 @@
+integrations:
+  - name: nri-flex
+    config:
+      name: PythonPackages
+      apis:
+        - event_type: pythonpackages
+          commands:
+            - run: pip3 list --format=json --exclude-editable
+
+        - event_type: pythonversion
+          commands:
+            - run: python3 --version
+              split: horizontal
+              set_header: [version]
+              regex_match: true
+              split_by: (.+)
+
+        - event_type: pythonhomebrew
+          commands:
+            - run: ls -d /opt/homebrew/opt/python*
+              split: horizontal
+              set_header: [pythondirectory]
+              regex_match: true
+              split_by: (\S+)
