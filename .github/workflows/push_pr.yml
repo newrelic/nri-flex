@@ -28,18 +28,16 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v2
       - name: Install go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - name: Run unit tests
         run:  make ci/test
-      - name: Convert coverage.out to lcov.info
-        run: make ci/convert-coverage
       - name: Coveralls Parallel
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.github_token }}
-          path-to-lcov: lcov.info
+          path-to-lcov: ./coverage.out
           flag-name: run-linux
           parallel: true
 
@@ -82,7 +80,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: install go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - name: run unit tests
@@ -119,7 +117,7 @@ jobs:
           username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
           password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
       - name: Install go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - name: Run e2e tests
@@ -131,7 +129,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Coveralls Finished
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.github_token }}
           parallel-finished: true
