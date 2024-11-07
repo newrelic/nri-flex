@@ -1,0 +1,13 @@
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: MacOSSDKs
+      apis:
+        - event_type: macossdk
+          commands:
+            - run: xcodebuild -showsdks 2>/dev/null | grep -o '\-sdk \S*' | awk '{print $2}'
+              split: horizontal
+              set_header: [sdk]
+              regex_match: true
+              split_by: (\S+)
