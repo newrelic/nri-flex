@@ -20,12 +20,30 @@ builds:
         {{- if eq .Os "linux" -}}
         CGO_ENABLED=0
         {{- end }}
-    # overrides:
-    #   - goos: linux
-    #     env:
-    #     - CGO_ENABLED=0
+  - id: nri-flex-fips
+    main: ./cmd/nri-flex/
+    binary: nri-flex
+    ldflags:
+      - -s -w -X github.com/newrelic/nri-flex/internal/load.IntegrationVersion={{.Version}}
+    goos:
+    - linux
+    goarch:
+    - amd64
+    - arm64
+    env:
+      - CGO_ENABLED=1
+      - GOEXPERIMENT=boringcrypto
+      - >-
+        {{- if eq .Arch "arm64" -}}
+        CC=aarch64-linux-gnu-gcc
+        {{- end }}
+    tags:
+      - fips
 archives:
-  - files:
+  - id: nri-flex
+    builds:
+      - nri-flex
+    files:
       - LICENSE
       - README.md
       - CHANGELOG.md
@@ -34,6 +52,15 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
+  - id: nri-flex-fips
+    builds:
+      - nri-flex-fips
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - examples/*
+    name_template:  "{{ .ProjectName }}_{{ .Os }}_{{ .Version }}_{{ .Arch }}_fips" # Used to change `armv6` to `arm`
 checksum:
   name_template: 'checksums.txt'
 snapshot:
