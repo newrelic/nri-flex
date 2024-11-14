@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 # Define Go version
-ARG GO_VERSION=1.22
+ARG GO_VERSION=1.22.9
 ARG ARCH='amd64'
 
 # Install dependencies
