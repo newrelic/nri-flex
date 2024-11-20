@@ -1,0 +1,28 @@
+integrations:
+  - name: nri-flex 
+    interval: 60s
+    config: # Flex configuration starts here!
+      name: jenkins
+      global: 
+      #Provide jenkins credentials
+         base_url: http://172.24.16.167:8080/
+         user: admin
+         pass: 123
+      apis:
+      #This is for capturing all the jobs running
+        - event_type: CiJobs
+          url: /api/json?tree=jobs[name]
+          store_lookups:
+            name: name
+      #This is for capturing all the stages running
+        - event_type: CiStages
+          url: /job/${lookup:name}/wfapi/runs
+          custom_attributes:
+             job_name: ${lookup:name}
+          start_key:
+             - stages
+      #This is for capturing all the builds running
+        - event_type: CiBuilds
+          url: /job/${lookup:name}/api/json?tree=allBuilds[*]
+          custom_attributes:
+             name: ${lookup:name}
