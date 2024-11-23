@@ -27,7 +27,7 @@ require (
 	github.com/sijms/go-ora/v2 v2.8.22
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.11.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/vertica/vertica-sql-go v1.3.3
 	go.uber.org/ratelimit v0.3.1
 	golang.org/x/crypto v0.25.0
