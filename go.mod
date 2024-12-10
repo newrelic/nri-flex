@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/MonetDB/MonetDB-Go v1.1.0
-	github.com/SAP/go-hdb v0.107.3
+	github.com/SAP/go-hdb v1.12.7
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/basgys/goxml2json v1.1.0
@@ -30,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/vertica/vertica-sql-go v1.3.3
 	go.uber.org/ratelimit v0.3.1
-	golang.org/x/crypto v0.25.0
+	golang.org/x/crypto v0.30.0
 	golang.org/x/net v0.27.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
@@ -98,11 +98,10 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
-	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
