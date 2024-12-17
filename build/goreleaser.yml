@@ -60,7 +60,7 @@ archives:
       - README.md
       - CHANGELOG.md
       - examples/*
-    name_template:  "{{ .ProjectName }}_{{ .Os }}_{{ .Version }}_{{ .Arch }}_fips" # Used to change `armv6` to `arm`
+    name_template:  "{{ .ProjectName }}-fips_{{ .Os }}_{{ .Version }}_{{ .Arch }}" # Used to change `armv6` to `arm`
 checksum:
   name_template: 'checksums.txt'
 snapshot:
