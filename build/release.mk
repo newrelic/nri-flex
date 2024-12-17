@@ -1,4 +1,4 @@
-GORELEASER_VERSION  ?= v1.19.2
+GORELEASER_VERSION  ?= v2.4.4
 GORELEASER_BIN      ?= $(CURDIR)/bin/goreleaser
 GORELEASER_CONFIG   ?= --config $(CURDIR)/build/goreleaser.yml
 PKG_FLAGS			?= --clean
