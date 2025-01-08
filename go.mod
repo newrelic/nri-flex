@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/MonetDB/MonetDB-Go v1.1.0
-	github.com/SAP/go-hdb v0.107.3
+	github.com/SAP/go-hdb v0.113.10
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/basgys/goxml2json v1.1.0
@@ -98,7 +98,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
-	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75 // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
