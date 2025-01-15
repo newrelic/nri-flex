@@ -1,0 +1,19 @@
+#
+# Flex Integration to find the user-defined Task scheduler details and report its last run status as Standard New Relic Telemetry Events
+# This integration fetches information using Get-ScheduledTask and Get-ScheduledTaskInfo commands
+#
+integrations:
+  - name: nri-flex
+    interval: 2m
+    timeout: 1m
+    config:
+      name: wintaskschedulerinfo
+      apis:
+        - name: wintaskschedulerinfo2File
+          shell: powershell
+          ignore_output: true
+          commands:
+            - run: Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File "C:\Program Files\New Relic\newrelic-infra\integrations.d\WindowsScheduledTaskInfo.ps1"' -RedirectStandardOutput 'C:\Program Files\New Relic\newrelic-infra\integrations.d\windows-scheduled-task-info.json' -WindowStyle Hidden
+        - name: FwdScheduledTaskInfoFile2NewRelic
+          event_type: WindowsScheduledTaskInfo
+          file: C:\Program Files\New Relic\newrelic-infra\integrations.d\windows-scheduled-task-info.json

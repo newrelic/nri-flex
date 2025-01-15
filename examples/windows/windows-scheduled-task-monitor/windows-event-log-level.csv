@@ -1,0 +1,7 @@
+log_code,log_level
+0,Log Always
+1,Critical
+2,Error
+3,Warning
+4,Information
+5,Verbose
