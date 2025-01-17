@@ -1,0 +1,150 @@
+{
+  "name": "Windows Scheduled Task Oveview",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Windows Scheduled Task Oveview",
+      "description": null,
+      "widgets": [
+        {
+          "title": "Failed Tasks (latest information)",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 2,
+            "height": 2
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  9999999
+                ],
+                "query": "FROM (\nFROM WindowsScheduledTaskInfo SELECT latest(LastTaskResultHex) AS latestTaskResult FACET TaskFullPath)\nSELECT uniqueCount(TaskFullPath) AS FailedTasks WHERE latestTaskResult != '0x0'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Scheduled Task Info",
+          "layout": {
+            "column": 3,
+            "row": 1,
+            "width": 10,
+            "height": 4
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  9999999
+                ],
+                "query": "FROM WindowsScheduledTaskInfo\nLEFT JOIN (FROM lookup(windows_scheduled_task_result_descriptions) SELECT task_result_code, task_result_description ) ON LastTaskResultHex = task_result_code\n SELECT latest(LastRunTimeInMillis), latest(LastTaskResultHex), latest(task_result_description), latest(NextRunTimeInMillis) WHERE TaskFullPathStringLiteral LIKE {{task_full_name}} FACET TaskFullPathStringLiteral"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Successful Tasks (latest information)",
+          "layout": {
+            "column": 1,
+            "row": 3,
+            "width": 2,
+            "height": 2
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  9999999
+                ],
+                "query": "FROM (\nFROM WindowsScheduledTaskInfo SELECT latest(LastTaskResultHex) AS latestTaskResult FACET TaskFullPath)\nSELECT uniqueCount(TaskFullPath) AS SuccessfulTasks WHERE latestTaskResult = '0x0'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": true
+            }
+          }
+        },
+        {
+          "title": "Scheduled Task History (Event Logs)",
+          "layout": {
+            "column": 1,
+            "row": 5,
+            "width": 12,
+            "height": 8
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "logger.log-table-widget"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  9999999
+                ],
+                "query": "FROM Log \nJOIN (FROM lookup(windows_event_log_level) SELECT log_code, log_level) ON Level=log_code\nSELECT StringInserts AS ScheduledTask, log_level, Opcode, EventID, Task AS TaskCode, hostname, message WHERE `logtype` = 'windows_taskscheduler_history' AND aparse(StringInserts, '[\"*\"]%') = {{task_full_name}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "task_full_name",
+      "items": null,
+      "defaultValues": [
+        {
+          "value": {
+            "string": ""
+          }
+        }
+      ],
+      "nrqlQuery": {
+        "accountIds": [
+          9999999
+        ],
+        "query": "FROM WindowsScheduledTaskInfo SELECT uniques(TaskFullPathStringLiteral)"
+      },
+      "options": {
+        "ignoreTimeRange": false,
+        "excluded": true
+      },
+      "title": "Scheduled Task",
+      "type": "NRQL",
+      "isMultiSelection": false,
+      "replacementStrategy": "STRING"
+    }
+  ]
+}
