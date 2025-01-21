@@ -26,7 +26,7 @@ import (
 	//Database Drivers
 	_ "github.com/MonetDB/MonetDB-Go/src"       //MonetDB
 	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
-	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
+	_ "github.com/denisenkom/go-mssqldb/azuread"        //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
 	_ "github.com/lib/pq"                       //postgres
 	_ "github.com/newrelic-experimental/go-ase" //Sybases
