@@ -2,7 +2,7 @@ module github.com/newrelic/nri-flex/tools
 
 go 1.22.0
 
-toolchain go1.23.4
+toolchain go1.23.6
 
 require (
 	github.com/AlekSi/gocov-xml v1.1.0
