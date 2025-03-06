@@ -155,6 +155,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/newrelic-experimental/go-ase v1.2.0 h1:l9JN00pX+AUolLEvjCIiOXGiQxTsYW5YBrtsnMhss7k=
 github.com/newrelic-experimental/go-ase v1.2.0/go.mod h1:phLmGUg0sxUkaNXqj752lG0PX7ElZkR/JyRZ7nJiWFc=
+github.com/newrelic-experimental/go-ase v1.3.0 h1:MpvwIyqAsJ3lMqF71dW6g0N7/g58V3eLRi9Dv8Q5Cgg=
+github.com/newrelic-experimental/go-ase v1.3.0/go.mod h1:phLmGUg0sxUkaNXqj752lG0PX7ElZkR/JyRZ7nJiWFc=
 github.com/newrelic-experimental/go-dblib v1.2.0 h1:Dm0r9PdvbgjHKgpUxo78qehLfqP2Hy1mdm0NY2M1cQ8=
 github.com/newrelic-experimental/go-dblib v1.2.0/go.mod h1:B8su1WE/yk105iCtDKvsWolUkg+LHYQvBxocCDrqCtA=
 github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible h1:Ktcm1aPAl7CW3o+FXAIKJ+jygWVXDXaUIWFyf2CXQTk=
