@@ -18,7 +18,7 @@ jobs:
   test-nix:
     strategy:
       matrix:
-        os: [ ubuntu-20.04 ]
+        os: [ ubuntu-24.04 ]
     name: Run unit tests in ${{matrix.os}}
     runs-on: ${{matrix.os}}
     steps:
@@ -40,7 +40,7 @@ jobs:
 
   test-integration-nix:
     name: Run integration tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -53,7 +53,7 @@ jobs:
 
   snyk:
     name: Run security checks via snyk
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -93,7 +93,7 @@ jobs:
 
   prerelease:
     name: Build and release binaries
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ test-nix, test-windows, snyk, test-integration-nix ]
     steps:
       - uses: actions/checkout@v2
@@ -115,7 +115,7 @@ jobs:
   finish:
     name: Finish
     needs: [ prerelease ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Coveralls Finished
         uses: coverallsapp/github-action@v2
