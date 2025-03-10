@@ -29,8 +29,33 @@ integrations:
           commands:
             - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT table_name, total_rows, total_partitions, total_logical_bytes, total_physical_bytes FROM \`${var:project_id}\`.\`region-${var:region}\`.INFORMATION_SCHEMA.TABLE_STORAGE"
               timeout: 90000
-        - name: bq-jobs
+        - name: bq-table-ingest-rate
           event_type: bq_table_ingest_rate
           commands:
-            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT error_result.message AS error_message, COUNT(*) AS failure_count FROM `region-us`.INFORMATION_SCHEMA.JOBS_BY_USER WHERE error_result.message IS NOT NULL GROUP BY error_message ORDER BY failure_count DESC"
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT destination_table.table_id as table_name, COUNT(*) as ingest_rate, MAX(creation_time) as last_ingestion_time FROM \`region-${var:region}.INFORMATION_SCHEMA.JOBS\` where state='DONE' and job_type in ('LOAD', 'QUERY') GROUP BY table_name"
+              timeout: 90000
+        - name: bq-metrics-by-user
+          event_type: bq_job_metrics
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT user_email, COUNT(*) AS job_count, AVG(TIMESTAMP_DIFF(end_time, start_time, SECOND)) AS avg_duration_seconds, SUM(total_slot_ms) AS total_slot_usage, SUM(total_bytes_processed) AS total_bytes_processed FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER GROUP BY user_email"
+              timeout: 90000
+        - name: bq-metrics-by-dataset
+          event_type: bq_job_metrics
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT destination_table.project_id as project_id, destination_table.dataset_id as dataset_id, destination_table.table_id as table_id, COUNT(*) AS job_count, AVG(TIMESTAMP_DIFF(end_time, start_time, SECOND)) AS avg_duration_seconds, SUM(total_slot_ms) AS total_slot_usage, SUM(total_bytes_processed) AS total_bytes_processed FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_PROJECT GROUP BY project_id, dataset_id, table_id ORDER BY job_count DESC"
+              timeout: 90000
+        - name: bq-slot-usage-by-user-job
+          event_type: bq_slot_usage
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT job_id, user_email, total_bytes_processed, total_slot_ms FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER"
+              timeout: 90000
+        - name: bq-slowest-jobs
+          event_type: bq_slowest_jobs
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT job_id, user_email, TIMESTAMP_DIFF(end_time, start_time, SECOND) AS duration_seconds FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER ORDER BY duration_seconds DESC LIMIT 100"
+              timeout: 90000
+        - name: bq-job-failures
+          event_type: bq_job_failures
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT error_result.message AS error_message, COUNT(*) AS failure_count FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER WHERE error_result.message IS NOT NULL GROUP BY error_message ORDER BY failure_count DESC"
               timeout: 90000
