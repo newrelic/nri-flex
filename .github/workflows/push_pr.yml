@@ -72,7 +72,7 @@ jobs:
   test-windows:
     strategy:
       matrix:
-        go: [ '1.22' ]
+        go: [ '1.24' ]
         os: [ windows-2022 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}

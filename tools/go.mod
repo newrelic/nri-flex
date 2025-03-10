@@ -1,6 +1,6 @@
 module github.com/newrelic/nri-flex/tools
 
-go 1.22.0
+go 1.24
 
 toolchain go1.23.4
 
