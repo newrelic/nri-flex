@@ -1,0 +1,61 @@
+integrations:
+  - name: nri-flex
+    interval: 300s
+    env:
+      ## Uncomment these variables and set to remove all infrastructure agent metadata appended to data within NRDB
+      # INSIGHTS_API_KEY: <ingest_key>
+      # INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<account_id>/events
+      EVENT_LIMIT: 100000
+    config:
+      name: gcp-bq-flex
+      variable_store:
+        service_account_email: service-account@project123.iam.gserviceaccount.com # Requred
+        project_id: my-project-id-123456 # Required
+        region: us # Required
+      apis:
+        ## Initial authentication of service account - only required 1 time via running flex manually, otherwise comment out
+        # - name: bq-auth
+        #   event_type: bq_auth
+        #   ignore_output: true
+        #   commands:
+        #     - run: gcloud auth activate-service-account ${var:service_account_email} --key-file=/home/ubuntu/tmp/my-service-account.json
+        - name: bq-column
+          event_type: bq_table_column_count
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT table_name, COUNT(column_name) as column_count FROM \`${var:project_id}.region-${var:region}.INFORMATION_SCHEMA.COLUMNS\` GROUP BY table_Name"
+              timeout: 90000
+        - name: bq-table-storage
+          event_type: bq_table_stats
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT table_name, total_rows, total_partitions, total_logical_bytes, total_physical_bytes FROM \`${var:project_id}\`.\`region-${var:region}\`.INFORMATION_SCHEMA.TABLE_STORAGE"
+              timeout: 90000
+        - name: bq-table-ingest-rate
+          event_type: bq_table_ingest_rate
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT destination_table.table_id as table_name, COUNT(*) as ingest_rate, MAX(creation_time) as last_ingestion_time FROM \`region-${var:region}.INFORMATION_SCHEMA.JOBS\` where state='DONE' and job_type in ('LOAD', 'QUERY') GROUP BY table_name"
+              timeout: 90000
+        - name: bq-metrics-by-user
+          event_type: bq_job_metrics
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT user_email, COUNT(*) AS job_count, AVG(TIMESTAMP_DIFF(end_time, start_time, SECOND)) AS avg_duration_seconds, SUM(total_slot_ms) AS total_slot_usage, SUM(total_bytes_processed) AS total_bytes_processed FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER GROUP BY user_email"
+              timeout: 90000
+        - name: bq-metrics-by-dataset
+          event_type: bq_job_metrics
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT destination_table.project_id as project_id, destination_table.dataset_id as dataset_id, destination_table.table_id as table_id, COUNT(*) AS job_count, AVG(TIMESTAMP_DIFF(end_time, start_time, SECOND)) AS avg_duration_seconds, SUM(total_slot_ms) AS total_slot_usage, SUM(total_bytes_processed) AS total_bytes_processed FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_PROJECT GROUP BY project_id, dataset_id, table_id ORDER BY job_count DESC"
+              timeout: 90000
+        - name: bq-slot-usage-by-user-job
+          event_type: bq_slot_usage
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT job_id, user_email, total_bytes_processed, total_slot_ms FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER"
+              timeout: 90000
+        - name: bq-slowest-jobs
+          event_type: bq_slowest_jobs
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT job_id, user_email, TIMESTAMP_DIFF(end_time, start_time, SECOND) AS duration_seconds FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER ORDER BY duration_seconds DESC LIMIT 100"
+              timeout: 90000
+        - name: bq-job-failures
+          event_type: bq_job_failures
+          commands:
+            - run: bq query --project_id=${var:project_id} --use_legacy_sql=false --quiet=true --format=json "SELECT error_result.message AS error_message, COUNT(*) AS failure_count FROM \`region-${var:region}\`.INFORMATION_SCHEMA.JOBS_BY_USER WHERE error_result.message IS NOT NULL GROUP BY error_message ORDER BY failure_count DESC"
+              timeout: 90000
