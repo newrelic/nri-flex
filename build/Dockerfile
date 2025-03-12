@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 # Define Go version
-ARG GO_VERSION=1.22
+ARG GO_VERSION=1.23
 ARG ARCH='amd64'
 
 # Install dependencies
@@ -29,8 +29,10 @@ RUN apt-get update && apt-get install -y \
 # Install Go
 # It tries to get the latest patch version of Go that matches the version specified in the Makefile
 # It can be simplified once we have Renovatebot support for this repo
-RUN FULL_GO_VERSION=go1.22.12 && \
-    curl -sSL https://go.dev/dl/${FULL_GO_VERSION}.linux-${ARCH}.tar.gz -o ${FULL_GO_VERSION}.linux-${ARCH}.tar.gz && \
+RUN FULL_GO_VERSION=$(curl -s "https://go.dev/dl/?mode=json" | \
+    jq -r --arg VERSION "${GO_VERSION}" \
+    '[.[] | select(.version | test("^go\($VERSION)\\."))] | .[0].version') && \
+    curl -sSL https://golang.org/dl/${FULL_GO_VERSION}.linux-${ARCH}.tar.gz -o ${FULL_GO_VERSION}.linux-${ARCH}.tar.gz && \
     tar -C /usr/local -xzf ${FULL_GO_VERSION}.linux-${ARCH}.tar.gz && \
     rm ${FULL_GO_VERSION}.linux-${ARCH}.tar.gz
 
