@@ -157,6 +157,11 @@ func TestSubEnvVariablescheck(t *testing.T) {
 			input:    "Value is $$FARGATE_TASK",
 			expected: "Value is something",
 		},
+		{
+			name:     "Substitution for only env var",
+			input:    "FARGATE value is: $$FARGATE",
+			expected: "FARGATE value is: true",
+		},
 	}
 
 	for _, tt := range tests {
