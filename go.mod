@@ -1,8 +1,6 @@
 module github.com/newrelic/nri-flex
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.1
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
