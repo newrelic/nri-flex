@@ -5,10 +5,12 @@
 package config
 
 import (
-	"github.com/newrelic/nri-flex/internal/load"
-	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/newrelic/nri-flex/internal/load"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubTimestamps(t *testing.T) {
@@ -112,4 +114,61 @@ func Test_toString(t *testing.T) {
 	assert.Equal(t, "2456853", toString(valueString))
 	valueMap := map[string]interface{}{"foo": "baz"}
 	assert.Equal(t, "map[foo:baz]", toString(valueMap))
+}
+
+func TestSubEnvVariablescheck(t *testing.T) {
+	// Set up environment variables
+	os.Setenv("TEST_ENV_VAR", "test_value")
+	os.Setenv("ANOTHER_ENV_VAR", "another_value")
+	os.Setenv("FARGATE", "true")
+	os.Setenv("FARGATE_TASK", "something")
+	defer os.Unsetenv("TEST_ENV_VAR")
+	defer os.Unsetenv("ANOTHER_ENV_VAR")
+	defer os.Unsetenv("FARGATE")
+	defer os.Unsetenv("FARGATE_TASK")
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Single substitution",
+			input:    "Value is $$TEST_ENV_VAR",
+			expected: "Value is test_value",
+		},
+		{
+			name:     "Multiple substitutions",
+			input:    "Values are $$TEST_ENV_VAR and $$ANOTHER_ENV_VAR",
+			expected: "Values are test_value and another_value",
+		},
+		{
+			name:     "No substitution",
+			input:    "No env vars here",
+			expected: "No env vars here",
+		},
+		{
+			name:     "Partial substitution",
+			input:    "Value is $$TEST_ENV_VAR and $$MISSING_ENV_VAR",
+			expected: "Value is test_value and $$MISSING_ENV_VAR",
+		},
+		{
+			name:     "Substitution with substr of env var",
+			input:    "Value is $$FARGATE_TASK",
+			expected: "Value is something",
+		},
+		{
+			name:     "Substitution for only env var",
+			input:    "FARGATE value is: $$FARGATE",
+			expected: "FARGATE value is: true",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := tt.input
+			SubEnvVariables(&input)
+			assert.Equal(t, tt.expected, input)
+		})
+	}
 }

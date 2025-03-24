@@ -113,23 +113,23 @@ func toString(value interface{}) string {
 // Use a double dollar sign eg. $$MY_ENV_VAR to subsitute that environment variable into the config file
 // Can be useful with kubernetes service environment variables
 func SubEnvVariables(strConf *string) {
-	subCount := strings.Count(*strConf, "$$")
-	replaceCount := 0
-	if subCount > 0 {
-		for _, e := range os.Environ() {
-			pair := strings.SplitN(e, "=", 2)
-			if len(pair) == 2 && pair[0] != "" {
-				if strings.Contains(*strConf, "$$"+pair[0]) {
-					*strConf = strings.Replace(*strConf, "$$"+pair[0], pair[1], -1)
-					load.StatusCounterIncrement("environmentVariablesReplaced")
-					replaceCount++
-				}
-			}
-			if replaceCount >= subCount {
-				break
-			}
+	envVars := os.Environ()
+	envMap := make(map[string]string, len(envVars))
+	for _, e := range envVars {
+		pair := strings.SplitN(e, "=", 2)
+		if len(pair) == 2 && pair[0] != "" {
+			envMap[pair[0]] = pair[1]
 		}
 	}
+	re := regexp.MustCompile(`\$\$([A-Za-z_][A-Za-z0-9_]*)`)
+	*strConf = re.ReplaceAllStringFunc(*strConf, func(match string) string {
+		envVar := match[2:] // Remove "$$" prefix
+		if value, exists := envMap[envVar]; exists {
+			load.StatusCounterIncrement("environmentVariablesReplaced")
+			return value
+		}
+		return match
+	})
 }
 
 // SubTimestamps substitute timestamps into config
