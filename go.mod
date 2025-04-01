@@ -2,7 +2,7 @@ module github.com/newrelic/nri-flex
 
 go 1.23.0
 
-toolchain go1.24.1
+toolchain go1.24.2
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
