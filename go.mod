@@ -6,7 +6,7 @@ toolchain go1.24.3
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
-	github.com/MonetDB/MonetDB-Go v1.1.0
+	github.com/MonetDB/MonetDB-Go/v2 v2.0.2
 	github.com/SAP/go-hdb v0.113.10
 	github.com/aws/aws-lambda-go v1.49.0
 	github.com/aws/aws-sdk-go v1.55.7
