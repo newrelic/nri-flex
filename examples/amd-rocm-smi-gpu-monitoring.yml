@@ -1,0 +1,107 @@
+# https://github.com/RadeonOpenCompute/ROC-smi
+# Tool for AMD GPU monitoring and management via ROCm System Management Interface
+#
+# Prerequisites:
+# - ROCm driver must be installed (https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html)
+# - rocm-smi must be in your PATH
+#
+# This integration uses JSON output format with jq preprocessing for reliable and clean data collection
+#
+# Note: For newer ROCm installations (ROCm 7.0+), consider using amd-smi instead of rocm-smi
+# for additional metrics like voltage curves, ECC errors, PCIe bandwidth, and energy consumption.
+# See: https://github.com/ROCm/amdsmi
+
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: AMDRocmSMI
+      apis:
+        # Comprehensive AMD GPU metrics collection - all device details in single sample
+        - name: AMDGpuAllMetrics
+          event_type: "amd_gpu_metrics"
+          commands:
+            - run: "rocm-smi -ivftumcpS --showbus --showmemvendor --showdriverversion --showserial --showproductname --json | jq '(keys[0]) as $card | .[$card] + {card: $card}'"
+              output: json
+          rename_keys:
+            "Device Name": "device_name"
+            "Device ID": "device_id"
+            "Device Rev": "device_rev"
+            "Subsystem ID": "subsystem_id"
+            "GUID": "device_guid"
+            "VBIOS version": "vbios_version"
+            "Driver version": "driver_version"
+            "Serial Number": "serial_number"
+            "Card series": "card_series"
+            "Card model": "card_model"
+            "Card vendor": "card_vendor"
+            "Card SKU": "card_sku"
+            "Memory vendor": "memory_vendor"
+            "Temperature \\(Sensor edge\\) \\(C\\)": "temp_edge_c"
+            "Temperature \\(Sensor junction\\) \\(C\\)": "temp_junction_c"
+            "Temperature \\(Sensor memory\\) \\(C\\)": "temp_memory_c"
+            "Temperature \\(Sensor HBM\\) \\(C\\)": "temp_hbm_c"
+            "Average Graphics Package Power \\(W\\)": "power_avg_graphics_w"
+            "Current Socket Graphics Package Power \\(W\\)": "power_socket_graphics_w"
+            "Power Cap \\(W\\)": "power_cap_w"
+            "Power Cap Default \\(W\\)": "power_cap_default_w"
+            "Max Graphics Package Power \\(W\\)": "power_max_graphics_w"
+            "dcefclk clock speed:": "dcefclk_speed"
+            "dcefclk clock level:": "dcefclk_level"
+            "fclk clock speed:": "fclk_speed"
+            "fclk clock level:": "fclk_level"
+            "mclk clock speed:": "mclk_speed"
+            "mclk clock level:": "mclk_level"
+            "sclk clock speed:": "sclk_speed"
+            "sclk clock level:": "sclk_level"
+            "pcie clock level": "pcie_level"
+            "Fan speed \\(level\\)": "fan_level"
+            "Fan speed \\(%\\)": "fan_speed_percent"
+            "Fan RPM": "fan_rpm"
+            "Performance Level": "performance_level"
+            "GPU use \\(%\\)": "gpu_usage_percent"
+            "GPU memory use \\(%\\)": "gpu_memory_usage_percent"
+            "PCI Bus": "pci_bus"
+            "VRAM Total Memory \\(B\\)": "vram_total_bytes"
+            "VRAM Total Used Memory \\(B\\)": "vram_used_bytes"
+            "GTT Total Memory \\(B\\)": "gtt_total_bytes"
+            "GTT Total Used Memory \\(B\\)": "gtt_used_bytes"
+          value_parser:
+            "dcefclk clock speed:|fclk clock speed:|mclk clock speed:|sclk clock speed:": "([0-9]+)"
+            "Temperature \\(Sensor edge\\) \\(C\\)|Temperature \\(Sensor junction\\) \\(C\\)|Temperature \\(Sensor memory\\) \\(C\\)|Temperature \\(Sensor HBM\\) \\(C\\)|Fan speed \\(%\\)|GPU use \\(%\\)|GPU memory use \\(%\\)": '[0-9]*\\.?[0-9]+'
+            "Average Graphics Package Power \\(W\\)|Current Socket Graphics Package Power \\(W\\)|Power Cap \\(W\\)|Power Cap Default \\(W\\)|Max Graphics Package Power \\(W\\)": '[0-9]*\\.?[0-9]+'
+            "VRAM Total Memory \\(B\\)|VRAM Total Used Memory \\(B\\)|GTT Total Memory \\(B\\)|GTT Total Used Memory \\(B\\)": "[0-9]+"
+# This integration captures comprehensive AMD GPU metrics using JSON output format:
+#
+# Single comprehensive command combines all metrics per device:
+# - Device Information: Name, ID, Revision, Subsystem ID, GUID, VBIOS version, Driver version
+# - Hardware Details: Serial number, card series/model/vendor/SKU, memory vendor
+# - PCI Bus information
+# - Performance Metrics: Temperature (edge, junction, memory, HBM sensors)
+# - Power Metrics: Average/current/max graphics power, power cap settings
+# - Fan Information: Speed (level, percentage, RPM)
+# - GPU utilization percentage and memory usage percentage
+# - Memory Information: VRAM and GTT total/used memory
+# - Clock frequencies (DCEF, FCLK, MCLK, SCLK) - extracted from parentheses format
+# - Performance states and PCIe clock levels
+#
+# Command flags explanation:
+# -i: Show device ID and name
+# -v: Show VBIOS version
+# -f: Show fan information
+# -t: Show temperature
+# -u: Show GPU utilization
+# -m: Show memory information
+# -c: Show clock frequencies
+# -p: Show power consumption
+# -S: Show performance state
+# --showbus: Show PCI bus information
+# --showmemvendor: Show memory vendor information
+# --showdriverversion: Show driver version
+# --showserial: Show serial number
+# --showproductname: Show product name details
+# --json: Output in JSON format
+#
+# Value parser extracts numeric values from various formats including power metrics,
+# temperatures, percentages, and memory sizes.
