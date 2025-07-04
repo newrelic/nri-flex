@@ -22,9 +22,10 @@ integrations:
         - name: AMDGpuAllMetrics
           event_type: "amd_gpu_metrics"
           commands:
-            - run: "rocm-smi -ivftumcpS --showbus --showmemvendor --showdriverversion --showserial --showproductname --json | jq '(keys[0]) as $card | .[$card] + {card: $card}'"
+            - run: 'rocm-smi -ivftumcpS --showbus --showmemvendor --showdriverversion --showserial --showproductname --json | jq ''to_entries[] | select(.key | startswith("card")) | .value + {card: .key}'''
               output: json
           rename_keys:
+            "card": "gpu_card_id"
             "Device Name": "device_name"
             "Device ID": "device_id"
             "Device Rev": "device_rev"
