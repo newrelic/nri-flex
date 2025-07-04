@@ -1,0 +1,355 @@
+# https://github.com/ROCm/amdsmi
+# AMD System Management Interface (AMD SMI) for comprehensive GPU monitoring
+#
+# Prerequisites:
+# - ROCm 6.0+ with AMD SMI installed (successor to rocm-smi)
+# - amd-smi must be in your PATH
+# - AMD GPU with amdgpu driver loaded
+#
+# This integration uses CSV output format for reliable and comprehensive data collection
+# covering usage, power, clocks, temperature, PCIe, ECC, and memory metrics.
+#
+# AMD SMI provides significantly more detailed metrics than rocm-smi including:
+# - Per-GFX engine utilization and clocks
+# - Detailed power management and voltage information
+# - Comprehensive ECC error reporting per block
+# - PCIe bandwidth and error statistics
+# - Memory usage breakdown (VRAM/GTT)
+
+---
+integrations:
+  - name: nri-flex
+    # interval: 30s
+    config:
+      name: AMDSmi
+      apis:
+        # Comprehensive AMD GPU metrics combining static info and dynamic metrics
+        - name: AMDGpuMetrics
+          event_type: "AMDGpuSample"
+          commands:
+            - run: |
+                # Get static info and metrics, then join them by GPU ID
+                static_header=$(amd-smi static --csv | head -1)
+                static_data=$(amd-smi static --csv | tail -n +2)
+                metric_header=$(amd-smi metric --csv | head -1)
+                metric_data=$(amd-smi metric --csv | tail -n +2)
+
+                # Combine headers (remove duplicate gpu column from metrics)
+                combined_header="${static_header},$(echo $metric_header | cut -d',' -f2-)"
+                echo $combined_header
+
+                # Combine data for each GPU
+                echo "$static_data" | while IFS= read -r static_line; do
+                  gpu_id=$(echo "$static_line" | cut -d',' -f1)
+                  metric_line=$(echo "$metric_data" | grep "^$gpu_id,")
+                  if [ ! -z "$metric_line" ]; then
+                    metric_part=$(echo "$metric_line" | cut -d',' -f2-)
+                    echo "${static_line},${metric_part}"
+                  fi
+                done
+              output: csv
+          rename_keys:
+            # GPU identification
+            "gpu": "gpu_id"
+
+            # Static device information
+            "market_name": "device_name"
+            "vendor_name": "vendor_name"
+            "vendor_id": "vendor_id"
+            "device_id": "device_id"
+            "revision_id": "revision_id"
+            "subsystem_vendor_id": "subsystem_vendor_id"
+            "subsystem_device_id": "subsystem_device_id"
+            "asic_serial": "asic_serial"
+            "oam_id": "oam_id"
+
+            # Compute capabilities
+            "num_compute_units": "compute_units"
+            "target_graphics_version": "graphics_version"
+            "num_vram_banks": "vram_banks"
+            "num_simd_per_cu": "simd_per_cu"
+            "num_cu_per_shader_array": "cu_per_shader_array"
+            "num_shader_arrays": "shader_arrays"
+            "num_shader_engines": "shader_engines"
+
+            # Bus information
+            "pci_bus": "pci_bus"
+            "pci_device": "pci_device"
+            "pci_function": "pci_function"
+            "pci_domain": "pci_domain"
+            "pci_bus_id": "pci_bus_id"
+            "max_pcie_width": "max_pcie_width"
+            "max_pcie_speed": "max_pcie_speed_gt_s"
+            "pcie_interface_version": "pcie_interface_version"
+            "slot_type": "slot_type"
+
+            # Memory specifications
+            "vram_type": "vram_type"
+            "vram_size": "vram_size_mb"
+            "vram_bit_width": "vram_bit_width"
+            "memory_channels": "memory_channels"
+            "memory_bandwidth": "memory_bandwidth_gb_s"
+
+            # Driver and firmware
+            "driver_name": "driver_name"
+            "driver_version": "driver_version"
+            "driver_date": "driver_date"
+            "vbios_version": "vbios_version"
+            "firmware_version": "firmware_version"
+
+            # Power and thermal limits
+            "max_power": "max_power_w"
+            "min_power": "min_power_w"
+            "default_power": "default_power_w"
+            "power_cap": "power_cap_w"
+            "critical_temp": "critical_temp_c"
+            "max_temp": "max_temp_c"
+
+            # Cache information
+            "l1_cache_size": "l1_cache_kb"
+            "l2_cache_size": "l2_cache_kb"
+            "l3_cache_size": "l3_cache_kb"
+
+            # Dynamic usage metrics
+            "gfx_activity": "gfx_activity_percent"
+            "umc_activity": "umc_activity_percent"
+            "mm_activity": "mm_activity_percent"
+            "vcn_activity": "vcn_activity"
+            "jpeg_activity": "jpeg_activity"
+            "gfx_busy_inst_xcp_0": "gfx_busy_inst_xcp_0"
+            "jpeg_busy_xcp_0": "jpeg_busy_xcp_0"
+            "vcn_busy_xcp_0": "vcn_busy_xcp_0"
+
+            # Power metrics
+            "socket_power": "socket_power_w"
+            "gfx_voltage": "gfx_voltage_mv"
+            "soc_voltage": "soc_voltage_mv"
+            "mem_voltage": "mem_voltage_mv"
+            "throttle_status": "throttle_status"
+            "power_management": "power_management_status"
+
+            # GFX clocks (GFX_0 through GFX_7)
+            "gfx_0_clk": "gfx_0_clk_mhz"
+            "gfx_0_min_clk": "gfx_0_min_clk_mhz"
+            "gfx_0_max_clk": "gfx_0_max_clk_mhz"
+            "gfx_0_clk_locked": "gfx_0_clk_locked"
+            "gfx_0_deep_sleep": "gfx_0_deep_sleep"
+
+            "gfx_1_clk": "gfx_1_clk_mhz"
+            "gfx_1_min_clk": "gfx_1_min_clk_mhz"
+            "gfx_1_max_clk": "gfx_1_max_clk_mhz"
+            "gfx_1_clk_locked": "gfx_1_clk_locked"
+            "gfx_1_deep_sleep": "gfx_1_deep_sleep"
+
+            "gfx_2_clk": "gfx_2_clk_mhz"
+            "gfx_2_min_clk": "gfx_2_min_clk_mhz"
+            "gfx_2_max_clk": "gfx_2_max_clk_mhz"
+            "gfx_2_clk_locked": "gfx_2_clk_locked"
+            "gfx_2_deep_sleep": "gfx_2_deep_sleep"
+
+            "gfx_3_clk": "gfx_3_clk_mhz"
+            "gfx_3_min_clk": "gfx_3_min_clk_mhz"
+            "gfx_3_max_clk": "gfx_3_max_clk_mhz"
+            "gfx_3_clk_locked": "gfx_3_clk_locked"
+            "gfx_3_deep_sleep": "gfx_3_deep_sleep"
+
+            "gfx_4_clk": "gfx_4_clk_mhz"
+            "gfx_4_min_clk": "gfx_4_min_clk_mhz"
+            "gfx_4_max_clk": "gfx_4_max_clk_mhz"
+            "gfx_4_clk_locked": "gfx_4_clk_locked"
+            "gfx_4_deep_sleep": "gfx_4_deep_sleep"
+
+            "gfx_5_clk": "gfx_5_clk_mhz"
+            "gfx_5_min_clk": "gfx_5_min_clk_mhz"
+            "gfx_5_max_clk": "gfx_5_max_clk_mhz"
+            "gfx_5_clk_locked": "gfx_5_clk_locked"
+            "gfx_5_deep_sleep": "gfx_5_deep_sleep"
+
+            "gfx_6_clk": "gfx_6_clk_mhz"
+            "gfx_6_min_clk": "gfx_6_min_clk_mhz"
+            "gfx_6_max_clk": "gfx_6_max_clk_mhz"
+            "gfx_6_clk_locked": "gfx_6_clk_locked"
+            "gfx_6_deep_sleep": "gfx_6_deep_sleep"
+
+            "gfx_7_clk": "gfx_7_clk_mhz"
+            "gfx_7_min_clk": "gfx_7_min_clk_mhz"
+            "gfx_7_max_clk": "gfx_7_max_clk_mhz"
+            "gfx_7_clk_locked": "gfx_7_clk_locked"
+            "gfx_7_deep_sleep": "gfx_7_deep_sleep"
+
+            # Memory and other clocks
+            "mem_0_clk": "mem_0_clk_mhz"
+            "mem_0_min_clk": "mem_0_min_clk_mhz"
+            "mem_0_max_clk": "mem_0_max_clk_mhz"
+            "mem_0_clk_locked": "mem_0_clk_locked"
+            "mem_0_deep_sleep": "mem_0_deep_sleep"
+
+            "vclk_0_clk": "vclk_0_clk_mhz"
+            "vclk_0_min_clk": "vclk_0_min_clk_mhz"
+            "vclk_0_max_clk": "vclk_0_max_clk_mhz"
+            "vclk_0_clk_locked": "vclk_0_clk_locked"
+            "vclk_0_deep_sleep": "vclk_0_deep_sleep"
+
+            "vclk_1_clk": "vclk_1_clk_mhz"
+            "vclk_1_min_clk": "vclk_1_min_clk_mhz"
+            "vclk_1_max_clk": "vclk_1_max_clk_mhz"
+            "vclk_1_clk_locked": "vclk_1_clk_locked"
+            "vclk_1_deep_sleep": "vclk_1_deep_sleep"
+
+            "dclk_0_clk": "dclk_0_clk_mhz"
+            "dclk_0_min_clk": "dclk_0_min_clk_mhz"
+            "dclk_0_max_clk": "dclk_0_max_clk_mhz"
+            "dclk_0_clk_locked": "dclk_0_clk_locked"
+            "dclk_0_deep_sleep": "dclk_0_deep_sleep"
+
+            "dclk_1_clk": "dclk_1_clk_mhz"
+            "dclk_1_min_clk": "dclk_1_min_clk_mhz"
+            "dclk_1_max_clk": "dclk_1_max_clk_mhz"
+            "dclk_1_clk_locked": "dclk_1_clk_locked"
+            "dclk_1_deep_sleep": "dclk_1_deep_sleep"
+
+            "fclk_0_clk": "fclk_0_clk_mhz"
+            "fclk_0_min_clk": "fclk_0_min_clk_mhz"
+            "fclk_0_max_clk": "fclk_0_max_clk_mhz"
+            "fclk_0_clk_locked": "fclk_0_clk_locked"
+            "fclk_0_deep_sleep": "fclk_0_deep_sleep"
+
+            "socclk_0_clk": "socclk_0_clk_mhz"
+            "socclk_0_min_clk": "socclk_0_min_clk_mhz"
+            "socclk_0_max_clk": "socclk_0_max_clk_mhz"
+            "socclk_0_clk_locked": "socclk_0_clk_locked"
+            "socclk_0_deep_sleep": "socclk_0_deep_sleep"
+
+            # Temperature metrics
+            "edge": "temp_edge_c"
+            "hotspot": "temp_hotspot_c"
+            "mem": "temp_mem_c"
+
+            # PCIe metrics
+            "width": "pcie_width"
+            "speed": "pcie_speed_gt_s"
+            "bandwidth": "pcie_bandwidth_mb_s"
+            "replay_count": "pcie_replay_count"
+            "l0_to_recovery_count": "pcie_l0_recovery_count"
+            "replay_roll_over_count": "pcie_replay_rollover_count"
+            "nak_sent_count": "pcie_nak_sent_count"
+            "nak_received_count": "pcie_nak_received_count"
+            "current_bandwidth_sent": "pcie_current_bandwidth_sent"
+            "current_bandwidth_received": "pcie_current_bandwidth_received"
+            "max_packet_size": "pcie_max_packet_size"
+            "lc_perf_other_end_recovery": "pcie_lc_perf_other_end_recovery"
+
+            # ECC error metrics
+            "total_correctable_count": "ecc_total_correctable"
+            "total_uncorrectable_count": "ecc_total_uncorrectable"
+            "total_deferred_count": "ecc_total_deferred"
+            "cache_correctable_count": "ecc_cache_correctable"
+            "cache_uncorrectable_count": "ecc_cache_uncorrectable"
+
+            # ECC per block
+            "UMC_correctable_count": "ecc_umc_correctable"
+            "UMC_uncorrectable_count": "ecc_umc_uncorrectable"
+            "UMC_deferred_count": "ecc_umc_deferred"
+            "SDMA_correctable_count": "ecc_sdma_correctable"
+            "SDMA_uncorrectable_count": "ecc_sdma_uncorrectable"
+            "SDMA_deferred_count": "ecc_sdma_deferred"
+            "GFX_correctable_count": "ecc_gfx_correctable"
+            "GFX_uncorrectable_count": "ecc_gfx_uncorrectable"
+            "GFX_deferred_count": "ecc_gfx_deferred"
+            "MMHUB_correctable_count": "ecc_mmhub_correctable"
+            "MMHUB_uncorrectable_count": "ecc_mmhub_uncorrectable"
+            "MMHUB_deferred_count": "ecc_mmhub_deferred"
+            "PCIE_BIF_correctable_count": "ecc_pcie_correctable"
+            "PCIE_BIF_uncorrectable_count": "ecc_pcie_uncorrectable"
+            "PCIE_BIF_deferred_count": "ecc_pcie_deferred"
+            "HDP_correctable_count": "ecc_hdp_correctable"
+            "HDP_uncorrectable_count": "ecc_hdp_uncorrectable"
+            "HDP_deferred_count": "ecc_hdp_deferred"
+            "XGMI_WAFL_correctable_count": "ecc_xgmi_correctable"
+            "XGMI_WAFL_uncorrectable_count": "ecc_xgmi_uncorrectable"
+            "XGMI_WAFL_deferred_count": "ecc_xgmi_deferred"
+
+            # Memory usage metrics
+            "total_vram": "vram_total_mb"
+            "used_vram": "vram_used_mb"
+            "free_vram": "vram_free_mb"
+            "total_visible_vram": "vram_visible_total_mb"
+            "used_visible_vram": "vram_visible_used_mb"
+            "free_visible_vram": "vram_visible_free_mb"
+            "total_gtt": "gtt_total_mb"
+            "used_gtt": "gtt_used_mb"
+            "free_gtt": "gtt_free_mb"
+
+          value_parser:
+            # Extract numeric values from static device specs
+            "compute_units|graphics_version|vram_banks|simd_per_cu|cu_per_shader_array|shader_arrays|shader_engines": "[0-9]+"
+            "pci_bus|pci_device|pci_function|pci_domain|max_pcie_width": "[0-9]+"
+            "vram_size_mb|vram_bit_width|memory_channels": "[0-9]+"
+            "memory_bandwidth_gb_s|max_pcie_speed_gt_s": '[0-9]*\.?[0-9]+'
+            "max_power_w|min_power_w|default_power_w|power_cap_w": '[0-9]*\.?[0-9]+'
+            "critical_temp_c|max_temp_c": '[0-9]*\.?[0-9]+'
+            "l1_cache_kb|l2_cache_kb|l3_cache_kb": "[0-9]+"
+            # Extract numeric values from dynamic metrics
+            "gfx_[0-7]_clk_mhz|gfx_[0-7]_min_clk_mhz|gfx_[0-7]_max_clk_mhz|mem_0_clk_mhz|mem_0_min_clk_mhz|mem_0_max_clk_mhz|vclk_[0-1]_clk_mhz|dclk_[0-1]_clk_mhz|fclk_0_clk_mhz|fclk_0_min_clk_mhz|fclk_0_max_clk_mhz|socclk_0_clk_mhz|socclk_0_min_clk_mhz|socclk_0_max_clk_mhz": '[0-9]*\.?[0-9]+'
+            "socket_power_w|gfx_voltage_mv|soc_voltage_mv|mem_voltage_mv": '[0-9]*\.?[0-9]+'
+            "temp_edge_c|temp_hotspot_c|temp_mem_c": '[0-9]*\.?[0-9]+'
+            "gfx_activity_percent|umc_activity_percent|mm_activity_percent": '[0-9]*\.?[0-9]+'
+            "pcie_width|pcie_bandwidth_mb_s|pcie_replay_count|pcie_l0_recovery_count|pcie_replay_rollover_count|pcie_nak_sent_count|pcie_nak_received_count|pcie_current_bandwidth_sent|pcie_current_bandwidth_received|pcie_max_packet_size|pcie_lc_perf_other_end_recovery": '[0-9]*\.?[0-9]+'
+            "pcie_speed_gt_s": '([0-9]*\.?[0-9]+)'
+            "ecc_.*": "[0-9]+"
+            "vram_.*_mb|gtt_.*_mb": "[0-9]+"
+# This enhanced integration captures comprehensive AMD GPU metrics using AMD SMI CSV output:
+#
+# COMBINED METRICS (from amd-smi static --csv + amd-smi metric --csv):
+# All device information and real-time metrics are combined into a single event for easy correlation.
+#
+# STATIC DEVICE INFORMATION:
+# - Device identification (market name, vendor, device IDs, serial numbers)
+# - Compute capabilities (CUs, shader engines, SIMD units per CU)
+# - Memory specifications (VRAM type, size, bandwidth, bit width)
+# - PCI bus information and PCIe capabilities
+# - Driver and firmware versions
+# - Power and thermal limits
+# - Cache hierarchy details (L1/L2/L3 sizes)
+#
+# DYNAMIC PERFORMANCE METRICS:
+#
+# USAGE METRICS:
+# - GFX engine activity percentage
+# - UMC (Unified Memory Controller) activity
+# - MM (Multimedia) activity percentage
+# - VCN (Video Core Next) and JPEG activity arrays
+# - Individual GFX engine busy percentages per XCP
+#
+# POWER METRICS:
+# - Socket power consumption in watts
+# - GFX/SOC/Memory voltage levels
+# - Throttle status and power management state
+#
+# CLOCK METRICS:
+# - Individual GFX engine clocks (GFX_0 through GFX_7)
+# - Memory clocks with min/max ranges and lock/sleep states
+# - Video clocks (VCLK), Display clocks (DCLK)
+# - Fabric clocks (FCLK), SOC clocks
+# - Deep sleep and clock lock states for all domains
+#
+# TEMPERATURE METRICS:
+# - Edge, hotspot, and memory temperatures
+#
+# PCIE METRICS:
+# - Link width, speed, bandwidth utilization
+# - Error counts: replay, NAK sent/received
+# - Current bandwidth sent/received
+# - Recovery statistics and packet information
+#
+# ECC ERROR TRACKING:
+# - Total correctable/uncorrectable/deferred counts
+# - Per-block ECC statistics (UMC, SDMA, GFX, MMHUB, PCIE_BIF, HDP, XGMI_WAFL)
+#
+# MEMORY USAGE:
+# - VRAM total/used/free (including visible VRAM)
+# - GTT (Graphics Translation Table) memory usage
+# - All values in MB for easy monitoring
+#
+# The integration uses a shell script to combine both CSV outputs by GPU ID,
+# providing complete device context with every metric sample for easier analysis and alerting.
