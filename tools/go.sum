@@ -1,6 +1,7 @@
 github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 h1:JZHBkt0GhM+ARQykshqpI49yaWCHQbJonH3XpDTwMZQ=
 github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737/go.mod h1:w1KSuh2JgIL3nyRiZijboSUwbbxOrTzWwyWVFUHtXBQ=
 github.com/AlekSi/gocov-xml v1.1.0/go.mod h1:g1dRVOCHjKkMtlPfW6BokJ/qxoeZ1uPNAK7A/ii3CUo=
+github.com/AlekSi/gocov-xml v1.2.0/go.mod h1:g1dRVOCHjKkMtlPfW6BokJ/qxoeZ1uPNAK7A/ii3CUo=
 github.com/axw/gocov v1.0.0 h1:YsqYR66hUmilVr23tu8USgnJIJvnwh3n7j5zRn7x4LU=
 github.com/axw/gocov v1.0.0/go.mod h1:LvQpEYiwwIb2nYkXY2fDWhg9/AsYqkhmrCshjlUJECE=
 github.com/axw/gocov v1.1.0/go.mod h1:H9G4tivgdN3pYSSVrTFBr6kGDCmAkgbJhtxFzAvgcdw=
