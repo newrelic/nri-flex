@@ -6,7 +6,7 @@ SRCDIR           ?= .
 BUILD_DIR        ?= $(CURDIR)/bin
 COVERAGE_FILE    ?= coverage.out
 
-GO_VERSION       ?= 1.23
+GO_VERSION       ?= 1.24
 GO_CMD           ?= go
 GODOC            ?= godocdown
 
