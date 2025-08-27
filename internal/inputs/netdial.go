@@ -53,7 +53,7 @@ func NetDialWithTimeout(dataStore *[]interface{}, command load.Command, dataSamp
 			dialError = err
 		} else {
 			if command.Run != "" {
-				//nolint:govet
+				//nolint:all
 				fmt.Fprintf(dialConn, command.Run)
 				reader := bufio.NewReader(dialConn)
 				tp := textproto.NewReader(reader)

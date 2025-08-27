@@ -41,7 +41,7 @@ func loadSecrets(config *load.Config) error {
 		}
 		if secret.File == "" && secret.Data == "" && secret.HTTP.URL == "" {
 			err = fmt.Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
-			//nolint:govet
+			//nolint:all
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
 			}).Errorf(err.Error())
