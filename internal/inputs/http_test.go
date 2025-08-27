@@ -310,9 +310,8 @@ func assertElementsMatch(t *testing.T, actual []interface{}, expected []interfac
 			a := result.(map[string]interface{})[key]
 			e := expected[index].(map[string]interface{})[key]
 
-			//nolint:all
 			if fmt.Sprintf("%v(%T)", a, a) != fmt.Sprintf("%v(%T)", e, e) {
-				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%T) - actual value %v(%T)", key, e, e, a, a))
+				t.Errorf("mismatch in '%v' key: expected value %v(%T) - actual value %v(%T)", key, e, e, a, a)
 			}
 		}
 	}
