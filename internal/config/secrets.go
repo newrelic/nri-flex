@@ -43,7 +43,7 @@ func loadSecrets(config *load.Config) error {
 			err = fmt.Errorf("config: secret needs 'file', 'data' and 'http' parameter to be set")
 			load.Logrus.WithFields(logrus.Fields{
 				"secret": name,
-			}).Errorf(err.Error())
+			}).Error(err.Error())
 			break
 		}
 

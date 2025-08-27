@@ -7,11 +7,6 @@ package inputs
 
 import (
 	"fmt"
-	"github.com/parnurzeal/gorequest"
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,6 +14,12 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	"github.com/parnurzeal/gorequest"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/nri-flex/internal/load"
 )
@@ -241,7 +242,7 @@ func TestRunHttp_withPagination(t *testing.T) {
 			Timeout: 5000,
 		},
 		APIs: []load.API{
-		{
+			{
 				EventType: "paginationSample",
 				URL:       "/",
 				Timeout:   5100,
@@ -310,7 +311,7 @@ func assertElementsMatch(t *testing.T, actual []interface{}, expected []interfac
 			e := expected[index].(map[string]interface{})[key]
 
 			if fmt.Sprintf("%v(%T)", a, a) != fmt.Sprintf("%v(%T)", e, e) {
-				t.Errorf(fmt.Sprintf("mismatch in '%v' key: expected value %v(%T) - actual value %v(%T)", key, e, e, a, a))
+				t.Errorf("mismatch in '%v' key: expected value %v(%T) - actual value %v(%T)", key, e, e, a, a)
 			}
 		}
 	}
