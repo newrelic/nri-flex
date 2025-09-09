@@ -6,20 +6,22 @@
 package config
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
@@ -192,7 +194,7 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 
 	if secret.File != "" {
 		var fileData []byte
-		fileData, err := ioutil.ReadFile(secret.File)
+		fileData, err := os.ReadFile(secret.File)
 		if err == nil {
 			secretData, err = base64.StdEncoding.DecodeString(string(fileData))
 			if err != nil {
@@ -240,43 +242,51 @@ func awskmsDecrypt(name string, secret load.Secret) string {
 	}
 
 	if len(secretData) > 0 {
-		var sess *session.Session
+		ctx := context.TODO()
 
-		sharedConfigFiles := []string{}
-		if secret.CredentialFile != "" {
-			sharedConfigFiles = append(sharedConfigFiles, secret.CredentialFile)
-		}
-		if secret.ConfigFile != "" {
-			sharedConfigFiles = append(sharedConfigFiles, secret.ConfigFile)
-		}
+		var cfg aws.Config
+		var err error
 
-		if len(sharedConfigFiles) > 0 {
-
+		if secret.CredentialFile != "" || secret.ConfigFile != "" {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
 			}).Debug("config: aws kms decrypt using custom credentials and/or config")
 
-			sess = session.Must(session.NewSessionWithOptions(session.Options{
-				SharedConfigState: session.SharedConfigEnable,
-				SharedConfigFiles: sharedConfigFiles,
-			}))
+			var configLoadOptions []func(*config.LoadOptions) error
+
+			if secret.CredentialFile != "" {
+				configLoadOptions = append(configLoadOptions, config.WithSharedCredentialsFiles([]string{secret.CredentialFile}))
+			}
+			if secret.ConfigFile != "" {
+				configLoadOptions = append(configLoadOptions, config.WithSharedConfigFiles([]string{secret.ConfigFile}))
+			}
+
+			cfg, err = config.LoadDefaultConfig(ctx, configLoadOptions...)
 		} else {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
 			}).Debug("config: aws kms decrypt using default credentials")
-			sess = session.Must(session.NewSession(&aws.Config{
-				Region: aws.String(secret.Region),
-			}))
+
+			cfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(secret.Region))
 		}
 
-		kmsClient := kms.New(sess)
-		params := &kms.DecryptInput{
-			CiphertextBlob: secretData,
-		}
-		resp, err := kmsClient.Decrypt(params)
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"name": name,
+				"err":  err,
+			}).Error("config: aws config load failed")
+			return ""
+		}
+
+		kmsClient := kms.NewFromConfig(cfg)
+		params := &kms.DecryptInput{
+			CiphertextBlob: secretData,
+		}
+		resp, err := kmsClient.Decrypt(ctx, params)
+		if err != nil {
+			load.Logrus.WithFields(logrus.Fields{
+				"name": name,
+				"err":  err,
 			}).Error("config: aws kms decrypt secret failed")
 			return ""
 		}
@@ -325,7 +335,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 
 	if secret.HTTP.TLSConfig.Ca != "" {
 		rootCAs := x509.NewCertPool()
-		ca, err := ioutil.ReadFile(secret.HTTP.TLSConfig.Ca)
+		ca, err := os.ReadFile(secret.HTTP.TLSConfig.Ca)
 		if err != nil {
 			load.Logrus.WithError(err).Error("config: secret failed to read tls ca")
 		} else {
@@ -355,7 +365,7 @@ func httpWrapper(secret load.Secret) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +383,7 @@ func localDecrypt(name string, secret load.Secret) string {
 
 	if secret.File != "" {
 		var fileData []byte
-		fileData, err := ioutil.ReadFile(secret.File)
+		fileData, err := os.ReadFile(secret.File)
 		if err == nil {
 			secretData, err = hex.DecodeString(string(fileData))
 			if err != nil {
