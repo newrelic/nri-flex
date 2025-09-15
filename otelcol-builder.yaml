@@ -1,0 +1,15 @@
+dist:
+  name: otelcol-flex
+  description: OpenTelemetry Collector with Flex receiver
+  output_path: ./bin/otelcol-flex
+  use_public_modules: false
+
+receivers:
+  # Add our simple flex receiver that doesn't have the smartystreets dependency
+  - gomod: github.com/newrelic/nri-flex v0.0.0
+    import: github.com/newrelic/nri-flex/simplereceiver
+    path: ./
+
+replaces:
+  # This tells the builder to use your local code instead of trying to download it
+  - github.com/newrelic/nri-flex => ./

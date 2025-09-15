@@ -53,5 +53,6 @@ include build/document.mk
 include build/docker.mk
 include build/ci.mk
 include build/release.mk
+include build/otel.mk
 
 .PHONY: all build build-ci

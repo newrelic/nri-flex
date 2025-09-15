@@ -1,0 +1,22 @@
+receivers:
+  flex:
+    config_dir: "/Users/rohanyadav/Documents/nr/nri/nri-flex/examples"
+    collection_interval: 30s
+
+processors:
+  batch:
+
+exporters:
+  logging:
+    verbosity: detailed
+  otlp:
+    endpoint: "localhost:4317"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [flex]
+      processors: [batch]
+      exporters: [logging]

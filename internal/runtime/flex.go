@@ -52,6 +52,11 @@ func GetTestRuntime() Instance {
 	return new(Test)
 }
 
+// Get OTel runtime
+func GetOTelRuntime() Instance {
+	return new(OTel)
+}
+
 // Post-initialization common to all runtime types here
 func CommonPostInit() {
 	err := load.Integration.Publish()
