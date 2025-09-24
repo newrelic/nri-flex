@@ -54,20 +54,8 @@ jobs:
       - name: Run integration tests
         run: make test-integration
 
-  snyk:
-    name: Run security checks via snyk
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.OHAI_DOCKER_HUB_ID }}
-          password: ${{ secrets.OHAI_DOCKER_HUB_PASSWORD }}
-      - name: Scan code for vulnerabilities
-        env:
-          SNYK_TOKEN: ${{ secrets.CAOS_SNYK_TOKEN }}
-        run: make ci/snyk-test
+# TODO: This needs to migrate to another workflow called security.yml with a cron
+# to run security scan periodically.
 
   test-windows:
     strategy:
