@@ -8,9 +8,10 @@ package discovery
 import (
 	"bufio"
 	"context"
+
 	"github.com/newrelic/nri-flex/internal/load"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
@@ -42,7 +43,7 @@ func ExecContainerCommand(containerID string, command []string) (string, error) 
 	}
 
 	ctx := context.Background()
-	execConfig := types.ExecConfig{
+	execConfig := container.ExecOptions{
 		AttachStderr: true,
 		AttachStdin:  true,
 		AttachStdout: true,
@@ -55,7 +56,7 @@ func ExecContainerCommand(containerID string, command []string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	execAttachConfig := types.ExecStartCheck{
+	execAttachConfig := container.ExecStartOptions{
 		Detach: false,
 		Tty:    true,
 	}
