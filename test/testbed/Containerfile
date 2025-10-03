@@ -1,5 +1,5 @@
 # Pull specific ubuntu 22.04 image
-FROM ubuntu@sha256:3f85b7caad41a95462cf5b787d8a04604c8262cdcdf9a472b8c52ef83375fe15
+FROM ubuntu@sha256:728785b59223d755e3e5c5af178fab1be7031f3522c5ccd7a0b32b80d8248123
 
 
 # Path of nri-flex
