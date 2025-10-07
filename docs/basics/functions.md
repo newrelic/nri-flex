@@ -771,8 +771,6 @@ Which would return the following:
     "api.StatusCode": 200,
     "customerId": "abc",
     "event_type": "usageInfoSample",
-    "integration_name": "com.newrelic.nri-flex",
-    "integration_version": "Unknown-SNAPSHOT",
     "quantities": 10
   },
 ]
@@ -820,8 +818,6 @@ Which would return the following:
     "api.StatusCode": 200,
     "customerId": "xyz",
     "event_type": "usageInfoSample",
-    "integration_name": "com.newrelic.nri-flex",
-    "integration_version": "Unknown-SNAPSHOT",
     "quantities": 20
   },
 ]
@@ -1015,27 +1011,21 @@ Which would return the following:
         "Value": 200,
         "accountid": "AccountA",
         "event_type": "myMetricsSample",
-        "index": 0,
-        "integration_name": "com.newrelic.nri-flex",
-        "integration_version": "Unknown-SNAPSHOT"
+        "index": 0
     },
     {
         "Timestamp": 1585662958000,
         "Value": 190,
         "accountid": "AccountA",
         "event_type": "myMetricsSample",
-        "index": 1,
-        "integration_name": "com.newrelic.nri-flex",
-        "integration_version": "Unknown-SNAPSHOT"
+        "index": 1
     },
     {
         "Timestamp": 1585662959000,
         "Value": 180,
         "accountid": "AccountA",
         "event_type": "myMetricsSample",
-        "index": 2,
-        "integration_name": "com.newrelic.nri-flex",
-        "integration_version": "Unknown-SNAPSHOT"
+        "index": 2
     }
 ]
 ```

@@ -167,7 +167,7 @@ func CreateMetricSets(samples []interface{}, config *load.Config, i int, mergeMe
 			if !mergeMetric {
 				workingEntity := setEntity(api.Entity, api.EntityType) // default type instance
 				if config.MetricAPI {
-					AutoSetMetricAPI(&currentSample, &api)
+					AutoSetMetricAPI(config, &currentSample, &api)
 				} else {
 					AutoSetStandard(&currentSample, &api, workingEntity, eventType, config)
 				}
@@ -378,13 +378,16 @@ func RunKeyFilter(filters []load.Filter, currentSample *map[string]interface{}, 
 }
 
 // AutoSetMetricAPI automatically set metrics for use with the metric api
-func AutoSetMetricAPI(currentSample *map[string]interface{}, api *load.API) {
+func AutoSetMetricAPI(config *load.Config, currentSample *map[string]interface{}, api *load.API) {
 	// set current time
 	currentTime := time.Now().UnixNano() / 1e+6
-	// set common attributes
-	commonAttributes := map[string]interface{}{
-		"integration_version": load.IntegrationVersion,
-		"integration_name":    load.IntegrationName,
+	var commonAttributes map[string]interface{}
+	if config.EnableLegacyIntegrationAttrs {
+		// set common attributes
+		commonAttributes = map[string]interface{}{
+			"integration_version": load.IntegrationVersion,
+			"integration_name":    load.IntegrationName,
+		}
 	}
 
 	// store numeric values, as metrics within Metrics
@@ -524,8 +527,10 @@ func AutoSetStandard(currentSample *map[string]interface{}, api *load.API, worki
 	}
 
 	// set default attribute(s)
-	checkError(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
-	checkError(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
+	if config.EnableLegacyIntegrationAttrs {
+		checkError(metricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
+		checkError(metricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
+	}
 
 	//add sample metrics
 	for k, v := range *currentSample {

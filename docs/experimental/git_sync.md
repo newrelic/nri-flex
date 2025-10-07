@@ -17,7 +17,6 @@ GIT_TOKEN=13nasdasj13jadf
 ## Setting in nri-flex-config.yml
 ```yaml
 ### /etc/newrelic-infra/integrations.d/nri-flex-config.yml
-integration_name: com.newrelic.nri-flex
 
 instances:
   - name: nri-flex

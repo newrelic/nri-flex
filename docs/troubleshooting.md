@@ -69,7 +69,6 @@ INFO[0004] flex: completed processing configs            configs=1
 {
 	"name": "com.newrelic.nri-flex",
 	"protocol_version": "3",
-	"integration_version": "1.3.5",
 	"data": [
 		{
 			"metrics": [
@@ -77,8 +76,6 @@ INFO[0004] flex: completed processing configs            configs=1
 					"avg": 17.491,
 					"event_type": "pingTest",
 					"flex.commandTimeMs": 4029,
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "1.3.5",
 					"max": 17.55,
 					"min": 17.425,
 					"packetLoss": 0,
@@ -137,7 +134,6 @@ The intro section shows a log of how `nri-flex` executed your config file. If yo
 {
 	"name": "com.newrelic.nri-flex",
 	"protocol_version": "3",
-	"integration_version": "1.3.5",
 	"data": [
 		{
 			"metrics": [
@@ -152,8 +148,6 @@ This next section leads into the more interesting part of the payload, but you c
 					"avg": 17.491,
 					"event_type": "pingTest",
 					"flex.commandTimeMs": 4029,
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "1.3.5",
 					"max": 17.55,
 					"min": 17.425,
 					"packetLoss": 0,
@@ -211,7 +205,6 @@ Payload:
 {
   "name": "com.newrelic.nri-flex",
   "protocol_version": "3",
-  "integration_version": "1.4.1",
   "data": [
     {
       "metrics": [
@@ -221,8 +214,6 @@ Payload:
           "error_exec": "echo \"key:5\" \u0026\u0026 sleep 2",
           "error_msg": "key:5\n",
           "event_type": "TimeoutSample",
-          "integration_name": "com.newrelic.nri-flex",
-          "integration_version": "1.4.1"
         }
       ],
       "inventory": {},

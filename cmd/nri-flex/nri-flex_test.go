@@ -1,4 +1,5 @@
-//+build linux darwin
+//go:build linux || darwin
+// +build linux darwin
 
 /*
 * Copyright 2019 New Relic Corporation. All rights reserved.
@@ -57,11 +58,20 @@ func TestConfigDir(t *testing.T) {
 	r := fintegration.GetTestRuntime()
 	fintegration.RunFlex(r)
 	expectedSamples := []string{
-		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":3,"flex.counter.EventCount":3,"flex.counter.EventDropCount":0,"flex.counter.MessageSample":2,"flex.counter.commandJsonOutSample":1}`,
-		`{"error":"true","event_type":"MessageSample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","message":"bye","value":20.9}`,
-		`{"error":"false","event_type":"MessageSample","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","message":"hello","value":100}`,
+		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":6,` +
+			`"flex.counter.EventCount":6,"flex.counter.EventDropCount":0,"flex.counter.MessageLegacySample":2,` +
+			`"flex.counter.MessageSample":2,"flex.counter.commandJsonOutSample":2}`,
+		`{"error":"true","event_type":"MessageSample","message":"bye","value":20.9}`,
+		`{"error":"false","event_type":"MessageSample","message":"hello","value":100}`,
+		`{"error":"true","event_type":"MessageLegacySample","integration_name":"com.newrelic.nri-flex",` +
+			`"integration_version":"Unknown-SNAPSHOT","message":"bye","value":20.9}`,
+		`{"error":"false","event_type":"MessageLegacySample","integration_name":"com.newrelic.nri-flex",` +
+			`"integration_version":"Unknown-SNAPSHOT","message":"hello","value":100}`,
+		`{"completed":"false","event_type":"commandJsonOutSample","id":1,` +
+			`"myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`,
 		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
-			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`,
+	}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
 
@@ -74,7 +84,7 @@ func TestConfigFile(t *testing.T) {
 	fintegration.RunFlex(r)
 	expectedSamples := []string{
 		`{"event_type":"flexStatusSample","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.commandJsonOutSample":1}`,
-		`{"completed":"false","event_type":"commandJsonOutSample","id":1,"integration_name":"com.newrelic.nri-flex",` +
-			`"integration_version":"Unknown-SNAPSHOT","myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
+		`{"completed":"false","event_type":"commandJsonOutSample","id":1,` +
+			`"myCustomAttr":"theValue","title":"delectus aut autem","userId":1}`}
 	testSamples(expectedSamples, load.Entity.Metrics, t)
 }
