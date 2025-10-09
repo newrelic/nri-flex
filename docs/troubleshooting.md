@@ -69,6 +69,7 @@ INFO[0004] flex: completed processing configs            configs=1
 {
 	"name": "com.newrelic.nri-flex",
 	"protocol_version": "3",
+	"integration_version": "1.3.5",
 	"data": [
 		{
 			"metrics": [
@@ -134,6 +135,7 @@ The intro section shows a log of how `nri-flex` executed your config file. If yo
 {
 	"name": "com.newrelic.nri-flex",
 	"protocol_version": "3",
+	"integration_version": "1.3.5",
 	"data": [
 		{
 			"metrics": [
@@ -205,6 +207,7 @@ Payload:
 {
   "name": "com.newrelic.nri-flex",
   "protocol_version": "3",
+	"integration_version": "1.4.1",
   "data": [
     {
       "metrics": [
