@@ -77,8 +77,6 @@ INFO[0004] flex: completed processing configs            configs=1
 					"avg": 17.491,
 					"event_type": "pingTest",
 					"flex.commandTimeMs": 4029,
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "1.3.5",
 					"max": 17.55,
 					"min": 17.425,
 					"packetLoss": 0,
@@ -152,8 +150,6 @@ This next section leads into the more interesting part of the payload, but you c
 					"avg": 17.491,
 					"event_type": "pingTest",
 					"flex.commandTimeMs": 4029,
-					"integration_name": "com.newrelic.nri-flex",
-					"integration_version": "1.3.5",
 					"max": 17.55,
 					"min": 17.425,
 					"packetLoss": 0,
@@ -221,8 +217,6 @@ Payload:
           "error_exec": "echo \"key:5\" \u0026\u0026 sleep 2",
           "error_msg": "key:5\n",
           "event_type": "TimeoutSample",
-          "integration_name": "com.newrelic.nri-flex",
-          "integration_version": "1.4.1"
         }
       ],
       "inventory": {},

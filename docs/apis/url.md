@@ -139,8 +139,6 @@ Given the following output for each metric:
 ```json
 {
   "event_type": "ExampleSample",
-  "integration_name": "com.newrelic.nri-flex",
-  "integration_version": "version-number",
   "id": 1,
   "completed": "true",
   "api.StatusCode": 200,

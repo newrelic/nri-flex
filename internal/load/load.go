@@ -188,19 +188,20 @@ type ConfigEntry struct {
 
 // Config YAML Struct
 type Config struct {
-	FileName           string             `yaml:"file_name"`           // set when file is read
-	FilePath           string             `yaml:"file_path"`           // set when file is read
-	ContainerDiscovery ContainerDiscovery `yaml:"container_discovery"` // provide container discovery parameter at config level
-	Name               string
-	Global             Global
-	APIs               []API
-	Datastore          map[string][]interface{}       `yaml:"datastore"`
-	LookupStore        map[string]map[string]struct{} `yaml:"lookup_store"` // ensures uniqueness vs a slice
-	LookupFile         string                         `yaml:"lookup_file"`
-	VariableStore      map[string]string              `yaml:"variable_store"`
-	Secrets            map[string]Secret              `yaml:"secrets"`
-	CustomAttributes   map[string]string              `yaml:"custom_attributes"` // set additional custom attributes
-	MetricAPI          bool                           `yaml:"metric_api"`        // enable use of the dimensional data models metric api
+	FileName                     string             `yaml:"file_name"`           // set when file is read
+	FilePath                     string             `yaml:"file_path"`           // set when file is read
+	ContainerDiscovery           ContainerDiscovery `yaml:"container_discovery"` // provide container discovery parameter at config level
+	Name                         string
+	Global                       Global
+	APIs                         []API
+	Datastore                    map[string][]interface{}       `yaml:"datastore"`
+	LookupStore                  map[string]map[string]struct{} `yaml:"lookup_store"` // ensures uniqueness vs a slice
+	LookupFile                   string                         `yaml:"lookup_file"`
+	VariableStore                map[string]string              `yaml:"variable_store"`
+	Secrets                      map[string]Secret              `yaml:"secrets"`
+	EnableLegacyIntegrationAttrs bool                           `yaml:"enable_legacy_integration_attrs"` // when enabled keep integration_name and integration_version legacy attrs
+	CustomAttributes             map[string]string              `yaml:"custom_attributes"`               // set additional custom attributes
+	MetricAPI                    bool                           `yaml:"metric_api"`                      // enable use of the dimensional data models metric api
 }
 
 // Secret Struct

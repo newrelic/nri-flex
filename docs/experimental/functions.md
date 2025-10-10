@@ -221,8 +221,6 @@ Which would return the following:
     "incidentCode": 77,
     "serviceId": "compute",
     "event_type": "usageInfoSample",
-    "integration_name": "com.newrelic.nri-flex",
-    "integration_version": "Unknown-SNAPSHOT",
     "quantities": 10
   },
 ]

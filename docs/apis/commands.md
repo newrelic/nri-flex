@@ -201,12 +201,10 @@ The `split_output` command as defined above gets two blocks of data to which Fle
 [
   {
     "event_type": "splitOutputSample",
-    "integration_name": "com.newrelic.nri-flex",
     "value": "value"
   },
   {
     "event_type": "splitOutputSample",
-    "integration_name": "com.newrelic.nri-flex",
     "value": "otherValue"
   }
 ]

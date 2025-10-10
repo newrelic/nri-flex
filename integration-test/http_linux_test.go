@@ -38,8 +38,6 @@ func TestHTTP(t *testing.T) {
 		m := data.Metrics[0]
 		require.Equal(t, "NginxSample", m["event_type"])
 		require.Contains(t, m, "flex.commandTimeMs")
-		require.Equal(t, "com.newrelic.nri-flex", m["integration_name"])
-		require.Contains(t, m, "integration_version")
 		require.InDelta(t, m["net.connectionsActive"], 43, 0.1)
 		require.InDelta(t, m["net.connectionsReading"], 0, 0.1)
 		require.InDelta(t, m["net.connectionsWaiting"], 38, 0.1)
@@ -75,8 +73,6 @@ func TestHTTPS(t *testing.T) {
 		m := data.Metrics[0]
 		require.Equal(t, "NginxSample", m["event_type"])
 		require.Contains(t, m, "flex.commandTimeMs")
-		require.Equal(t, "com.newrelic.nri-flex", m["integration_name"])
-		require.Contains(t, m, "integration_version")
 		require.InDelta(t, m["net.connectionsActive"], 43, 0.1)
 		require.InDelta(t, m["net.connectionsReading"], 0, 0.1)
 		require.InDelta(t, m["net.connectionsWaiting"], 38, 0.1)

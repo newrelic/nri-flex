@@ -60,8 +60,6 @@ integrations:
 #   {
 #     "count": 1,
 #     "event_type": "NetDiscoverSample",
-#     "integration_name": "com.newrelic.nri-flex",
-#     "integration_version": "1.0.0",
 #     "ipAddress": "192.168.0.121",
 #     "len": 60,
 #     "macAddress": "b0:59:47:8a:8d:8d",

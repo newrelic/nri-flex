@@ -1,4 +1,5 @@
 name: commandExample
+enable_legacy_integration_attrs: true
 apis:
   - name: commandJsonOut
     commands: 
