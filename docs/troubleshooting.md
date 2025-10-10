@@ -207,7 +207,7 @@ Payload:
 {
   "name": "com.newrelic.nri-flex",
   "protocol_version": "3",
-	"integration_version": "1.4.1",
+  "integration_version": "1.4.1",
   "data": [
     {
       "metrics": [
