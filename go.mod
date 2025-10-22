@@ -7,8 +7,8 @@ require (
 	github.com/MonetDB/MonetDB-Go v1.1.0
 	github.com/SAP/go-hdb v0.113.10
 	github.com/aws/aws-lambda-go v1.50.0
-	github.com/aws/aws-sdk-go-v2/config v1.31.13
-	github.com/aws/aws-sdk-go-v2/service/kms v1.46.0
+	github.com/aws/aws-sdk-go-v2/config v1.31.14
+	github.com/aws/aws-sdk-go-v2/service/kms v1.46.1
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v28.5.1+incompatible
@@ -38,7 +38,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/credentials v1.18.17 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.18.18 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.10 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.10 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.29.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.38.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.38.8 // indirect
 	github.com/aws/smithy-go v1.23.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
