@@ -21,7 +21,7 @@ require (
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
 	github.com/parnurzeal/gorequest v0.3.0
 	github.com/pkg/errors v0.9.1
-	github.com/pkg/sftp v1.13.9
+	github.com/pkg/sftp v1.13.10
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.55.0
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -31,8 +31,8 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/vertica/vertica-sql-go v1.3.4
 	go.uber.org/ratelimit v0.3.1
-	golang.org/x/crypto v0.37.0
-	golang.org/x/net v0.39.0
+	golang.org/x/crypto v0.41.0
+	golang.org/x/net v0.42.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 )
@@ -117,7 +117,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
