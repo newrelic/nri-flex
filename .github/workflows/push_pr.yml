@@ -40,6 +40,21 @@ jobs:
           go-version-file: 'go.mod'
       - name: Set Go toolchain
         run: go env -w GOTOOLCHAIN=local+auto
+      - name: Set Go toolchain and debug
+        run: |
+          go env -w GOTOOLCHAIN=go1.21+auto
+          export GOTOOLCHAIN=go1.21+auto
+          echo "Go version:"
+          go version
+          echo "Go toolchain:"
+          go env GOTOOLCHAIN
+          echo "GOROOT:"
+          go env GOROOT
+          echo "Available tools:"
+          go tool
+          echo "Checking specific tools:"
+          go tool covdata -h || echo "covdata not found"
+          go tool cover -h || echo "cover not found"
       - name: Run unit tests
         run:  make ci/test
       - name: Coveralls Parallel
