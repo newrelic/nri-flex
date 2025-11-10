@@ -38,8 +38,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
-      - name: Set Go toolchain
-        run: go env -w GOTOOLCHAIN=go1.25+auto
       - name: Run unit tests
         run:  make ci/test
       - name: Coveralls Parallel
