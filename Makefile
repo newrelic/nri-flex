@@ -6,12 +6,12 @@ SRCDIR           ?= .
 BUILD_DIR        ?= $(CURDIR)/bin
 COVERAGE_FILE    ?= coverage.out
 
-GO_VERSION       ?= 1.24
+GO_VERSION       ?= 1.25
 GO_CMD           ?= go
 GODOC            ?= godocdown
 
 GOLINTER         = golangci-lint
-GOLINTER_VERSION = v1.24.0
+GOLINTER_VERSION = v1.62.0
 
 # Determine packages by looking into pkg/*
 ifneq ("$(wildcard ${SRCDIR}/pkg/*)","")
