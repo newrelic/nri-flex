@@ -55,7 +55,7 @@ jobs:
   test-windows:
     strategy:
       matrix:
-        go: [ '1.24' ]
+        go: [ '1.25' ]
         os: [ windows-2025 ]
     name: Run unit and integration tests in ${{matrix.os}} with go ${{matrix.go}}
     runs-on: ${{matrix.os}}
