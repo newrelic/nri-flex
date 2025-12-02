@@ -83,20 +83,6 @@ compile-windows: deps-only
 		GOOS=windows $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
 	done
 
-.PHONY: build-windows32
-build-windows32: compile-windows32
-
-.PHONY: compile-windows32
-compile-windows32: deps-only
-	@echo "=== $(PROJECT_NAME) === [ compile-windows  ]: building commands:"
-	@mkdir -p $(BUILD_DIR)/windows
-	@for b in $(BINS); do \
-		OUTPUT_FILE="$(BUILD_DIR)/windows/$$b.exe" ; \
-		echo "=== $(PROJECT_NAME) === [ compile-windows  ]:     $$OUTPUT_FILE"; \
-		BUILD_FILES="$(SRCDIR)/cmd/..." ; \
-		GOARCH=386 CGO_ENABLED=1 GOOS=windows $(GO_CMD) build -ldflags="$(LDFLAGS)" -o $$OUTPUT_FILE $$BUILD_FILES ; \
-	done
-
 .PHONY: compile-for-debug-linux
 compile-for-debug-linux: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-for-debug-linux    ]: building commands:"
