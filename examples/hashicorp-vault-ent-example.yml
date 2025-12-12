@@ -1,0 +1,107 @@
+## This configuration collects Vault metrics and status information from various Vault endpoints.
+## For all available endpoints: https://developer.hashicorp.com/vault/api-docs/system
+## To poll metrics, see: https://github.com/newrelic/nri-vault 
+
+integrations:
+  - name: nri-flex
+    interval: 120s
+    config:
+      name: hashicorpVaultFlex
+      global:
+        base_url: http://127.0.0.1:8200/v1/
+        ## Token-based auth - only required for token-based authentication endpoints 
+        ## (uncomment and set token as env variable if you add more api blocks that require a token)
+        # headers:
+        #   X-Vault-Token: $$VAULT_TOKEN
+
+      apis:
+        # ---------------------------------------------------------
+        # API 1: Health Check & Service Checks 
+        # https://developer.hashicorp.com/vault/api-docs/system/health
+        # ---------------------------------------------------------
+        - event_type: VaultHealthSample
+          url: sys/health
+          url_params:
+            standbyok: true
+            perfstandbyok: true
+          jq: >-
+            .[0] | {
+              version: .version,
+              cluster_name: (.cluster_name // "unknown"),
+              cluster_id: .cluster_id,
+              server_time_utc: .server_time_utc,
+              initialized: (if .initialized then 1 else 0 end),
+              sealed: (if .sealed then 1 else 0 end),
+              standby: (if .standby then 1 else 0 end),
+              performance_standby: (if .performance_standby then 1 else 0 end),
+              is_leader: (if .standby == false then 1 else 0 end),
+              replication_dr_mode: (.replication_dr_mode // "unknown"),
+              replication_performance_mode: (.replication_performance_mode // "unknown"),
+              service_check_unsealed: (if .sealed == false then "ok" else "critical" end),
+              service_check_initialized: (if .initialized then "ok" else "critical" end)
+            }
+
+        # ---------------------------------------------------------
+        # API 2: Leader Status & HA Info
+        # https://developer.hashicorp.com/vault/api-docs/system/leader
+        # ---------------------------------------------------------
+        - event_type: VaultLeaderSample
+          url: sys/leader
+          jq: >-
+            .[0] | {
+              ha_enabled: (if .ha_enabled then 1 else 0 end),
+              is_self: (if .is_self then 1 else 0 end),
+              active_time: .active_time,
+              leader_address: .leader_address,
+              leader_cluster_address: .leader_cluster_address,
+              performance_standby: (if .performance_standby then 1 else 0 end),
+              performance_standby_last_remote_wal: .performance_standby_last_remote_wal,
+              last_wal: .last_wal,
+              raft_committed_index: .raft_committed_index,
+              raft_applied_index: .raft_applied_index
+            }
+
+        # ---------------------------------------------------------
+        # API 3: Seal Status (detailed seal info)
+        # https://developer.hashicorp.com/vault/api-docs/system/seal-status
+        # ---------------------------------------------------------
+        - event_type: VaultSealSample
+          url: sys/seal-status
+          jq: >-
+            .[0] | {
+              sealed: (if .sealed then 1 else 0 end),
+              threshold: .t,
+              shares: .n,
+              progress: .progress,
+              nonce: .nonce,
+              version: .version,
+              build_date: .build_date,
+              migration: (if .migration then 1 else 0 end),
+              cluster_name: (.cluster_name // "unknown"),
+              cluster_id: .cluster_id,
+              recovery_seal: (if .recovery_seal then 1 else 0 end),
+              storage_type: .storage_type,
+              namespace: (.namespace // null)
+            }
+
+        # ---------------------------------------------------------
+        # API 4: [Enterprise Only] Replication Status
+        # https://developer.hashicorp.com/vault/api-docs/system/replication#check-status 
+        # ---------------------------------------------------------
+        - event_type: VaultReplicationSample
+          url: sys/replication/status
+          jq: >-
+            .[0].data | to_entries | map({
+              replication_node_state: .key,
+              cluster_id: .value.cluster_id,
+              last_wal: .value.last_wal,
+              merkle_root: .value.merkle_root,
+              mode: .value.mode,
+              primary_cluster_addr: .value.primary_cluster_addr,
+              known_secondaries: (.value.known_secondaries | join(",")),
+              "secondaries.api_address": (.value.secondaries[0].api_address // null),
+              "secondaries.cluster_address": (.value.secondaries[0].cluster_address // null),
+              "secondaries.connection_status": (.value.secondaries[0].connection_status // null),
+              "secondaries.last_heartbeat": (.value.secondaries[0].last_heartbeat // null),
+              "secondaries.node_id": (.value.secondaries[0].node_id // null)
+            })
