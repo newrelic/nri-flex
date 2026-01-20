@@ -11,6 +11,13 @@ on:
       - README.md
       - 'docs/**'
       - 'examples/**'
+  pull_request:
+    branches:
+      - '**'  # This will trigger on PRs to ANY branch
+    paths-ignore:
+      - README.md
+      - 'docs/**'
+      - 'examples/**'
 
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
