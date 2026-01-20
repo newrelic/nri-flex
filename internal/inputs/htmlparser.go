@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/newrelic/nri-flex/internal/formatter"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -24,9 +25,9 @@ type Table struct {
 }
 
 // ParseToJSON parses a html fragment or whole document looking for HTML
-func ParseToJSON(s []byte) (string, error) {
+func ParseToJSON(s []byte, htmlAttributes map[string]string) (string, error) {
 
-	tables, err := Parse(s)
+	tables, err := Parse(s, htmlAttributes)
 	if err != nil {
 		return "", err
 	}
@@ -87,13 +88,14 @@ func convertTable(t *Table, i int) string {
 
 // Parse parses a html fragment or whole document looking for HTML
 // tables. It converts all cells into text, stripping away any HTML content.
-func Parse(s []byte) ([]*Table, error) {
+func Parse(s []byte, htmlAttributes map[string]string) ([]*Table, error) {
 	node, err := html.Parse(bytes.NewReader(s))
 	if err != nil {
 		return nil, err
 	}
 	tables := []*Table{}
-	parse(node, &tables)
+	var vThead = true
+	parse(node, &tables, vThead, htmlAttributes)
 	for kk, t := range tables {
 
 		tables[kk] = addMissingColumns(t)
@@ -102,14 +104,19 @@ func Parse(s []byte) ([]*Table, error) {
 	return tables, nil
 }
 
-func innerText(n *html.Node) string {
+func innerText(n *html.Node, parseAttribute bool, htmlAttributes map[string]string) string {
 	if n.Type == html.TextNode {
 		stripResult := stripChars(n.Data)
 		return stripResult
 	}
-	result := ""
+	var result string = ""
+	if n.Type == html.ElementNode {
+		if parseAttribute {
+			result = parseAttributes(n.Attr, htmlAttributes)
+		}
+	}
 	for x := n.FirstChild; x != nil; x = x.NextSibling {
-		result += innerText(x)
+		result += innerText(x, parseAttribute, htmlAttributes)
 	}
 	return result
 }
@@ -143,7 +150,7 @@ func containTable(n *html.Node) bool {
 	return result
 }
 
-func parse(n *html.Node, tables *[]*Table) {
+func parse(n *html.Node, tables *[]*Table, vThead bool, htmlAttributes map[string]string) {
 	strip := strings.TrimSpace
 	switch n.DataAtom {
 	case atom.Table:
@@ -155,9 +162,24 @@ func parse(n *html.Node, tables *[]*Table) {
 			t.Attributes[at.Key] = at.Val
 		}
 		*tables = append(*tables, t)
+		vThead = true
 	case atom.Th:
-		t := (*tables)[len(*tables)-1]
-		t.Headers = append(t.Headers, strip(innerText(n)))
+		if vThead {
+			t := (*tables)[len(*tables)-1]
+			t.Headers = append(t.Headers, strip(innerText(n, false, htmlAttributes)))
+		} else {
+			if !containTable(n) {
+				t := (*tables)[len(*tables)-1]
+				l := len(t.Rows) - 1
+				t.Rows[l] = append(t.Rows[l], strip(innerText(n, true, htmlAttributes)))
+				return
+			}
+			t := (*tables)[len(*tables)-1]
+			l := len(t.Rows) - 1
+			// If the <td> contains <table> element, set the <td> content to "TableElement"
+			t.Rows[l] = append(t.Rows[l], "TableElement")
+		}
+
 	case atom.Tr:
 		t := (*tables)[len(*tables)-1]
 		t.Rows = append(t.Rows, []string{})
@@ -165,7 +187,7 @@ func parse(n *html.Node, tables *[]*Table) {
 		if !containTable(n) {
 			t := (*tables)[len(*tables)-1]
 			l := len(t.Rows) - 1
-			t.Rows[l] = append(t.Rows[l], strip(innerText(n)))
+			t.Rows[l] = append(t.Rows[l], strip(innerText(n, true, htmlAttributes)))
 			return
 		}
 		t := (*tables)[len(*tables)-1]
@@ -173,9 +195,13 @@ func parse(n *html.Node, tables *[]*Table) {
 		// If the <td> contains <table> element, set the <td> content to "TableElement"
 		t.Rows[l] = append(t.Rows[l], "TableElement")
 
+	case atom.Thead:
+		vThead = true
+	case atom.Tbody:
+		vThead = false
 	}
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
-		parse(child, tables)
+		parse(child, tables, vThead, htmlAttributes)
 	}
 }
 
@@ -207,4 +233,19 @@ func addMissingColumns(t *Table) *Table {
 	}
 	t.Rows = rows
 	return t
+}
+
+func parseAttributes(input []html.Attribute, parseAttributes map[string]string) string {
+	var result []string
+	for _, attr := range input {
+		for key, val := range parseAttributes {
+			if formatter.KvFinder("regex", attr.Key, key) {
+				if formatter.KvFinder("regex", attr.Val, val) {
+					result = append(result, attr.Key+":"+attr.Val+";")
+				}
+			}
+		}
+
+	}
+	return strings.Join(result, "")
 }
