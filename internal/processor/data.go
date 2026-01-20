@@ -78,7 +78,7 @@ func runJq(dataSets interface{}, api load.API) []interface{} {
 		if api.Jq == "." {
 			api.Jq = ".[0]"
 		} else {
-			api.Jq = fmt.Sprintf(".[0]%v", api.Jq)
+			api.Jq = fmt.Sprintf(".[0]|%v", api.Jq)
 		}
 	}
 
