@@ -54,9 +54,6 @@ jobs:
       - name: Run integration tests
         run: make test-integration
 
-# TODO: This needs to migrate to another workflow called security.yml with a cron
-# to run security scan periodically.
-
   test-windows:
     strategy:
       matrix:
