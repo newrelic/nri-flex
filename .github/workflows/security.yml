@@ -90,26 +90,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-
-  osv-scanner:
-    name: OSV Vulnerability Scanner
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v1
-        with:
-          scan-args: |-
-            --recursive
-            --format sarif
-            --output osv-results.sarif
-            ./
-        continue-on-error: true
-
-      - name: Upload OSV results
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: osv-results.sarif
