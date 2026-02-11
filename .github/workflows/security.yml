@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "0 3 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   security:
     uses: newrelic/coreint-automation/.github/workflows/reusable_security.yaml@v3
