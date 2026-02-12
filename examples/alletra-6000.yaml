@@ -1,0 +1,182 @@
+# NRI Flex Integration for HPE Alletra 6000 Storage Array
+# This integration collects metrics from HPE Alletra 6000 storage systems via REST API.
+#
+# Security Notes:
+# - Replace placeholder values (HOSTIPADDRESS, YOUUSERNAMEHERE, YOURPASSWORDHERE) with actual credentials
+# - For production, use environment variables instead of hardcoded credentials
+# - The -k flag skips TLS certificate validation; remove for production with proper CA certificates
+#
+# Prerequisites:
+# - HPE Alletra 6000 system with REST API enabled on port 5392
+# - Valid service account credentials with API access
+# - Network connectivity to the storage array management interface
+
+integrations:
+  - name: nri-flex
+    config:
+      name: Alletra-6000
+      variable_store:
+        # API Endpoint Configuration
+        # Replace HOSTIPADDRESS with the actual IP or hostname of your Alletra 6000 array
+        api_base: https://HOSTIPADDRESS:5392/v1/
+
+        # Credentials
+        # IMPORTANT: In production, use environment variables (e.g., ${ALLETRA_USER}) instead of hardcoding
+        # Example: username: ${ALLETRA_USER}
+        username: YOUUSERNAMEHERE
+        password: YOURPASSWORDHERE
+
+        # SSL/TLS Settings
+        # ca_cert: Path to your CA certificate bundle for secure connections
+        ca_cert: /etc/ssl/certs/ca-certificates.crt
+        # ciphers: Specify allowed cipher suites for TLS connections
+        ciphers: AES128-GCM-SHA256
+
+      apis:
+        # Authentication Flow
+        # ==================
+        # Step 1: Authenticate and get session token
+        # This endpoint returns a session token used for subsequent API calls.
+        # The token is stored and reused by other API calls via ${lookup.AlletraAuthToken:data.session_token}
+        - name: GetAuthToken
+          event_type: AlletraAuthToken
+          commands:
+            - run: >
+                curl -s -k -X POST "${var:api_base}/tokens"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "Content-Type: application/json"
+                -d "{\"data\":{\"username\":\"${var:username}\",\"password\":\"${var:password}\"}}"
+              store_lookup: true
+          ignore_output: true
+
+        # Storage Capacity & Pools Metrics
+        # ================================
+        # Step 2: Get storage pools summary
+        # Collects high-level information about storage pools and their utilization
+        - name: GetPools
+          event_type: AlletraPoolSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/pools"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Step 3: Get storage pools detailed information
+        # Collects detailed metrics including performance, capacity, and health status
+        - name: GetPoolsDetail
+          event_type: AlletraPoolDetailSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/pools/detail"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Volume/LUN Metrics
+        # ==================
+        # Step 4: Get volumes (LUNs) summary
+        # Collects basic information about all volumes/LUNs provisioned on the array
+        - name: GetVolumes
+          event_type: AlletraVolumeSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/volumes"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Step 5: Get volumes (LUNs) detailed information
+        # Collects detailed metrics including I/O performance and capacity information
+        - name: GetVolumesDetails
+          event_type: AlletraVolumeDetailSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/volumes/detail"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Hardware - Shelves Metrics
+        # ==========================
+        # Step 6: Get shelves summary
+        # Collects information about physical disk shelves in the array
+        - name: GetShelves
+          event_type: AlletraShelvesSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/shelves"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Step 7: Get shelves detailed information
+        # Collects detailed shelf metrics including temperature, power, and component health
+        - name: GetShelvesDetails
+          event_type: AlletraShelvesDetailSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/shelves/detail"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Hardware - Disk Metrics
+        # =======================
+        # Step 8: Get disk summary
+        # Collects information about all physical drives in the array
+        - name: GetDisks
+          event_type: AlletraDiskSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/disks"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Step 9: Get disk detailed information
+        # Collects detailed disk metrics including health status, performance, and wear indicators
+        - name: GetDisksDetails
+          event_type: AlletraDiskDetailSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/disks/detail"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Array-Level Metrics
+        # ===================
+        # Step 10: Get array summary
+        # Collects high-level array status and configuration information
+        - name: GetArrays
+          event_type: AlletraArraysSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/arrays"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
+
+        # Step 11: Get array detailed information
+        # Collects comprehensive array metrics including system performance, capacity utilization, and health
+        - name: GetArraysDetails
+          event_type: AlletraArraysDetailSample
+          commands:
+            - run: >
+                curl -s -k -X GET "${var:api_base}/arrays/detail"
+                --tlsv1.2
+                --ciphers "${var:ciphers}"
+                --cacert "${var:ca_cert}"
+                -H "X-Auth-Token: ${lookup.AlletraAuthToken:data.session_token}"
