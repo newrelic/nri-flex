@@ -14,7 +14,7 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/go-git/go-git/v5 v5.16.5
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/itchyny/gojq v0.12.16
+	github.com/itchyny/gojq v0.12.18
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.11.2
 	github.com/newrelic-experimental/go-ase v1.3.0
@@ -86,7 +86,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/itchyny/timefmt-go v0.1.6 // indirect
+	github.com/itchyny/timefmt-go v0.1.7 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
