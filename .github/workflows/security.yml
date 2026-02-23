@@ -12,7 +12,8 @@ on:
 
 permissions:
   contents: read
-
+  security-events: write
+  
 jobs:
   security:
     uses: newrelic/coreint-automation/.github/workflows/reusable_security.yaml@v3
