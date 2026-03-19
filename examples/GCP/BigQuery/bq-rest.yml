@@ -7,7 +7,9 @@ integrations:
         project_id: my-project-id-123456 # Required
         dataset_id: my_dataset           # Required
       apis:
-        ## Fetch OAuth2 access token using application-default credentials
+        ## Fetch OAuth2 access token using application-default credentials.
+        ## gcloud caches the token locally (valid for ~1 hour) and only
+        ## refreshes it near expiry, so this is not a network call on every poll.
         - name: gettoken
           ignore_output: true
           commands:
