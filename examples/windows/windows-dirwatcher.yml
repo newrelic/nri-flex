@@ -1,6 +1,6 @@
 # Monitor a single file or multiple files in a directory
 # SELECT * FROM DirWatcher
-# Example for NRQL Alert: SELECT count(*) FROM DirWatcher WHERE error IS NOT NULL
+# Example for NRQL Alert: SELECT * FROM DirWatcher WHERE fullPath='C:\\Temp\\logs.txt' AND lastModified_hours > '1'
 integrations:
   - name: nri-flex
     interval: 1h # This is the Infrastructure agent polling interval for this Flex configuration, set to one poll every hour
@@ -10,14 +10,7 @@ integrations:
         - event_type: DirWatcher
           shell: powershell
           commands:
-            - run: "Get-ChildItem –Path \"C:/Directory/\" | Foreach-Object {$_.Name+';'+$_.length+';'+$_.length/1KB+';'+$_.length/1MB+';'+$_.length/1GB+';'+$_.DirectoryName+';'+$_.IsReadOnly+';'+$_.Exists+';'+$_.FullName+';'+$_.Extension+';'+$_.CreationTime+';'+$_.CreationTimeUtc+';'+$_.LastAccessTime+';'+$_.LastAccessTimeUtc+';'+$_.LastWriteTime+';'+$_.LastAccessTimeUtc+';'+$_.Attributes+';'+$_.Mode+';'+$_.BaseName+';'+$_.LinkType}"
+            - run: "Get-ChildItem -Path \"C:/Temp/logs.txt\" | Foreach-Object {$_.Name+';'+$_.length+';'+$_.length/1KB+';'+$_.length/1MB+';'+$_.length/1GB+';'+$_.DirectoryName+';'+$_.IsReadOnly+';'+$_.Exists+';'+$_.FullName+';'+$_.Extension+';'+$_.CreationTime+';'+$_.CreationTimeUtc+';'+$_.LastAccessTime+';'+$_.LastAccessTimeUtc+';'+$_.LastWriteTime+';'+$_.LastAccessTimeUtc+';'+$_.Attributes+';'+$_.Mode+';'+$_.BaseName+';'+$_.LinkType+';'+((Get-Date)-$_.LastWriteTime).TotalHours}"
               split: horizontal
-              set_header: [fileName, fileSize, fileSize_kb, fileSize_mb, fileSize_gb, directoryName, isReadOnly, exists, fullPath, fileExtension, creationTime, creationTimeUtc, lastAccessTime, lastAccessTimeUtc, lastWriteTime, lastWriteTimeUtc, attributes, mode, baseName, linkType]
-              split_by: ";"
-        - event_type: DirWatcher
-          shell: powershell
-          commands:
-            - run: "Get-ChildItem –Path \"C:/Another_Directory/single_file.bak\" | Foreach-Object {$_.Name+';'+$_.length+';'+$_.length/1KB+';'+$_.length/1MB+';'+$_.length/1GB+';'+$_.DirectoryName+';'+$_.IsReadOnly+';'+$_.Exists+';'+$_.FullName+';'+$_.Extension+';'+$_.CreationTime+';'+$_.CreationTimeUtc+';'+$_.LastAccessTime+';'+$_.LastAccessTimeUtc+';'+$_.LastWriteTime+';'+$_.LastAccessTimeUtc+';'+$_.Attributes+';'+$_.Mode+';'+$_.BaseName+';'+$_.LinkType}"
-              split: horizontal
-              set_header: [fileName, fileSize, fileSize_kb, fileSize_mb, fileSize_gb, directoryName, isReadOnly, exists, fullPath, fileExtension, creationTime, creationTimeUtc, lastAccessTime, lastAccessTimeUtc, lastWriteTime, lastWriteTimeUtc, attributes, mode, baseName, linkType]
+              set_header: [fileName, fileSize, fileSize_kb, fileSize_mb, fileSize_gb, directoryName, isReadOnly, exists, fullPath, fileExtension, creationTime, creationTimeUtc, lastAccessTime, lastAccessTimeUtc, lastWriteTime, lastWriteTimeUtc, attributes, mode, baseName, linkType, lastModified_hours]
               split_by: ";"
