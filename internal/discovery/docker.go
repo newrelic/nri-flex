@@ -11,8 +11,7 @@ import (
 
 	"github.com/newrelic/nri-flex/internal/load"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 var cli *client.Client
@@ -43,29 +42,27 @@ func ExecContainerCommand(containerID string, command []string) (string, error) 
 	}
 
 	ctx := context.Background()
-	execConfig := container.ExecOptions{
+	execConfig := client.ExecCreateOptions{
 		AttachStderr: true,
 		AttachStdin:  true,
 		AttachStdout: true,
 		Cmd:          command,
-		Tty:          true,
-		Detach:       false,
+		TTY:          true,
 	}
 	//set target container
-	exec, err := cli.ContainerExecCreate(ctx, containerID, execConfig)
+	execResult, err := cli.ExecCreate(ctx, containerID, execConfig)
 	if err != nil {
 		return "", err
 	}
-	execAttachConfig := container.ExecStartOptions{
-		Detach: false,
-		Tty:    true,
+	execAttachConfig := client.ExecAttachOptions{
+		TTY: true,
 	}
-	containerConn, err := cli.ContainerExecAttach(ctx, exec.ID, execAttachConfig)
+	attachResult, err := cli.ExecAttach(ctx, execResult.ID, execAttachConfig)
 	if err != nil {
 		return "", err
 	}
-	defer containerConn.Close()
-	data, err := Readln(containerConn.Reader)
+	defer attachResult.Close()
+	data, err := Readln(attachResult.Reader)
 	if err != nil {
 		return "", err
 	}
