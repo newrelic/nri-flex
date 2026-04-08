@@ -22,9 +22,8 @@ import (
 	"github.com/newrelic/nri-flex/internal/load"
 	"github.com/sirupsen/logrus"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	containertypes "github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 )
 
 // Run discover containers
@@ -41,12 +40,12 @@ func Run(configs *[]load.Config) {
 			}).Error("discovery: unable to set docker client")
 		} else {
 			ctx := context.Background()
-			containerList, err := cli.ContainerList(ctx, container.ListOptions{})
+			containerListResult, err := cli.ContainerList(ctx, client.ContainerListOptions{})
 			if err != nil {
 				load.Logrus.WithFields(logrus.Fields{
 					"err": err,
 				}).Error("discovery: unable to set perform container list")
-			} else if len(containerList) > 0 {
+			} else if len(containerListResult.Items) > 0 {
 				// List config files in containerDiscoveryPath directory
 				containerDiscoveryPath := filepath.FromSlash(load.Args.ContainerDiscoveryDir)
 				containerDiscoveryFiles, err := ioutil.ReadDir(containerDiscoveryPath)
@@ -57,7 +56,7 @@ func Run(configs *[]load.Config) {
 					}).Debugf("discovery: %v directory unavailable or not used", load.Args.ContainerDiscoveryDir)
 				}
 
-				CreateDynamicContainerConfigs(containerList, containerDiscoveryFiles, containerDiscoveryPath, configs)
+				CreateDynamicContainerConfigs(containerListResult.Items, containerDiscoveryFiles, containerDiscoveryPath, configs)
 
 				if err == nil && len(containerDiscoveryFiles) == 0 {
 					load.Logrus.WithFields(logrus.Fields{
@@ -106,20 +105,20 @@ func FindFlexContainerID(read string) {
 }
 
 // CreateDynamicContainerConfigs Creates dynamic configs for each container
-func CreateDynamicContainerConfigs(containers []types.Container, files []os.FileInfo, path string, ymls *[]load.Config) {
+func CreateDynamicContainerConfigs(containers []containertypes.Summary, files []os.FileInfo, path string, ymls *[]load.Config) {
 	var containerYmls []load.Config
 	config.LoadFiles(&containerYmls, files, path)
 	foundTargetContainerIds := []string{}
 
 	// store inspected containers, so we do not re-inspect anything unnecessarily
-	inspectedContainers := []types.ContainerJSON{}
+	inspectedContainers := []containertypes.InspectResponse{}
 	// find flex container id if not set
 	if load.ContainerID == "" {
 		fallbackFindFlexContainerID(&containers)
 	}
 
 	// filter containers out
-	filteredContainers := []types.Container{}
+	filteredContainers := []containertypes.Summary{}
 	for _, container := range containers {
 		// do not target self or nr images
 		if container.ID == load.ContainerID || strings.HasPrefix(container.Image, "newrelic/") {
@@ -151,12 +150,12 @@ func CreateDynamicContainerConfigs(containers []types.Container, files []os.File
 }
 
 // runForwardLookup container envs -> flex
-func runForwardLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
+func runForwardLookup(dockerClient *client.Client, containers *[]containertypes.Summary, inspectedContainers *[]containertypes.InspectResponse, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
 
 	var wg sync.WaitGroup
 	wg.Add(len(*containers))
 	for _, container := range *containers {
-		go func(container types.Container) {
+		go func(container containertypes.Summary) {
 			defer wg.Done()
 
 			// do not target already targeted containers unless container discovery multi param is true
@@ -179,7 +178,7 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 				}
 
 				// check env variables for disc configs, so use container inspect
-				var containerInspect types.ContainerJSON
+				var containerInspect containertypes.InspectResponse
 
 				// check if the container has already been inspected
 				for _, inspectedContainer := range *inspectedContainers {
@@ -192,7 +191,10 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 				if containerInspect.Config == nil {
 					ctx := context.Background()
 					var err error
-					containerInspect, err = dockerClient.ContainerInspect(ctx, container.ID)
+					inspectResult, err := dockerClient.ContainerInspect(ctx, container.ID, client.ContainerInspectOptions{})
+					if err == nil {
+						containerInspect = inspectResult.Container
+					}
 					if err != nil {
 						load.Logrus.WithFields(logrus.Fields{
 							"err": err,
@@ -256,7 +258,7 @@ func runForwardLookup(dockerClient *client.Client, containers *[]types.Container
 }
 
 // runConfigLookup flex config -> container
-func runConfigLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, ymls *[]load.Config) {
+func runConfigLookup(dockerClient *client.Client, containers *[]containertypes.Summary, inspectedContainers *[]containertypes.InspectResponse, foundTargetContainerIds *[]string, ymls *[]load.Config) {
 	discoveryLoop := []load.ContainerDiscovery{}
 
 	// this can probably be handled differently
@@ -297,7 +299,7 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 		var wg sync.WaitGroup
 		wg.Add(len(*containers))
 		for _, container := range *containers {
-			go func(container types.Container) {
+			go func(container containertypes.Summary) {
 				defer wg.Done()
 				// create discoveryConfigs
 				for _, cd := range discoveryLoop {
@@ -308,12 +310,13 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 					discoveryConfig["tm"] = cd.Mode
 
 					ctx := context.Background()
-					reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
+					inspectResult, err := dockerClient.ContainerInspect(ctx, container.ID, client.ContainerInspectOptions{})
 					if err != nil {
 						load.Logrus.WithFields(logrus.Fields{
 							"err": err,
 						}).Errorf("discovery: %v cfg container inspect failed - %v", container.ID, cd.FileName)
 					} else {
+						reverseContainerInspect := inspectResult.Container
 						if findContainerTarget(discoveryConfig, container, foundTargetContainerIds) {
 
 							switch discoveryConfig["tt"].(string) {
@@ -338,31 +341,34 @@ func runConfigLookup(dockerClient *client.Client, containers *[]types.Container,
 }
 
 // runReverseLookup flex envs -> container
-func runReverseLookup(dockerClient *client.Client, containers *[]types.Container, inspectedContainers *[]types.ContainerJSON, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
-	var flexContainerInspect types.ContainerJSON
+func runReverseLookup(dockerClient *client.Client, containers *[]containertypes.Summary, inspectedContainers *[]containertypes.InspectResponse, foundTargetContainerIds *[]string, containerYmls *[]load.Config, ymls *[]load.Config, path string) {
+	var flexContainerInspect containertypes.InspectResponse
 	ctx := context.Background()
 	discoveryLoop := map[string]string{}
 
 	if load.ContainerID != "" {
 		var err error
-		flexContainerInspect, err = dockerClient.ContainerInspect(ctx, load.ContainerID)
+		inspectResult, err := dockerClient.ContainerInspect(ctx, load.ContainerID, client.ContainerInspectOptions{})
 		if err != nil {
 			load.Logrus.WithFields(logrus.Fields{
 				"err": err,
 			}).Error("discovery: container inspect failed")
-		} else if flexContainerInspect.Config != nil {
-			*inspectedContainers = append(*inspectedContainers, flexContainerInspect)
+		} else {
+			flexContainerInspect = inspectResult.Container
+			if flexContainerInspect.Config != nil {
+				*inspectedContainers = append(*inspectedContainers, flexContainerInspect)
 
-			// add container labels to check for disc configs
-			for key, val := range flexContainerInspect.Config.Labels {
-				discoveryLoop[key] = val
-			}
+				// add container labels to check for disc configs
+				for key, val := range flexContainerInspect.Config.Labels {
+					discoveryLoop[key] = val
+				}
 
-			// add env variables to check for disc configs
-			for _, envVar := range flexContainerInspect.Config.Env {
-				environmentVar := strings.SplitN(envVar, "=", 2)
-				if len(environmentVar) == 2 {
-					discoveryLoop[environmentVar[0]] = environmentVar[1]
+				// add env variables to check for disc configs
+				for _, envVar := range flexContainerInspect.Config.Env {
+					environmentVar := strings.SplitN(envVar, "=", 2)
+					if len(environmentVar) == 2 {
+						discoveryLoop[environmentVar[0]] = environmentVar[1]
+					}
 				}
 			}
 		}
@@ -373,7 +379,7 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 		var wg sync.WaitGroup
 		wg.Add(len(*containers))
 		for _, container := range *containers {
-			go func(container types.Container) {
+			go func(container containertypes.Summary) {
 				defer wg.Done()
 				for key, val := range discoveryLoop {
 					if strings.Contains(key, "flexDiscovery") {
@@ -394,7 +400,8 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 							}
 						}
 						ctx := context.Background()
-						reverseContainerInspect, err := dockerClient.ContainerInspect(ctx, container.ID)
+						inspectResult, err := dockerClient.ContainerInspect(ctx, container.ID, client.ContainerInspectOptions{})
+					reverseContainerInspect := inspectResult.Container
 						if err != nil {
 							load.Logrus.WithFields(logrus.Fields{
 								"err": err,
@@ -415,7 +422,7 @@ func runReverseLookup(dockerClient *client.Client, containers *[]types.Container
 
 }
 
-func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]interface{}, ymls *[]load.Config, targetContainer types.Container, targetContainerInspect types.ContainerJSON, path string) {
+func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]interface{}, ymls *[]load.Config, targetContainer containertypes.Summary, targetContainerInspect containertypes.InspectResponse, path string) {
 	for _, containerYml := range *containerYmls {
 		configName := ""
 		switch cfg := discoveryConfig["c"].(type) {
@@ -448,7 +455,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 				publicPort := ""
 				// use the first found IPAddress
 				for _, network := range targetContainer.NetworkSettings.Networks {
-					networkIPAddress = network.IPAddress
+					networkIPAddress = network.IPAddress.String()
 					break
 				}
 				// ability to override and select port
@@ -553,7 +560,7 @@ func addDynamicConfig(containerYmls *[]load.Config, discoveryConfig map[string]i
 						img := strings.Split(targetContainer.Image, "@")
 						yml.CustomAttributes["imageShort"] = img[0]
 						yml.CustomAttributes["container.duration"] = fmt.Sprintf("%d", MakeTimestamp()-(targetContainer.Created*1000))
-						yml.CustomAttributes["container.state"] = targetContainer.State
+						yml.CustomAttributes["container.state"] = string(targetContainer.State)
 						yml.CustomAttributes["container.status"] = targetContainer.Status
 						yml.CustomAttributes["container.name"] = strings.TrimPrefix(targetContainerInspect.Name, "/")
 
@@ -589,7 +596,7 @@ func parseFlexDiscoveryLabel(discoveryConfig map[string]interface{}, key string,
 	}
 }
 
-func findContainerTarget(discoveryConfig map[string]interface{}, container types.Container, foundTargetContainerIds *[]string) bool {
+func findContainerTarget(discoveryConfig map[string]interface{}, container containertypes.Summary, foundTargetContainerIds *[]string) bool {
 	// do not add any dynamic configs for already targeted containers, unless container discovery multi param is true
 	if !load.Args.ContainerDiscoveryMulti {
 		for _, id := range *foundTargetContainerIds {
@@ -667,7 +674,7 @@ func lowLevelIpv4Fetch(discoveryIPAddress *string, pid int, containerID string) 
 	return nil
 }
 
-func portFallback(container types.Container, containerInspect types.ContainerJSON, ymlString *string, discoveryPort *string) {
+func portFallback(container containertypes.Summary, containerInspect containertypes.InspectResponse, ymlString *string, discoveryPort *string) {
 	// kubernetes port fallback
 	for key, val := range container.Labels {
 		if key == "annotation.io.kubernetes.container.ports" {
@@ -714,14 +721,14 @@ func execHostnameFallback(discoveryIPAddress *string, containerID string, ymlStr
 	}
 }
 
-func fallbackFindFlexContainerID(containers *[]types.Container) {
+func fallbackFindFlexContainerID(containers *[]containertypes.Summary) {
 	// fallback on looking for image name "nri-flex" if flex's container id was not found internally
 	load.Logrus.Debug("discovery: flex container id has not been found internally, failing back... checking for flex image or container name")
 
 	var wg sync.WaitGroup
 	wg.Add(len(*containers))
 	for _, container := range *containers {
-		go func(container types.Container) {
+		go func(container containertypes.Summary) {
 			defer wg.Done()
 			if strings.Contains(container.Image, load.IntegrationName) && load.ContainerID == "" {
 				load.ContainerID = container.ID
