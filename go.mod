@@ -16,7 +16,7 @@ require (
 	github.com/itchyny/gojq v0.12.16
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.12.3
-	github.com/moby/moby/api v1.54.1
+	github.com/moby/moby/api v1.54.2
 	github.com/moby/moby/client v0.4.0
 	github.com/newrelic-experimental/go-ase v1.3.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
