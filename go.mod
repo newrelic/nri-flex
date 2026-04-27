@@ -8,7 +8,7 @@ require (
 	github.com/SAP/go-hdb v0.113.10
 	github.com/aws/aws-lambda-go v1.54.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.16
-	github.com/aws/aws-sdk-go-v2/service/kms v1.50.5
+	github.com/aws/aws-sdk-go-v2/service/kms v1.51.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/go-git/go-git/v5 v5.18.0
