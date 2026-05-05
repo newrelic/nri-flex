@@ -12,6 +12,10 @@ on:
       - 'docs/**'
       - 'examples/**'
 
+
+permissions:
+  contents: read
+
 env:
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   ORIGINAL_REPO_NAME: "newrelic/nri-flex"
