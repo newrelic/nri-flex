@@ -1,6 +1,6 @@
 module github.com/newrelic/nri-flex/tools
 
-go 1.25.9
+go 1.25.10
 require (
 	github.com/AlekSi/gocov-xml v1.2.0
 	github.com/axw/gocov v1.2.1
