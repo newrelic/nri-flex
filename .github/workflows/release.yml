@@ -10,7 +10,7 @@ on:
 
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   TAG: ${{ github.event.release.tag_name }}
