@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/newrelic/nri-flex/internal/utils"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 // RunScpWithTimeout performs scp with timeout to gather data from a remote file.
@@ -68,14 +71,19 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 		return nil, err
 	}
 
+	hostKeyCallback, err := getHostKeyCallback(api.Scp.KnownHostsFile)
+	if err != nil {
+		return nil, fmt.Errorf("ssh: failed to set up host key verification: %v", err)
+	}
+
 	sshConfig := &ssh.ClientConfig{
 		User:            user,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallback,
 		Timeout:         timeout,
 		Auth: []ssh.AuthMethod{
 			authMethod,
 		},
-	} // #nosec
+	}
 
 	sshConfig.SetDefaults()
 
@@ -90,6 +98,36 @@ func getSSHConnection(yml *load.Config, api load.API) (*sftp.Client, error) {
 		return nil, fmt.Errorf("ssh: failed to init sftp client, error: %v", err)
 	}
 	return client, nil
+}
+
+func getHostKeyCallback(knownHostsFile string) (ssh.HostKeyCallback, error) {
+	if knownHostsFile == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("unable to determine home directory: %v", err)
+		}
+		knownHostsFile = filepath.Join(home, ".ssh", "known_hosts")
+	}
+
+	// If the known_hosts file doesn't exist, create it so knownhosts.New
+	// succeeds but rejects all unknown hosts (secure by default).
+	if _, err := os.Stat(knownHostsFile); os.IsNotExist(err) {
+		dir := filepath.Dir(knownHostsFile)
+		if mkErr := os.MkdirAll(dir, 0700); mkErr != nil {
+			return nil, fmt.Errorf("unable to create directory for known_hosts file %s: %v", knownHostsFile, mkErr)
+		}
+		f, createErr := os.OpenFile(knownHostsFile, os.O_CREATE|os.O_WRONLY, 0600)
+		if createErr != nil {
+			return nil, fmt.Errorf("unable to create known_hosts file %s: %v", knownHostsFile, createErr)
+		}
+		f.Close()
+	}
+
+	callback, err := knownhosts.New(knownHostsFile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read known_hosts file %s: %v", knownHostsFile, err)
+	}
+	return callback, nil
 }
 
 func getAuthMethod(yml *load.Config, api load.API) (ssh.AuthMethod, error) {

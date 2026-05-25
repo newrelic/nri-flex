@@ -52,7 +52,7 @@ func (s *Signer) Sign(r *http.Request) (string, error) {
 	paramsToSign.Add("Signature", signature)
 
 	signedURL = r.URL.Scheme + "://" + r.URL.Host + r.URL.Path + "?" + paramsToSign.Encode()
-	load.Logrus.Debugf("Aliyun Signer: SignedUrl: %v ", signedURL)
+	load.Logrus.Debug("Aliyun Signer: URL signed successfully")
 	return signedURL, nil
 }
 
@@ -71,8 +71,7 @@ func ShaHmac1(source, secret string) string {
 	signedBytes := hmac.Sum(nil)
 	signedString := base64.StdEncoding.EncodeToString(signedBytes)
 
-	load.Logrus.Debugf("Aliyun Signer: String to sign: %v", source)
-	load.Logrus.Debugf("Aliyun Signer: Signature: %v", signedString)
+	load.Logrus.Debug("Aliyun Signer: HMAC signature computed successfully")
 
 	return signedString
 }

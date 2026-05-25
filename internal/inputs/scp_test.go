@@ -97,6 +97,9 @@ func TestGetSSHConnection(t *testing.T) {
 			"no route to host",
 			"network is unreachable",
 			"failed to connect to sftp host",
+			"knownhosts",
+			"host key verification",
+			"known_hosts",
 		}
 
 		errorMatched := false
