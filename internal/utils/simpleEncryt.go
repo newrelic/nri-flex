@@ -8,14 +8,14 @@ package utils
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5" // nolint
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"io"
 )
 
 func createHash(key string) string {
-	hasher := md5.New() // nolint
+	hasher := sha256.New()
 	hasher.Write([]byte(key))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
