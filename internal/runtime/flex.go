@@ -159,7 +159,7 @@ func logEncryptPass() error {
 		return err
 	}
 	log.Infof("   encrypt_pass: %s", cleartext)
-	log.Infof("    pass_phrase: %s", load.Args.PassPhrase)
+	log.Info("    pass_phrase: [REDACTED]")
 	log.Infof(" encrypted pass: %x", cipherText)
 
 	return nil
