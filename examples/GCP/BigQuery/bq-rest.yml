@@ -1,0 +1,41 @@
+integrations:
+  - name: nri-flex
+    interval: 300s
+    config:
+      name: gcp-bq-rest-flex
+      variable_store:
+        project_id: my-project-id-123456 # Required
+        dataset_id: my_dataset           # Required
+      apis:
+        ## Fetch OAuth2 access token using application-default credentials.
+        ## gcloud caches the token locally (valid for ~1 hour) and only
+        ## refreshes it near expiry, so this is not a network call on every poll.
+        - name: gettoken
+          ignore_output: true
+          commands:
+            - run: echo "access_token:$(gcloud auth application-default print-access-token)"
+              split_by: ':'
+        ## List all tables in the dataset with metadata (rows, size, type)
+        - name: bq-rest-table-list
+          event_type: bq_rest_table_stats
+          method: GET
+          url: https://bigquery.googleapis.com/bigquery/v2/projects/${var:project_id}/datasets/${var:dataset_id}/tables
+          headers:
+            Authorization: Bearer "${lookup.gettokenSample:access_token}"
+            Content-Type: application/json
+          jq: '.tables[]'
+        ## Run a query against INFORMATION_SCHEMA to get table storage stats
+        - name: bq-rest-storage
+          event_type: bq_rest_storage_stats
+          method: POST
+          url: https://bigquery.googleapis.com/bigquery/v2/projects/${var:project_id}/queries
+          headers:
+            Authorization: Bearer "${lookup.gettokenSample:access_token}"
+            Content-Type: application/json
+          payload: >
+            {
+              "query": "SELECT table_name, total_rows, total_logical_bytes, total_physical_bytes FROM `${var:project_id}`.`${var:dataset_id}`.INFORMATION_SCHEMA.TABLE_STORAGE",
+              "useLegacySql": false,
+              "timeoutMs": 30000
+            }
+          jq: '.rows[].f | {table_name: .[0].v, total_rows: .[1].v, total_logical_bytes: .[2].v, total_physical_bytes: .[3].v}'
