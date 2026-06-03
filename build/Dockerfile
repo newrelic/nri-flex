@@ -1,5 +1,5 @@
-# Use Ubuntu 16.04 as the base image
-FROM ubuntu:16.04
+# Use Ubuntu 26.04 as the base image
+FROM ubuntu:26.04
 
 # Define Go version
 ARG GO_VERSION=1.25
@@ -21,9 +21,7 @@ RUN apt-get update && apt-get install -y \
     rpm \
     build-essential \
     software-properties-common \
-    python-software-properties \
     gcc-arm-linux-gnueabi \
-    dpkg-sig \
     gcc-aarch64-linux-gnu
 
 # Install Go
