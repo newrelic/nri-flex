@@ -1,0 +1,209 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    config:
+      name: Manhattan_Integration 
+      secrets:
+        mylogin:
+          kind: local # Use Flex local/internal decryption function
+          key: YOUR_PASS_PHRASE # Your pass_phrase to encrypt/decrypt login info
+          data: <==YOUR ENCRYPTED LOGIN INFO from the command below==>
+          # Run the following command to generate a encrypted login info, paste it to the above -> data
+          # nri-flex -encrypt_pass 'username=<YOUR USERNAME>,password=<YOUR PASSWORD>,authorization=<YOUR AUTH>' -pass_phrase 'YOUR_PASS_PHRASE'
+          # The decrypted username, password and authorization will be used to exchange for access_token
+          type: equal
+      variable_store:
+        username: ${secret.mylogin:username}
+        password: ${secret.mylogin:password}
+        authorization: ${secret.mylogin:authorization}
+        oauth_token_endpoint: /oauth/token
+        token_script_location: /path/to/get_oauth_token.py
+        base_auth_url: https://<unique_id>-auth.omni.manh.com
+        base_url: https://<unique_id>.omni.manh.com
+        status_url: /api/v1/your-endpoint-path
+      apis:
+        - name: authentication
+          ignore_output: true
+          commands:
+            - run: python3 ${var:token_script_location} ${var:username} ${var:password} "${var:authorization}" ${var:base_auth_url} 
+          store_variables:
+            storedtoken: access_token
+        - name: messageperstatus
+          event_type: messageperstatus
+          ignore_output: false
+          url: ${var:base_url}${var:status_url}
+          method: POST
+          return_headers: false
+          headers:
+            Authorization: 'Bearer ${var:storedtoken}'
+            Content-Type: application/json
+            Organization: YOUR-ORG-CODE
+          remove_keys:
+            - api.header*
+            - header*
+          store_lookups:
+            ref: REF_KEY2
+            msgid: msg_id
+          payload: >-
+            {
+                "map": {
+                    "SearchCriteria": [
+                        {
+                            "Parameter": "msg_process_time",
+                            "Condition": "DateRange",
+                            "Values": [
+                                "lte:0d",
+                                "gte:1m"
+                            ]
+                        },
+                        {
+                            "Parameter": "status",
+                            "Condition": "Terms"
+                        },
+                        {
+                            "Parameter": "message_type",
+                            "Condition": "Equals",
+                            "Values": [
+                                "SaveOrderMSGType"
+                            ]
+                        }
+                    ]
+                }
+            }
+        - name: messagelistpersearch
+          event_type: messagelistpersearch
+          ignore_output: false
+          url: ${var:base_url}${var:status_url}
+          method: POST
+          return_headers: true
+          headers:
+            Authorization: 'Bearer ${var:storedtoken}'
+            Content-Type: application/json
+            Organization: YOUR-ORG-CODE
+          remove_keys:
+            - api.header*
+            - header*
+          payload: >-
+            {
+            "map": {
+                "SearchCriteria": [
+                    {
+                        "Parameter": "message_type",
+                        "Condition": "Equals",
+                        "Values": [
+                            "PublishOrderEventMSGType"
+                        ]
+                    },
+                    {
+                        "Parameter": "msg_submission_time",
+                        "Condition": "TimeInterval",
+                        "Values": [
+                            "gte:${timestamp:date-24hr}T00:00:00.000+0000",
+                            "lte:${timestamp:date}T00:00:00.000+0000"
+                        ]
+                    }
+                ],
+                "Size": 100,
+                "Page": 0,
+                "DisplayContent": false
+            }
+            }
+        - name: messagedetailbytypeanddate
+          event_type: messagedetailbytypeanddate
+          ignore_output: false
+          url: ${var:base_url}${var:status_url}
+          method: POST
+          return_headers: true
+          headers:
+            Authorization: 'Bearer ${var:storedtoken}'
+            Content-Type: application/json
+            Organization: YOUR-ORG-CODE
+          remove_keys:
+            - api.header*
+            - header*
+          payload: >-
+            {
+            "map": {
+                "SearchCriteria": [
+                    {
+                        "Parameter": "message_type",
+                        "Condition": "Equals",
+                        "Values": [
+                            "PublishOrderEventMSGType"
+                        ]
+                    },
+                    {
+                        "Parameter": "msg_submission_time",
+                        "Condition": "TimeInterval",
+                        "Values": [
+                            "gte:${timestamp:date-24hr}T00:00:00.000+0000",
+                            "lte:${timestamp:date}T00:00:00.000+0000"
+                        ]
+                    }
+                ],
+                "Size": 100,
+                "Page": 0,
+                "DisplayContent": true
+            }
+            }
+        - name: messagedetailbyorderid
+          event_type: messagedetailbyorderid
+          ignore_output: false
+          url: ${var:base_url}${var:status_url}
+          method: POST
+          return_headers: true
+          headers:
+            Authorization: 'Bearer ${var:storedtoken}'
+            Content-Type: application/json
+            Organization: YOUR-ORG-CODE
+          remove_keys:
+            - api.header*
+            - payload
+          payload: >-
+            {
+                "map": {
+                    "SearchCriteria": [
+                        {
+                            "Parameter": "REF_KEY2",
+                            "Condition": "Equals",
+                            "Values": [
+                                "\"${lookup:ref}\""
+                            ]
+                        }
+                    ],
+                    "Size": 5,
+                    "DisplayContent": true
+                }
+            }
+
+
+        - name: messagedetailbymessageid
+          event_type: messagedetailbymessageid
+          ignore_output: false
+          url: ${var:base_url}${var:status_url}
+          method: POST
+          return_headers: true
+          headers:
+            Authorization: 'Bearer ${var:storedtoken}'
+            Content-Type: application/json
+            Organization: YOUR-ORG-CODE
+          remove_keys:
+            - api.header*
+            - header*
+            - payload
+          payload: >-
+            {
+                "map": {
+                    "SearchCriteria": [
+                        {
+                            "Parameter": "msg_id",
+                            "Condition": "Equals",
+                            "Values": [
+                                "\"${lookup:msgid}\""
+                            ]
+                        }
+                    ],
+                    "Size": 5,
+                    "DisplayContent": true
+                }
+            }
