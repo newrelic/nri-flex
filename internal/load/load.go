@@ -498,13 +498,14 @@ type JMX struct {
 
 // SCP struct
 type SCP struct {
-	User       string `yaml:"user"`
-	Pass       string `yaml:"pass"`
-	Host       string `yaml:"host"`
-	Port       string `yaml:"port"`
-	RemoteFile string `yaml:"remote_file"`
-	Passphrase string `yaml:"pass_phrase"`
-	SSHPEMFile string `yaml:"ssh_pem_file"`
+	User           string `yaml:"user"`
+	Pass           string `yaml:"pass"`
+	Host           string `yaml:"host"`
+	Port           string `yaml:"port"`
+	RemoteFile     string `yaml:"remote_file"`
+	Passphrase     string `yaml:"pass_phrase"`
+	SSHPEMFile     string `yaml:"ssh_pem_file"`
+	KnownHostsFile string `yaml:"known_hosts_file"`
 }
 
 // HWSigner struct
