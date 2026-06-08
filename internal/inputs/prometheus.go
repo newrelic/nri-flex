@@ -13,6 +13,7 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/prometheus/common/model"
 )
 
 // Family mirrors the MetricFamily proto message.
@@ -345,6 +346,12 @@ func ParseReader(in io.Reader, ch chan<- *dto.MetricFamily) error {
 	// We could do further content-type checks here, but the
 	// fallback for now will anyway be the text format
 	// version 0.0.4, so just go for it and see if it works.
+
+	// Fix: Set validation scheme to prevent "unset" panic
+	if model.NameValidationScheme == 0 {
+		model.NameValidationScheme = model.UTF8Validation
+	}
+
 	var parser expfmt.TextParser
 	metricFamilies, err := parser.TextToMetricFamilies(in)
 	if err != nil {
