@@ -19,7 +19,7 @@ integrations:
       apis:
         - event_type: vplex_ups
           commands:
-            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ups ${lf:ip} ${lf:port} ${lf:user} ${lf:name} "${secret.vplex:password}"
+            - run: /opt/vplex/bin/python3 /opt/vplex/vplexapi.py ${lf:name} ups "${secret.vplex:password}"
               timeout: 90000
               split_by: ": "
               hide_error_exec: true
