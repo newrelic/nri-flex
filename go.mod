@@ -33,7 +33,7 @@ require (
 	github.com/vertica/vertica-sql-go v1.3.6
 	go.uber.org/ratelimit v0.3.1
 	golang.org/x/crypto v0.53.0
-	golang.org/x/net v0.55.0
+	golang.org/x/net v0.56.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 )
