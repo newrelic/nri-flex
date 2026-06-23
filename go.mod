@@ -10,12 +10,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.25
 	github.com/aws/aws-sdk-go-v2/service/kms v1.53.4
 	github.com/basgys/goxml2json v1.1.0
-	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/itchyny/gojq v0.12.16
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.12.3
+	github.com/microsoft/go-mssqldb v1.10.0
 	github.com/moby/moby/api v1.55.0
 	github.com/moby/moby/client v0.4.1
 	github.com/newrelic-experimental/go-ase v1.3.0
@@ -54,7 +54,9 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
+	github.com/shopspring/decimal v1.4.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.43.0 // indirect
 )
 
