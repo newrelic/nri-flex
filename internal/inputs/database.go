@@ -97,11 +97,16 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	// execute queries async else do synchronously
 	if api.DBAsync {
 		var wg sync.WaitGroup
+		var mu sync.Mutex
 		wg.Add(len(api.DBQueries))
 		for _, query := range api.DBQueries {
 			go func(query load.Command) {
 				defer wg.Done()
-				checkAndRunQuery(db, query, api, yml, dataStore)
+				localStore := []interface{}{}
+				checkAndRunQuery(db, query, api, yml, &localStore)
+				mu.Lock()
+				*dataStore = append(*dataStore, localStore...)
+				mu.Unlock()
 			}(query)
 		}
 		wg.Wait()
