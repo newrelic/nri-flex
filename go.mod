@@ -17,7 +17,7 @@ require (
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.12.3
 	github.com/moby/moby/api v1.55.0
-	github.com/moby/moby/client v0.4.1
+	github.com/moby/moby/client v0.5.0
 	github.com/newrelic-experimental/go-ase v1.3.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
 	github.com/parnurzeal/gorequest v0.3.0
