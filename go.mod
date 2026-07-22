@@ -30,7 +30,7 @@ require (
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
-	github.com/vertica/vertica-sql-go v1.3.7
+	github.com/vertica/vertica-sql-go v1.3.8
 	go.uber.org/ratelimit v0.3.1
 	golang.org/x/crypto v0.54.0
 	golang.org/x/net v0.57.0

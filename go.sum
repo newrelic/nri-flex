@@ -297,6 +297,8 @@ github.com/vertica/vertica-sql-go v1.3.6 h1:uDJPdBivsI5EwfX3NMDWZaQlVs9zTnVyxE/n
 github.com/vertica/vertica-sql-go v1.3.6/go.mod h1:jnn2GFuv+O2Jcjktb7zyc4Utlbu9YVqpHH/lx63+1M4=
 github.com/vertica/vertica-sql-go v1.3.7 h1:rGdWWf+d5i/zuUg3/y5vePqB33us/tuVI7TifKY/lMo=
 github.com/vertica/vertica-sql-go v1.3.7/go.mod h1:jnn2GFuv+O2Jcjktb7zyc4Utlbu9YVqpHH/lx63+1M4=
+github.com/vertica/vertica-sql-go v1.3.8 h1:FomjkM3cam9yE6zSic31flNWPLdsZbYGK9ihlLtbF1Y=
+github.com/vertica/vertica-sql-go v1.3.8/go.mod h1:c4OZ8lq1Ztc18w8a0nG+dzQh69BzJRcKN2LZOnYbERI=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo0=
