@@ -142,6 +142,7 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 		errorLogToInsights(err, api.Database, api.Name, query.Name)
 		return
 	}
+	defer rows.Close()
 
 	load.Logrus.WithFields(logrus.Fields{
 		"configName": yml.Name,
