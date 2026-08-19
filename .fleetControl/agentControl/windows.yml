@@ -1,0 +1,77 @@
+namespace: newrelic
+name: com.newrelic.infrastructure.nri_flex
+version: 0.1.0
+platform: host
+operating_system: windows
+protocol_version: "1.0"
+variables:
+  config:
+    description: "nri-flex integration YAML consumed by the infra-agent"
+    type: yaml
+    required: true
+  version:
+    description: "Agent version"
+    type: string
+    required: true
+  files:
+    description: "nri-flex additional files that can be references from configuration"
+    type: string_map
+    required: false
+    default: {}
+  oci:
+    repository:
+      description: "OCI repository name for nri-flex"
+      type: string
+      required: false
+      default: newrelic/nri-flex-artifacts
+      variants:
+        ac_config_field: "oci_repository_urls"
+        values: [ "newrelic/nri-flex-artifacts" ]
+deployment:
+  packages:
+    nri-flex:
+      download:
+        oci:
+          repository: ${nr-var:oci.repository}
+          version: ${nr-var:version}
+          public_key_url: https://publickeys.newrelic.com/g/agent-control-oci/global/nri-flex/jwks.json
+  # Allows setting up additional files to be referenced from nri-flex configuration.
+  # Example in values:
+  #
+  # ```
+  # files:
+  #   my_script.ps1: |
+  #     <SCRIPT-CONTENT>
+  #
+  # config:
+  #   integrations:
+  #     - name: nri-flex
+  #       interval: 60s
+  #       config:
+  #         name: my-flex
+  #         apis:
+  #           - event_type: CustomEvent
+  #             shell: powershell
+  #             commands:
+  #               # The agent dir can contain spaces (e.g. "New Relic"), so quote the path and
+  #               # use the call operator "&" rather than referencing it as a bare command.
+  #               - run: '& "${nr-path:agent_dir}\files\my_script.ps1"'
+  # ```
+  filesystem:
+    files:
+      kind: dir_content_from_map
+      source: ${nr-var:files}
+  shared_filesystem:
+    infra-agent-ohi-configs:
+      kind: dir
+      entries:
+        nri-flex.yaml:
+          kind: file
+          text: |
+            ${nr-var:config}
+    infra-agent-ohi-binaries:
+      kind: dir
+      entries:
+        nri-flex.exe:
+          kind: file
+          copy_from_file: ${nr-sub:packages.nri-flex.dir}\\nri-flex.exe
