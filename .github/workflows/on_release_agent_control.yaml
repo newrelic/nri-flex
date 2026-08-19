@@ -23,6 +23,8 @@ jobs:
       display_name: "Flex"
       monitoring_type: "INFRA"
       oci_registry: "docker.io/newrelic/nri-flex-artifacts"
+      source_repo: "newrelic/nri-flex"
+      metadata_git_ref: "master"
       artifacts: |
         [
           {"name":"linux-amd64","os":"linux","arch":"amd64","format":"tar+gzip","source_asset":"nri-flex_linux_{version}_amd64.tar.gz","source_format":"tar.gz","keep_files":["nri-flex"]},
