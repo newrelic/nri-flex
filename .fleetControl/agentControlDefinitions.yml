@@ -1,0 +1,11 @@
+agentControlDefinitions:
+  - platform: HOST
+    supportFromAgent: 1.0.0
+    supportFromAgentControl: 1.19.0
+    content: ./agentControl/windows.yml
+    operatingSystem: WINDOWS
+  - platform: HOST
+    supportFromAgent: 1.0.0
+    supportFromAgentControl: 1.19.0
+    content: ./agentControl/linux.yml
+    operatingSystem: LINUX
