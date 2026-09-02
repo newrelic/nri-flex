@@ -1,0 +1,44 @@
+---
+integrations:
+  - name: nri-flex
+    timeout: 32s
+    config:
+      name: dotnetAppList
+      interval: 10m
+      timeout: 320s
+      variable_store:
+        graphql_API_URL: https://api.newrelic.com/graphql
+      apis:
+        - name: dotnetAppList
+          event_type: dotnetAppList
+          url: ${var:graphql_API_URL}
+          method: POST
+          timeout: 300000
+          payload: >
+            {"query":"{ actor { entitySearch( queryBuilder: {domain: APM,
+            reporting: true, tags: {key: \"language\", value: \"dotnet\"}} ) {
+            count query results { nextCursor entities { name guid } } } } }"}
+          headers:
+            API-Key: APIKEYHERE
+            Content-Type: application/json
+        - name: dotnetPluginList
+          event_type: dotnetPluginList
+          url: ${var:graphql_API_URL}
+          method: POST
+          timeout: 300000
+          payload: >
+            {"query":"{ actor { entities(guids: \"${lookup.dotnetAppList:guid}\") {
+            ... on ApmApplicationEntity { guid name account { id name }
+            applicationInstances { environmentAttributes { attribute value }
+            details { host id } } tags { key values } } } } }"}
+          headers:
+            API-Key: APIKEYHERE
+            Content-Type: application/json
+          jq: >
+            .data.actor.entities[] as $entity | $entity.applicationInstances[] as
+            $instance | $entity.tags | map({(.key): .values[0]}) | add as $tags
+            | $instance.environmentAttributes[] | select(.attribute == "Plugin
+            List") | {appName: $entity.name, guid: $entity.guid, accountId:
+            $entity.account.id, accountName: $entity.account.name, library:
+            .value, host: $instance.details.host, id: $instance.details.id} +
+            $tags
