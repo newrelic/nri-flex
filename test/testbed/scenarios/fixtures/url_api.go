@@ -50,4 +50,24 @@ integrations:
 `,
 		ExpectedStdout: `{"name":"com.newrelic.nri-flex","protocol_version":"3","integration_version":"Unknown-SNAPSHOT","data":[{"metrics":[{"api.StatusCode":200,"event_type":"TestURL","id":"eca0338f4ea31566","integration_name":"com.newrelic.nri-flex","integration_version":"Unknown-SNAPSHOT","leader_info.abc.def":123,"leader_info.abc.hij":234,"leader_info.leader":"8a69d5f6b7814500","leader_info.start_time":"2014-10-24T13:15:51.186620747-07:00","leader_info.uptime":"10m59.322358947s","name":"node3"},{"event_type":"flexStatusSample","flex.Hostname":"d43822b4a811","flex.IntegrationVersion":"Unknown-SNAPSHOT","flex.counter.ConfigsProcessed":1,"flex.counter.EventCount":1,"flex.counter.EventDropCount":0,"flex.counter.HttpRequests":1,"flex.counter.TestURL":1,"flex.time.elapsedMs":7,"flex.time.endMs":1654770857187,"flex.time.startMs":1654770857180}],"inventory":{},"events":[]}]}`,
 	},
+	{
+		Name:     "html parse attributes parse_html_attributes",
+		Endpoint: "parse_html_attributes",
+		Port:     "8001",
+		Payload:  `<!DOCTYPE html><html><head><style>.requireApproval{background-color:tomato;color:#fff;border:2px solid #000;margin:20px;padding:20px}.standard{background-color:#475fff;color:#fff;border:2px solid #000;margin:20px;padding:20px}</style><title>HTML Table</title></head><body><table border="1" width="100%"><tr><td><table border="1" width="100%"><thead><tr><th scope="col">Name</th><th scope="col">Expenditure</th></tr></thead><tr><td>Alex</td><td class="standard abc">500</td></tr><tr><td>Sarah</td><td class="requireApproval xyz">8000</td></tr><tr><td>Josh</td><td class="requireApproval abc123">7500</td></tr></table></td></tr></table></body></html>`,
+		Config: `
+---
+integrations:
+  - name: nri-flex
+    config:
+      name: gcpStatus
+      apis:
+        - event_type: gcpStatus
+          url: http://127.0.0.1:8001/parse_html_attributes
+          parse_html: true
+          parse_html_attributes: 
+            class: .*
+`,
+		ExpectedStdout: `{ "name": "com.newrelic.nri-flex", "protocol_version": "3", "integration_version": "Unknown-SNAPSHOT", "data": [ { "metrics": [ { "Col 1": "TableElement", "Index": 0, "api.StatusCode": 200, "border": 1, "event_type": "gcpStatus", "integration_name": "com.newrelic.nri-flex", "integration_version": "Unknown-SNAPSHOT", "width": "100%" }, { "Expenditure": "class:standard abc;500", "Index": 1, "Name": "Alex", "api.StatusCode": 200, "border": 1, "event_type": "gcpStatus", "integration_name": "com.newrelic.nri-flex", "integration_version": "Unknown-SNAPSHOT", "width": "100%" }, { "Expenditure": "class:requireApproval xyz;8000", "Index": 1, "Name": "Sarah", "api.StatusCode": 200, "border": 1, "event_type": "gcpStatus", "integration_name": "com.newrelic.nri-flex", "integration_version": "Unknown-SNAPSHOT", "width": "100%" }, { "Expenditure": "class:requireApproval abc123;7500", "Index": 1, "Name": "Josh", "api.StatusCode": 200, "border": 1, "event_type": "gcpStatus", "integration_name": "com.newrelic.nri-flex", "integration_version": "Unknown-SNAPSHOT", "width": "100%" }, { "event_type": "flexStatusSample", "flex.Hostname": "C02FWCLFMD6M", "flex.IntegrationVersion": "Unknown-SNAPSHOT", "flex.counter.ConfigsProcessed": 1, "flex.counter.EventCount": 4, "flex.counter.EventDropCount": 0, "flex.counter.HttpRequests": 1, "flex.counter.gcpStatus": 4, "flex.time.elapsedMs": 10, "flex.time.endMs": 1673401968833, "flex.time.startMs": 1673401968823 } ], "inventory": {}, "events": [] } ] }`,
+	},
 }
