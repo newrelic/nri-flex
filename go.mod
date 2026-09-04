@@ -15,7 +15,7 @@ require (
 	github.com/itchyny/gojq v0.12.16
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.12.3
-	github.com/microsoft/go-mssqldb v1.10.0
+	github.com/microsoft/go-mssqldb v1.11.0
 	github.com/moby/moby/api v1.55.0
 	github.com/moby/moby/client v0.4.1
 	github.com/newrelic-experimental/go-ase v1.3.0
