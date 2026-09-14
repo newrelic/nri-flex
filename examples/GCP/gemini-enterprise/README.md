@@ -79,6 +79,26 @@ This example Flex integration collects the following metrics.
 | `discoveryengine.googleapis.com/quota/data_stores_regional/exceeded`     |                                                            | DELTA | INT64 | 1    | 150s         |
 | `discoveryengine.googleapis.com/quota/data_stores_regional/limit`        |                                                            | GAUGE | INT64 | 1    | 150s         |
 | `discoveryengine.googleapis.com/quota/data_stores_regional/usage`        |                                                            | GAUGE | INT64 | 1    | 150s         |
+| `discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/exceeded` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/limit` | GAUGE | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/usage` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/exceeded` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/limit` | GAUGE | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/usage` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/exceeded` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/limit` | GAUGE | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/usage` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/exceeded` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/limit` | GAUGE | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/usage` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/exceeded` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/limit` | GAUGE | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/usage` | DELTA | INT64 | 1 | 150s |
+| `discoveryengine.googleapis.com/dataconnector/request_count` | DELTA | INT64 | 1 | 360s |
+| `discoveryengine.googleapis.com/agent_session_count` | CUMULATIVE | INT64 | 1 | 300s |
+| `discoveryengine.googleapis.com/agent_session_with_tool_count` | CUMULATIVE | INT64 | 1 | 300s |
+| `discoveryengine.googleapis.com/agent_total_latencies` | DELTA | DISTRIBUTION | ms | 330s |
+| `discoveryengine.googleapis.com/agent_turn_count` | CUMULATIVE | INT64 | 1 | 300s |
 
 **NOTE:** See
 ["Value types and metric kinds"](https://docs.cloud.google.com/monitoring/api/v3/kinds-and-types)
@@ -91,7 +111,8 @@ The metrics above are sent to New Relic as infrastructure
 The provided events and attributes are listed below.
 
 **NOTE:** Some of the text below is sourced from the
-[GCP Cloud Monitoring API v3 documentation](https://docs.cloud.google.com/monitoring/api/v3).
+[GCP Cloud Monitoring API v3 documentation](https://docs.cloud.google.com/monitoring/api/v3)
+and the [GCP Cloud Monitoring APIs & Referenced documentation](https://docs.cloud.google.com/monitoring/docs/apis).
 
 #### `GeminiEnterpriseSample`
 
@@ -102,27 +123,11 @@ to report the following metrics:
   `discoveryengine.googleapis.com` service
 * The `discoveryengine.googleapis.com/data_stores_regional` metric type
 * The `discoveryengine.googleapis.com/engines_regional` metric type.
-
-The table below shows what attributes are included in each event based on the
-[metric type](https://docs.cloud.google.com/monitoring/api/v3/metric-model#metric_types)
-(metadata attributes added by the infrastructure agent are not included below).
-
-| Attribute Name       | Data Type | Metric Type(s)                                    | Description                                     |
-| -------------------- | --------- | ------------------------------------------------- | ----------------------------------------------- |
-| `metricType`         | string    | all                                               | The GCP Cloud Monitoring v3 metric type         |
-| `projectId`          | string    | all                                               | The GCP project ID of the monitored resource    |
-| `resourceType`       | string    | all                                               | The monitored resource type                     |
-| `resourceLocation`   | string    | all                                               | The location of the monitored resource          |
-| `regionalLocation`   | string    | `discoveryengine.googleapis.com/*`                | The multi region identifier                     |
-| `value`              | number    | all                                               | The numeric measured value                      |
-| `interval.startTime` | number    | all                                               | The measurement interval start time, in seconds |
-| `interval.endTime`   | number    | all                                               | The measurement interval end time, in seconds   |
-
-**NOTE:** For events reported for the
-`serviceruntime.googleapis.com/api/request_count` metric type, the
-`resourceLocation` value represents the service specific notion of location.
-This can be a name of a zone or region. If a service does not have any notion of
-zones then 'global' can be used.
+* The `discoveryengine.googleapis.com/dataconnector/request_count` metric type
+* The `discoveryengine.googleapis.com/agent_session_count` metric type
+* The `discoveryengine.googleapis.com/agent_session_with_tool_count` metric type
+* The `discoveryengine.googleapis.com/agent_total_latencies` metric type
+* The `discoveryengine.googleapis.com/agent_turn_count` metric type
 
 #### `GeminiEnterpriseQuotaSample`
 
@@ -130,25 +135,267 @@ In this example Flex configuration, the `GeminiEnterpriseQuotaSample` event is
 used to report the metrics for all `discoveryengine.googleapis.com/quota/*`
 metric types.
 
-The table below shows what attributes are included in each event based on the
-metric type (metadata attributes added by the infrastructure agent are not
-included below).
+#### Attributes
 
-| Attribute Name       | Data Type | Metric Type(s)                                                      | Description                                                |
-| -------------------- | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `metricType`         | string    | all                                                                 | The GCP Cloud Monitoring v3 metric type                    |
-| `projectId`          | string    | all                                                                 | The GCP project ID of the monitored `Location` resource    |
-| `resourceType`       | string    | all                                                                 | The monitored resource type                                |
-| `resourceLocation`   | string    | all                                                                 | The location of the monitored resource                     |
-| `limitName`          | string    | all                                                                 | The limit name                                             |
-| `regionalLocation`   | string    | all                                                                 | The multi region identifier                                |
-| `method`             | string    | discoveryengine.googleapis.com/quota/search_requests_regional/usage | The method                                                 |
-| `value`              | number    | all                                                                 | The numeric measured value                                 |
-| `interval.startTime` | number    | all                                                                 | The measurement interval start time, in seconds            |
-| `interval.endTime`   | number    | all                                                                 | The measurement interval end time, in seconds              |
+The table below shows all possible attributes that can be found on the
+`GeminiEnterpriseSample` and `GeminiEnterpriseQuotaSample` events across all
+[metric types](https://docs.cloud.google.com/monitoring/api/v3/metric-model#metric_types)
+(metadata attributes added by the infrastructure agent are not included below).
+Note that not all attributes are available for all metric types.
 
-**NOTE:** The `resourceType` value for all `GeminiEnterpriseQuotaSample` events
-is `discoveryengine.googleapis.com/Location`.
+* `agentId`
+
+  The unique identifier of the Agent.
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_session_count`
+  * `discoveryengine.googleapis.com/agent_session_with_tool_count`
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+  * `discoveryengine.googleapis.com/agent_turn_count`
+
+* `distributionCount`
+
+  The number of values in the population.
+
+  *Data Type*: string (int64 format)[https://developers.google.com/discovery/v1/type-format]
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+  See the
+  [`Distribution` documentation](https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue?hl=en#Distribution)
+  for more details.
+
+* `distributionMax`
+
+  The maximum value in the range of the population values.
+
+  *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+  See the
+  [`Distribution` documentation](https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue?hl=en#Distribution)
+  for more details.
+
+* `distributionMean`
+
+  The arithmetic mean of the values in the population. If `distributionCount`
+  is zero then this field will also be zero.
+
+  *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+  See the
+  [`Distribution` documentation](https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue?hl=en#Distribution)
+  for more details.
+
+* `distributionMin`
+
+  The minimum value in the range of the population values.
+
+  *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+  See the
+  [`Distribution` documentation](https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue?hl=en#Distribution)
+  for more details.
+
+* `distributionSumOfSquaredDeviation`
+
+  The sum of squared deviations from the mean of the values in the population.
+  If `distributionCount` is zero then this field will also be zero.
+
+  *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+  See the
+  [`Distribution` documentation](https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue?hl=en#Distribution)
+  for more details.
+
+* `interval.startTime`
+
+  The measurement interval start time, in seconds.
+
+  *Data Type*: number
+
+* `interval.endTime`
+
+  The measurement interval end time, in seconds.
+
+  *Data Type*: number
+
+* `grpcStatusCode`
+
+   The numeric gRPC response code for gRPC requests, or gRPC equivalent code for
+   HTTP requests. See code mapping in
+   https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto.
+
+   *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `serviceruntime.googleapis.com/request_count`
+  * `discoveryengine.googleapis.com/dataconnector/request_count`
+
+* `limitName`
+
+  The limit name.
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * All `discoveryengine.googleapis.com/quota/*` metrics
+
+* `method`
+
+  The method.
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/quota/search_requests_regional/usage`
+  * `discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/usage`
+  * `discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/usage`
+  * `discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/usage`
+  * `discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/usage`
+  * `discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/usage`
+
+* `metricType`
+
+  The GCP Cloud Monitoring v3 metric type.
+
+  *Data Type*: string
+
+* `projectId`
+
+  The GCP project ID of the monitored resource.
+
+  *Data Type*: string
+
+* `protocol`
+
+  The protocol of the request, e.g. "http", "grpc".
+
+  *Data Type*: string
+
+  Only available on the `serviceruntime.googleapis.com/request_count` metric.
+
+* `regionalLocation`
+
+  The multi region identifier.
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/data_stores_regional`
+  * `discoveryengine.googleapis.com/engines_regional`
+  * All `discoveryengine.googleapis.com/quota/*` metrics
+
+* `resourceLocation`
+
+  The location of the monitored resource.
+
+  *Data Type*: string
+
+  **NOTE:** For events reported for the
+  `serviceruntime.googleapis.com/api/request_count` metric type, the
+  `resourceLocation` value represents the service specific notion of location.
+  This can be a name of a zone or region. If a service does not have any notion
+  of zones then may be set to `global`.
+
+* `resourceMethod`
+
+  The API method name, such as `dataStores.list`.
+
+  *Data Type*: string
+
+  Only available on the `serviceruntime.googleapis.com/request_count` metric.
+
+* `resourceService`
+
+  The API service name, such as `discoveryengine.googleapis.com`.
+
+  *Data Type*: string
+
+  Only available on the `serviceruntime.googleapis.com/request_count` metric.
+
+* `resourceType`
+
+  The monitored resource type.
+
+  *Data Type*: string
+
+* `resourceVersion`
+
+  The API version, such as `v1`.
+
+  *Data Type*: string
+
+  Only available on the `serviceruntime.googleapis.com/request_count` metric.
+
+* `responseCode`
+
+  The HTTP response code for HTTP requests, or HTTP equivalent code for gRPC
+  requests. See code mapping in
+  https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto.
+
+  *Data Type*: number
+
+  Only available on the following metrics:
+
+  * `serviceruntime.googleapis.com/request_count`
+  * `discoveryengine.googleapis.com/dataconnector/request_count`
+
+* `responseCodeClass`
+
+  The response code class for HTTP requests, or HTTP equivalent class for gRPC
+  requests, e.g. "2xx", "4xx".
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * `serviceruntime.googleapis.com/request_count`
+
+* `status`
+
+  For the `discoveryengine.googleapis.com/dataconnector/request_count` metric,
+  the status of the request (e.g. SUCCESS, FAILURE).
+
+  For the `discoveryengine.googleapis.com/agent_total_latencies` metric, the
+  response code as a gRPC status code (e.g. OK, INVALID_ARGUMENT, etc.)
+
+  *Data Type*: string
+
+  Only available on the following metrics:
+
+  * `discoveryengine.googleapis.com/dataconnector/request_count`
+  * `discoveryengine.googleapis.com/agent_total_latencies`
+
+* `value`
+
+  The numeric measured value.
+
+  *Data Type*: number
 
 ### Collecting Additional Metrics
 
@@ -158,11 +405,17 @@ metrics.
 #### Supported value types and metric kinds
 
 The example API calls in this Flex configuration can be used to collect all
-[supported value type and metric kind combinations](https://docs.cloud.google.com/monitoring/api/v3/kinds-and-types#kind-type-combos)
-except the `DISTRIBUTION` value type combinations.
+[supported value type and metric kind combinations](https://docs.cloud.google.com/monitoring/api/v3/kinds-and-types#kind-type-combos).
 
-**NOTE:** Use caution when visualizing or alerting on `CUMULATIVE` metrics as
-the value of cumulative metrics monotonically increase over time.
+**NOTE:**
+* Use caution when visualizing or alerting on `CUMULATIVE` metrics as the value
+  of cumulative metrics monotonically increase over time.
+* For `DISTRIBUTION` measurements, the value isn't a single value but a group of
+  values. Flex can only be used to collect the distribution count, mean, sum of
+  squared deviation, range minimum, and range maximum values. The distribution
+  bucket counts and exemplars cannot be collected because they are array types.
+  Use caution when visualizing or alerting on these values as they are
+  pre-aggregated.
 
 #### Adding a new metric
 
@@ -411,4 +664,4 @@ Please note the following known limitations when using this Flex configuration.
 ## Troubleshooting
 
 To troubleshoot issues with the integration refer to the
-[Flex troubleshooting documentation](https://github.com/sdewitt-newrelic/nri-flex/blob/master/docs/troubleshooting.md).
+[Flex troubleshooting documentation](https://github.com/newrelic/nri-flex/blob/master/docs/troubleshooting.md).
