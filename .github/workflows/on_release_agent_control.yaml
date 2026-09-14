@@ -1,0 +1,37 @@
+name: Publish agent to catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to process (e.g., v1.18.10)'
+        required: true
+        type: string
+  release:
+    types:
+      - released
+
+permissions:
+  contents: read
+
+jobs:
+  oci-publish:
+    uses: newrelic/coreint-automation/.github/workflows/reusable_agent_control_release.yaml@v3
+    with:
+      tag: ${{ github.event.release.tag_name || inputs.tag }}
+      agent_type: NRIFlex
+      display_name: "Flex"
+      monitoring_type: "INFRA"
+      oci_registry: "docker.io/newrelic/nri-flex-artifacts"
+      artifacts: |
+        [
+          {"name":"linux-amd64","os":"linux","arch":"amd64","format":"tar+gzip","source_asset":"nri-flex_linux_{version}_amd64.tar.gz","source_format":"tar.gz","keep_files":["nri-flex"]},
+          {"name":"linux-arm64","os":"linux","arch":"arm64","format":"tar+gzip","source_asset":"nri-flex_linux_{version}_arm64.tar.gz","source_format":"tar.gz","keep_files":["nri-flex"]},
+          {"name":"windows-amd64","os":"windows","arch":"amd64","format":"zip","source_asset":"nri-flex_windows_{version}_amd64.zip","source_format":"zip","keep_files":["nri-flex.exe"]}
+        ]
+    secrets:
+      OHAI_NEWRELIC_CLIENT_ID: ${{ secrets.OHAI_NEWRELIC_CLIENT_ID }}
+      OHAI_NEWRELIC_PRIVATE_KEY: ${{ secrets.OHAI_NEWRELIC_PRIVATE_KEY }}
+      OHAI_OCI_USERNAME: ${{ secrets.OHAI_OCI_USERNAME }}
+      OHAI_OCI_PASSWORD: ${{ secrets.OHAI_OCI_PASSWORD }}
+      OHAI_APM_CONTROL_NR_LICENSE_KEY_STAGING: ${{ secrets.OHAI_APM_CONTROL_NR_LICENSE_KEY_STAGING }}

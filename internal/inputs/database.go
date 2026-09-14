@@ -26,7 +26,7 @@ import (
 	//Database Drivers
 	_ "github.com/MonetDB/MonetDB-Go/src"       //MonetDB
 	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
-	_ "github.com/denisenkom/go-mssqldb"        //mssql | sql-server
+	_ "github.com/microsoft/go-mssqldb"         //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
 	_ "github.com/lib/pq"                       //postgres
 	_ "github.com/newrelic-experimental/go-ase" //Sybases
@@ -97,11 +97,16 @@ func ProcessQueries(dataStore *[]interface{}, yml *load.Config, apiNo int) {
 	// execute queries async else do synchronously
 	if api.DBAsync {
 		var wg sync.WaitGroup
+		var mu sync.Mutex
 		wg.Add(len(api.DBQueries))
 		for _, query := range api.DBQueries {
 			go func(query load.Command) {
 				defer wg.Done()
-				checkAndRunQuery(db, query, api, yml, dataStore)
+				localStore := []interface{}{}
+				checkAndRunQuery(db, query, api, yml, &localStore)
+				mu.Lock()
+				*dataStore = append(*dataStore, localStore...)
+				mu.Unlock()
 			}(query)
 		}
 		wg.Wait()
@@ -137,6 +142,7 @@ func runQuery(db *sql.DB, query load.Command, api load.API, yml *load.Config, da
 		errorLogToInsights(err, api.Database, api.Name, query.Name)
 		return
 	}
+	defer rows.Close()
 
 	load.Logrus.WithFields(logrus.Fields{
 		"configName": yml.Name,
