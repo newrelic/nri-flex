@@ -1,6 +1,6 @@
 namespace: newrelic
 name: com.newrelic.infrastructure.nri_flex
-version: 0.1.0
+version: 1.0.0
 platform: host
 operating_system: windows
 protocol_version: "1.0"
@@ -9,6 +9,7 @@ variables:
     description: "nri-flex integration YAML consumed by the infra-agent"
     type: yaml
     required: true
+    classification: config
   version:
     description: "Agent version"
     type: string
@@ -24,9 +25,6 @@ variables:
       type: string
       required: false
       default: newrelic/nri-flex-artifacts
-      variants:
-        ac_config_field: "oci_repository_urls"
-        values: [ "newrelic/nri-flex-artifacts" ]
 deployment:
   packages:
     nri-flex:

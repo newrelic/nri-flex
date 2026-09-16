@@ -1,13 +1,23 @@
 configurationDefinitions:
   - platform: HOST
-    description: flex integration configuration
-    type: agent-config
+    type: AgentConfig
     version: 1.0.0
     format: yml
     operatingSystem: LINUX
+    bindings:
+      - type: CONFIGURES
+        targetType: AGENT
+        target: NRIFlex
+        versions:
+          - ">1.18.0"
   - platform: HOST
-    description: flex integration configuration
-    type: agent-config
+    type: AgentConfig
     version: 1.0.0
     format: yml
     operatingSystem: WINDOWS
+    bindings:
+      - type: CONFIGURES
+        targetType: AGENT
+        target: NRIFlex
+        versions:
+          - ">1.18.0"
