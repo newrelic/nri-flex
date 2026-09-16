@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-lambda-go v1.55.0
 	github.com/aws/aws-sdk-go-v2 v1.47.0
 	github.com/aws/aws-sdk-go-v2/config v1.33.5
-	github.com/aws/aws-sdk-go-v2/service/kms v1.60.0
+	github.com/aws/aws-sdk-go-v2/service/kms v1.61.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-sql-driver/mysql v1.10.1
