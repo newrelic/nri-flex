@@ -26,11 +26,11 @@ import (
 	//Database Drivers
 	_ "github.com/MonetDB/MonetDB-Go/src"       //MonetDB
 	_ "github.com/SAP/go-hdb/driver"            //SAP HANA
-	_ "github.com/microsoft/go-mssqldb"         //mssql | sql-server
 	_ "github.com/go-sql-driver/mysql"          //mysql
 	_ "github.com/lib/pq"                       //postgres
+	_ "github.com/microsoft/go-mssqldb"         //mssql | sql-server
 	_ "github.com/newrelic-experimental/go-ase" //Sybases
-	_ "github.com/sijms/go-ora/v2"              //Oracle
+	_ "github.com/sijms/go-ora/v3"              //Oracle
 	vertigo "github.com/vertica/vertica-sql-go" //HP Vertica
 	//
 )
