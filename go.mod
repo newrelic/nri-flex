@@ -17,7 +17,7 @@ require (
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/lib/pq v1.12.3
 	github.com/microsoft/go-mssqldb v1.11.2
-	github.com/moby/moby/api v1.56.0
+	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.4.1
 	github.com/newrelic-experimental/go-ase v1.3.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
