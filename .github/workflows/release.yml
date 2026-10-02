@@ -44,7 +44,7 @@ jobs:
 
   test-integration-nix:
     name: Run integration tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Login to DockerHub
@@ -83,7 +83,7 @@ jobs:
 
   prerelease:
     name: Build and release binaries
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ test-nix, test-windows, test-integration-nix ]
     steps:
       - uses: actions/checkout@v7
@@ -105,7 +105,7 @@ jobs:
   finish:
     name: Finish
     needs: [ prerelease ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Coveralls Finished
         uses: coverallsapp/github-action@v2
