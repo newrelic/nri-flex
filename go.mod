@@ -18,7 +18,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/microsoft/go-mssqldb v1.11.2
 	github.com/moby/moby/api v1.56.1
-	github.com/moby/moby/client v0.4.1
+	github.com/moby/moby/client v0.6.1
 	github.com/newrelic-experimental/go-ase v1.3.0
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
 	github.com/parnurzeal/gorequest v0.3.0
@@ -64,7 +64,7 @@ require (
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/go-connections v0.7.0 // indirect
+	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/go-sysinfo v1.15.4 // indirect
 	github.com/elastic/go-windows v1.0.2 // indirect
