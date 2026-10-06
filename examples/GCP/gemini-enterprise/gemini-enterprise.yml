@@ -1,0 +1,1007 @@
+integrations:
+  - name: nri-flex
+    interval: 60s
+    env:
+      # Uncomment these variables and set to remove all infrastructure agent
+      # metadata appended to data within NRDB.
+      # INSIGHTS_API_KEY: <ingest_key>
+      # INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<account_id>/events
+      EVENT_LIMIT: 100000
+    config:
+      name: gcp-gemini-enterprise-flex
+      variable_store:
+        service_account_email: YOUR_SERVICE_ACCOUNT_EMAIL # Required
+        service_account_key: PATH_TO_YOUR_SERVICE_ACCOUNT_KEY # Required
+        project_id: YOUR_PROJECT_ID # Required
+      apis:
+        #
+        # Initial authentication of service account using the gcloud CLI.
+        # Uncomment this section and run nri-flex manually for the first time
+        # ONLY. Then comment this section out and leave it commented out.
+        #
+        # - name: gcp-auth
+        #   ignore_output: true
+        #   commands:
+        #     - run: gcloud auth activate-service-account ${var:service_account_email} --key-file=${var:service_account_key}
+
+        #
+        # Get the access token for the service account using the gcloud CLI.
+        #
+        - name: get-access-token
+          ignore_output: true
+          commands:
+            - run: gcloud auth print-access-token --format json
+          store_variables:
+            access_token: token
+
+        #
+        # Get the API request count for the discovery engine API.
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: serviceruntime-api-request-count
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-360s}&interval.endTime=${timestamp:datetimeutctz-300s}&filter=metric.type="serviceruntime.googleapis.com/api/request_count"%20AND%20resource.labels.service="discoveryengine.googleapis.com"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.grpc_status_code: grpcStatusCode
+            parent.0.metric.labels.response_code_class: responseCodeClass
+            parent.0.metric.labels.response_code: responseCode
+            parent.0.metric.labels.protocol: protocol
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.method: resourceMethod
+            parent.0.resource.labels.project_id: projectId
+            parent.0.resource.labels.service: resourceService
+            parent.0.resource.labels.version: resourceVersion
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: serviceruntime.googleapis.com/api/request_count
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.resource.labels.credential_id
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the regional number of discovery engine data stores
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-data-stores-regional
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-180s}&interval.endTime=${timestamp:datetimeutctz-120s}&filter=metric.type="discoveryengine.googleapis.com/data_stores_regional"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/data_stores_regional
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the regional number of discovery engine engines
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-engines-regional
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-180s}&interval.endTime=${timestamp:datetimeutctz-120s}&filter=metric.type="discoveryengine.googleapis.com/engines_regional"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.endTime: TIMESTAMP::RFC3339
+            interval.startTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/engines_regional
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional search requests
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-search-requests-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/search_requests_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/search_requests_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional search requests
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-search-requests-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/search_requests_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/search_requests_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional search requests
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-search-requests-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/search_requests_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/search_requests_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional data stores
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-data-stores-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/data_stores_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/data_stores_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional data stores
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-data-stores-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/data_stores_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/data_stores_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional data stores
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-data-stores-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/data_stores_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/data_stores_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional tasks and actions
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-tasks-and-actions-tier-enterprise-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional tasks and actions
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-tasks-and-actions-tier-enterprise-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional tasks and actions
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-tasks-and-actions-tier-enterprise-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/tasks_and_actions_tier_enterprise_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional text answer generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-text-answer-gen-tier-enterprise-standard-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional text answer generation
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-text-answer-gen-tier-enterprise-standard-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional text answer generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-text-answer-gen-tier-enterprise-standard-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/text_answer_gen_tier_enterprise_standard_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional image generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-image-gen-tier-enterprise-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional image generation
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-image-gen-tier-enterprise-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional image generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-image-gen-tier-enterprise-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/image_gen_tier_enterprise_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional video generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-video-gen-tier-enterprise-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional video generation
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-video-gen-tier-enterprise-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional video generation
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-video-gen-tier-enterprise-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/video_gen_tier_enterprise_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the number of attempts to exceed the limit on quota metric for regional deep research
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-deep-research-query-total-tier-enterprise-standard-regional-exceeded
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/exceeded"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/exceeded
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current limit on quota metric for regional deep research
+        # Metric kind, type, unit: GAUGE, INT64, 1
+        #
+        - name: discovery-engine-quota-deep-research-query-total-tier-enterprise-standard-regional-limit
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/limit"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/limit
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the current usage on quota metric for regional deep research
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-quota-deep-research-query-total-tier-enterprise-standard-regional-usage
+          event_type: GeminiEnterpriseQuotaSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-210s}&interval.endTime=${timestamp:datetimeutctz-150s}&filter=metric.type="discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/usage"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.limit_name: limitName
+            parent.0.metric.labels.method: method
+            parent.0.metric.labels.regional_location: regionalLocation
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/quota/deep_research_query_total_tier_enterprise_standard_regional/usage
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the dataconnector request count
+        # Metric kind, type, unit: DELTA, INT64, 1
+        #
+        - name: discovery-engine-dataconnector-request-count
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-420s}&interval.endTime=${timestamp:datetimeutctz-360s}&filter=metric.type="discoveryengine.googleapis.com/dataconnector/request_count"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.resource.type: resourceType
+            parent.0.metric.labels.grpc_status_code: grpcStatusCode
+            parent.0.metric.labels.response_code: responseCode
+            parent.0.metric.labels.response_code_class: responseCodeClass
+            parent.0.metric.labels.status: status
+            parent.0.resource.labels.location: resourceLocation
+            parent.0.resource.labels.project_id: projectId
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/dataconnector/request_count
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the agent session count
+        # Metric kind, type, unit: CUMULATIVE, INT64, 1
+        #
+        - name: discovery-engine-agent-session-count
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-360s}&interval.endTime=${timestamp:datetimeutctz-300s}&filter=metric.type="discoveryengine.googleapis.com/agent_session_count"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.project_id: projectId
+            parent.0.resource.labels.agent_id: agentId
+            parent.0.resource.labels.location: resourceLocation
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/agent_session_count
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the agent session with tool count
+        # Metric kind, type, unit: CUMULATIVE, INT64, 1
+        #
+        - name: discovery-engine-agent-session-with-tool-count
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-360s}&interval.endTime=${timestamp:datetimeutctz-300s}&filter=metric.type="discoveryengine.googleapis.com/agent_session_with_tool_count"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.project_id: projectId
+            parent.0.resource.labels.agent_id: agentId
+            parent.0.resource.labels.location: resourceLocation
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/agent_session_with_tool_count
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+
+        #
+        # Get the agent total latencies
+        # Metric kind, type, unit: DELTA, DISTRIBUTION, ms
+        #
+        - name: discovery-engine-agent-total-latencies
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-390s}&interval.endTime=${timestamp:datetimeutctz-330s}&filter=metric.type="discoveryengine.googleapis.com/agent_total_latencies"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.metric.labels.status: status
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.project_id: projectId
+            parent.0.resource.labels.agent_id: agentId
+            parent.0.resource.labels.location: resourceLocation
+            value.distributionValue.count: distributionCount
+            value.distributionValue.mean: distributionMean
+            value.distributionValue.sumOfSquaredDeviation: distributionSumOfSquaredDeviation
+            value.distributionValue.range.min: distributionMin
+            value.distributionValue.range.max: distributionMax
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/agent_total_latencies
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
+            - value.distributionValue.bucketOptions
+            - value.distributionValue.bucketCounts
+
+        #
+        # Get the agent turn count
+        # Metric kind, type, unit: CUMULATIVE, INT64, 1
+        #
+        - name: discovery-engine-agent-turn-count
+          event_type: GeminiEnterpriseSample
+          url: https://monitoring.googleapis.com/v3/projects/${var:project_id}/timeSeries?interval.startTime=${timestamp:datetimeutctz-360s}&interval.endTime=${timestamp:datetimeutctz-300s}&filter=metric.type="discoveryengine.googleapis.com/agent_turn_count"
+          headers:
+            Authorization: Bearer ${var:access_token}
+          start_key:
+          - timeSeries>points
+          inherit_attributes: true
+          timestamp_conversion:
+            interval.startTime: TIMESTAMP::RFC3339
+            interval.endTime: TIMESTAMP::RFC3339
+          rename_keys:
+            parent.0.metric.type: metricType
+            parent.0.resource.type: resourceType
+            parent.0.resource.labels.project_id: projectId
+            parent.0.resource.labels.agent_id: agentId
+            parent.0.resource.labels.location: resourceLocation
+            value.int64Value: value
+          sample_include_filter:
+          - metricType: discoveryengine.googleapis.com/agent_turn_count
+          add_attribute:
+            timestamp: ${interval.endTime}
+          remove_keys:
+            - parent.0.api.StatusCode
+            - parent.0.metricKind
+            - parent.0.valueType
+            - parent.0.unit
