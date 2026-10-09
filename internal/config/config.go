@@ -22,7 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"go.uber.org/ratelimit"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
