@@ -263,62 +263,63 @@ type SampleMerge struct {
 
 // API YAML Struct
 type API struct {
-	Name              string            `yaml:"name"`
-	EventType         string            `yaml:"event_type"`  // override eventType
-	Entity            string            `yaml:"entity"`      // define a custom entity name
-	EntityType        string            `yaml:"entity_type"` // define a custom entity type (namespace)
-	Ingest            bool              `yaml:"ingest"`
-	Inventory         map[string]string `yaml:"inventory"`      // set as inventory
-	InventoryOnly     bool              `yaml:"inventory_only"` // only generate inventory data
-	Events            map[string]string `yaml:"events"`         // set as events
-	EventsOnly        bool              `yaml:"events_only"`    // only generate events
-	Merge             string            `yaml:"merge"`          // merge into another eventType
-	RunAsync          bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
-	AsyncRate         int               `yaml:"async_rate"`     //Async Request Throttle Rate
-	JoinKey           string            `yaml:"join_key"`       // merge into another eventType
-	Prefix            string            `yaml:"prefix"`         // prefix attribute keys
-	File              string            `yaml:"file"`
-	URL               string            `yaml:"url"`
-	Pagination        Pagination        `yaml:"pagination"`
-	EscapeURL         bool              `yaml:"escape_url"`
-	Prometheus        Prometheus        `yaml:"prometheus"`
-	Cache             string            `yaml:"cache"` // read data from datastore
-	Database          string            `yaml:"database"`
-	DBDriver          string            `yaml:"db_driver"`
-	DBConn            string            `yaml:"db_conn"`
-	Shell             string            `yaml:"shell"`
-	CommandsAsync     bool              `yaml:"commands_async"` // run commands async
-	Commands          []Command         `yaml:"commands"`
-	DBQueries         []Command         `yaml:"db_queries"`
-	DBAsync           bool              `yaml:"db_async"`   // perform db queries async
-	Jq                string            `yaml:"jq"`         // parse data using jq
-	ParseHTML         bool              `yaml:"parse_html"` // parse text/html content type table element to JSON
-	Jmx               JMX               `yaml:"jmx"`
-	IgnoreLines       []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
-	User, Pass        string
-	Proxy             string
-	TLSConfig         TLSConfig `yaml:"tls_config"`
-	Timeout           int
-	Method            string
-	Payload           string
-	Headers           map[string]string `yaml:"headers"`
-	DisableParentAttr bool              `yaml:"disable_parent_attr"`
-	StartKey          []string          `yaml:"start_key"` // start from a different section of the payload
-	StoreLookups      map[string]string `yaml:"store_lookups"`
-	DedupeLookups     []string          `yaml:"dedupe_lookups"`
-	StoreVariables    map[string]string `yaml:"store_variables"`
-	LazyFlatten       []string          `yaml:"lazy_flatten"`
-	SampleKeys        map[string]string `yaml:"sample_keys"`
-	RenameSamples     map[string]string `yaml:"rename_samples"`     // using regex if sample has a key that matches, make that a different sample
-	SkipProcessing    []string          `yaml:"skip_processing"`    // skip processing particular keys using an array of regex strings
-	InheritAttributes bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
-	CustomAttributes  map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
-	SplitObjects      bool              `yaml:"split_objects"`      // convert object with nested objects to array
-	SplitArray        bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
-	LeafArray         bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
-	Scp               SCP               `yaml:"scp"`
-	HWSigner          HWSigner          `yaml:"hw_signer"`     // Huawei Cloud Service API signer
-	AliyunSigner      AliyunSigner      `yaml:"aliyun_signer"` // Huawei Cloud Service API signer
+	Name                string            `yaml:"name"`
+	EventType           string            `yaml:"event_type"`  // override eventType
+	Entity              string            `yaml:"entity"`      // define a custom entity name
+	EntityType          string            `yaml:"entity_type"` // define a custom entity type (namespace)
+	Ingest              bool              `yaml:"ingest"`
+	Inventory           map[string]string `yaml:"inventory"`      // set as inventory
+	InventoryOnly       bool              `yaml:"inventory_only"` // only generate inventory data
+	Events              map[string]string `yaml:"events"`         // set as events
+	EventsOnly          bool              `yaml:"events_only"`    // only generate events
+	Merge               string            `yaml:"merge"`          // merge into another eventType
+	RunAsync            bool              `yaml:"run_async" `     // API block to run in Async mode when using with lookupstore
+	AsyncRate           int               `yaml:"async_rate"`     //Async Request Throttle Rate
+	JoinKey             string            `yaml:"join_key"`       // merge into another eventType
+	Prefix              string            `yaml:"prefix"`         // prefix attribute keys
+	File                string            `yaml:"file"`
+	URL                 string            `yaml:"url"`
+	Pagination          Pagination        `yaml:"pagination"`
+	EscapeURL           bool              `yaml:"escape_url"`
+	Prometheus          Prometheus        `yaml:"prometheus"`
+	Cache               string            `yaml:"cache"` // read data from datastore
+	Database            string            `yaml:"database"`
+	DBDriver            string            `yaml:"db_driver"`
+	DBConn              string            `yaml:"db_conn"`
+	Shell               string            `yaml:"shell"`
+	CommandsAsync       bool              `yaml:"commands_async"` // run commands async
+	Commands            []Command         `yaml:"commands"`
+	DBQueries           []Command         `yaml:"db_queries"`
+	DBAsync             bool              `yaml:"db_async"`              // perform db queries async
+	Jq                  string            `yaml:"jq"`                    // parse data using jq
+	ParseHTML           bool              `yaml:"parse_html"`            // parse text/html content type table element to JSON
+	ParseHtmlAttributes map[string]string `yaml:"parse_html_attributes"` // parse HTML attributes in table element cell match the regex settings
+	Jmx                 JMX               `yaml:"jmx"`
+	IgnoreLines         []int             // not implemented - idea is to ignore particular lines starting from 0 of the command output
+	User, Pass          string
+	Proxy               string
+	TLSConfig           TLSConfig `yaml:"tls_config"`
+	Timeout             int
+	Method              string
+	Payload             string
+	Headers             map[string]string `yaml:"headers"`
+	DisableParentAttr   bool              `yaml:"disable_parent_attr"`
+	StartKey            []string          `yaml:"start_key"` // start from a different section of the payload
+	StoreLookups        map[string]string `yaml:"store_lookups"`
+	DedupeLookups       []string          `yaml:"dedupe_lookups"`
+	StoreVariables      map[string]string `yaml:"store_variables"`
+	LazyFlatten         []string          `yaml:"lazy_flatten"`
+	SampleKeys          map[string]string `yaml:"sample_keys"`
+	RenameSamples       map[string]string `yaml:"rename_samples"`     // using regex if sample has a key that matches, make that a different sample
+	SkipProcessing      []string          `yaml:"skip_processing"`    // skip processing particular keys using an array of regex strings
+	InheritAttributes   bool              `yaml:"inherit_attributes"` // attempts to inherit attributes were possible
+	CustomAttributes    map[string]string `yaml:"custom_attributes"`  // set additional custom attributes
+	SplitObjects        bool              `yaml:"split_objects"`      // convert object with nested objects to array
+	SplitArray          bool              `yaml:"split_array"`        // convert array to samples, use SetHeader to set attribute name
+	LeafArray           bool              `yaml:"leaf_array"`         // convert array element to samples when SplitArray, use SetHeader to set attribute name
+	Scp                 SCP               `yaml:"scp"`
+	HWSigner            HWSigner          `yaml:"hw_signer"`     // Huawei Cloud Service API signer
+	AliyunSigner        AliyunSigner      `yaml:"aliyun_signer"` // Huawei Cloud Service API signer
 	// Key manipulation
 	ToLower      bool              `yaml:"to_lower"`       // convert all unicode letters mapped to their lower case.
 	ConvertSpace string            `yaml:"convert_space"`  // convert spaces to another char
