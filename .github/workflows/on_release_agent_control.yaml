@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   oci-publish:
-    uses: newrelic/coreint-automation/.github/workflows/reusable_agent_control_release.yaml@v3
+    uses: newrelic/coreint-automation/.github/workflows/reusable_agent_control_release.yaml@v4
     with:
       tag: ${{ github.event.release.tag_name || inputs.tag }}
       agent_type: NRIFlex
