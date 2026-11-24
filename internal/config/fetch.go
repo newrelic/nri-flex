@@ -87,7 +87,14 @@ func FetchData(apiNo int, yml *load.Config, samplesToMerge *load.SamplesToMerge)
 				yml.Datastore = map[string][]interface{}{}
 			}
 			yml.Datastore[api.File] = dataStore
-		}
+		} else if api.Database != "" && api.DBConn != "" {
+            if yml.Datastore == nil {
+                yml.Datastore = map[string][]interface{}{}
+            }
+            if api.Name != "" {
+                yml.Datastore[api.Name] = dataStore
+            }
+    	}
 
 		load.CacheStoreLock.Unlock()
 	}
