@@ -482,6 +482,8 @@ github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9
 github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/go-sql-driver/mysql v1.10.2 h1:5TRvGvczDohUMOCRA5aCAXgfSZOo/oNDSFD/2RrChS0=
 github.com/go-sql-driver/mysql v1.10.2/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
+github.com/go-sql-driver/mysql v1.11.0 h1:0dFnuu2mR7g+8Smo/rL18y1WnTLgVrHttzSahf20Gb4=
+github.com/go-sql-driver/mysql v1.11.0/go.mod h1:evJsoGjlO/9BFsnfXyjtluDYb3OSGzPNOnUaBl/2Dao=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
 github.com/golang-jwt/jwt/v5 v5.3.1/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 h1:au07oEsX2xN0ktxqI+Sida1w446QrXBRJ0nee3SNZlA=
